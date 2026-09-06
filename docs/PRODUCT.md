@@ -134,11 +134,13 @@ sequenceDiagram
 * Admin console (merchant verification, dispute moderation, commission settings).
 * Customer review and rating loop.
 
-### 7.2 Post-MVP Roadmap (Future Scope)
-* **M07+ Expansion**: Scheduled recurring bag subscriptions (weekly bread or fruit box).
-* **Delivery Aggregator Integration**: Optional third-party local courier dispatch (Peyk) for non-pickup customers during specific off-peak hours.
-* **B2B Wholesale Surplus**: Enabling wholesale distributors to offload bulk inventory to micro-retailers.
-* **AI Dynamic Pricing**: Suggesting optimal bag pricing based on neighborhood historical sell-through rates.
+### 7.3 Geographic Launch Strategy
+* **Phase 1 Launch (Pilot City — ارومیه / Urmia)**:
+  * Initial commercial pilot launch in **Urmia** (West Azerbaijan Province).
+  * High-density corridors: خیابان دانشکده (Daneshkadeh), استادان (Ostadan), شیخ‌تپه (Sheykh Tappeh), خیام (Khayyam), کاشانی (Kashani), امام (Emam), بهداری و درستکار.
+  * Core focus: Local artisanal confectioneries (نقل و حلوای سنتی), bakeries, cafes, produce markets, and neighborhood supermarkets to build supply density and customer habit loops.
+* **Phase 2 Expansion (Tehran & Metropolises — تهران و کلان‌شهرها)**:
+  * Expanding proven operational playbooks and network density to Tehran (سعادت‌آباد، شهرک غرب، تجریش، انقلاب، صادقیه) and other major metropolises.
 
 ---
 

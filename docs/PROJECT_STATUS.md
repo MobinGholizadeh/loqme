@@ -10,11 +10,11 @@
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **M02 — Core Domain & Database** |
-| **Milestone Status** | `Ready for M02` (Post-M01 Mobile-Readiness Architecture Refactor Completed) |
-| **Overall Completion** | `17%` (M00 100%, M01 100%, Post-M01 Refactor 100%) |
-| **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 running) |
-| **Last Updated** | 2026-09-06 (Post-M01 Mobile-Readiness Refactor Verified) |
+| **Current Milestone** | **M03 — Marketplace Discovery** |
+| **Milestone Status** | `Ready for M03` (Milestone M02 Core Domain & Database Completed) |
+| **Overall Completion** | `25%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%) |
+| **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running) |
+| **Last Updated** | 2026-09-06 (Milestone M02 Completed & Verified) |
 
 ---
 
@@ -25,13 +25,13 @@
 * **Monorepo Architecture**:
   * `apps/web`: Next.js 14.2.23 (App Router), React 18, TypeScript 5
   * `apps/mobile`: [Future] React Native / Expo Client
-  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers)
-  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile & Persian utilities)
+  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers, Marketplace entities)
+  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile & Persian utilities, Listing/Merchant schemas)
   * `packages/design-tokens`: `@loqme/design-tokens` (White + Teal palette, Emil Kowalski motion)
   * `packages/api`: `@loqme/api` (Universal fetch-based API client, Bearer & Cookie auth)
   * `packages/config`: `@loqme/config` (Shared tsconfig presets)
-* **Database**: PostgreSQL 15 with PostGIS (Active via Docker container `loqme-postgres` on port 5432)
-* **ORM & Migrations**: Prisma ORM `v5.22.0` with migration `0001_init_auth_users` applied
+* **Database**: PostgreSQL 15 with PostGIS 3.4 (Active via Docker container `loqme-postgres` on port 5432)
+* **ORM & Migrations**: Prisma ORM `v5.22.0` with migrations `0001_init_auth_users` and `20260906201522_core_domain_entities` applied
 * **Security & Auth**: Universal Dual-Mode Auth (CSPRNG 5-digit OTP, signed `jose` JWT via either `Authorization: Bearer <token>` or HttpOnly `loqme_session` cookie)
 * **Styling**: Centralized Token Architecture in `@loqme/design-tokens`, Vazirmatn font, RTL-first (`dir="rtl"`)
 * **Version Control**: Git initialized on `master` branch
@@ -45,7 +45,7 @@
 | **M00** | **Project Discovery & Architecture** | `Completed` | `100%` |
 | **M01** | **Application Foundation** | `Completed` | `100%` |
 | **Post-M01** | **Mobile-Readiness Architecture Refactor** | `Completed` | `100%` |
-| **M02** | Core Domain & Database | `Pending` | `0%` |
+| **M02** | **Core Domain & Database** | `Completed` | `100%` |
 | **M03** | Marketplace Discovery | `Pending` | `0%` |
 | **M04** | Orders, Inventory & Payments | `Pending` | `0%` |
 | **M05** | Pickup Verification | `Pending` | `0%` |
@@ -90,6 +90,13 @@
 - [x] **CP-MR.8 — Documentation Suite**: Authored `docs/MOBILE_ARCHITECTURE.md`, `docs/decisions/ADR-001-mobile-architecture.md`, and updated `AGENTS.md` and `ROADMAP.md`.
 - [x] **CP-MR.9 — Validation Suite**: 25/25 Vitest tests passing, 0 TypeScript errors (`tsc --noEmit`), 0 ESLint warnings, production build exit code 0.
 
+### Milestone M02 Checklist
+- [x] **CP-02.1 — Prisma Schema Expansion**: Defined core domain models (`Province`, `City`, `Neighborhood`, `MerchantLocation`, `MerchantHours`, `Category`, `Listing`, `ListingImage`, `ListingInventory`, `ListingSafety`, `ListingAttributes`) and enums (`ListingType`, `ListingStatus`, `SafetyStatus`, `TemperatureRequirement`).
+- [x] **CP-02.2 — PostGIS & Database Constraints**: Applied migration `20260906201522_core_domain_entities` with PostGIS 3.4 extension, auto-sync geography trigger, GIST spatial index (`idx_merchant_location_geom`), and PostgreSQL check constraints (`chk_inventory_non_negative`, `chk_listing_price_consistency`, `chk_listing_pickup_window`).
+- [x] **CP-02.3 — Core Domain Services**: Built `MerchantService` (with PostGIS `ST_Distance` and `ST_DWithin` radius search), `ListingService` (atomic transaction creation with price/window guards), and `InventoryService` (atomic reservation and anti-overselling locks).
+- [x] **CP-02.4 — Persian Seed Suite (Urmia First, Tehran Expansion)**: Seeded West Azerbaijan (Urmia) with 7 neighborhoods (دانشکده، شیخ‌تپه، استادان، خیام، کاشانی، بهداری، امام) as Phase 1 launch market, plus Tehran with 5 neighborhoods, 6 food categories, 12 authentic merchants, and 25 realistic surplus listings (Surprise Bags & Flash Deals) with authentic Toman pricing.
+- [x] **CP-02.5 — Validation & Integration Tests**: 35/35 tests passing across 6 suites verifying PostGIS queries (in both Urmia and Tehran), atomic domain provisioning, and database check constraint enforcement.
+
 ---
 
 ## 5. Important Technical Decisions
@@ -99,17 +106,19 @@
 3. **Universal Dual-Mode Authentication**: Backend middleware and routes accept both `Authorization: Bearer <token>` (Mobile) and `loqme_session` HttpOnly cookie (Web).
 4. **Backend Sole Authority**: Authoritative business rules, pricing, inventory locks, and financial ledger remain strictly on the backend.
 5. **Platform-Neutral Design Tokens**: Single source of truth in `@loqme/design-tokens` exported as pure TypeScript objects with Web CSS custom property helper.
+6. **PostGIS Native Spatial Indexing**: Stores coordinates in `MerchantLocation` with an automated trigger populating PostGIS `geography(Point, 4326)` and indexed using GIST (`idx_merchant_location_geom`) for high-performance sub-millisecond radius search.
+7. **Database-Level Guardrails**: Enforced price validity (`discounted < original`), inventory integrity (`total >= reserved + sold`), and pickup window chronological validity directly in PostgreSQL via check constraints.
+8. **Urmia-First Launch Strategy**: Initial commercial rollout, neighborhood density building, merchant onboarding, and operational learning starts in **Urmia (ارومیه)**, followed by expansion to Tehran.
 
 ---
 
-## 6. Known Limitations & Future Mobile Blockers
+## 6. Known Limitations & Future Blockers
 
-| Area | Current State | Future Mobile Requirement |
+| Area | Current State | Future Requirement |
 | :--- | :--- | :--- |
-| **Marketplace Listings** | Not yet modeled in database (M02 scope). | Required before mobile discovery screens can be built. |
-| **Geospatial PostGIS Queries** | PostgreSQL PostGIS active; endpoints pending M03. | Required for mobile nearby radius queries (`ST_DWithin`). |
-| **Payment Gateway Deep Links** | Payment domain pending M04. | Deep link scheme (`loqme://payment-callback`) required for mobile IPG return. |
-| **Native Push Notifications** | Mock console notifications only. | Expo Push Notification / APNs credentials required in M-Mobile-06. |
+| **Marketplace Discovery UI & Map** | Models & PostGIS queries implemented; UI pending M03. | M03 scope: Feed views, category tabs, and Leaflet map pins. |
+| **Payment Gateway Integration** | Payment abstractions defined; real IPG adapters pending M04. | M04 scope: Zarinpal/Saman gateway integration and callbacks. |
+| **Pickup Verification Flow** | Staff roles and schema ready; QR code scanning pending M05. | M05 scope: Merchant QR scanner and OTP verification handshake. |
 
 ---
 
@@ -123,8 +132,9 @@
 
 ## 8. Latest Validation Results
 
-* **Unit Test Suite**: 25 tests passing across 5 test suites in 1.49s (`tests/auth.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, `tests/shared-packages.test.ts`).
-* **TypeScript Typecheck**: `npx tsc --noEmit` exited with code 0 (zero errors).
+* **Unit & Integration Test Suite**: 35 tests passing across 6 test suites (`tests/auth.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, `tests/shared-packages.test.ts`, `tests/m02-domain.test.ts`).
+* **TypeScript Typecheck**: `npm run typecheck` and `npx tsc --noEmit` exited with code 0 (zero errors across all packages and apps).
 * **ESLint Validation**: `npm run lint` reported 0 errors and 0 warnings.
-* **Production Build**: `npm run build` completed successfully (exit code 0, 17 static pages and dynamic routes compiled and optimized).
-* **Database & Migrations**: PostgreSQL 15 with PostGIS active, Prisma migration `0001_init_auth_users` applied.
+* **Production Build**: `npm run build` completed successfully (exit code 0, 17 routes compiled and optimized).
+* **Database & Migrations**: PostgreSQL 15 with PostGIS 3.4 active, Prisma migrations `0001_init_auth_users` and `20260906201522_core_domain_entities` applied.
+* **Database Seed**: 12 merchants, 12 locations, 6 categories, 25 listings with inventories and safety records loaded across Urmia (Launch City) and Tehran (Expansion City).

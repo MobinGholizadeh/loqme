@@ -134,6 +134,9 @@ Refer to [ARCHITECTURE.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scrat
 * **Calendar**: **Jalali (Solar Hijri / خورشیدی)** for all customer-facing dates, pickup windows, and operational schedules.
 * **Phone Numbers**: Iranian standard format (`09xxxxxxxxx` or `+989xxxxxxxxx`).
 * **Typography**: **Vazirmatn** (open-source OFL licensed). Never use unlicensed proprietary fonts or assets.
+* **Geographic Rollout Strategy**:
+  * **Phase 1 (Pilot & Launch City)**: **Urmia (ارومیه)**, West Azerbaijan. Initial marketplace launch, seed datasets, merchant density, and operational optimizations commence in Urmia.
+  * **Phase 2 (Expansion City)**: **Tehran (تهران)** and subsequent metropolitan areas.
 
 Refer to [DESIGN_SYSTEM.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scratch/loqme/docs/DESIGN_SYSTEM.md).
 

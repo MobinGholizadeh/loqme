@@ -2,8 +2,8 @@
 
 > **Milestone**: M02  
 > **Title**: Core Domain & Database  
-> **Status**: `Pending`  
-> **Target Completion**: 0%
+> **Status**: `Completed`  
+> **Target Completion**: 100%
 
 ---
 
@@ -105,21 +105,21 @@ M02 establishes the business entity foundations for the marketplace. It transfor
 
 # Acceptance Criteria
 
-1. [ ] Prisma migrations apply cleanly to PostgreSQL.
-2. [ ] PostGIS spatial index successfully created.
-3. [ ] Seed script executes and populates 10 merchants and 25 listings in Tehran.
-4. [ ] Merchant can create and persist a Surprise Bag via `ListingService`.
-5. [ ] Anti-overselling check constraint verified.
+1. [x] Prisma migrations apply cleanly to PostgreSQL.
+2. [x] PostGIS spatial index successfully created.
+3. [x] Seed script executes and populates 10 merchants and 25 listings in Tehran.
+4. [x] Merchant can create and persist a Surprise Bag via `ListingService`.
+5. [x] Anti-overselling check constraint verified.
 
 ---
 
 # Checkpoints
 
-- [ ] **CP-02.1**: Define Prisma schema for Geography, Merchants, Categories, and Listings.
-- [ ] **CP-02.2**: Write and apply PostgreSQL migrations including PostGIS spatial indexes.
-- [ ] **CP-02.3**: Build `MerchantService` and `ListingService` domain logic.
-- [ ] **CP-02.4**: Implement Persian seed script with authentic Tehran locations and listings.
-- [ ] **CP-02.5**: Write integration tests validating database constraints and spatial queries.
+- [x] **CP-02.1**: Define Prisma schema for Geography, Merchants, Categories, and Listings.
+- [x] **CP-02.2**: Write and apply PostgreSQL migrations including PostGIS spatial indexes.
+- [x] **CP-02.3**: Build `MerchantService` and `ListingService` domain logic.
+- [x] **CP-02.4**: Implement Persian seed script with authentic Tehran locations and listings.
+- [x] **CP-02.5**: Write integration tests validating database constraints and spatial queries.
 
 ---
 

@@ -143,7 +143,7 @@ export interface StoreAddress {
 }
 
 // ==========================================
-// 5. Core Marketplace Domain (M02–M06 preview)
+// 5. Core Marketplace Domain (M02)
 // ==========================================
 
 export type MerchantCategory =
@@ -156,13 +156,17 @@ export type MerchantCategory =
 
 export type ListingType = 'SURPRISE_BAG' | 'FLASH_DEAL';
 
-export type ListingStatus = 'ACTIVE' | 'SOLD_OUT' | 'EXPIRED' | 'CANCELLED';
+export type ListingStatus = 'DRAFT' | 'PUBLISHED' | 'PAUSED' | 'SOLD_OUT' | 'EXPIRED';
 
 export type FoodSafetyStatus =
   | 'PENDING_REVIEW'
   | 'APPROVED'
   | 'RESTRICTED'
-  | 'UNSAFE';
+  | 'REJECTED'
+  | 'UNSAFE'
+  | 'EXPIRED';
+
+export type TemperatureRequirement = 'ROOM_TEMP' | 'CHILLED' | 'FROZEN';
 
 export type OrderStatus =
   | 'PENDING_PAYMENT'
@@ -175,7 +179,134 @@ export type OrderStatus =
 export type PaymentStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED';
 
 export interface PickupWindow {
-  startTime: string; // ISO 8601 or HH:mm
+  startTime: string; // HH:mm or ISO 8601
   endTime: string;
   pickupDate: string; // Jalali or YYYY-MM-DD
+}
+
+// ------------------------------------------
+// Domain Entity Interfaces
+// ------------------------------------------
+
+export interface ProvinceEntity {
+  id: string;
+  nameFa: string;
+  slug: string;
+}
+
+export interface CityEntity {
+  id: string;
+  provinceId: string;
+  nameFa: string;
+  slug: string;
+}
+
+export interface NeighborhoodEntity {
+  id: string;
+  cityId: string;
+  nameFa: string;
+  slug: string;
+  centerLat: number;
+  centerLng: number;
+}
+
+export interface MerchantHoursEntity {
+  id: string;
+  merchantLocationId: string;
+  dayOfWeek: number;
+  isOpen: boolean;
+  storeOpenTime: string;
+  storeCloseTime: string;
+  defaultPickupStart: string;
+  defaultPickupEnd: string;
+}
+
+export interface MerchantLocationEntity {
+  id: string;
+  merchantId: string;
+  cityId: string;
+  neighborhoodId?: string | null;
+  addressFa: string;
+  postalCode?: string | null;
+  latitude: number;
+  longitude: number;
+  phone?: string | null;
+  distanceMeters?: number;
+  city?: CityEntity;
+  neighborhood?: NeighborhoodEntity | null;
+  hours?: MerchantHoursEntity[];
+}
+
+export interface MerchantEntity {
+  id: string;
+  ownerUserId: string;
+  businessNameFa: string;
+  businessType: string;
+  licenseNumber?: string | null;
+  verificationStatus: string;
+  commissionPercent: number;
+  ratingAverage: number;
+  ratingCount: number;
+  locations?: MerchantLocationEntity[];
+  createdAt: Date | string;
+}
+
+export interface CategoryEntity {
+  id: string;
+  slug: string;
+  nameFa: string;
+  iconUrl?: string | null;
+  parentId?: string | null;
+  children?: CategoryEntity[];
+}
+
+export interface ListingInventoryEntity {
+  id: string;
+  listingId: string;
+  totalQuantity: number;
+  reservedQuantity: number;
+  soldQuantity: number;
+  availableQuantity: number;
+  version: number;
+}
+
+export interface ListingSafetyEntity {
+  id: string;
+  listingId: string;
+  safetyStatus: FoodSafetyStatus;
+  allergens: string[];
+  dietaryTags: string[];
+  storageInstructionsFa?: string | null;
+  temperatureRequirement: TemperatureRequirement;
+}
+
+export interface ListingEntity {
+  id: string;
+  merchantId: string;
+  merchantLocationId?: string | null;
+  categoryId: string;
+  type: ListingType;
+  titleFa: string;
+  descriptionFa?: string | null;
+  originalPriceToman: bigint | number;
+  discountedPriceToman: bigint | number;
+  discountPercentage: number;
+  pickupDate: Date | string;
+  pickupStart: Date | string;
+  pickupEnd: Date | string;
+  status: ListingStatus;
+  category?: CategoryEntity;
+  merchant?: MerchantEntity;
+  location?: MerchantLocationEntity | null;
+  inventory?: ListingInventoryEntity | null;
+  safety?: ListingSafetyEntity | null;
+  createdAt: Date | string;
+}
+
+export interface NearbyMerchantQuery {
+  latitude: number;
+  longitude: number;
+  radiusMeters?: number;
+  limit?: number;
+  businessType?: string;
 }

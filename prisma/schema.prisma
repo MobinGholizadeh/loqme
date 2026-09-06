@@ -36,31 +36,59 @@ enum StaffRole {
   CASHIER
 }
 
-model User {
-  id           String          @id @default(uuid())
-  mobile       String          @unique
-  role         Role            @default(CUSTOMER)
-  isActive     Boolean         @default(true)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+enum ListingType {
+  SURPRISE_BAG
+  FLASH_DEAL
+}
 
-  customer     Customer?
-  ownedStores  Merchant[]      @relation("MerchantOwner")
-  staffRoles   MerchantStaff[]
-  sessions     Session[]
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  SOLD_OUT
+  EXPIRED
+}
+
+enum SafetyStatus {
+  PENDING_REVIEW
+  APPROVED
+  RESTRICTED
+  REJECTED
+  UNSAFE
+  EXPIRED
+}
+
+enum TemperatureRequirement {
+  ROOM_TEMP
+  CHILLED
+  FROZEN
+}
+
+model User {
+  id          String          @id @default(uuid())
+  mobile      String          @unique
+  role        Role            @default(CUSTOMER)
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  customer    Customer?
+  ownedStores Merchant[]      @relation("MerchantOwner")
+  staffRoles  MerchantStaff[]
+  sessions    Session[]
 
   @@index([mobile])
 }
 
 model Customer {
-  id                    String   @id @default(uuid())
-  userId                String   @unique
-  fullName              String?
-  cumulativeSavingsToman BigInt  @default(0)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  fullName               String?
+  cumulativeSavingsToman BigInt   @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Merchant {
@@ -68,7 +96,9 @@ model Merchant {
   ownerUserId        String
   businessNameFa     String
   businessType       BusinessType       @default(BAKERY)
+  licenseNumber      String?
   verificationStatus VerificationStatus @default(PENDING)
+  commissionPercent  Decimal            @default(10.0) @db.Decimal(5, 2)
   ratingAverage      Float              @default(5.0)
   ratingCount        Int                @default(0)
   createdAt          DateTime           @default(now())
@@ -76,6 +106,8 @@ model Merchant {
 
   owner              User               @relation("MerchantOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
   staff              MerchantStaff[]
+  locations          MerchantLocation[]
+  listings           Listing[]
 
   @@index([ownerUserId])
 }
@@ -92,6 +124,179 @@ model MerchantStaff {
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([merchantId, userId])
+}
+
+model Province {
+  id        String   @id @default(uuid())
+  nameFa    String
+  slug      String   @unique
+  cities    City[]
+  createdAt DateTime @default(now())
+}
+
+model City {
+  id                String             @id @default(uuid())
+  provinceId        String
+  nameFa            String
+  slug              String
+  createdAt         DateTime           @default(now())
+
+  province          Province           @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  neighborhoods     Neighborhood[]
+  merchantLocations MerchantLocation[]
+
+  @@unique([provinceId, slug])
+}
+
+model Neighborhood {
+  id                String             @id @default(uuid())
+  cityId            String
+  nameFa            String
+  slug              String
+  centerLat         Float
+  centerLng         Float
+  createdAt         DateTime           @default(now())
+
+  city              City               @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  merchantLocations MerchantLocation[]
+
+  @@unique([cityId, slug])
+}
+
+model MerchantLocation {
+  id             String                                 @id @default(uuid())
+  merchantId     String
+  cityId         String
+  neighborhoodId String?
+  addressFa      String
+  postalCode     String?
+  latitude       Float
+  longitude      Float
+  phone          String?
+  geom           Unsupported("geography(Point, 4326)")?
+  createdAt      DateTime                               @default(now())
+  updatedAt      DateTime                               @updatedAt
+
+  merchant       Merchant                               @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  city           City                                   @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  neighborhood   Neighborhood?                          @relation(fields: [neighborhoodId], references: [id], onDelete: SetNull)
+  hours          MerchantHours[]
+  listings       Listing[]
+
+  @@index([merchantId])
+  @@index([cityId])
+  @@index([neighborhoodId])
+}
+
+model MerchantHours {
+  id                 String           @id @default(uuid())
+  merchantLocationId String
+  dayOfWeek          Int              // 0 = Saturday, 1 = Sunday, ..., 6 = Friday
+  isOpen             Boolean          @default(true)
+  storeOpenTime      String           // e.g. "08:00"
+  storeCloseTime     String           // e.g. "22:00"
+  defaultPickupStart String           // e.g. "20:00"
+  defaultPickupEnd   String           // e.g. "22:00"
+
+  location           MerchantLocation @relation(fields: [merchantLocationId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantLocationId, dayOfWeek])
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  slug      String     @unique
+  nameFa    String
+  iconUrl   String?
+  parentId  String?
+  createdAt DateTime   @default(now())
+
+  parent    Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children  Category[] @relation("CategoryHierarchy")
+  listings  Listing[]
+}
+
+model Listing {
+  id                   String              @id @default(uuid())
+  merchantId           String
+  merchantLocationId   String?
+  categoryId           String
+  type                 ListingType         @default(SURPRISE_BAG)
+  titleFa              String
+  descriptionFa        String?
+  originalPriceToman   BigInt
+  discountedPriceToman BigInt
+  pickupDate           DateTime
+  pickupStart          DateTime
+  pickupEnd            DateTime
+  status               ListingStatus       @default(DRAFT)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  merchant             Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  location             MerchantLocation?   @relation(fields: [merchantLocationId], references: [id], onDelete: SetNull)
+  category             Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  images               ListingImage[]
+  inventory            ListingInventory?
+  safety               ListingSafety?
+  attributes           ListingAttributes[]
+
+  @@index([merchantId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([pickupDate])
+  @@index([pickupEnd])
+}
+
+model ListingImage {
+  id           String   @id @default(uuid())
+  listingId    String
+  imageUrl     String
+  displayOrder Int      @default(0)
+  isPrimary    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  listing      Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+}
+
+model ListingInventory {
+  id               String   @id @default(uuid())
+  listingId        String   @unique
+  totalQuantity    Int
+  reservedQuantity Int      @default(0)
+  soldQuantity     Int      @default(0)
+  version          Int      @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  listing          Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model ListingSafety {
+  id                     String                 @id @default(uuid())
+  listingId              String                 @unique
+  safetyStatus           SafetyStatus           @default(APPROVED)
+  allergens              String[]
+  dietaryTags            String[]
+  storageInstructionsFa String?
+  temperatureRequirement TemperatureRequirement @default(ROOM_TEMP)
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  listing                Listing                @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model ListingAttributes {
+  id        String   @id @default(uuid())
+  listingId String
+  key       String
+  valueJson Json
+
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
 }
 
 model Session {
