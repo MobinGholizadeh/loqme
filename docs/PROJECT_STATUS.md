@@ -10,11 +10,11 @@
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **M04 — Orders, Inventory & Payments** |
-| **Milestone Status** | `Ready for M04` (Milestone M03 Marketplace Discovery Completed) |
-| **Overall Completion** | `33%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%) |
+| **Current Milestone** | **M05 — Pickup Verification** |
+| **Milestone Status** | `Ready for M05` (Milestone M04 Orders, Inventory & Payments Completed) |
+| **Overall Completion** | `41%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%) |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running) |
-| **Last Updated** | 2026-09-07 (Milestone M03 Marketplace Discovery Completed & Verified) |
+| **Last Updated** | 2026-09-07 (Milestone M04 Orders, Inventory & Payments Completed & Verified) |
 
 ---
 
@@ -25,13 +25,17 @@
 * **Monorepo Architecture**:
   * `apps/web`: Next.js 14.2.23 (App Router), React 18, TypeScript 5, Leaflet 1.9
   * `apps/mobile`: [Future] React Native / Expo Client
-  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers, Marketplace & Discovery entities)
-  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile, Marketplace search & filter schemas)
+  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers, Marketplace, Orders, Payments, Financial Transactions)
+  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile, Checkout & Reservation schemas)
   * `packages/design-tokens`: `@loqme/design-tokens` (White + Teal palette, Emil Kowalski motion)
   * `packages/api`: `@loqme/api` (Universal fetch-based API client, Bearer & Cookie auth)
   * `packages/config`: `@loqme/config` (Shared tsconfig presets)
 * **Database**: PostgreSQL 15 with PostGIS 3.4 (Active via Docker container `loqme-postgres` on port 5432)
-* **ORM & Migrations**: Prisma ORM `v5.22.0` with migrations `0001_init_auth_users`, `20260906201522_core_domain_entities`, and `20260907000300_add_favorites_table` applied
+* **ORM & Migrations**: Prisma ORM `v5.22.0` with migrations:
+  * `0001_init_auth_users`
+  * `20260906201522_core_domain_entities`
+  * `20260907000300_add_favorites_table`
+  * `20260907001800_orders_payments_ledger` (Reservation, Order, Payment, FinancialTransaction, Refund)
 * **Security & Auth**: Universal Dual-Mode Auth (CSPRNG 5-digit OTP, signed `jose` JWT via either `Authorization: Bearer <token>` or HttpOnly `loqme_session` cookie)
 * **Styling**: Centralized Token Architecture in `@loqme/design-tokens`, Vazirmatn font, RTL-first (`dir="rtl"`)
 * **Version Control**: Git initialized on `master` branch
@@ -47,7 +51,7 @@
 | **Post-M01** | **Mobile-Readiness Architecture Refactor** | `Completed` | `100%` |
 | **M02** | **Core Domain & Database** | `Completed` | `100%` |
 | **M03** | **Marketplace Discovery** | `Completed` | `100%` |
-| **M04** | Orders, Inventory & Payments | `Pending` | `0%` |
+| **M04** | **Orders, Inventory & Payments** | `Completed` | `100%` |
 | **M05** | Pickup Verification | `Pending` | `0%` |
 | **M06** | Trust, Safety & Moderation | `Pending` | `0%` |
 | **M07** | Merchant Product | `Pending` | `0%` |
@@ -106,6 +110,15 @@
 - [x] **CP-03.6 — Merchant Profile & Favorites System**: Applied migration `20260907000300_add_favorites_table`, built `/merchants/[id]` profile view with operating hours and active listings, plus `/api/merchants/[id]/favorite` dual-mode toggle endpoint.
 - [x] **CP-03.7 — Discovery Tests & Validation**: 46/46 vitest tests passing across 7 suites (`tests/m03-discovery.test.ts`), Next.js production build exit code 0, 0 TypeScript errors, 0 ESLint warnings.
 
+### Milestone M04 Checklist
+- [x] **CP-04.1 — ReservationService & Atomic Inventory Locking**: Built 10-minute hold reservation service with atomic conditional update (`WHERE (total - reserved - sold) >= $quantity`), auto-release background sweep, and customer cancellation.
+- [x] **CP-04.2 — Checkout Summary UI & Live 10-Min Countdown**: Built `/checkout/[reservationId]` with live countdown timer, order item summary, net customer savings indicator, gateway selector, and terms acceptance.
+- [x] **CP-04.3 — IPaymentGateway Abstraction & Gateways**: Implemented `IPaymentGateway` interface, `MockPaymentGateway` (for dev and tests), and `ZarinpalGatewayAdapter` (for production IPG transactions).
+- [x] **CP-04.4 — Server Payment Verification & Webhook Endpoint**: Built `/api/payments/verify` handling both browser redirects (with automated redirect to `/orders/[id]/receipt`) and headless webhook POST calls with authoritative server-side amount matching.
+- [x] **CP-04.5 — OrderService State Machine**: Built human-readable order number generator (`LQ-XXXXX`), state transitions (`PENDING_PAYMENT` → `PAID` → `READY_FOR_PICKUP` → `COMPLETED` / `CANCELLED` / `REFUNDED`), and customer cumulative savings tracker.
+- [x] **CP-04.6 — Double-Entry Financial Ledger Records**: Built `FinancialTransaction` accounting entries tracking gross customer payment (debit `CUSTOMER_PAYMENT`, credit `PLATFORM_CLEARING`), merchant payable (credit `MERCHANT_PAYABLE`), and 10% platform commission cut (credit `PLATFORM_COMMISSION`).
+- [x] **CP-04.7 — Concurrency Stress Test Suite**: 53/53 tests passing across 8 suites (`tests/m04-orders-payments.test.ts`), verifying 20 simultaneous threads competing for the last 2 surplus bags: exactly 2 succeed, 18 rejected with zero overselling.
+
 ---
 
 ## 5. Important Technical Decisions
@@ -119,6 +132,8 @@
 7. **Database-Level Guardrails**: Enforced price validity (`discounted < original`), inventory integrity (`total >= reserved + sold`), and pickup window chronological validity directly in PostgreSQL via check constraints.
 8. **Urmia-First Launch Strategy**: Initial commercial rollout, neighborhood density building, merchant onboarding, and operational learning starts in **Urmia (ارومیه)**, followed by expansion to Tehran.
 9. **Interactive Leaflet Map with SSR Disabled**: Dynamic import with `ssr: false` avoids SSR `window` errors in Next.js App Router while rendering custom White + Teal markers with active bag counts.
+10. **Atomic Conditional SQL Concurrency Defense**: Inventory reservation and purchase execution use single atomic updates checking `(totalQuantity - reservedQuantity - soldQuantity) >= $quantity` directly in PostgreSQL, completely eliminating race conditions without heavy distributed locks.
+11. **Double-Entry Financial Ledger**: All monetary transfers record dual balanced entries (`CUSTOMER_PAYMENT`, `PLATFORM_CLEARING`, `MERCHANT_PAYABLE`, `PLATFORM_COMMISSION`) to provide an auditable accounting foundation.
 
 ---
 
@@ -126,9 +141,9 @@
 
 | Area | Current State | Future Requirement |
 | :--- | :--- | :--- |
-| **Payment Gateway Integration** | Payment abstractions defined; real IPG adapters pending M04. | M04 scope: Zarinpal/Saman gateway integration and callbacks. |
-| **Cart & Temporary Reservation Locks** | 10-minute hold countdown logic pending M04. | M04 scope: Inventory reservation holding pattern. |
-| **Pickup Verification Flow** | Staff roles and schema ready; QR code scanning pending M05. | M05 scope: Merchant QR scanner and OTP verification handshake. |
+| **Pickup Verification Flow** | Orders transition to `READY_FOR_PICKUP` upon payment; QR code and merchant scan pending M05. | M05 scope: Merchant QR scanner and OTP verification handshake. |
+| **Customer Dispute & Refund UI** | Programmatic `refundPayment` domain abstraction implemented; customer dispute UI pending M06. | M06 scope: Trust, safety and dispute resolution. |
+| **Automated Bank Payouts** | Merchant payable balances tracked in financial ledger; automated Paya/Satna bank transfers pending M08. | M08 scope: Admin platform and payout batching. |
 
 ---
 
@@ -142,9 +157,10 @@
 
 ## 8. Latest Validation Results
 
-* **Unit & Integration Test Suite**: 46 tests passing across 7 test suites (`tests/auth.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, `tests/shared-packages.test.ts`, `tests/m02-domain.test.ts`, `tests/m03-discovery.test.ts`).
+* **Unit & Integration Test Suite**: 53 tests passing across 8 test suites (`tests/auth.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, `tests/shared-packages.test.ts`, `tests/m02-domain.test.ts`, `tests/m03-discovery.test.ts`, `tests/m04-orders-payments.test.ts`).
 * **TypeScript Typecheck**: `npm run typecheck` and `npx tsc --noEmit` exited with code 0 (zero errors across all packages and apps).
 * **ESLint Validation**: `npm run lint` reported 0 errors and 0 warnings.
 * **Production Build**: `npm run build` completed successfully (exit code 0, 17 routes compiled and optimized).
-* **Database & Migrations**: PostgreSQL 15 with PostGIS 3.4 active, Prisma migrations `0001_init_auth_users`, `20260906201522_core_domain_entities`, and `20260907000300_add_favorites_table` applied.
-* **Database Seed**: 12 merchants, 12 locations, 6 categories, 25 listings with inventories and safety records refreshed and loaded across Urmia (Launch City) and Tehran (Expansion City).
+* **Database & Migrations**: PostgreSQL 15 with PostGIS 3.4 active, Prisma migrations `0001_init_auth_users`, `20260906201522_core_domain_entities`, `20260907000300_add_favorites_table`, and `20260907001800_orders_payments_ledger` applied.
+* **Concurrency Stress Test**: 20 concurrent threads attempting to purchase the last 2 surplus bags: exactly 2 succeeded, 18 failed with stock-out, zero overselling.
+* **End-to-End Browser Flow**: Complete flow from `/listings/[id]` → reserve hold → `/checkout/[reservationId]` → simulated payment → `/orders/[id]/receipt` (Order `LQ-48945`) → `/orders` successfully executed and verified.

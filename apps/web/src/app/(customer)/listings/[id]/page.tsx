@@ -71,6 +71,37 @@ export default function ListingDetailPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isFavorited, setIsFavorited] = useState<boolean>(false);
   const [favoriteLoading, setFavoriteLoading] = useState<boolean>(false);
+  const [isReserving, setIsReserving] = useState<boolean>(false);
+
+  const handleReserve = async () => {
+    if (!data || isReserving) return;
+    setIsReserving(true);
+    try {
+      const res = await fetch('/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listingId: data.id, quantity: 1 }),
+      });
+
+      const json = await res.json();
+
+      if (res.status === 401) {
+        router.push(`/login?redirect=/listings/${data.id}`);
+        return;
+      }
+
+      if (json.success && json.data) {
+        router.push(`/checkout/${json.data.id}`);
+      } else {
+        alert(json.message || 'خطا در رزرو بسته');
+      }
+    } catch (err) {
+      console.error('Reservation error:', err);
+      alert('ارتباط با سرور برقرار نشد');
+    } finally {
+      setIsReserving(false);
+    }
+  };
 
   useEffect(() => {
     if (!listingId) return;
@@ -375,9 +406,8 @@ export default function ListingDetailPage() {
             size="lg"
             variant="primary"
             disabled={data.isSoldOut || data.isExpired}
-            onClick={() => {
-              alert('فرایند پرداخت آنلاین و قفل موجودی در فاز ۴ (Milestone M04) متصل خواهد شد.');
-            }}
+            isLoading={isReserving}
+            onClick={handleReserve}
             className="flex-1 max-w-xs"
           >
             {data.isSoldOut ? 'تکمیل موجودی' : data.isExpired ? 'زمان تحویل سپری شده' : 'رزرو ۱۰ دقیقه‌ای بسته'}

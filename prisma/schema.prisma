@@ -64,6 +64,51 @@ enum TemperatureRequirement {
   FROZEN
 }
 
+enum ReservationStatus {
+  PENDING
+  CONVERTED_TO_ORDER
+  EXPIRED
+  RELEASED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  NO_SHOW
+}
+
+enum PaymentGatewayType {
+  MOCK
+  ZARINPAL
+  SAMAN
+  SADAD
+}
+
+enum PaymentStatus {
+  INITIATED
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum FinancialTransactionType {
+  CUSTOMER_PAYMENT
+  COMMISSION_EARNED
+  MERCHANT_PAYOUT
+  CUSTOMER_REFUND
+}
+
+enum RefundStatus {
+  REQUESTED
+  APPROVED
+  SETTLED
+  REJECTED
+}
+
 model User {
   id          String          @id @default(uuid())
   mobile      String          @unique
@@ -72,24 +117,27 @@ model User {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  customer    Customer?
-  ownedStores Merchant[]      @relation("MerchantOwner")
-  staffRoles  MerchantStaff[]
-  sessions    Session[]
+  customer         Customer?
+  ownedStores      Merchant[]      @relation("MerchantOwner")
+  staffRoles       MerchantStaff[]
+  sessions         Session[]
+  processedRefunds Refund[]        @relation("RefundProcessor")
 
   @@index([mobile])
 }
 
 model Customer {
-  id                     String     @id @default(uuid())
-  userId                 String     @unique
+  id                     String        @id @default(uuid())
+  userId                 String        @unique
   fullName               String?
-  cumulativeSavingsToman BigInt     @default(0)
-  createdAt              DateTime   @default(now())
-  updatedAt              DateTime   @updatedAt
+  cumulativeSavingsToman BigInt        @default(0)
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
 
-  user                   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites              Favorite[]
+  reservations           Reservation[]
+  orders                 Order[]
 }
 
 model Merchant {
@@ -110,6 +158,7 @@ model Merchant {
   locations          MerchantLocation[]
   listings           Listing[]
   favorites          Favorite[]
+  orders             Order[]
 
   @@index([ownerUserId])
 }
@@ -242,6 +291,8 @@ model Listing {
   inventory            ListingInventory?
   safety               ListingSafety?
   attributes           ListingAttributes[]
+  reservations         Reservation[]
+  orderItems           OrderItem[]
 
   @@index([merchantId])
   @@index([categoryId])
@@ -342,4 +393,143 @@ model Favorite {
   @@index([customerId])
   @@index([merchantId])
 }
+
+model Reservation {
+  id         String            @id @default(uuid())
+  listingId  String
+  customerId String
+  quantity   Int               @default(1)
+  expiresAt  DateTime
+  status     ReservationStatus @default(PENDING)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  listing    Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  customer   Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  order      Order?
+
+  @@index([listingId])
+  @@index([customerId])
+  @@index([expiresAt])
+  @@index([status])
+}
+
+model Order {
+  id                        String                 @id @default(uuid())
+  orderNumber               String                 @unique // e.g. "LQ-10492"
+  customerId                String
+  merchantId                String
+  reservationId             String?                @unique
+  status                    OrderStatus            @default(PENDING_PAYMENT)
+  totalAmountToman          BigInt
+  commissionPercent         Decimal                @default(10.0) @db.Decimal(5, 2)
+  commissionAmountToman     BigInt                 @default(0)
+  merchantPayoutAmountToman BigInt                 @default(0)
+  notesFa                   String?
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+
+  customer                  Customer               @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  merchant                  Merchant               @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  reservation               Reservation?           @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  items                     OrderItem[]
+  payments                  Payment[]
+  financialTransactions     FinancialTransaction[]
+  refunds                   Refund[]
+
+  @@index([customerId])
+  @@index([merchantId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id             String   @id @default(uuid())
+  orderId        String
+  listingId      String
+  unitPriceToman BigInt
+  quantity       Int      @default(1)
+  subtotalToman  BigInt
+  createdAt      DateTime @default(now())
+
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listing        Listing  @relation(fields: [listingId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([listingId])
+}
+
+model Payment {
+  id           String             @id @default(uuid())
+  orderId      String
+  gateway      PaymentGatewayType @default(MOCK)
+  authority    String             @unique // Unique payment gateway reference token
+  trackingCode String?
+  referenceId  String?
+  amountToman  BigInt
+  status       PaymentStatus      @default(INITIATED)
+  errorMessage String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  order        Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  events       PaymentEvent[]
+  refunds      Refund[]
+
+  @@index([orderId])
+  @@index([status])
+  @@index([authority])
+}
+
+model PaymentEvent {
+  id          String   @id @default(uuid())
+  paymentId   String
+  eventType   String   // e.g. "INITIATED", "CALLBACK_RECEIVED", "VERIFIED", "FAILED"
+  payloadJson Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([createdAt])
+}
+
+model FinancialTransaction {
+  id              String                   @id @default(uuid())
+  orderId         String?
+  type            FinancialTransactionType
+  debitAccount    String                   // e.g. "CUSTOMER_PAYMENT", "PLATFORM_CASH"
+  creditAccount   String                   // e.g. "MERCHANT_PAYABLE", "PLATFORM_COMMISSION"
+  amountToman     BigInt
+  referenceNumber String?
+  createdAt       DateTime                 @default(now())
+
+  order           Order?                   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Refund {
+  id                String       @id @default(uuid())
+  paymentId         String
+  orderId           String
+  amountToman       BigInt
+  reasonFa          String
+  status            RefundStatus @default(REQUESTED)
+  processedByUserId String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  payment           Payment      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  order             Order        @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  processedBy       User?        @relation("RefundProcessor", fields: [processedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([paymentId])
+  @@index([orderId])
+  @@index([status])
+}
+
 

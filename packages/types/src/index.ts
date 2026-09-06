@@ -170,13 +170,14 @@ export type TemperatureRequirement = 'ROOM_TEMP' | 'CHILLED' | 'FROZEN';
 
 export type OrderStatus =
   | 'PENDING_PAYMENT'
-  | 'RESERVED'
+  | 'PAID'
   | 'READY_FOR_PICKUP'
   | 'COMPLETED'
   | 'CANCELLED'
-  | 'REFUNDED';
+  | 'REFUNDED'
+  | 'NO_SHOW';
 
-export type PaymentStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED';
+export type PaymentStatus = 'INITIATED' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
 
 export interface PickupWindow {
   startTime: string; // HH:mm or ISO 8601
@@ -368,4 +369,158 @@ export interface ListingSummaryDto {
   addressFa?: string;
   type: ListingType;
 }
+
+// ==========================================
+// 8. Milestone M04: Orders, Inventory & Payments
+// ==========================================
+
+export type ReservationStatus = 'PENDING' | 'CONVERTED_TO_ORDER' | 'EXPIRED' | 'RELEASED';
+
+export type PaymentGatewayType = 'MOCK' | 'ZARINPAL' | 'SAMAN' | 'SADAD';
+
+export type FinancialTransactionType =
+  | 'CUSTOMER_PAYMENT'
+  | 'COMMISSION_EARNED'
+  | 'MERCHANT_PAYOUT'
+  | 'CUSTOMER_REFUND';
+
+export type RefundStatus = 'REQUESTED' | 'APPROVED' | 'SETTLED' | 'REJECTED';
+
+export interface ReservationEntity {
+  id: string;
+  listingId: string;
+  customerId: string;
+  quantity: number;
+  expiresAt: Date | string;
+  status: ReservationStatus;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  listing?: ListingEntity;
+}
+
+export interface OrderItemEntity {
+  id: string;
+  orderId: string;
+  listingId: string;
+  unitPriceToman: number;
+  quantity: number;
+  subtotalToman: number;
+  createdAt: Date | string;
+  listing?: ListingEntity;
+}
+
+export interface OrderEntity {
+  id: string;
+  orderNumber: string;
+  customerId: string;
+  merchantId: string;
+  reservationId?: string | null;
+  status: OrderStatus;
+  totalAmountToman: number;
+  commissionPercent: number;
+  commissionAmountToman: number;
+  merchantPayoutAmountToman: number;
+  notesFa?: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  items?: OrderItemEntity[];
+  merchant?: MerchantEntity;
+  payments?: PaymentEntity[];
+}
+
+export interface PaymentEntity {
+  id: string;
+  orderId: string;
+  gateway: PaymentGatewayType;
+  authority: string;
+  trackingCode?: string | null;
+  referenceId?: string | null;
+  amountToman: number;
+  status: PaymentStatus;
+  errorMessage?: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface FinancialTransactionEntity {
+  id: string;
+  orderId?: string | null;
+  type: FinancialTransactionType;
+  debitAccount: string;
+  creditAccount: string;
+  amountToman: number;
+  referenceNumber?: string | null;
+  createdAt: Date | string;
+}
+
+export interface CreateReservationInputDto {
+  listingId: string;
+  quantity?: number;
+}
+
+export interface ReservationResponseDto {
+  id: string;
+  listingId: string;
+  quantity: number;
+  expiresAt: string;
+  remainingSeconds: number;
+  status: ReservationStatus;
+  listing: {
+    id: string;
+    titleFa: string;
+    storeNameFa: string;
+    addressFa?: string;
+    discountedPriceToman: number;
+    originalPriceToman: number;
+    pickupWindowFa: string;
+    pickupEndIso: string;
+  };
+}
+
+export interface CheckoutOrderInputDto {
+  reservationId: string;
+  gateway?: PaymentGatewayType;
+  notesFa?: string;
+}
+
+export interface CheckoutOrderResponseDto {
+  orderId: string;
+  orderNumber: string;
+  totalAmountToman: number;
+  paymentUrl: string;
+  authority: string;
+  gateway: PaymentGatewayType;
+}
+
+export interface PaymentVerifyInputDto {
+  authority: string;
+  status?: string; // 'OK' | 'NOK' (Zarinpal standard)
+  trackingCode?: string;
+}
+
+export interface PaymentVerifyResponseDto {
+  success: boolean;
+  message: string;
+  orderId: string;
+  orderNumber: string;
+  referenceId?: string;
+  amountToman: number;
+  status: OrderStatus;
+}
+
+export interface CustomerOrderSummaryDto {
+  id: string;
+  orderNumber: string;
+  merchantId: string;
+  merchantNameFa: string;
+  merchantAddressFa: string;
+  listingTitleFa: string;
+  quantity: number;
+  totalAmountToman: number;
+  status: OrderStatus;
+  pickupWindowFa: string;
+  pickupEndIso: string;
+  createdAt: string;
+}
+
 

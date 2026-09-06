@@ -182,12 +182,31 @@ export const UpdateListingStatusSchema = z.object({
 
 export type UpdateListingStatusInput = z.infer<typeof UpdateListingStatusSchema>;
 
+export const CreateReservationSchema = z.object({
+  listingId: z.string().min(1, 'شناسه بسته الزامی است'),
+  quantity: z.coerce.number().int().min(1, 'حداقل تعداد رزرو ۱ عدد است').max(5, 'حداکثر تعداد رزرو در هر سفارش ۵ عدد است').default(1),
+});
+
+export type CreateReservationInput = z.infer<typeof CreateReservationSchema>;
+
 export const CheckoutOrderSchema = z.object({
-  listingId: z.string().min(1, 'شناسه محصول الزامی است'),
-  quantity: z.number().int().min(1, 'حداقل تعداد خرید ۱ عدد می‌باشد'),
+  reservationId: z.string().min(1, 'شناسه رزرو الزامی است'),
+  gateway: z.enum(['MOCK', 'ZARINPAL', 'SAMAN', 'SADAD']).default('MOCK'),
+  notesFa: z.string().max(250, 'یادداشت نمی‌تواند بیش از ۲۵۰ کاراکتر باشد').optional(),
+  termsAccepted: z.boolean().refine((v) => v === true, {
+    message: 'پذیرش تعهد تحویل حضوری و قوانین اقلام فاسدشدنی الزامی است',
+  }),
 });
 
 export type CheckoutOrderInput = z.infer<typeof CheckoutOrderSchema>;
+
+export const PaymentVerifySchema = z.object({
+  authority: z.string().min(3, 'شناسه رهگیری پرداخت نامعتبر است'),
+  status: z.string().optional(),
+  trackingCode: z.string().optional(),
+});
+
+export type PaymentVerifyInput = z.infer<typeof PaymentVerifySchema>;
 
 export const ListingSearchQuerySchema = z.object({
   q: z.string().trim().min(2, 'عبارت جستجو باید حداقل ۲ کاراکتر باشد').max(100, 'عبارت جستجو بیش از حد طولانی است'),

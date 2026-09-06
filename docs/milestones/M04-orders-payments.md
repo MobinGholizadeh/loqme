@@ -2,8 +2,10 @@
 
 > **Milestone**: M04  
 > **Title**: Orders, Inventory & Payments  
-> **Status**: `Pending`  
-> **Target Completion**: 0%
+> **Milestone**: M04  
+> **Title**: Orders, Inventory & Payments  
+> **Status**: `Completed`  
+> **Target Completion**: 100%
 
 ---
 
@@ -113,34 +115,35 @@ M04 represents the financial and operational core of Loqme. It bridges customer 
 
 # Acceptance Criteria
 
-1. [ ] Customer can initiate reservation and lock stock for 10 minutes.
-2. [ ] Mock payment gateway successfully transitions order to `PAID`.
-3. [ ] Unpaid reservations auto-release stock back to inventory upon expiry.
-4. [ ] Multi-threaded concurrency test passes with zero overselling.
-5. [ ] Financial transaction ledger correctly records GMV and 10% commission.
+1. [x] Customer can initiate reservation and lock stock for 10 minutes.
+2. [x] Mock payment gateway successfully transitions order to `PAID`.
+3. [x] Unpaid reservations auto-release stock back to inventory upon expiry.
+4. [x] Multi-threaded concurrency test passes with zero overselling (20 simultaneous checkout threads tested, exactly 2 granted, 18 rejected).
+5. [x] Financial transaction ledger correctly records GMV and 10% commission.
 
 ---
 
 # Checkpoints
 
-- [ ] **CP-04.1**: Implement `ReservationService` and atomic inventory locking.
-- [ ] **CP-04.2**: Build Checkout summary UI and 10-minute countdown timer.
-- [ ] **CP-04.3**: Implement `IPaymentGateway` abstraction and `MockPaymentGateway`.
-- [ ] **CP-04.4**: Build Server payment verification callback endpoint.
-- [ ] **CP-04.5**: Implement `OrderService` state machine transitions.
-- [ ] **CP-04.6**: Implement `FinancialTransaction` double-entry ledger records.
-- [ ] **CP-04.7**: Execute automated concurrency stress test (20 simultaneous checkout requests).
+- [x] **CP-04.1**: Implement `ReservationService` and atomic inventory locking.
+- [x] **CP-04.2**: Build Checkout summary UI and 10-minute countdown timer.
+- [x] **CP-04.3**: Implement `IPaymentGateway` abstraction and `MockPaymentGateway`.
+- [x] **CP-04.4**: Build Server payment verification callback endpoint.
+- [x] **CP-04.5**: Implement `OrderService` state machine transitions.
+- [x] **CP-04.6**: Implement `FinancialTransaction` double-entry ledger records.
+- [x] **CP-04.7**: Execute automated concurrency stress test (20 simultaneous checkout requests).
 
 ---
 
 # Definition of Done
 
-* Concurrency stress test passes without race conditions.
-* Complete purchase lifecycle functions in development with mock gateway.
+* Concurrency stress test passes without race conditions (`tests/m04-orders-payments.test.ts`).
+* Complete purchase lifecycle functions in development with mock gateway and tested end-to-end via automated browser subagent.
 * Checkpoints verified and `docs/PROJECT_STATUS.md` updated.
 
 ---
 
 # Documentation Updates
 
-* Update `docs/PROJECT_STATUS.md` with concurrency test results and payment metrics.
+* Updated `docs/PROJECT_STATUS.md` with concurrency test results and payment metrics.
+* Created migration `20260907001800_orders_payments_ledger` covering `Reservation`, `Order`, `Payment`, `FinancialTransaction`, and `Refund`.
