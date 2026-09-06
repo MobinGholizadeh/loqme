@@ -73,7 +73,7 @@ export const MerchantShell: React.FC<MerchantShellProps> = ({ children }) => {
                 className={cn(
                   'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-loqme-primary-500 text-white shadow-sm'
+                    ? 'bg-loqme-primary-600 text-white shadow-sm'
                     : 'text-loqme-neutral-700 hover:bg-loqme-neutral-100'
                 )}
               >

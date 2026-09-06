@@ -47,7 +47,7 @@ export const CustomerShell: React.FC<CustomerShellProps> = ({ children }) => {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="brand-logo flex items-center gap-1.5">
-              <span className="text-2xl font-black text-loqme-primary-500">لقمه</span>
+              <span className="text-2xl font-black text-loqme-primary-600">لقمه</span>
               <Badge variant="brand" size="sm">
                 کشف هوشمند
               </Badge>

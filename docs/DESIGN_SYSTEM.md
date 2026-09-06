@@ -11,34 +11,34 @@
 ```css
 :root {
   /* ==========================================================================
-     1. COLOR PALETTE TOKENS
+     1. COLOR PALETTE TOKENS — White + Teal / Dark Turquoise (سبز کله‌غازی)
      ========================================================================== */
-  /* Brand Energy (Primary Warm Orange / Coral) */
-  --loqme-primary-50: #FFF7ED;
-  --loqme-primary-100: #FFEDD5;
-  --loqme-primary-200: #FED7AA;
-  --loqme-primary-300: #FDBA74;
-  --loqme-primary-400: #FB923C;
-  --loqme-primary-500: #F97316; /* Base Brand */
-  --loqme-primary-600: #EA580C;
-  --loqme-primary-700: #C2410C;
-  --loqme-primary-800: #9A3412;
-  --loqme-primary-900: #7C2D12;
+  /* Primary Brand: Sophisticated Dark Turquoise / Deep Teal */
+  --loqme-primary-50: #F0FDFA;  /* Subtle soft background tint */
+  --loqme-primary-100: #CCFBF1; /* Subtle border / light chips */
+  --loqme-primary-200: #99F6E4; /* Soft accent borders */
+  --loqme-primary-300: #5EEAD4;
+  --loqme-primary-400: #2DD4BF;
+  --loqme-primary-500: #0D9488; /* Vibrant Teal Accent */
+  --loqme-primary-600: #0F766E; /* Base Brand / Primary CTA (سبز کله‌غازی عمیق) */
+  --loqme-primary-700: #115E59; /* Hover / Active CTA */
+  --loqme-primary-800: #134E4A; /* Deep Contrast Text */
+  --loqme-primary-900: #042F2E; /* Darkest Teal */
 
-  /* Neutrals & Charcoal (Text, Borders, Backgrounds) */
+  /* Neutrals & Slate Charcoal (Clean White dominant canvas) */
   --loqme-neutral-0: #FFFFFF;
-  --loqme-neutral-25: #FFFDF9; /* Warm Canvas */
-  --loqme-neutral-50: #FAFAFA;
-  --loqme-neutral-100: #F4F4F5;
-  --loqme-neutral-200: #E4E4E7;
-  --loqme-neutral-300: #D4D4D8;
-  --loqme-neutral-400: #A1A1AA;
-  --loqme-neutral-500: #71717A;
-  --loqme-neutral-600: #52525B;
-  --loqme-neutral-700: #3F3F46;
-  --loqme-neutral-800: #27272A;
-  --loqme-neutral-900: #18181B; /* Primary Text */
-  --loqme-neutral-950: #09090B;
+  --loqme-neutral-25: #FFFFFF; /* Pure White Canvas (70-85% of visual area) */
+  --loqme-neutral-50: #F8FAFC; /* Secondary Card / Subtle Surface */
+  --loqme-neutral-100: #F1F5F9;
+  --loqme-neutral-200: #E2E8F0; /* Subtle Borders */
+  --loqme-neutral-300: #CBD5E1; /* Input Borders */
+  --loqme-neutral-400: #94A3B8;
+  --loqme-neutral-500: #64748B;
+  --loqme-neutral-600: #475569; /* Secondary Text */
+  --loqme-neutral-700: #334155;
+  --loqme-neutral-800: #1E293B;
+  --loqme-neutral-900: #0F172A; /* Primary Text (Deep Charcoal) */
+  --loqme-neutral-950: #020617;
 
   /* Semantic Accents: Trust, Safety & Savings (Restrained Emerald) */
   --loqme-success-50: #ECFDF5;

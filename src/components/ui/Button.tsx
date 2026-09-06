@@ -89,16 +89,16 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           }
 
           .btn-primary {
-            background-color: var(--loqme-primary-500);
+            background-color: var(--loqme-primary-600);
             color: #ffffff;
-            border-color: var(--loqme-primary-600);
+            border-color: var(--loqme-primary-700);
             box-shadow: var(--shadow-sm);
           }
 
           @media (hover: hover) and (pointer: fine) {
             .btn-primary:hover:not(:disabled) {
-              background-color: var(--loqme-primary-600);
-              border-color: var(--loqme-primary-700);
+              background-color: var(--loqme-primary-700);
+              border-color: var(--loqme-primary-800);
               box-shadow: var(--shadow-md);
             }
           }

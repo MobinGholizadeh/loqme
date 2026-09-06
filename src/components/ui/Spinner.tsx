@@ -17,9 +17,9 @@ export const Spinner: React.FC<SpinnerProps> = ({
   const sizePixels = size === 'sm' ? 16 : size === 'lg' ? 28 : 20;
 
   const colorStyles: Record<string, string> = {
-    primary: 'text-loqme-primary-500',
+    primary: 'text-[var(--loqme-primary-600)]',
     white: 'text-white',
-    neutral: 'text-loqme-neutral-500',
+    neutral: 'text-[var(--loqme-neutral-500)]',
   };
 
   return (

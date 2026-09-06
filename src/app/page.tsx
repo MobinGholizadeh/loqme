@@ -49,7 +49,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-loqme-neutral-200 px-4 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl font-black text-loqme-primary-500">لقمه</span>
+            <span className="text-2xl font-black text-loqme-primary-600">لقمه</span>
             <Badge variant="brand" size="sm">
               نسخه پایه M01
             </Badge>
@@ -88,7 +88,7 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="max-w-5xl mx-auto px-4 pt-8 pb-6">
-        <div className="bg-gradient-to-l from-orange-50 via-white to-orange-50/30 border border-loqme-primary-200 rounded-3xl p-6 md:p-10 shadow-sm">
+        <div className="bg-white border border-loqme-neutral-200 rounded-3xl p-6 md:p-10 shadow-card">
           <div className="max-w-2xl">
             <Badge variant="brand" size="md" className="mb-3">
               پایه‌گذاری زیرساخت نرم‌افزار — Milestone M01

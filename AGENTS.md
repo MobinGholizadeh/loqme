@@ -128,13 +128,15 @@ Refer to [DESIGN_SYSTEM.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scra
 
 ## 9. Visual & Interaction Design
 
-* **Brand Vibe**: Modern, Friendly, Trustworthy, Fresh, Discovery-oriented.
-* **Color Palette**:
-  * Warm neutral foundation (cream/warm gray background).
-  * Warm orange/coral brand energy (`#F97316` / `#FB923C` / `#EA580C`).
-  * Restrained emerald/sage green for safety, savings, and verified badges (`#10B981` / `#059669`).
-  * Deep charcoal typography (`#18181B` / `#27272A`).
+* **Brand Vibe**: Modern, Friendly, Trustworthy, Fresh, Calm, Discovery-oriented.
+* **Color Palette (White + Teal / Dark Turquoise — سبز کله‌غازی)**:
+  * Pure white canvas foundation (`#FFFFFF` dominant 70–85% of visual area).
+  * Sophisticated dark turquoise / deep teal brand energy (`#0F766E` / `#115E59` / `#0D9488`).
+  * Restrained emerald for safety and verified badges (`#10B981` / `#059669`).
+  * Deep slate charcoal typography (`#0F172A` / `#1E293B`).
+  * Soft teal tint (`#F0FDFA`) for subtle selection and soft backgrounds.
 * **Forbidden Design Patterns**:
+  * Avoid white + orange dominance.
   * Avoid generic eco/green guilt branding.
   * Avoid cheap coupon-clipping aesthetics.
   * Avoid dark patterns (fake countdowns, non-existent urgency, fabricated viewer counts).

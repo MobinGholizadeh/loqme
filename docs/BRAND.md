@@ -32,25 +32,27 @@
 
 ## 3. Visual Identity & Palette Strategy
 
-The visual atmosphere of Loqme is appetizing, fresh, warm, and sophisticated.
+The visual atmosphere of Loqme is clean, fresh, modern, trustworthy, and calm: **White is the canvas. Teal is the identity.**
 
 ```
 +-----------------------------------------------------------------------------+
 |                                                                             |
-|   Warm Orange / Coral       Deep Charcoal        Restrained Emerald         |
-|   #F97316 (Primary)         #18181B (Text)       #10B981 (Success/Trust)    |
+|   Dark Turquoise / Teal     Deep Charcoal Slate  Restrained Emerald         |
+|   #0F766E (Primary Brand)   #0F172A (Text)       #10B981 (Success/Safety)   |
 |                                                                             |
-|   Warm Cream Neutral        Warm Light Gray      Bright Amber               |
-|   #FFFDF9 (Background)      #F4F4F5 (Card Muted) #F59E0B (Urgency/Warmth)   |
+|   Pure White Canvas         Subtle Neutral Tint  Muted Amber                |
+|   #FFFFFF (Dominant 70-85%) #F8FAFC (Secondary)  #F59E0B (Warnings)         |
 |                                                                             |
 +-----------------------------------------------------------------------------+
 ```
 
 ### 3.1 Color Roles
-* **Primary Brand Energy**: Warm Orange / Coral (`#F97316`, `#EA580C`, `#FB923C`). Inspires appetite, warmth, vitality, and enthusiasm without aggressive neon glare.
-* **Typographic Anchor**: Deep Charcoal (`#18181B`, `#27272A`). Far softer and more elegant than pitch black (`#000000`), ensuring comfortable reading on OLED screens.
-* **Positive & Safety Anchor**: Restrained Emerald / Sage Green (`#10B981`, `#059669`). Reserved strictly for verified hygiene badges, savings calculations, and completed pickup states.
-* **Canvas Foundation**: Warm Neutral Cream & Off-White (`#FFFDF9`, `#FAF9F6`, `#FFFFFF`). Creates an inviting, clean surface that lets bakery and food photography shine.
+* **Primary Brand / Action**: Dark Turquoise / Deep Teal / سبز کله‌غازی (`#0F766E`, `#115E59`, `#0D9488`). Communicates trust, freshness, quality, and modern technology. Used for primary CTAs, active navigation states, and brand accents.
+* **Canvas Foundation**: Pure Clean White (`#FFFFFF`, dominant 70–85% of visual area) with very light neutral secondary surfaces (`#F8FAFC`). Creates an airy, spacious, modern canvas.
+* **Typographic Anchor**: Deep Slate Charcoal (`#0F172A`, `#1E293B`). High-contrast, sharp, and comfortable to read.
+* **Secondary Text**: Muted Slate Gray (`#475569`, `#64748B`).
+* **Subtle Brand Tint**: Soft Teal (`#F0FDFA`, `#CCFBF1`) for selected states, cards, and soft badge backgrounds.
+* **Semantic Accents**: Restrained Emerald (`#10B981`) for safety verified tags, Muted Amber (`#F59E0B`) for warnings, Crimson (`#EF4444`) for errors. Avoid orange as a major brand color.
 
 ### 3.2 Prohibited Visual Directions
 * **No Generic Food Delivery Clone**: Avoid SnappFood-style magenta/red dominance or generic red banner ads.

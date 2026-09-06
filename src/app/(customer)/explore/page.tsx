@@ -78,7 +78,7 @@ export default function ExplorePage() {
             key={cat.id}
             className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               idx === 0
-                ? 'bg-loqme-primary-500 text-white shadow-xs'
+                ? 'bg-loqme-primary-600 text-white shadow-xs'
                 : 'bg-white text-loqme-neutral-700 border border-loqme-neutral-200 hover:bg-loqme-neutral-50'
             }`}
           >

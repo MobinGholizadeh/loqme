@@ -62,7 +62,7 @@ export const AdminShell: React.FC<AdminShellProps> = ({ children }) => {
                 className={cn(
                   'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-loqme-primary-500 text-white font-bold'
+                    ? 'bg-loqme-primary-600 text-white font-bold'
                     : 'text-loqme-neutral-300 hover:bg-loqme-neutral-800 hover:text-white'
                 )}
               >

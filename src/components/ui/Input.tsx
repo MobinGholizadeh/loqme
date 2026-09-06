@@ -85,8 +85,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           }
 
           .input-wrapper:focus-within {
-            border-color: var(--loqme-primary-500);
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+            border-color: var(--loqme-primary-600);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
           }
 
           .input-has-error {
