@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  MERCHANT_STAFF
+  MERCHANT_OWNER
+  ADMIN
+}
+
+enum BusinessType {
+  BAKERY
+  CAFE
+  RESTAURANT
+  SUPERMARKET
+  DELI
+  PRODUCE
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  REJECTED
+}
+
+enum StaffRole {
+  OWNER
+  MANAGER
+  CASHIER
+}
+
+model User {
+  id           String          @id @default(uuid())
+  mobile       String          @unique
+  role         Role            @default(CUSTOMER)
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  customer     Customer?
+  ownedStores  Merchant[]      @relation("MerchantOwner")
+  staffRoles   MerchantStaff[]
+  sessions     Session[]
+
+  @@index([mobile])
+}
+
+model Customer {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  fullName              String?
+  cumulativeSavingsToman BigInt  @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Merchant {
+  id                 String             @id @default(uuid())
+  ownerUserId        String
+  businessNameFa     String
+  businessType       BusinessType       @default(BAKERY)
+  verificationStatus VerificationStatus @default(PENDING)
+  ratingAverage      Float              @default(5.0)
+  ratingCount        Int                @default(0)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  owner              User               @relation("MerchantOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  staff              MerchantStaff[]
+
+  @@index([ownerUserId])
+}
+
+model MerchantStaff {
+  id            String    @id @default(uuid())
+  merchantId    String
+  userId        String
+  role          StaffRole @default(CASHIER)
+  canScanPickup Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  merchant      Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, userId])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  mobile    String
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([mobile])
+  @@index([expiresAt])
+}

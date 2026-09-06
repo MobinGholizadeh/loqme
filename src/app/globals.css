@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  /* ==========================================================================
+     1. COLOR PALETTE TOKENS
+     ========================================================================== */
+  /* Brand Energy (Primary Warm Orange / Coral) */
+  --loqme-primary-50: #FFF7ED;
+  --loqme-primary-100: #FFEDD5;
+  --loqme-primary-200: #FED7AA;
+  --loqme-primary-300: #FDBA74;
+  --loqme-primary-400: #FB923C;
+  --loqme-primary-500: #F97316; /* Base Brand */
+  --loqme-primary-600: #EA580C;
+  --loqme-primary-700: #C2410C;
+  --loqme-primary-800: #9A3412;
+  --loqme-primary-900: #7C2D12;
+
+  /* Neutrals & Charcoal (Text, Borders, Backgrounds) */
+  --loqme-neutral-0: #FFFFFF;
+  --loqme-neutral-25: #FFFDF9; /* Warm Canvas */
+  --loqme-neutral-50: #FAFAFA;
+  --loqme-neutral-100: #F4F4F5;
+  --loqme-neutral-200: #E4E4E7;
+  --loqme-neutral-300: #D4D4D8;
+  --loqme-neutral-400: #A1A1AA;
+  --loqme-neutral-500: #71717A;
+  --loqme-neutral-600: #52525B;
+  --loqme-neutral-700: #3F3F46;
+  --loqme-neutral-800: #27272A;
+  --loqme-neutral-900: #18181B; /* Primary Text */
+  --loqme-neutral-950: #09090B;
+
+  /* Semantic Accents: Trust, Safety & Savings (Restrained Emerald) */
+  --loqme-success-50: #ECFDF5;
+  --loqme-success-100: #D1FAE5;
+  --loqme-success-500: #10B981;
+  --loqme-success-600: #059669;
+  --loqme-success-700: #047857;
+
+  /* Semantic Urgency / Warnings (Warm Amber) */
+  --loqme-warning-50: #FFFBEB;
+  --loqme-warning-100: #FEF3C7;
+  --loqme-warning-500: #F59E0B;
+  --loqme-warning-600: #D97706;
+
+  /* Semantic Danger / Violations (Crimson) */
+  --loqme-danger-50: #FEF2F2;
+  --loqme-danger-100: #FEE2E2;
+  --loqme-danger-500: #EF4444;
+  --loqme-danger-600: #DC2626;
+
+  /* Semantic Surface & Border Aliases */
+  --color-bg-canvas: var(--loqme-neutral-25);
+  --color-bg-surface: var(--loqme-neutral-0);
+  --color-bg-muted: var(--loqme-neutral-100);
+  --color-border-subtle: var(--loqme-neutral-200);
+  --color-border-strong: var(--loqme-neutral-300);
+  --color-text-primary: var(--loqme-neutral-900);
+  --color-text-secondary: var(--loqme-neutral-600);
+  --color-text-muted: var(--loqme-neutral-400);
+  --color-primary: var(--loqme-primary-500);
+  --color-primary-hover: var(--loqme-primary-600);
+
+  /* ==========================================================================
+     2. SPACING SCALE (Base 4px)
+     ========================================================================== */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ==========================================================================
+     3. TYPOGRAPHY SCALE (Vazirmatn)
+     ========================================================================== */
+  --font-family-base: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ==========================================================================
+     4. RADIUS SCALE
+     ========================================================================== */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* ==========================================================================
+     5. ELEVATION & SHADOWS (Warm Ambient)
+     ========================================================================== */
+  --shadow-xs: 0 1px 2px rgba(24, 24, 27, 0.04);
+  --shadow-sm: 0 2px 4px rgba(24, 24, 27, 0.06);
+  --shadow-md: 0 4px 12px rgba(24, 24, 27, 0.08);
+  --shadow-lg: 0 8px 24px rgba(24, 24, 27, 0.12);
+  --shadow-card: 0 2px 8px rgba(124, 45, 18, 0.04), 0 1px 2px rgba(24, 24, 27, 0.04);
+
+  /* ==========================================================================
+     6. MOTION & CRAFT EASING (Emil Kowalski Design Engineering Tokens)
+     ========================================================================== */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --duration-press: 160ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-smooth: 350ms;
+}
+
+/* Base Reset & Box Sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family-base);
+  background-color: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+  direction: rtl;
+  text-align: right;
+  line-height: var(--line-height-normal);
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Touch Target Minimum & Focus Rings */
+button, input, select, a.btn {
+  min-height: 44px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--loqme-primary-500);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

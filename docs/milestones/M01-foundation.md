@@ -2,8 +2,8 @@
 
 > **Milestone**: M01  
 > **Title**: Application Foundation  
-> **Status**: `Pending`  
-> **Target Completion**: 0%
+> **Status**: `Completed`  
+> **Target Completion**: 100%
 
 ---
 
@@ -111,23 +111,23 @@ M01 transforms the documented architecture into a running, buildable software fo
 
 # Acceptance Criteria
 
-1. [ ] Customer, Merchant, and Admin layout shells render cleanly.
-2. [ ] Phone number OTP login works via mock notification service.
-3. [ ] Role-based access control blocks unauthorized routes.
-4. [ ] RTL styling and Vazirmatn font render properly across all shells.
-5. [ ] `npm run build` succeeds without warnings or errors.
+1. [x] Customer, Merchant, and Admin layout shells render cleanly.
+2. [x] Phone number OTP login works via mock notification service.
+3. [x] Role-based access control blocks unauthorized routes.
+4. [x] RTL styling and Vazirmatn font render properly across all shells.
+5. [x] `npm run build` succeeds without warnings or errors.
 
 ---
 
 # Checkpoints
 
-- [ ] **CP-01.1**: Initialize Next.js, TypeScript, and ESLint configuration.
-- [ ] **CP-01.2**: Configure design tokens, CSS variables, and Vazirmatn font in RTL mode.
-- [ ] **CP-01.3**: Configure PostgreSQL database connection and Prisma ORM setup.
-- [ ] **CP-01.4**: Build Auth Domain Service, OTP generation, and session cookie middleware.
-- [ ] **CP-01.5**: Build base UI primitives (`Button`, `Input`, `Card`, `Badge`, `Modal`).
-- [ ] **CP-01.6**: Build Customer, Merchant, and Admin layout shells.
-- [ ] **CP-01.7**: Write unit and integration tests; verify clean production build.
+- [x] **CP-01.1**: Initialize Next.js, TypeScript, and ESLint configuration.
+- [x] **CP-01.2**: Configure design tokens, CSS variables, and Vazirmatn font in RTL mode.
+- [x] **CP-01.3**: Configure PostgreSQL database connection and Prisma ORM setup.
+- [x] **CP-01.4**: Build Auth Domain Service, OTP generation, and session cookie middleware.
+- [x] **CP-01.5**: Build base UI primitives (`Button`, `Input`, `Card`, `Badge`, `Modal`, `Spinner`).
+- [x] **CP-01.6**: Build Customer, Merchant, and Admin layout shells.
+- [x] **CP-01.7**: Write unit and integration tests; verify clean production build.
 
 ---
 

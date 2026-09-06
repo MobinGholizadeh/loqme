@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+.vitest/
+
+# Next.js Build Output
+/.next/
+/out/
+/build
+dist/
+
+# Environment Variables & Secrets
+.env
+.env*.local
+*.pem
+
+# Debug Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+*.lnk
+
+# Editor & IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local Database & Storage
+loqme_pgdata/
+*.sqlite
+*.sqlite-journal
