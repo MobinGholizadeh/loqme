@@ -95,21 +95,34 @@ Refer to [FOOD_SAFETY.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scratc
 
 ---
 
-## 7. Architecture Guidelines
+## 7. Architecture Guidelines & Multi-Client Protocol
+
+> [!IMPORTANT]
+> **Multi-Client Architecture Principle**:
+> Loqme is a multi-client product. Web is the first client, but Mobile (Native iOS & Android via React Native/Expo) is a planned first-class client.
+> New architecture must not unnecessarily couple domain/business logic to Web-only technologies.
+> 
+> * **Backend Authority**: Never duplicate authoritative business rules, pricing calculations, inventory reservations, or security evaluations between Web and Mobile. The backend remains the sole source of truth.
+> * **Separation of Utilities**: Before creating a new shared utility, determine whether it belongs to the backend, shared package (`packages/*`), web client (`apps/web`), or future mobile client (`apps/mobile`).
+> * **Zero Web-Only Dependencies in Shared**: Never introduce Web-only dependencies (`window`, `document`, `localStorage`, `sessionStorage`, Next.js components) into shared packages (`packages/types`, `packages/validation`, `packages/design-tokens`, `packages/api`).
 
 * **Target Stack**:
-  * **Framework**: Next.js (App Router), React, TypeScript
-  * **Database**: PostgreSQL with PostGIS extension for geospatial radius queries (`ST_DWithin`, `ST_Distance`)
-  * **Styling**: Vanilla CSS / CSS Variables / Centralized Token System (Vazirmatn typography)
+  * **Monorepo Structure**: npm workspaces with `apps/*` and `packages/*`
+  * **Web Client**: Next.js 14 (App Router), React 18, TypeScript 5 in `apps/web`
+  * **Future Mobile Client**: React Native / Expo in `apps/mobile` (consuming shared packages)
+  * **Shared Contracts**: `@loqme/types`, `@loqme/validation`, `@loqme/design-tokens`, `@loqme/api` in `packages/*`
+  * **Database**: PostgreSQL 15 with PostGIS extension for geospatial radius queries (`ST_DWithin`, `ST_Distance`)
+  * **Styling**: Centralized Token System in `@loqme/design-tokens` (CSS variables for Web, StyleSheet tokens for Mobile, Vazirmatn typography)
 * **Separation of Concerns**:
   * Keep business and transaction logic strictly outside React UI components.
   * Use Domain Services (`ListingService`, `OrderService`, `PaymentService`, `PickupService`).
   * Abstraction layers for Payment, SMS/OTP, Geocoding/Maps, and Storage.
 * **Prohibited MVP Architectures**:
+  * Do **NOT** build a WebView-in-a-box or PWA wrapper for the mobile application. Mobile is native React Native/Expo.
   * Do **NOT** introduce a separate .NET backend or Java Spring microservices for MVP unless justified by existing repository constraints.
   * Do **NOT** introduce distributed event brokers (Kafka, RabbitMQ) prior to reaching documented scalability thresholds.
 
-Refer to [ARCHITECTURE.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scratch/loqme/docs/ARCHITECTURE.md).
+Refer to [ARCHITECTURE.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scratch/loqme/docs/ARCHITECTURE.md), [MOBILE_ARCHITECTURE.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scratch/loqme/docs/MOBILE_ARCHITECTURE.md), and [ADR-001](file:///C:/Users/etraab/.gemini/antigravity-ide/scratch/loqme/docs/decisions/ADR-001-mobile-architecture.md).
 
 ---
 

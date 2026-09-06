@@ -7,11 +7,12 @@ node_modules/
 /coverage
 .vitest/
 
-# Next.js Build Output
-/.next/
-/out/
-/build
+# Next.js Build Output & Caches
+.next/
+out/
+build/
 dist/
+*.tsbuildinfo
 
 # Environment Variables & Secrets
 .env

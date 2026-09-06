@@ -11,22 +11,29 @@
 | Metric | Status |
 | :--- | :--- |
 | **Current Milestone** | **M02 — Core Domain & Database** |
-| **Milestone Status** | `Ready for M02` |
-| **Overall Completion** | `16%` (M00 100%, M01 100%) |
-| **Repository State** | Foundation Running (`C:\Users\etraab\.gemini\antigravity-ide\scratch\loqme`) |
-| **Last Updated** | 2026-09-06 (M01 Application Foundation Completed) |
+| **Milestone Status** | `Ready for M02` (Post-M01 Mobile-Readiness Architecture Refactor Completed) |
+| **Overall Completion** | `17%` (M00 100%, M01 100%, Post-M01 Refactor 100%) |
+| **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 running) |
+| **Last Updated** | 2026-09-06 (Post-M01 Mobile-Readiness Refactor Verified) |
 
 ---
 
 ## 2. Technology Stack & Operational Environment
 
 * **Runtime**: Node.js `v20.17.0` (Active on Windows host)
-* **Package Manager**: `npm` `11.10.0` (via `npm.cmd` / `npx.cmd`)
-* **Framework**: Next.js 14.2.23 (App Router), React 18, TypeScript 5
-* **Database**: PostgreSQL 15 (Active via Docker container `loqme-postgres` on port 5432)
+* **Package Manager**: `npm` `11.10.0` (via `npm.cmd` / `npx.cmd`) with npm workspaces (`apps/*`, `packages/*`)
+* **Monorepo Architecture**:
+  * `apps/web`: Next.js 14.2.23 (App Router), React 18, TypeScript 5
+  * `apps/mobile`: [Future] React Native / Expo Client
+  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers)
+  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile & Persian utilities)
+  * `packages/design-tokens`: `@loqme/design-tokens` (White + Teal palette, Emil Kowalski motion)
+  * `packages/api`: `@loqme/api` (Universal fetch-based API client, Bearer & Cookie auth)
+  * `packages/config`: `@loqme/config` (Shared tsconfig presets)
+* **Database**: PostgreSQL 15 with PostGIS (Active via Docker container `loqme-postgres` on port 5432)
 * **ORM & Migrations**: Prisma ORM `v5.22.0` with migration `0001_init_auth_users` applied
-* **Security & Auth**: Iranian phone-first OTP (CSPRNG, 2-min expiry), `jose` signed HttpOnly session cookies, RBAC middleware
-* **Styling**: Centralized Token Architecture, CSS variables, Vazirmatn font, RTL-first (`dir="rtl"`), Emil Kowalski craft tokens
+* **Security & Auth**: Universal Dual-Mode Auth (CSPRNG 5-digit OTP, signed `jose` JWT via either `Authorization: Bearer <token>` or HttpOnly `loqme_session` cookie)
+* **Styling**: Centralized Token Architecture in `@loqme/design-tokens`, Vazirmatn font, RTL-first (`dir="rtl"`)
 * **Version Control**: Git initialized on `master` branch
 
 ---
@@ -37,6 +44,7 @@
 | :--- | :--- | :--- | :--- |
 | **M00** | **Project Discovery & Architecture** | `Completed` | `100%` |
 | **M01** | **Application Foundation** | `Completed` | `100%` |
+| **Post-M01** | **Mobile-Readiness Architecture Refactor** | `Completed` | `100%` |
 | **M02** | Core Domain & Database | `Pending` | `0%` |
 | **M03** | Marketplace Discovery | `Pending` | `0%` |
 | **M04** | Orders, Inventory & Payments | `Pending` | `0%` |
@@ -71,25 +79,37 @@
 - [x] **CP-01.6**: Build Customer, Merchant, and Admin layout shells.
 - [x] **CP-01.7**: Write unit and integration tests (18 tests passing); verify clean production build (`npm run build` exit code 0).
 
+### Post-M01 Mobile-Readiness Refactor Checklist
+- [x] **CP-MR.1 — Architecture Audit**: Comprehensive audit of Web coupling, auth transport, validation, tokens, and boundaries.
+- [x] **CP-MR.2 — Monorepo Workspaces Setup**: Migrated repository to npm workspaces (`apps/*`, `packages/*`); relocated Web to `apps/web`.
+- [x] **CP-MR.3 — Shared Types Extraction**: Extracted `@loqme/types` containing RBAC hierarchy, user/session contracts, and domain models.
+- [x] **CP-MR.4 — Shared Validation Extraction**: Extracted `@loqme/validation` containing Zod schemas and universal Persian string/digit utilities.
+- [x] **CP-MR.5 — Shared Design Tokens Extraction**: Extracted `@loqme/design-tokens` with White + Teal palette and motion curves.
+- [x] **CP-MR.6 — Universal API Client**: Implemented `@loqme/api` supporting normalized error handling and dual Bearer/Cookie transport.
+- [x] **CP-MR.7 — Universal Dual-Mode Auth**: Upgraded backend auth route handlers and middleware to accept `Authorization: Bearer <token>` and return `token` in JSON response.
+- [x] **CP-MR.8 — Documentation Suite**: Authored `docs/MOBILE_ARCHITECTURE.md`, `docs/decisions/ADR-001-mobile-architecture.md`, and updated `AGENTS.md` and `ROADMAP.md`.
+- [x] **CP-MR.9 — Validation Suite**: 25/25 Vitest tests passing, 0 TypeScript errors (`tsc --noEmit`), 0 ESLint warnings, production build exit code 0.
+
 ---
 
 ## 5. Important Technical Decisions
 
-1. **Monolithic Next.js Architecture**: Next.js App Router (Server Components + Route Handlers) with strict domain service separation.
-2. **Prisma ORM on PostgreSQL 15**: Adopted Prisma ORM with connection pooling and automated migration scripts (`0001_init_auth_users`).
-3. **Edge-Compatible JWT Session Token**: Implemented `jose` HS256 signed session cookies for instant RBAC evaluation in Next.js middleware.
-4. **Token-First Design System**: Full CSS Custom Property palette matching `DESIGN_SYSTEM.md` and Emil Kowalski design engineering micro-interactions (`:active scale(0.97)`, custom curves).
-5. **Console Mock SMS Dispatcher**: In-memory and global OTP persistence for rapid developer testing without external vendor fees.
+1. **Multi-Client Monorepo (`apps/*` + `packages/*`)**: Standard npm workspaces without heavy tooling overhead; provides instant sharing of types, schemas, tokens, and API client.
+2. **Native Mobile via React Native & Expo**: Explicitly rejected WebView wrapper in favor of native hardware capabilities, push notifications, and 60fps gesture performance (documented in `ADR-001`).
+3. **Universal Dual-Mode Authentication**: Backend middleware and routes accept both `Authorization: Bearer <token>` (Mobile) and `loqme_session` HttpOnly cookie (Web).
+4. **Backend Sole Authority**: Authoritative business rules, pricing, inventory locks, and financial ledger remain strictly on the backend.
+5. **Platform-Neutral Design Tokens**: Single source of truth in `@loqme/design-tokens` exported as pure TypeScript objects with Web CSS custom property helper.
 
 ---
 
-## 6. Known Risks & Mitigation Strategies
+## 6. Known Limitations & Future Mobile Blockers
 
-| Risk | Impact | Mitigation Plan |
+| Area | Current State | Future Mobile Requirement |
 | :--- | :--- | :--- |
-| **PowerShell Script Execution Policy on Windows** | High | Use `npm.cmd` / `npx.cmd` directly in PowerShell. |
-| **Payment Gateway E-Namad Requirement** | High | Abstract payment gateway behind `IPaymentGateway` interface; provide `MockPaymentGateway`. |
-| **Local Port Conflicts (5432)** | Low | Managed via Docker Compose container `loqme-postgres`. |
+| **Marketplace Listings** | Not yet modeled in database (M02 scope). | Required before mobile discovery screens can be built. |
+| **Geospatial PostGIS Queries** | PostgreSQL PostGIS active; endpoints pending M03. | Required for mobile nearby radius queries (`ST_DWithin`). |
+| **Payment Gateway Deep Links** | Payment domain pending M04. | Deep link scheme (`loqme://payment-callback`) required for mobile IPG return. |
+| **Native Push Notifications** | Mock console notifications only. | Expo Push Notification / APNs credentials required in M-Mobile-06. |
 
 ---
 
@@ -97,13 +117,14 @@
 
 1. **Primary SMS Provider**: Select between Kavenegar and FarazSMS for production OTP dispatch (`INotificationService`).
 2. **Map Provider**: Confirm Leaflet tile provider (Neshan Map API vs OpenStreetMap).
+3. **EAS Build Credentials**: Apple Developer Account and Google Play Console accounts for production mobile releases.
 
 ---
 
 ## 8. Latest Validation Results
 
-* **Unit Test Suite**: 18 tests passing across 4 test suites in 1.29s (`tests/auth.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`).
-* **Production Build**: `npm run build` completed successfully (exit code 0, 17 static pages and dynamic routes optimized).
+* **Unit Test Suite**: 25 tests passing across 5 test suites in 1.49s (`tests/auth.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, `tests/shared-packages.test.ts`).
+* **TypeScript Typecheck**: `npx tsc --noEmit` exited with code 0 (zero errors).
 * **ESLint Validation**: `npm run lint` reported 0 errors and 0 warnings.
-* **Database & Migrations**: PostgreSQL 15 running in Docker, Prisma migration `0001_init_auth_users` applied, demo seed data populated.
-* **Server Health**: Dev server running on `http://localhost:3000` with live OTP authentication and RBAC redirects.
+* **Production Build**: `npm run build` completed successfully (exit code 0, 17 static pages and dynamic routes compiled and optimized).
+* **Database & Migrations**: PostgreSQL 15 with PostGIS active, Prisma migration `0001_init_auth_users` applied.

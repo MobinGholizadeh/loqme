@@ -13,15 +13,20 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./apps/web/src/*"],
+      "@loqme/types": ["./packages/types/src"],
+      "@loqme/validation": ["./packages/validation/src"],
+      "@loqme/design-tokens": ["./packages/design-tokens/src"],
+      "@loqme/api": ["./packages/api/src"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "tests/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }

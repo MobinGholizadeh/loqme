@@ -8,7 +8,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './apps/web/src'),
+      '@loqme/types': path.resolve(__dirname, './packages/types/src'),
+      '@loqme/validation': path.resolve(__dirname, './packages/validation/src'),
+      '@loqme/design-tokens': path.resolve(__dirname, './packages/design-tokens/src'),
+      '@loqme/api': path.resolve(__dirname, './packages/api/src'),
     },
   },
 });

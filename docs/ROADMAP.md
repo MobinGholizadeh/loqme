@@ -143,3 +143,22 @@
 * **Out of Scope**: None (final deployment milestone).
 * **Acceptance Criteria**: Production readiness checklist passes 100%; zero critical security vulnerabilities; automated deployment verified.
 * **Status**: `Pending`
+
+---
+
+## 3. Future Native Mobile Roadmap (Planning Placeholders)
+
+> [!NOTE]
+> The future Loqme mobile application will be built as a native client (`apps/mobile`) using **React Native / Expo (TypeScript)**.
+> It will consume shared contracts (`@loqme/types`, `@loqme/validation`, `@loqme/design-tokens`, `@loqme/api`) without duplicating authoritative business rules.
+> These milestones are planning placeholders and will be scheduled following domain stabilization.
+
+* **M-Mobile-01 — Mobile Architecture & Foundation**: Expo Router setup, Vazirmatn font loading, SecureStore auth token flow, RTL shell layout.
+* **M-Mobile-02 — Customer Discovery**: MapView cluster, nearby Surprise Bag cards, category filtering via `@loqme/api`.
+* **M-Mobile-03 — Authentication & Profile**: Native phone OTP input with auto-read (SMS Retriever API), profile management.
+* **M-Mobile-04 — Orders & Payments**: 10-minute reservation lock screen, WebBrowser IPG checkout, order history.
+* **M-Mobile-05 — Pickup & Location**: High-brightness dynamic QR code generator, countdown timer, pickup reminders.
+* **M-Mobile-06 — Notifications & Native Features**: APNs / FCM background message handlers, haptic feedback (`expo-haptics`), pull-to-refresh.
+* **M-Mobile-07 — Merchant Mobile**: Barcode camera scanner for merchant staff, quick surplus drop creator.
+* **M-Mobile-08 — Production & Store Release**: EAS Build configuration, Apple App Store & Google Play / Cafe Bazaar release pipelines.
+
