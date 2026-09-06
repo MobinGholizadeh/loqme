@@ -2,8 +2,8 @@
 
 > **Milestone**: M03  
 > **Title**: Marketplace Discovery  
-> **Status**: `Pending`  
-> **Target Completion**: 0%
+> **Status**: `Completed`  
+> **Target Completion**: 100%
 
 ---
 
@@ -107,23 +107,23 @@ Discovery is the primary emotional hook of Loqme. Customers must feel the thrill
 
 # Acceptance Criteria
 
-1. [ ] Homepage displays active listings from seed database.
-2. [ ] Map view renders merchant pins with correct coordinates in Tehran.
-3. [ ] Proximity filter returns only stores within selected distance.
-4. [ ] Surprise Bag detail page shows accurate original vs discounted Toman pricing.
-5. [ ] Authenticated customer can favorite/unfavorite merchants.
+1. [x] Homepage displays active listings from seed database.
+2. [x] Map view renders merchant pins with correct coordinates in Urmia and Tehran.
+3. [x] Proximity filter returns only stores within selected distance.
+4. [x] Surprise Bag detail page shows accurate original vs discounted Toman pricing.
+5. [x] Authenticated customer can favorite/unfavorite merchants.
 
 ---
 
 # Checkpoints
 
-- [ ] **CP-03.1**: Build PostGIS spatial discovery API (`/api/listings/nearby`).
-- [ ] **CP-03.2**: Build Homepage Discovery shell, hero, and category carousel.
-- [ ] **CP-03.3**: Implement Leaflet interactive map with custom pins and bottom sheet preview.
-- [ ] **CP-03.4**: Build Search, Category, and Radius filtering bottom sheet.
-- [ ] **CP-03.5**: Implement Surprise Bag and Flash Deal detail views.
-- [ ] **CP-03.6**: Implement Merchant Profile page with store details and favorite toggle.
-- [ ] **CP-03.7**: Run integration and E2E discovery tests; audit mobile responsiveness.
+- [x] **CP-03.1**: Build PostGIS spatial discovery API (`/api/listings/nearby`).
+- [x] **CP-03.2**: Build Homepage Discovery shell, hero, and category carousel.
+- [x] **CP-03.3**: Implement Leaflet interactive map with custom pins and bottom sheet preview.
+- [x] **CP-03.4**: Build Search, Category, and Radius filtering bottom sheet.
+- [x] **CP-03.5**: Implement Surprise Bag and Flash Deal detail views.
+- [x] **CP-03.6**: Implement Merchant Profile page with store details and favorite toggle.
+- [x] **CP-03.7**: Run integration and E2E discovery tests; audit mobile responsiveness.
 
 ---
 

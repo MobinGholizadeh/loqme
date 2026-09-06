@@ -189,3 +189,44 @@ export const CheckoutOrderSchema = z.object({
 
 export type CheckoutOrderInput = z.infer<typeof CheckoutOrderSchema>;
 
+export const ListingSearchQuerySchema = z.object({
+  q: z.string().trim().min(2, 'عبارت جستجو باید حداقل ۲ کاراکتر باشد').max(100, 'عبارت جستجو بیش از حد طولانی است'),
+  cityId: z.string().optional(),
+  neighborhoodId: z.string().optional(),
+  categoryId: z.string().optional(),
+  limit: z.coerce.number().min(1).max(50).default(20),
+});
+
+export type ListingSearchQueryInput = z.infer<typeof ListingSearchQuerySchema>;
+
+export const MarketplaceFilterSchema = z.object({
+  latitude: z.coerce.number().min(-90).max(90).optional(),
+  longitude: z.coerce.number().min(-180).max(180).optional(),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  radiusMeters: z.coerce.number().min(100).max(25000).default(5000),
+  radiusKm: z.coerce.number().min(0.1).max(25).optional(),
+  cityId: z.string().optional(),
+  neighborhoodId: z.string().optional(),
+  categoryId: z.string().optional(),
+  businessType: z.enum(['BAKERY', 'CAFE', 'RESTAURANT', 'SUPERMARKET', 'DELI', 'PRODUCE']).optional(),
+  minDiscountPercent: z.coerce.number().min(0).max(100).optional(),
+  maxPriceToman: z.coerce.number().min(0).optional(),
+  dietaryTag: z.string().optional(),
+  limit: z.coerce.number().min(1).max(50).default(30),
+}).transform((data) => ({
+  ...data,
+  latitude: data.latitude ?? data.lat ?? 37.5342,
+  longitude: data.longitude ?? data.lng ?? 45.0681,
+  radiusMeters: data.radiusKm ? Math.round(data.radiusKm * 1000) : data.radiusMeters,
+}));
+
+export type MarketplaceFilterInput = z.infer<typeof MarketplaceFilterSchema>;
+
+export const ToggleFavoriteSchema = z.object({
+  merchantId: z.string().uuid('شناسه فروشگاه نامعتبر است'),
+});
+
+export type ToggleFavoriteInput = z.infer<typeof ToggleFavoriteSchema>;
+
+

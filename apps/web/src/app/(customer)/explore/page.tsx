@@ -1,167 +1,547 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
+import { ListingSummaryDto, StoreMapPin } from '@loqme/types';
+import { FilterModal, FilterState } from '@/components/discovery/FilterModal';
 
-const CATEGORIES = [
-  { id: 'all', name: 'همه دسته‌ها', icon: '✨' },
-  { id: 'bakery', name: 'نان و شیرینی', icon: '🥐' },
-  { id: 'cafe', name: 'کافه و دسر', icon: '☕' },
-  { id: 'supermarket', name: 'سوپرمارکت', icon: '🛒' },
-  { id: 'restaurant', name: 'غذای گرم', icon: '🍲' },
+// Dynamically import Leaflet Map (SSR: false)
+const MarketplaceMap = dynamic(
+  () => import('@/components/discovery/MarketplaceMap').then((m) => m.MarketplaceMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-[480px] md:h-[580px] rounded-3xl bg-loqme-neutral-100 flex flex-col items-center justify-center gap-3 text-loqme-neutral-500">
+        <Spinner size="lg" />
+        <span className="text-xs font-medium">در حال بارگذاری نقشه محله...</span>
+      </div>
+    ),
+  }
+);
+
+interface NeighborhoodOption {
+  slug: string;
+  nameFa: string;
+  city: 'urmia' | 'tehran';
+  cityNameFa: string;
+  lat: number;
+  lng: number;
+}
+
+const NEIGHBORHOODS: NeighborhoodOption[] = [
+  // --- Urmia (Launch City) ---
+  { slug: 'daneshkadeh', nameFa: 'دانشکده', city: 'urmia', cityNameFa: 'ارومیه', lat: 37.5342, lng: 45.0681 },
+  { slug: 'sheykh-tappeh', nameFa: 'شیخ‌تپه', city: 'urmia', cityNameFa: 'ارومیه', lat: 37.5258, lng: 45.0495 },
+  { slug: 'ostadan', nameFa: 'استادان', city: 'urmia', cityNameFa: 'ارومیه', lat: 37.5385, lng: 45.0592 },
+  { slug: 'khayyam', nameFa: 'خیام', city: 'urmia', cityNameFa: 'ارومیه', lat: 37.5501, lng: 45.0743 },
+  { slug: 'kashani', nameFa: 'کاشانی', city: 'urmia', cityNameFa: 'ارومیه', lat: 37.5453, lng: 45.0702 },
+  { slug: 'behdari', nameFa: 'بهداری', city: 'urmia', cityNameFa: 'ارومیه', lat: 37.5190, lng: 45.0550 },
+  { slug: 'emam', nameFa: 'خیابان امام', city: 'urmia', cityNameFa: 'ارومیه', lat: 37.5530, lng: 45.0780 },
+  // --- Tehran (Expansion City) ---
+  { slug: 'saadat-abad', nameFa: 'سعادت‌آباد', city: 'tehran', cityNameFa: 'تهران', lat: 35.7891, lng: 51.3735 },
+  { slug: 'valiasr', nameFa: 'ولیعصر', city: 'tehran', cityNameFa: 'تهران', lat: 35.7280, lng: 51.4110 },
+  { slug: 'yousef-abad', nameFa: 'یوسف‌آباد', city: 'tehran', cityNameFa: 'تهران', lat: 35.7330, lng: 51.4050 },
+  { slug: 'farmanieh', nameFa: 'فرمانیه', city: 'tehran', cityNameFa: 'تهران', lat: 35.8010, lng: 51.4650 },
+  { slug: 'pasdaran', nameFa: 'پاسداران', city: 'tehran', cityNameFa: 'تهران', lat: 35.7650, lng: 51.4580 },
 ];
 
-const MOCK_BAGS = [
-  {
-    id: '1',
-    storeName: 'نانوایی و شیرینی سنتی برکت',
-    category: 'نان و شیرینی',
-    title: 'بسته شگفت‌انگیز نان تازه و کروسان عصرانه',
-    originalPrice: 120000,
-    discountedPrice: 48000,
-    remainingQty: 3,
-    pickupWindow: 'امروز ۱۹:۰۰ تا ۲۰:۳۰',
-    distanceKm: '۰.۸',
-    safetyVerified: true,
-  },
-  {
-    id: '2',
-    storeName: 'کافه راش سعادت‌آباد',
-    category: 'کافه و دسر',
-    title: 'بسته کوکی، دونات تازه و شیک میوه‌ای',
-    originalPrice: 180000,
-    discountedPrice: 69000,
-    remainingQty: 2,
-    pickupWindow: 'امروز ۲۰:۰۰ تا ۲۱:۳۰',
-    distanceKm: '۱.۲',
-    safetyVerified: true,
-  },
-  {
-    id: '3',
-    storeName: 'سوپر میوه و ارگانیک سرو',
-    category: 'سوپرمارکت',
-    title: 'جعبه میوه دست‌چین تازه فصل',
-    originalPrice: 150000,
-    discountedPrice: 55000,
-    remainingQty: 5,
-    pickupWindow: 'امروز ۲۱:۰۰ تا ۲۲:۳۰',
-    distanceKm: '۱.۹',
-    safetyVerified: true,
-  },
+const CATEGORIES = [
+  { slug: 'all', nameFa: 'همه دسته‌ها', icon: '✨' },
+  { slug: 'bakery', nameFa: 'نان و شیرینی', icon: '🍞' },
+  { slug: 'cafe', nameFa: 'کافه و دسر', icon: '☕' },
+  { slug: 'restaurant', nameFa: 'غذا و رستوران', icon: '🍲' },
+  { slug: 'supermarket', nameFa: 'سوپرمارکت', icon: '🛒' },
+  { slug: 'produce', nameFa: 'میوه و تره‌بار', icon: '🥦' },
+  { slug: 'deli', nameFa: 'پروتئین و دلی', icon: '🥩' },
 ];
 
 export default function ExplorePage() {
+  // State
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState<NeighborhoodOption>(NEIGHBORHOODS[0]);
+  const [viewMode, setViewMode] = useState<'feed' | 'map'>('feed');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState<boolean>(false);
+  const [filters, setFilters] = useState<FilterState>({
+    radiusMeters: 5000,
+    businessType: undefined,
+    dietaryTags: [],
+  });
+
+  const [listings, setListings] = useState<ListingSummaryDto[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Debounce search query (300ms)
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // Fetch listings from API based on location, filters, and search
+  const fetchListings = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMsg(null);
+
+    try {
+      if (debouncedSearch) {
+        // Use debounced search route
+        const params = new URLSearchParams({
+          q: debouncedSearch,
+          limit: '40',
+        });
+        const res = await fetch(`/api/listings/search?${params.toString()}`);
+        const json = await res.json();
+        if (json.success) {
+          setListings(json.data || []);
+        } else {
+          setErrorMsg(json.message || 'خطا در بارگذاری نتایج جستجو');
+        }
+      } else {
+        // Use proximity radius route
+        const params = new URLSearchParams({
+          latitude: selectedNeighborhood.lat.toString(),
+          longitude: selectedNeighborhood.lng.toString(),
+          radiusMeters: filters.radiusMeters.toString(),
+          limit: '40',
+        });
+
+        if (filters.businessType) {
+          params.set('businessType', filters.businessType);
+        }
+
+        const res = await fetch(`/api/listings/nearby?${params.toString()}`);
+        const json = await res.json();
+        if (json.success) {
+          setListings(json.data || []);
+        } else {
+          setErrorMsg(json.message || 'خطا در بارگذاری لیست‌ها');
+        }
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setErrorMsg('ارتباط با سرور برقرار نشد. لطفاً اینترنت خود را بررسی کنید.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedNeighborhood, debouncedSearch, filters]);
+
+  useEffect(() => {
+    fetchListings();
+  }, [fetchListings]);
+
+  // Client-side category filtering
+  const filteredListings = useMemo(() => {
+    if (selectedCategory === 'all') return listings;
+    return listings.filter((item) => item.categorySlug === selectedCategory);
+  }, [listings, selectedCategory]);
+
+  // Separate into Surprise Bags and Flash Deals
+  const surpriseBags = useMemo(() => {
+    return filteredListings.filter((l) => l.type === 'SURPRISE_BAG');
+  }, [filteredListings]);
+
+  const flashDeals = useMemo(() => {
+    return filteredListings.filter((l) => l.type === 'FLASH_DEAL');
+  }, [filteredListings]);
+
+  // Convert listings to unique StoreMapPins for Leaflet Map
+  const mapPins: StoreMapPin[] = useMemo(() => {
+    const map = new Map<string, StoreMapPin>();
+
+    listings.forEach((item) => {
+      if (!item.latitude || !item.longitude) return;
+
+      const existing = map.get(item.merchantId);
+      if (existing) {
+        existing.activeListingCount += 1;
+        if (item.discountedPriceToman && (!existing.minPriceToman || item.discountedPriceToman < existing.minPriceToman)) {
+          existing.minPriceToman = item.discountedPriceToman;
+        }
+      } else {
+        map.set(item.merchantId, {
+          id: `pin-${item.merchantId}`,
+          merchantId: item.merchantId,
+          businessNameFa: item.storeNameFa,
+          businessType: item.businessType,
+          latitude: item.latitude,
+          longitude: item.longitude,
+          addressFa: item.addressFa || '',
+          activeListingCount: 1,
+          minPriceToman: item.discountedPriceToman,
+          ratingAverage: 4.9, // Default fallback
+        });
+      }
+    });
+
+    return Array.from(map.values());
+  }, [listings]);
+
+  // Active filter count
+  const activeFilterCount = (filters.businessType ? 1 : 0) + filters.dietaryTags.length;
+
   return (
-    <div className="space-y-6">
-      {/* Search & Location Bar */}
-      <div className="bg-white p-3 rounded-2xl shadow-xs border border-loqme-neutral-200 flex items-center justify-between">
+    <div className="space-y-6 pb-12">
+      {/* Dynamic Warm Brand Hero Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-loqme-primary-700 via-loqme-primary-800 to-loqme-primary-900 text-white p-6 md:p-8 shadow-card">
+        <div className="relative z-10 max-w-2xl space-y-2">
+          <Badge variant="brand" size="sm" className="bg-white/20 text-white border-none backdrop-blur-md">
+            ✨ کشف هوشمندانه محله
+          </Badge>
+          <h1 className="text-xl md:text-3xl font-extrabold leading-tight">
+            امروز چه طعم تازه‌ای در محله شما منتظر کشف است؟
+          </h1>
+          <p className="text-xs md:text-sm text-loqme-primary-100/90 leading-relaxed pt-1">
+            خوراکی‌ها و بسته‌های شگفت‌انگیز نان، شیرینی و کافه‌های معتبر شهر با ۵۰٪ تا ۷۰٪ تخفیف واقعی
+          </p>
+        </div>
+
+        {/* Decorative background glow circles */}
+        <div className="absolute -left-12 -bottom-16 w-56 h-56 rounded-full bg-loqme-primary-500/20 blur-3xl" />
+        <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-loqme-primary-400/15 blur-2xl" />
+      </div>
+
+      {/* Neighborhood & City Selector Bar */}
+      <div className="bg-white p-3.5 rounded-2xl shadow-xs border border-loqme-neutral-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-base">📍</span>
+          <span className="text-xs font-bold text-loqme-neutral-700">موقعیت محله شما:</span>
+          <select
+            value={selectedNeighborhood.slug}
+            onChange={(e) => {
+              const found = NEIGHBORHOODS.find((n) => n.slug === e.target.value);
+              if (found) setSelectedNeighborhood(found);
+            }}
+            className="bg-loqme-neutral-50 border border-loqme-neutral-300 text-xs font-bold text-loqme-primary-800 rounded-xl px-3 py-1.5 outline-none focus:border-loqme-primary-500 cursor-pointer"
+          >
+            <optgroup label="شهر ارومیه (فاز ۱ - لانچ بازار)">
+              {NEIGHBORHOODS.filter((n) => n.city === 'urmia').map((n) => (
+                <option key={n.slug} value={n.slug}>
+                  ارومیه — {n.nameFa}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="شهر تهران (فاز ۲ - توسعه)">
+              {NEIGHBORHOODS.filter((n) => n.city === 'tehran').map((n) => (
+                <option key={n.slug} value={n.slug}>
+                  تهران — {n.nameFa}
+                </option>
+              ))}
+            </optgroup>
+          </select>
+        </div>
+
+        {/* View Mode Switcher (Feed vs Map) */}
+        <div className="flex items-center gap-1 bg-loqme-neutral-100 p-1 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setViewMode('feed')}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+              viewMode === 'feed'
+                ? 'bg-white text-loqme-primary-700 shadow-xs'
+                : 'text-loqme-neutral-600 hover:text-loqme-neutral-900'
+            }`}
+          >
+            <span>📋</span>
+            <span>لیست بسته‌ها</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('map')}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+              viewMode === 'map'
+                ? 'bg-white text-loqme-primary-700 shadow-xs'
+                : 'text-loqme-neutral-600 hover:text-loqme-neutral-900'
+            }`}
+          >
+            <span>🗺️</span>
+            <span>نقشه زنده</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Search & Filter Bar */}
+      <div className="bg-white p-3 rounded-2xl shadow-xs border border-loqme-neutral-200 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-1">
           <span className="text-loqme-neutral-400">🔍</span>
           <input
             type="text"
-            placeholder="جستجوی شیرینی، قهوه، غذا و فروشگاه..."
-            className="w-full bg-transparent border-none text-sm outline-none text-loqme-neutral-800 placeholder:text-loqme-neutral-400"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="جستجوی شیرینی سنتی ارومیه، نان تازه، کافه، باقلوا..."
+            className="w-full bg-transparent border-none text-xs md:text-sm outline-none text-loqme-neutral-800 placeholder:text-loqme-neutral-400"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="text-xs text-loqme-neutral-400 hover:text-loqme-neutral-600 px-1"
+            >
+              ✕
+            </button>
+          )}
         </div>
-        <Badge variant="brand" size="sm">
-          فیلترها
-        </Badge>
+
+        <button
+          type="button"
+          onClick={() => setIsFilterModalOpen(true)}
+          className="flex items-center gap-1.5 bg-loqme-neutral-50 hover:bg-loqme-neutral-100 border border-loqme-neutral-200 px-3 py-1.5 rounded-xl text-xs font-semibold text-loqme-neutral-700 transition-colors"
+        >
+          <span>⚡ فیلترها</span>
+          {activeFilterCount > 0 && (
+            <span className="w-4 h-4 rounded-full bg-loqme-primary-600 text-white text-[10px] flex items-center justify-center font-bold">
+              {toPersianDigits(activeFilterCount)}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* Category Pills */}
+      {/* Category Carousel */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-        {CATEGORIES.map((cat, idx) => (
-          <button
-            key={cat.id}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-              idx === 0
-                ? 'bg-loqme-primary-600 text-white shadow-xs'
-                : 'bg-white text-loqme-neutral-700 border border-loqme-neutral-200 hover:bg-loqme-neutral-50'
-            }`}
-          >
-            <span>{cat.icon}</span>
-            <span>{cat.name}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Discovery Section Title */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-loqme-neutral-900">بسته‌های شگفت‌انگیز در نزدیکی شما</h2>
-          <p className="text-xs text-loqme-neutral-500 mt-0.5">آماده تحویل حضوری در ساعات آینده</p>
-        </div>
-        <Badge variant="success" size="sm">
-          {toPersianDigits(MOCK_BAGS.length)} بسته موجود
-        </Badge>
-      </div>
-
-      {/* Surprise Bags Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {MOCK_BAGS.map((bag) => {
-          const discountPercent = Math.round(
-            ((bag.originalPrice - bag.discountedPrice) / bag.originalPrice) * 100
-          );
-
+        {CATEGORIES.map((cat) => {
+          const active = selectedCategory === cat.slug;
           return (
-            <Card key={bag.id} variant="elevated" isInteractive className="p-4 flex flex-col justify-between">
-              <div>
-                {/* Store Header */}
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-bold text-sm text-loqme-neutral-900">{bag.storeName}</h3>
-                    <span className="text-[11px] text-loqme-neutral-500">
-                      فاصله: {bag.distanceKm} کیلومتر • {bag.category}
-                    </span>
-                  </div>
-                  {bag.safetyVerified && (
-                    <Badge variant="success" size="sm">
-                      ✓ تضمین بهداشت
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Bag Title */}
-                <div className="font-medium text-sm text-loqme-neutral-800 my-2">
-                  {bag.title}
-                </div>
-
-                {/* Pickup Window Indicator */}
-                <div className="bg-loqme-primary-50 text-loqme-primary-800 text-xs px-2.5 py-1 rounded-md flex items-center justify-between my-2">
-                  <span>⏰ تحویل: {bag.pickupWindow}</span>
-                  <span className="font-semibold text-[11px] text-loqme-warning-600">
-                    تنها {toPersianDigits(bag.remainingQty)} عدد باقی‌مانده
-                  </span>
-                </div>
-              </div>
-
-              {/* Price & Action Footer */}
-              <div className="pt-3 border-t border-loqme-neutral-200 mt-3 flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-loqme-neutral-400 line-through">
-                    {formatToman(bag.originalPrice)}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-extrabold text-base text-loqme-primary-600">
-                      {formatToman(bag.discountedPrice)}
-                    </span>
-                    <Badge variant="brand" size="sm">
-                      {toPersianDigits(discountPercent)}٪ تخفیف
-                    </Badge>
-                  </div>
-                </div>
-
-                <Button size="sm" variant="primary">
-                  رزرو ۱۰ دقیقه‌ای
-                </Button>
-              </div>
-            </Card>
+            <button
+              key={cat.slug}
+              type="button"
+              onClick={() => setSelectedCategory(cat.slug)}
+              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                active
+                  ? 'bg-loqme-primary-700 text-white shadow-xs'
+                  : 'bg-white text-loqme-neutral-700 border border-loqme-neutral-200 hover:bg-loqme-neutral-50'
+              }`}
+            >
+              <span>{cat.icon}</span>
+              <span>{cat.nameFa}</span>
+            </button>
           );
         })}
       </div>
+
+      {/* View Content: MAP VIEW or FEED VIEW */}
+      {viewMode === 'map' ? (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-sm text-loqme-neutral-900">
+              نقشه فروشگاه‌های دارای بسته در محدوده {selectedNeighborhood.nameFa}
+            </h3>
+            <span className="text-xs text-loqme-neutral-500">
+              {toPersianDigits(mapPins.length)} فروشگاه فعال
+            </span>
+          </div>
+
+          <MarketplaceMap
+            pins={mapPins}
+            center={[selectedNeighborhood.lat, selectedNeighborhood.lng]}
+            zoom={14}
+          />
+        </div>
+      ) : (
+        /* FEED VIEW */
+        <div className="space-y-8">
+          {/* Loading State */}
+          {isLoading && (
+            <div className="py-16 flex flex-col items-center justify-center gap-3 text-loqme-neutral-500">
+              <Spinner size="lg" />
+              <p className="text-xs font-medium">در حال یافتن تازه‌ترین بسته‌ها در محله شما...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {!isLoading && errorMsg && (
+            <div className="p-6 bg-loqme-error-50 border border-loqme-error-200 text-loqme-error-700 rounded-2xl text-center space-y-2">
+              <p className="text-sm font-bold">{errorMsg}</p>
+              <Button size="sm" variant="secondary" onClick={fetchListings}>
+                تلاش مجدد
+              </Button>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && !errorMsg && filteredListings.length === 0 && (
+            <div className="py-16 text-center space-y-4 bg-white rounded-3xl border border-dashed border-loqme-neutral-300 p-8">
+              <div className="text-4xl">🌾</div>
+              <h3 className="font-bold text-base text-loqme-neutral-800">
+                در این محدوده فعلاً بسته فعال موجود نیست
+              </h3>
+              <p className="text-xs text-loqme-neutral-500 max-w-md mx-auto leading-relaxed">
+                می‌توانید شعاع جستجو را افزایش دهید یا محله دیگری از ارومیه (مثل دانشکده یا خیام) را انتخاب کنید.
+              </p>
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => {
+                    setFilters((prev) => ({ ...prev, radiusMeters: 25000 }));
+                    setSelectedCategory('all');
+                    setSearchQuery('');
+                  }}
+                >
+                  افزایش شعاع به ۲۵ کیلومتر
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Surprise Bags Section */}
+          {!isLoading && !errorMsg && surpriseBags.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-base md:text-lg font-bold text-loqme-neutral-900">
+                    بسته‌های شگفت‌انگیز (Surprise Bags)
+                  </h2>
+                  <p className="text-xs text-loqme-neutral-500 mt-0.5">
+                    محتوای هیجان‌انگیز از بهترین محصولات تازه روز با بالاترین ارزش اقتصادی
+                  </p>
+                </div>
+                <Badge variant="brand" size="sm">
+                  {toPersianDigits(surpriseBags.length)} بسته
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {surpriseBags.map((bag) => (
+                  <ListingCard key={bag.id} listing={bag} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Flash Deals Section */}
+          {!isLoading && !errorMsg && flashDeals.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-base md:text-lg font-bold text-loqme-neutral-900">
+                    تخفیف‌های ویژه مستقیم (Flash Deals)
+                  </h2>
+                  <p className="text-xs text-loqme-neutral-500 mt-0.5">
+                    اقلام مشخص و آماده با قیمت‌های فوق‌العاده
+                  </p>
+                </div>
+                <Badge variant="brand" size="sm">
+                  {toPersianDigits(flashDeals.length)} پیشنهاد
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {flashDeals.map((deal) => (
+                  <ListingCard key={deal.id} listing={deal} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Filter Modal */}
+      <FilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        filters={filters}
+        onApply={(newFilters) => setFilters(newFilters)}
+        onReset={() => {
+          setFilters({
+            radiusMeters: 5000,
+            businessType: undefined,
+            dietaryTags: [],
+          });
+        }}
+      />
     </div>
+  );
+}
+
+// Reusable Listing Card Component
+function ListingCard({ listing }: { listing: ListingSummaryDto }) {
+  const distanceFormatted = listing.distanceMeters
+    ? listing.distanceMeters < 1000
+      ? `${toPersianDigits(Math.round(listing.distanceMeters))} متر`
+      : `${toPersianDigits((listing.distanceMeters / 1000).toFixed(1))} کیلومتر`
+    : null;
+
+  return (
+    <Card variant="elevated" isInteractive className="p-4 flex flex-col justify-between hover:border-loqme-primary-300 transition-all">
+      <div>
+        {/* Store & Category Header */}
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <Link
+              href={`/merchants/${listing.merchantId}`}
+              className="font-bold text-sm text-loqme-neutral-900 hover:text-loqme-primary-700 transition-colors"
+            >
+              {listing.storeNameFa}
+            </Link>
+            <div className="text-[11px] text-loqme-neutral-500 mt-0.5">
+              {listing.categoryNameFa}
+              {distanceFormatted && ` • فاصله: ${distanceFormatted}`}
+            </div>
+          </div>
+
+          {listing.safetyVerified && (
+            <Badge variant="success" size="sm">
+              ✓ تضمین بهداشت
+            </Badge>
+          )}
+        </div>
+
+        {/* Title */}
+        <Link href={`/listings/${listing.id}`}>
+          <h3 className="font-semibold text-sm text-loqme-neutral-800 my-2 hover:text-loqme-primary-600 transition-colors line-clamp-1">
+            {listing.titleFa}
+          </h3>
+        </Link>
+
+        {listing.descriptionFa && (
+          <p className="text-xs text-loqme-neutral-500 line-clamp-2 mb-3 leading-relaxed">
+            {listing.descriptionFa}
+          </p>
+        )}
+
+        {/* Pickup Window & Real Scarcity Indicator */}
+        <div className="bg-loqme-primary-50/80 text-loqme-primary-900 text-xs px-3 py-1.5 rounded-xl flex items-center justify-between my-2 border border-loqme-primary-100">
+          <span className="flex items-center gap-1">
+            <span>⏰</span>
+            <span>تحویل: {listing.pickupWindowFa}</span>
+          </span>
+          <span className="font-bold text-[11px] text-loqme-primary-700">
+            تنها {toPersianDigits(listing.remainingQuantity)} عدد باقی‌مانده
+          </span>
+        </div>
+      </div>
+
+      {/* Price & Action Button Footer */}
+      <div className="pt-3 border-t border-loqme-neutral-100 mt-2 flex items-center justify-between">
+        <div>
+          <div className="text-xs text-loqme-neutral-400 line-through">
+            {formatToman(listing.originalPriceToman)}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-extrabold text-base text-loqme-primary-700">
+              {formatToman(listing.discountedPriceToman)}
+            </span>
+            <Badge variant="brand" size="sm">
+              {toPersianDigits(listing.discountPercent)}٪ تخفیف
+            </Badge>
+          </div>
+        </div>
+
+        <Link href={`/listings/${listing.id}`}>
+          <Button size="sm" variant="primary">
+            مشاهده و رزرو
+          </Button>
+        </Link>
+      </div>
+    </Card>
   );
 }

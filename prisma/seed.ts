@@ -878,7 +878,17 @@ async function main() {
       },
     });
 
-    if (!existingListing) {
+    if (existingListing) {
+      await prisma.listing.update({
+        where: { id: existingListing.id },
+        data: {
+          pickupDate: item.date,
+          pickupStart: item.window.start,
+          pickupEnd: item.window.end,
+          status: ListingStatus.PUBLISHED,
+        },
+      });
+    } else {
       await prisma.listing.create({
         data: {
           merchantId: merchantRef.merchantId,

@@ -310,3 +310,62 @@ export interface NearbyMerchantQuery {
   limit?: number;
   businessType?: string;
 }
+
+export interface FavoriteEntity {
+  id: string;
+  customerId: string;
+  merchantId: string;
+  createdAt: Date | string;
+  merchant?: MerchantEntity;
+}
+
+export interface StoreMapPin {
+  id: string;
+  merchantId: string;
+  businessNameFa: string;
+  businessType: string;
+  latitude: number;
+  longitude: number;
+  addressFa: string;
+  activeListingCount: number;
+  minPriceToman?: number;
+  ratingAverage: number;
+}
+
+export interface MarketplaceFilterParams {
+  latitude?: number;
+  longitude?: number;
+  radiusMeters?: number;
+  cityId?: string;
+  neighborhoodId?: string;
+  categoryId?: string;
+  businessType?: string;
+  minDiscountPercent?: number;
+  maxPriceToman?: number;
+  dietaryTag?: string;
+  searchQuery?: string;
+}
+
+export interface ListingSummaryDto {
+  id: string;
+  merchantId: string;
+  storeNameFa: string;
+  businessType: string;
+  categoryNameFa: string;
+  categorySlug: string;
+  titleFa: string;
+  descriptionFa?: string | null;
+  originalPriceToman: number;
+  discountedPriceToman: number;
+  discountPercent: number;
+  remainingQuantity: number;
+  pickupWindowFa: string;
+  pickupEndIso: string;
+  distanceMeters?: number;
+  safetyVerified: boolean;
+  latitude?: number;
+  longitude?: number;
+  addressFa?: string;
+  type: ListingType;
+}
+

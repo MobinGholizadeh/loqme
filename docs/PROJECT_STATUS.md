@@ -10,11 +10,11 @@
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **M03 — Marketplace Discovery** |
-| **Milestone Status** | `Ready for M03` (Milestone M02 Core Domain & Database Completed) |
-| **Overall Completion** | `25%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%) |
+| **Current Milestone** | **M04 — Orders, Inventory & Payments** |
+| **Milestone Status** | `Ready for M04` (Milestone M03 Marketplace Discovery Completed) |
+| **Overall Completion** | `33%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%) |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running) |
-| **Last Updated** | 2026-09-06 (Milestone M02 Completed & Verified) |
+| **Last Updated** | 2026-09-07 (Milestone M03 Marketplace Discovery Completed & Verified) |
 
 ---
 
@@ -23,15 +23,15 @@
 * **Runtime**: Node.js `v20.17.0` (Active on Windows host)
 * **Package Manager**: `npm` `11.10.0` (via `npm.cmd` / `npx.cmd`) with npm workspaces (`apps/*`, `packages/*`)
 * **Monorepo Architecture**:
-  * `apps/web`: Next.js 14.2.23 (App Router), React 18, TypeScript 5
+  * `apps/web`: Next.js 14.2.23 (App Router), React 18, TypeScript 5, Leaflet 1.9
   * `apps/mobile`: [Future] React Native / Expo Client
-  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers, Marketplace entities)
-  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile & Persian utilities, Listing/Merchant schemas)
+  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers, Marketplace & Discovery entities)
+  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile, Marketplace search & filter schemas)
   * `packages/design-tokens`: `@loqme/design-tokens` (White + Teal palette, Emil Kowalski motion)
   * `packages/api`: `@loqme/api` (Universal fetch-based API client, Bearer & Cookie auth)
   * `packages/config`: `@loqme/config` (Shared tsconfig presets)
 * **Database**: PostgreSQL 15 with PostGIS 3.4 (Active via Docker container `loqme-postgres` on port 5432)
-* **ORM & Migrations**: Prisma ORM `v5.22.0` with migrations `0001_init_auth_users` and `20260906201522_core_domain_entities` applied
+* **ORM & Migrations**: Prisma ORM `v5.22.0` with migrations `0001_init_auth_users`, `20260906201522_core_domain_entities`, and `20260907000300_add_favorites_table` applied
 * **Security & Auth**: Universal Dual-Mode Auth (CSPRNG 5-digit OTP, signed `jose` JWT via either `Authorization: Bearer <token>` or HttpOnly `loqme_session` cookie)
 * **Styling**: Centralized Token Architecture in `@loqme/design-tokens`, Vazirmatn font, RTL-first (`dir="rtl"`)
 * **Version Control**: Git initialized on `master` branch
@@ -46,7 +46,7 @@
 | **M01** | **Application Foundation** | `Completed` | `100%` |
 | **Post-M01** | **Mobile-Readiness Architecture Refactor** | `Completed` | `100%` |
 | **M02** | **Core Domain & Database** | `Completed` | `100%` |
-| **M03** | Marketplace Discovery | `Pending` | `0%` |
+| **M03** | **Marketplace Discovery** | `Completed` | `100%` |
 | **M04** | Orders, Inventory & Payments | `Pending` | `0%` |
 | **M05** | Pickup Verification | `Pending` | `0%` |
 | **M06** | Trust, Safety & Moderation | `Pending` | `0%` |
@@ -97,6 +97,15 @@
 - [x] **CP-02.4 — Persian Seed Suite (Urmia First, Tehran Expansion)**: Seeded West Azerbaijan (Urmia) with 7 neighborhoods (دانشکده، شیخ‌تپه، استادان، خیام، کاشانی، بهداری، امام) as Phase 1 launch market, plus Tehran with 5 neighborhoods, 6 food categories, 12 authentic merchants, and 25 realistic surplus listings (Surprise Bags & Flash Deals) with authentic Toman pricing.
 - [x] **CP-02.5 — Validation & Integration Tests**: 35/35 tests passing across 6 suites verifying PostGIS queries (in both Urmia and Tehran), atomic domain provisioning, and database check constraint enforcement.
 
+### Milestone M03 Checklist
+- [x] **CP-03.1 — PostGIS Spatial Discovery API**: Implemented `/api/listings/nearby` with PostGIS `ST_DWithin` and `ST_Distance` queries, supporting coordinate parameters, radius boundaries, business types, and distance ordering.
+- [x] **CP-03.2 — Homepage Discovery Shell & Hero**: Built dynamic hero banner («امروز چه طعم تازه‌ای در محله شما منتظر کشف است؟»), Urmia neighborhood selector (دانشکده، شیخ‌تپه، استادان، خیام، کاشانی، بهداری، امام) + Tehran, category pills, and view switcher.
+- [x] **CP-03.3 — Leaflet Interactive Map**: Implemented `MarketplaceMap` with custom SVG Teal brand pins, count badges, Urmia/Tehran quick-recenter buttons, GPS locator, and bottom sheet merchant preview on pin tap.
+- [x] **CP-03.4 — Search, Category & Radius Filtering**: Implemented `FilterModal` with radius options (500m to 25km), business type pills, and dietary preferences; debounced (300ms) search across titles, merchants, and categories.
+- [x] **CP-03.5 — Surprise Bag & Flash Deal Detail Views**: Built `/listings/[id]` with guaranteed value floor, original vs discounted pricing in Toman, net savings banner, pickup window countdown, allergen declarations, and food safety clearance badge.
+- [x] **CP-03.6 — Merchant Profile & Favorites System**: Applied migration `20260907000300_add_favorites_table`, built `/merchants/[id]` profile view with operating hours and active listings, plus `/api/merchants/[id]/favorite` dual-mode toggle endpoint.
+- [x] **CP-03.7 — Discovery Tests & Validation**: 46/46 vitest tests passing across 7 suites (`tests/m03-discovery.test.ts`), Next.js production build exit code 0, 0 TypeScript errors, 0 ESLint warnings.
+
 ---
 
 ## 5. Important Technical Decisions
@@ -109,6 +118,7 @@
 6. **PostGIS Native Spatial Indexing**: Stores coordinates in `MerchantLocation` with an automated trigger populating PostGIS `geography(Point, 4326)` and indexed using GIST (`idx_merchant_location_geom`) for high-performance sub-millisecond radius search.
 7. **Database-Level Guardrails**: Enforced price validity (`discounted < original`), inventory integrity (`total >= reserved + sold`), and pickup window chronological validity directly in PostgreSQL via check constraints.
 8. **Urmia-First Launch Strategy**: Initial commercial rollout, neighborhood density building, merchant onboarding, and operational learning starts in **Urmia (ارومیه)**, followed by expansion to Tehran.
+9. **Interactive Leaflet Map with SSR Disabled**: Dynamic import with `ssr: false` avoids SSR `window` errors in Next.js App Router while rendering custom White + Teal markers with active bag counts.
 
 ---
 
@@ -116,8 +126,8 @@
 
 | Area | Current State | Future Requirement |
 | :--- | :--- | :--- |
-| **Marketplace Discovery UI & Map** | Models & PostGIS queries implemented; UI pending M03. | M03 scope: Feed views, category tabs, and Leaflet map pins. |
 | **Payment Gateway Integration** | Payment abstractions defined; real IPG adapters pending M04. | M04 scope: Zarinpal/Saman gateway integration and callbacks. |
+| **Cart & Temporary Reservation Locks** | 10-minute hold countdown logic pending M04. | M04 scope: Inventory reservation holding pattern. |
 | **Pickup Verification Flow** | Staff roles and schema ready; QR code scanning pending M05. | M05 scope: Merchant QR scanner and OTP verification handshake. |
 
 ---
@@ -132,9 +142,9 @@
 
 ## 8. Latest Validation Results
 
-* **Unit & Integration Test Suite**: 35 tests passing across 6 test suites (`tests/auth.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, `tests/shared-packages.test.ts`, `tests/m02-domain.test.ts`).
+* **Unit & Integration Test Suite**: 46 tests passing across 7 test suites (`tests/auth.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, `tests/shared-packages.test.ts`, `tests/m02-domain.test.ts`, `tests/m03-discovery.test.ts`).
 * **TypeScript Typecheck**: `npm run typecheck` and `npx tsc --noEmit` exited with code 0 (zero errors across all packages and apps).
 * **ESLint Validation**: `npm run lint` reported 0 errors and 0 warnings.
 * **Production Build**: `npm run build` completed successfully (exit code 0, 17 routes compiled and optimized).
-* **Database & Migrations**: PostgreSQL 15 with PostGIS 3.4 active, Prisma migrations `0001_init_auth_users` and `20260906201522_core_domain_entities` applied.
-* **Database Seed**: 12 merchants, 12 locations, 6 categories, 25 listings with inventories and safety records loaded across Urmia (Launch City) and Tehran (Expansion City).
+* **Database & Migrations**: PostgreSQL 15 with PostGIS 3.4 active, Prisma migrations `0001_init_auth_users`, `20260906201522_core_domain_entities`, and `20260907000300_add_favorites_table` applied.
+* **Database Seed**: 12 merchants, 12 locations, 6 categories, 25 listings with inventories and safety records refreshed and loaded across Urmia (Launch City) and Tehran (Expansion City).

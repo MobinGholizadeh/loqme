@@ -1,3 +1,6 @@
+-- Enable PostGIS Extension
+CREATE EXTENSION IF NOT EXISTS postgis;
+
 -- CreateEnum
 CREATE TYPE "ListingType" AS ENUM ('SURPRISE_BAG', 'FLASH_DEAL');
 
