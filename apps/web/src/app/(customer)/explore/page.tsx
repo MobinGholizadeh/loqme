@@ -7,6 +7,10 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { Select } from '@/components/ui/Select';
+import { CardSkeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
 import { ListingSummaryDto, StoreMapPin } from '@loqme/types';
 import { FilterModal, FilterState } from '@/components/discovery/FilterModal';
@@ -211,17 +215,16 @@ export default function ExplorePage() {
       </div>
 
       {/* Neighborhood & City Selector Bar */}
-      <div className="bg-white p-3.5 rounded-2xl shadow-xs border border-loqme-neutral-200 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-base">📍</span>
-          <span className="text-xs font-bold text-loqme-neutral-700">موقعیت محله شما:</span>
-          <select
+      <div className="bg-white p-3.5 rounded-2xl shadow-card border border-loqme-neutral-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-1 min-w-[260px] max-w-md">
+          <Select
+            icon={<span>📍</span>}
             value={selectedNeighborhood.slug}
             onChange={(e) => {
               const found = NEIGHBORHOODS.find((n) => n.slug === e.target.value);
               if (found) setSelectedNeighborhood(found);
             }}
-            className="bg-loqme-neutral-50 border border-loqme-neutral-300 text-xs font-bold text-loqme-primary-800 rounded-xl px-3 py-1.5 outline-none focus:border-loqme-primary-500 cursor-pointer"
+            className="text-xs font-bold text-loqme-primary-800 py-1.5"
           >
             <optgroup label="شهر ارومیه (فاز ۱ - لانچ بازار)">
               {NEIGHBORHOODS.filter((n) => n.city === 'urmia').map((n) => (
@@ -237,7 +240,7 @@ export default function ExplorePage() {
                 </option>
               ))}
             </optgroup>
-          </select>
+          </Select>
         </div>
 
         {/* View Mode Switcher (Feed vs Map) */}
@@ -245,7 +248,7 @@ export default function ExplorePage() {
           <button
             type="button"
             onClick={() => setViewMode('feed')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               viewMode === 'feed'
                 ? 'bg-white text-loqme-primary-700 shadow-xs'
                 : 'text-loqme-neutral-600 hover:text-loqme-neutral-900'
@@ -257,7 +260,7 @@ export default function ExplorePage() {
           <button
             type="button"
             onClick={() => setViewMode('map')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               viewMode === 'map'
                 ? 'bg-white text-loqme-primary-700 shadow-xs'
                 : 'text-loqme-neutral-600 hover:text-loqme-neutral-900'
@@ -270,21 +273,21 @@ export default function ExplorePage() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white p-3 rounded-2xl shadow-xs border border-loqme-neutral-200 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-1">
-          <span className="text-loqme-neutral-400">🔍</span>
+      <div className="bg-white p-2.5 rounded-2xl shadow-card border border-loqme-neutral-200 flex items-center justify-between gap-3 focus-within:border-loqme-primary-500 focus-within:ring-2 focus-within:ring-loqme-primary-50 transition-all">
+        <div className="flex items-center gap-2.5 flex-1 px-2">
+          <span className="text-loqme-primary-600 text-sm">🔍</span>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="جستجوی شیرینی سنتی ارومیه، نان تازه، کافه، باقلوا..."
-            className="w-full bg-transparent border-none text-xs md:text-sm outline-none text-loqme-neutral-800 placeholder:text-loqme-neutral-400"
+            placeholder="جستجوی نان تازه، شیرینی سنتی ارومیه، باقلوا، کافه..."
+            className="w-full bg-transparent border-none text-xs md:text-sm outline-none text-loqme-neutral-900 placeholder:text-loqme-neutral-400 font-medium"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="text-xs text-loqme-neutral-400 hover:text-loqme-neutral-600 px-1"
+              className="text-xs w-5 h-5 rounded-full bg-loqme-neutral-100 text-loqme-neutral-500 hover:bg-loqme-neutral-200 flex items-center justify-center transition-colors"
             >
               ✕
             </button>
@@ -294,7 +297,7 @@ export default function ExplorePage() {
         <button
           type="button"
           onClick={() => setIsFilterModalOpen(true)}
-          className="flex items-center gap-1.5 bg-loqme-neutral-50 hover:bg-loqme-neutral-100 border border-loqme-neutral-200 px-3 py-1.5 rounded-xl text-xs font-semibold text-loqme-neutral-700 transition-colors"
+          className="flex items-center gap-1.5 bg-loqme-neutral-50 hover:bg-loqme-neutral-100 border border-loqme-neutral-200 px-3.5 py-2 rounded-xl text-xs font-bold text-loqme-neutral-700 transition-colors shadow-xs"
         >
           <span>⚡ فیلترها</span>
           {activeFilterCount > 0 && (
@@ -348,35 +351,40 @@ export default function ExplorePage() {
       ) : (
         /* FEED VIEW */
         <div className="space-y-8">
-          {/* Loading State */}
+          {/* Loading State: Shimmer Skeletons */}
           {isLoading && (
-            <div className="py-16 flex flex-col items-center justify-center gap-3 text-loqme-neutral-500">
-              <Spinner size="lg" />
-              <p className="text-xs font-medium">در حال یافتن تازه‌ترین بسته‌ها در محله شما...</p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="h-5 w-40 bg-loqme-neutral-200 rounded-lg animate-shimmer" />
+                  <div className="h-3 w-64 bg-loqme-neutral-100 rounded-lg animate-shimmer" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CardSkeleton />
+                <CardSkeleton />
+                <CardSkeleton />
+                <CardSkeleton />
+              </div>
             </div>
           )}
 
           {/* Error State */}
           {!isLoading && errorMsg && (
-            <div className="p-6 bg-loqme-error-50 border border-loqme-error-200 text-loqme-error-700 rounded-2xl text-center space-y-2">
-              <p className="text-sm font-bold">{errorMsg}</p>
-              <Button size="sm" variant="secondary" onClick={fetchListings}>
-                تلاش مجدد
-              </Button>
-            </div>
+            <ErrorState
+              title="خطا در بارگذاری بسته‌ها"
+              message={errorMsg}
+              onRetry={fetchListings}
+            />
           )}
 
           {/* Empty State */}
           {!isLoading && !errorMsg && filteredListings.length === 0 && (
-            <div className="py-16 text-center space-y-4 bg-white rounded-3xl border border-dashed border-loqme-neutral-300 p-8">
-              <div className="text-4xl">🌾</div>
-              <h3 className="font-bold text-base text-loqme-neutral-800">
-                در این محدوده فعلاً بسته فعال موجود نیست
-              </h3>
-              <p className="text-xs text-loqme-neutral-500 max-w-md mx-auto leading-relaxed">
-                می‌توانید شعاع جستجو را افزایش دهید یا محله دیگری از ارومیه (مثل دانشکده یا خیام) را انتخاب کنید.
-              </p>
-              <div className="flex items-center justify-center gap-2 pt-2">
+            <EmptyState
+              icon="🌾"
+              title="در این محدوده فعلاً بسته فعالی یافت نشد"
+              description="می‌توانید شعاع جستجو را افزایش دهید، دسته‌بندی را تغییر دهید یا محله دیگری از ارومیه (مثل دانشکده، شیخ‌تپه یا خیام) را انتخاب کنید."
+              action={
                 <Button
                   size="sm"
                   variant="primary"
@@ -388,8 +396,8 @@ export default function ExplorePage() {
                 >
                   افزایش شعاع به ۲۵ کیلومتر
                 </Button>
-              </div>
-            </div>
+              }
+            />
           )}
 
           {/* Surprise Bags Section */}
@@ -470,75 +478,86 @@ function ListingCard({ listing }: { listing: ListingSummaryDto }) {
       : `${toPersianDigits((listing.distanceMeters / 1000).toFixed(1))} کیلومتر`
     : null;
 
+  const savingsToman = listing.originalPriceToman - listing.discountedPriceToman;
+
   return (
-    <Card variant="elevated" isInteractive className="p-4 flex flex-col justify-between hover:border-loqme-primary-300 transition-all">
+    <Card
+      variant="elevated"
+      isInteractive
+      className="p-5 flex flex-col justify-between hover:border-loqme-primary-400/80 transition-all rounded-2xl bg-white shadow-card hover:shadow-md"
+    >
       <div>
         {/* Store & Category Header */}
-        <div className="flex items-start justify-between mb-2">
-          <div>
+        <div className="flex items-start justify-between gap-2 mb-2.5">
+          <div className="space-y-0.5">
             <Link
               href={`/merchants/${listing.merchantId}`}
-              className="font-bold text-sm text-loqme-neutral-900 hover:text-loqme-primary-700 transition-colors"
+              className="font-black text-sm text-loqme-neutral-900 hover:text-loqme-primary-700 transition-colors"
             >
               {listing.storeNameFa}
             </Link>
-            <div className="text-[11px] text-loqme-neutral-500 mt-0.5">
+            <div className="text-[11px] font-medium text-loqme-neutral-500">
               {listing.categoryNameFa}
-              {distanceFormatted && ` • فاصله: ${distanceFormatted}`}
+              {distanceFormatted && ` • ${distanceFormatted}`}
             </div>
           </div>
 
           {listing.safetyVerified && (
             <Badge variant="success" size="sm">
-              ✓ تضمین بهداشت
+              ✓ تضمین سلامت
             </Badge>
           )}
         </div>
 
         {/* Title */}
         <Link href={`/listings/${listing.id}`}>
-          <h3 className="font-semibold text-sm text-loqme-neutral-800 my-2 hover:text-loqme-primary-600 transition-colors line-clamp-1">
+          <h3 className="font-bold text-base text-loqme-neutral-950 my-2 hover:text-loqme-primary-600 transition-colors line-clamp-1">
             {listing.titleFa}
           </h3>
         </Link>
 
         {listing.descriptionFa && (
-          <p className="text-xs text-loqme-neutral-500 line-clamp-2 mb-3 leading-relaxed">
+          <p className="text-xs text-loqme-neutral-600 line-clamp-2 mb-3 leading-relaxed">
             {listing.descriptionFa}
           </p>
         )}
 
         {/* Pickup Window & Real Scarcity Indicator */}
-        <div className="bg-loqme-primary-50/80 text-loqme-primary-900 text-xs px-3 py-1.5 rounded-xl flex items-center justify-between my-2 border border-loqme-primary-100">
-          <span className="flex items-center gap-1">
+        <div className="bg-loqme-primary-50/70 text-loqme-primary-950 text-xs px-3 py-2 rounded-xl flex items-center justify-between my-2.5 border border-loqme-primary-100">
+          <span className="flex items-center gap-1 font-medium">
             <span>⏰</span>
             <span>تحویل: {listing.pickupWindowFa}</span>
           </span>
-          <span className="font-bold text-[11px] text-loqme-primary-700">
-            تنها {toPersianDigits(listing.remainingQuantity)} عدد باقی‌مانده
+          <span className="font-bold text-[11px] text-loqme-primary-700 bg-white px-2 py-0.5 rounded-lg border border-loqme-primary-200">
+            تنها {toPersianDigits(listing.remainingQuantity)} بسته
           </span>
         </div>
       </div>
 
       {/* Price & Action Button Footer */}
-      <div className="pt-3 border-t border-loqme-neutral-100 mt-2 flex items-center justify-between">
-        <div>
-          <div className="text-xs text-loqme-neutral-400 line-through">
-            {formatToman(listing.originalPriceToman)}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-base text-loqme-primary-700">
-              {formatToman(listing.discountedPriceToman)}
+      <div className="pt-3.5 border-t border-loqme-neutral-100 mt-2 flex items-center justify-between gap-3">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-loqme-neutral-400 line-through">
+              {formatToman(listing.originalPriceToman)}
             </span>
-            <Badge variant="brand" size="sm">
+            <Badge variant="brand" size="sm" className="bg-loqme-primary-100 text-loqme-primary-800 font-bold border-none text-[10px]">
               {toPersianDigits(listing.discountPercent)}٪ تخفیف
             </Badge>
           </div>
+          <div className="font-black text-lg text-loqme-primary-700 leading-none pt-0.5">
+            {formatToman(listing.discountedPriceToman)}
+          </div>
+          {savingsToman > 0 && (
+            <div className="text-[10px] text-emerald-700 font-bold">
+              سود شما: {formatToman(savingsToman)}
+            </div>
+          )}
         </div>
 
         <Link href={`/listings/${listing.id}`}>
-          <Button size="sm" variant="primary">
-            مشاهده و رزرو
+          <Button size="sm" variant="primary" className="font-bold px-4 shadow-xs">
+            رزرو بسته
           </Button>
         </Link>
       </div>

@@ -157,6 +157,12 @@ Refer to [DESIGN_SYSTEM.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scra
   * Avoid cheap coupon-clipping aesthetics.
   * Avoid dark patterns (fake countdowns, non-existent urgency, fabricated viewer counts).
 
+> [!IMPORTANT]
+> **Permanent UI/UX Governance Rules**:
+> 1. **Production-Quality UI Baseline**: Every new user-facing feature must be implemented with production-quality UI consistent with the Loqme Design System. UI polish is NOT deferred to M10.
+> 2. **Role of Milestone M10**: M10 is for final UX refinement, SEO, PWA, performance, and production polish. It is NOT the first point at which proper UI design is introduced.
+> 3. **Zero Browser-Default UI**: Never ship browser-default UI (unstyled buttons, default blue links, raw inputs, unstyled dropdowns, raw spinners) for completed product functionality.
+
 Refer to [BRAND.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scratch/loqme/docs/BRAND.md) and [DESIGN_SYSTEM.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scratch/loqme/docs/DESIGN_SYSTEM.md).
 
 ---

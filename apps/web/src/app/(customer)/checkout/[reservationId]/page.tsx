@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
 
 interface ReservationData {
@@ -141,26 +143,30 @@ export default function CheckoutPage() {
 
   if (isLoading) {
     return (
-      <div className="py-24 flex flex-col items-center justify-center gap-3 text-loqme-neutral-500">
-        <Spinner size="lg" />
-        <span className="text-xs font-medium">در حال بررسی موجودی و باز کردن درگاه پرداخت...</span>
+      <div className="space-y-6 max-w-2xl mx-auto py-6">
+        <Skeleton height={20} width={100} />
+        <Skeleton height={70} width="100%" />
+        <div className="bg-white rounded-2xl border border-loqme-neutral-200 p-6 space-y-4 shadow-card">
+          <Skeleton height={22} width={140} />
+          <Skeleton height={50} width="100%" />
+          <Skeleton height={80} width="100%" />
+        </div>
       </div>
     );
   }
 
   if (errorMsg || !data) {
     return (
-      <div className="py-16 text-center space-y-4 max-w-md mx-auto">
-        <div className="text-4xl">⏱️</div>
-        <h2 className="text-lg font-bold text-loqme-neutral-800">
-          {errorMsg || 'رزرو منقضی شده است'}
-        </h2>
-        <p className="text-xs text-loqme-neutral-500 leading-relaxed">
-          مهلت ۱۰ دقیقه‌ای برای ثبت سفارش به پایان رسیده و بسته برای دسترسی سایر خریداران آزاد شده است.
-        </p>
-        <Button variant="primary" size="sm" onClick={() => router.push('/explore')}>
-          بازگشت به کاوش بسته‌ها
-        </Button>
+      <div className="py-12 max-w-md mx-auto">
+        <ErrorState
+          title="مهلت رزرو به پایان رسیده است"
+          message={errorMsg || 'مهلت ۱۰ دقیقه‌ای برای ثبت سفارش منقضی شده و موجودی این بسته جهت حفظ عدالت در دسترس سایر خریداران قرار گرفته است.'}
+          secondaryAction={
+            <Button variant="primary" size="sm" onClick={() => router.push('/explore')}>
+              بازگشت به کاوش بسته‌ها
+            </Button>
+          }
+        />
       </div>
     );
   }

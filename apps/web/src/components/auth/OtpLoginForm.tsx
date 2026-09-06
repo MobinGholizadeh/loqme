@@ -193,8 +193,8 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
               <span className="text-xs font-semibold text-loqme-neutral-700">
                 🚀 ورود سریع با حساب‌های آزمایشی:
               </span>
-              <Badge variant="brand" size="sm">
-                تست سریع M01
+              <Badge variant="neutral" size="sm">
+                آزمایشی
               </Badge>
             </div>
             <div className="grid grid-cols-1 gap-2">

@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
 
 interface OrderReceiptData {
@@ -84,9 +86,13 @@ export default function OrderReceiptPage() {
 
   if (isLoading) {
     return (
-      <div className="py-24 flex flex-col items-center justify-center gap-3 text-loqme-neutral-500">
-        <Spinner size="lg" />
-        <span className="text-xs font-medium">در حال دریافت فاکتور و وضعیت نهایی سفارش...</span>
+      <div className="space-y-6 max-w-xl mx-auto py-8">
+        <div className="bg-white rounded-2xl border border-loqme-neutral-200 p-8 text-center space-y-3 shadow-card">
+          <Skeleton height={56} width={56} variant="circular" className="mx-auto" />
+          <Skeleton height={20} width={100} className="mx-auto" />
+          <Skeleton height={26} width={220} className="mx-auto" />
+          <Skeleton height={36} width={160} className="mx-auto" />
+        </div>
       </div>
     );
   }
@@ -94,26 +100,18 @@ export default function OrderReceiptPage() {
   // Failed state
   if (!isSuccess) {
     return (
-      <div className="space-y-6 max-w-lg mx-auto py-12 text-center">
-        <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-3xl mx-auto shadow-xs">
-          ✕
-        </div>
-
-        <div className="space-y-2">
-          <h1 className="text-xl font-black text-loqme-neutral-900">پرداخت ناموفق بود</h1>
-          <p className="text-xs text-loqme-neutral-500 leading-relaxed">
-            {errorMsgParam || 'تراکنش توسط درگاه بانکی تایید نشد یا توسط خریدار انصراف داده شد.'}
-          </p>
-        </div>
-
-        <div className="flex items-center justify-center gap-3 pt-4">
-          <Button variant="primary" size="md" onClick={() => router.push('/explore')}>
-            بازگشت به کاوش بسته‌ها
-          </Button>
-          <Button variant="secondary" size="md" onClick={() => router.push('/orders')}>
-            مشاهده سفارشات من
-          </Button>
-        </div>
+      <div className="py-12 max-w-lg mx-auto">
+        <ErrorState
+          title="پرداخت تایید نشد"
+          message={errorMsgParam || 'تراکنش توسط درگاه بانکی تایید نشد یا توسط خریدار لغو گردید. مبلغی از حساب شما کسر نشده است.'}
+          retryText="بازگشت به کاوش بسته‌ها"
+          onRetry={() => router.push('/explore')}
+          secondaryAction={
+            <Button variant="secondary" size="sm" onClick={() => router.push('/orders')}>
+              مشاهده سفارش‌های من
+            </Button>
+          }
+        />
       </div>
     );
   }

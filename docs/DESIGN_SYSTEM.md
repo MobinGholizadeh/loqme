@@ -1,8 +1,9 @@
 # Design System & Token Architecture — Loqme (لقمه)
 
-> **IMPORTANT ARCHITECTURAL RULE**:  
-> The developer will later provide the definitive design scale. The developer-provided design scale becomes the ultimate source of truth.  
-> Components must consume **semantic tokens** (CSS variables / design constants) rather than hardcoded magic values so the entire scale can be adjusted or replaced in one place without refactoring component code.
+> **AUTHORITATIVE DESIGN PRINCIPLE**:  
+> Loqme's visual identity is anchored in **White + Deep Teal / Dark Turquoise (سبز کله‌غازی)**.  
+> Pure white is the dominant visual canvas (70–85%), Deep Teal (`#0F766E`) is the primary action/accent color, and Dark Charcoal slate (`#0F172A`) governs typography.  
+> Every component must consume centralized semantic tokens from `@loqme/design-tokens` and CSS variables, ensuring 100% platform neutrality between Web and future Native Mobile (React Native / Expo).
 
 ---
 
@@ -62,14 +63,18 @@
   /* Semantic Surface & Border Aliases */
   --color-bg-canvas: var(--loqme-neutral-25);
   --color-bg-surface: var(--loqme-neutral-0);
-  --color-bg-muted: var(--loqme-neutral-100);
+  --color-bg-muted: var(--loqme-neutral-50);
   --color-border-subtle: var(--loqme-neutral-200);
   --color-border-strong: var(--loqme-neutral-300);
   --color-text-primary: var(--loqme-neutral-900);
   --color-text-secondary: var(--loqme-neutral-600);
   --color-text-muted: var(--loqme-neutral-400);
-  --color-primary: var(--loqme-primary-500);
-  --color-primary-hover: var(--loqme-primary-600);
+  --color-primary: var(--loqme-primary-600);
+  --color-primary-hover: var(--loqme-primary-700);
+  --color-primary-soft: var(--loqme-primary-50);
+  --color-success: var(--loqme-success-600);
+  --color-warning: var(--loqme-warning-600);
+  --color-danger: var(--loqme-danger-600);
 
   /* ==========================================================================
      2. SPACING SCALE (Base 4px)
@@ -122,22 +127,24 @@
   --radius-full: 9999px;
 
   /* ==========================================================================
-     5. ELEVATION & SHADOWS (Warm Ambient)
+     5. ELEVATION & SHADOWS (Modern Slate)
      ========================================================================== */
-  --shadow-xs: 0 1px 2px rgba(24, 24, 27, 0.04);
-  --shadow-sm: 0 2px 4px rgba(24, 24, 27, 0.06);
-  --shadow-md: 0 4px 12px rgba(24, 24, 27, 0.08);
-  --shadow-lg: 0 8px 24px rgba(24, 24, 27, 0.12);
-  --shadow-card: 0 2px 8px rgba(124, 45, 18, 0.04), 0 1px 2px rgba(24, 24, 27, 0.04);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.07);
+  --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.10);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
 
   /* ==========================================================================
-     6. MOTION & TRANSITIONS
+     6. MOTION & CRAFT (Emil Kowalski Design Engineering Tokens)
      ========================================================================== */
+  --duration-press: 160ms;
   --duration-fast: 150ms;
   --duration-normal: 250ms;
   --duration-smooth: 350ms;
-  --ease-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
-  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 ```
 
@@ -176,21 +183,37 @@
 
 ---
 
-## 5. Core Reusable Component Conventions
+## 5. Core Reusable Component Library
 
 ### 5.1 Button
-* Variants: `Primary` (Orange Solid), `Secondary` (Orange Muted / Outline), `Tertiary` (Ghost), `Destructive` (Crimson).
-* Sizes: `sm` (36px), `md` (44px), `lg` (52px).
-* States: `Default`, `Hover`, `Active`, `Loading` (animated spinner), `Disabled`.
+* **Variants**:
+  * `Primary`: Solid Deep Teal (`#0F766E`), white text, hover `#115E59`, subtle shadow (`var(--shadow-sm)`).
+  * `Secondary`: Soft Teal tint (`#F0FDFA`), Deep Teal text (`#0F766E`), border `#CCFBF1`.
+  * `Ghost`: Transparent background, hover `#F1F5F9`, dark text.
+  * `Destructive`: Solid Crimson (`#EF4444`), white text, hover `#DC2626`.
+* **Sizes**: `sm` (36px min-height), `md` (44px min-height), `lg` (52px min-height).
+* **States**: `Default`, `Hover`, `Active` (`transform: scale(0.98)`), `Focus-visible`, `Loading` (integrated `Spinner`), `Disabled`.
 
-### 5.2 Surprise Bag Card
-* Elevation: `var(--shadow-card)` with smooth hover lift (`transform: translateY(-2px)`).
-* Visual Structure:
-  1. Store photo & verified safety badge.
-  2. Pickup countdown banner.
-  3. Bag category title & remaining stock indicator.
-  4. Anchor price (struck through) + Discount badge + Net Toman price.
+### 5.2 Form Inputs & Controls
+* **Input**: Minimum 44px height, rounded-xl borders (`var(--radius-md)`), slate border (`#CBD5E1`), focus ring (`rgba(15, 118, 110, 0.15)`), prefix/suffix icons, helper and error text.
+* **Select**: Custom RTL chevron on the left, hidden native browser styling, rounded-xl wrapper, deep teal focus rings.
 
-### 5.3 Bottom Navigation & Modals
-* Mobile bottom sheet pattern for filters, details, and checkout review.
-* Backdrop blur: `backdrop-filter: blur(8px); background: rgba(255, 255, 255, 0.85);`.
+### 5.3 Feedback, Loading & States
+* **Skeleton**: Shimmer animated placeholder (`animate-shimmer`), `CardSkeleton` preset matching card layout without content jump.
+* **EmptyState**: Centered illustration/icon, clear title, friendly Persian explanation, and primary action button.
+* **ErrorState**: Soft rose background (`#FEF2F2`), clear error title, explanatory message, and retry CTA.
+
+### 5.4 Cards & Badges
+* **Card**: White canvas, rounded-2xl (`var(--radius-lg)`), `var(--shadow-card)`, interactive hover elevation (`transform: translateY(-2px)`).
+* **Badge / Chip**: Full-rounded pill (`var(--radius-full)`), Persian typography:
+  * `brand`: Soft teal background (`#F0FDFA`), Deep Teal text (`#0F766E`).
+  * `success`: Soft emerald background (`#ECFDF5`), Emerald text (`#059669`).
+  * `warning`: Soft amber background (`#FFFBEB`), Amber text (`#D97706`).
+  * `danger`: Soft crimson background (`#FEF2F2`), Crimson text (`#DC2626`).
+  * `neutral`: Slate gray background (`#F1F5F9`), Slate text (`#334155`).
+
+### 5.5 Navigation & Shells
+* **Header**: Sticky top navigation with backdrop blur (`rgba(255, 255, 255, 0.95)`), brand lockup, location indicator, desktop navigation links.
+* **Bottom Navigation**: Mobile bottom bar with safe area padding, active indicator pills in soft teal, tactile press feedback.
+* **Footer**: Informative Persian footer covering brand mission, food safety charter, city rollout (Urmia & Tehran), and copyright.
+

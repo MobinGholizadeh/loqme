@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
 
 interface ListingDetailData {
@@ -152,23 +154,36 @@ export default function ListingDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="py-24 flex flex-col items-center justify-center gap-3 text-loqme-neutral-500">
-        <Spinner size="lg" />
-        <span className="text-xs font-medium">در حال بارگذاری مشخصات بسته...</span>
+      <div className="space-y-6 max-w-3xl mx-auto py-4">
+        <Skeleton height={20} width={120} />
+        <div className="bg-white rounded-2xl border border-loqme-neutral-200 p-6 space-y-4 shadow-card">
+          <div className="flex justify-between items-start">
+            <div className="space-y-2 flex-1">
+              <Skeleton height={20} width={180} />
+              <Skeleton height={28} width="70%" />
+              <Skeleton height={16} width={140} />
+            </div>
+            <Skeleton height={36} width={90} />
+          </div>
+          <Skeleton height={60} width="100%" />
+          <Skeleton height={80} width="100%" />
+        </div>
       </div>
     );
   }
 
   if (errorMsg || !data) {
     return (
-      <div className="py-16 text-center space-y-4">
-        <div className="text-4xl">⚠️</div>
-        <h2 className="text-lg font-bold text-loqme-neutral-800">
-          {errorMsg || 'آگهی مورد نظر یافت نشد'}
-        </h2>
-        <Button variant="primary" size="sm" onClick={() => router.push('/explore')}>
-          بازگشت به صفحه کاوش
-        </Button>
+      <div className="py-12 max-w-md mx-auto">
+        <ErrorState
+          title="آگهی مورد نظر یافت نشد"
+          message={errorMsg || 'ممکن است این بسته حذف شده باشد یا آدرس اشتباه وارد شده باشد.'}
+          secondaryAction={
+            <Button variant="primary" size="sm" onClick={() => router.push('/explore')}>
+              بازگشت به صفحه کاوش
+            </Button>
+          }
+        />
       </div>
     );
   }

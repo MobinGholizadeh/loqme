@@ -10,11 +10,11 @@
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **M05 — Pickup Verification** |
-| **Milestone Status** | `Ready for M05` (Milestone M04 Orders, Inventory & Payments Completed) |
-| **Overall Completion** | `41%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%) |
+| **Current Milestone** | **Ready for M05 — Pickup Verification** |
+| **Milestone Status** | `Checkpoint Completed` (M04 UI/UX & Design System Checkpoint Verified) |
+| **Overall Completion** | `45%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%) |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running) |
-| **Last Updated** | 2026-09-07 (Milestone M04 Orders, Inventory & Payments Completed & Verified) |
+| **Last Updated** | 2026-09-07 (M04 UI/UX & Design System Checkpoint Completed & Visually Verified) |
 
 ---
 
@@ -52,6 +52,7 @@
 | **M02** | **Core Domain & Database** | `Completed` | `100%` |
 | **M03** | **Marketplace Discovery** | `Completed` | `100%` |
 | **M04** | **Orders, Inventory & Payments** | `Completed` | `100%` |
+| **M04-UI** | **UI/UX & Design System Checkpoint** | `Completed` | `100%` |
 | **M05** | Pickup Verification | `Pending` | `0%` |
 | **M06** | Trust, Safety & Moderation | `Pending` | `0%` |
 | **M07** | Merchant Product | `Pending` | `0%` |
@@ -119,6 +120,15 @@
 - [x] **CP-04.6 — Double-Entry Financial Ledger Records**: Built `FinancialTransaction` accounting entries tracking gross customer payment (debit `CUSTOMER_PAYMENT`, credit `PLATFORM_CLEARING`), merchant payable (credit `MERCHANT_PAYABLE`), and 10% platform commission cut (credit `PLATFORM_COMMISSION`).
 - [x] **CP-04.7 — Concurrency Stress Test Suite**: 53/53 tests passing across 8 suites (`tests/m04-orders-payments.test.ts`), verifying 20 simultaneous threads competing for the last 2 surplus bags: exactly 2 succeed, 18 rejected with zero overselling.
 
+### M04 UI/UX & Design System Checkpoint Checklist
+- [x] **CP-UI.1 — White + Deep Teal Design Tokens**: Centralized platform-neutral tokens in `@loqme/design-tokens` with CSS variable generator, semantic color aliases (`--color-primary`, `--color-primary-hover`, `--color-primary-soft`, `--color-background`, `--color-surface`, `--color-text`, `--color-border`), Emil Kowalski motion press curves, and shimmer animations in `globals.css`.
+- [x] **CP-UI.2 — Reusable UI Primitives Suite**: Built and upgraded core UI primitives in `apps/web/src/components/ui/`: `Skeleton` + `CardSkeleton` (eliminates dramatic layout shifts), `Select` (custom RTL dropdown replacing browser defaults), `EmptyState` (purposeful iconography and action CTA), `ErrorState` (user-friendly error recovery), `Button` (5 variants with micro-press physics), `Input` (teal focus rings and RTL icon support), `Card`, and `Badge`.
+- [x] **CP-UI.3 — Customer Shell & Header Navigation**: Built responsive `CustomerShell` featuring desktop top navigation with Deep Teal brand typography («لقمه - کشف هوشمند»), Urmia launch city indicator badge, mobile bottom nav with active pill indicators, and full Persian trust footer.
+- [x] **CP-UI.4 — Discovery & Listing Surface Overhaul**: Redesigned `/` landing page and `/explore` marketplace into a high-density discovery experience with Urmia neighborhood selector, category carousels, explicit net customer savings callouts (`سود شما: XX,XXX تومان`), food safety clearance badges, and pickup window countdowns.
+- [x] **CP-UI.5 — Checkout, Receipt & Orders Flow Polish**: Polished `/checkout/[reservationId]` with live 10-minute hold countdown timer, `/orders/[id]/receipt` with complete payment confirmation and pickup directions, and `/orders` with tabbed order history, skeleton loading, and empty states.
+- [x] **CP-UI.6 — Accessibility, RTL & Cross-Viewport Validation**: Full accessibility pass (proper ARIA attributes, semantic landmarks, high contrast ratios, touch targets >= 44px). Validated RTL layout across Desktop (1280px), Tablet (768px), and Mobile (390px) via browser subagent recording (`design_system_inspection_1788728557320.webp`).
+- [x] **CP-UI.7 — Authoritative Governance & Design System Docs**: Updated `docs/DESIGN_SYSTEM.md` with complete token tables and component usage; updated `AGENTS.md` with strict rules prohibiting browser-default UI and mandating production-quality UI across all milestones.
+
 ---
 
 ## 5. Important Technical Decisions
@@ -134,6 +144,7 @@
 9. **Interactive Leaflet Map with SSR Disabled**: Dynamic import with `ssr: false` avoids SSR `window` errors in Next.js App Router while rendering custom White + Teal markers with active bag counts.
 10. **Atomic Conditional SQL Concurrency Defense**: Inventory reservation and purchase execution use single atomic updates checking `(totalQuantity - reservedQuantity - soldQuantity) >= $quantity` directly in PostgreSQL, completely eliminating race conditions without heavy distributed locks.
 11. **Double-Entry Financial Ledger**: All monetary transfers record dual balanced entries (`CUSTOMER_PAYMENT`, `PLATFORM_CLEARING`, `MERCHANT_PAYABLE`, `PLATFORM_COMMISSION`) to provide an auditable accounting foundation.
+12. **White + Deep Teal Visual Identity System**: 75–85% pure white canvas (`#FFFFFF`), Deep Teal (`#0F766E`) primary brand accents, dark slate charcoal (`#0F172A`) typography, and Vazirmatn Persian font hierarchy. All browser-default form controls and buttons completely eliminated.
 
 ---
 
@@ -157,6 +168,7 @@
 
 ## 8. Latest Validation Results
 
+* **Design System & Visual Inspection**: Visual verification completed via headless browser across desktop (1280px) and mobile (390px). Session recording saved in `design_system_inspection_1788728557320.webp`.
 * **Unit & Integration Test Suite**: 53 tests passing across 8 test suites (`tests/auth.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, `tests/shared-packages.test.ts`, `tests/m02-domain.test.ts`, `tests/m03-discovery.test.ts`, `tests/m04-orders-payments.test.ts`).
 * **TypeScript Typecheck**: `npm run typecheck` and `npx tsc --noEmit` exited with code 0 (zero errors across all packages and apps).
 * **ESLint Validation**: `npm run lint` reported 0 errors and 0 warnings.

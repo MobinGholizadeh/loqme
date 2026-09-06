@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
 
 interface MerchantDetailData {
@@ -111,23 +113,29 @@ export default function MerchantProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="py-24 flex flex-col items-center justify-center gap-3 text-loqme-neutral-500">
-        <Spinner size="lg" />
-        <span className="text-xs font-medium">در حال دریافت مشخصات فروشگاه...</span>
+      <div className="space-y-6 max-w-3xl mx-auto py-4">
+        <Skeleton height={20} width={100} />
+        <div className="bg-white rounded-2xl border border-loqme-neutral-200 p-6 space-y-3 shadow-card">
+          <Skeleton height={22} width={160} />
+          <Skeleton height={32} width={240} />
+          <Skeleton height={18} width={180} />
+        </div>
       </div>
     );
   }
 
   if (errorMsg || !data) {
     return (
-      <div className="py-16 text-center space-y-4">
-        <div className="text-4xl">🏬</div>
-        <h2 className="text-lg font-bold text-loqme-neutral-800">
-          {errorMsg || 'فروشگاه مورد نظر یافت نشد'}
-        </h2>
-        <Button variant="primary" size="sm" onClick={() => router.push('/explore')}>
-          بازگشت به کاوش
-        </Button>
+      <div className="py-12 max-w-md mx-auto">
+        <ErrorState
+          title="فروشگاه مورد نظر یافت نشد"
+          message={errorMsg || 'اطلاعات این فروشگاه در دسترس نیست.'}
+          secondaryAction={
+            <Button variant="primary" size="sm" onClick={() => router.push('/explore')}>
+              بازگشت به کاوش
+            </Button>
+          }
+        />
       </div>
     );
   }

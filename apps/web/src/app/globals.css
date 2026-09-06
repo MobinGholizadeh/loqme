@@ -51,7 +51,7 @@
   --loqme-danger-500: #EF4444;
   --loqme-danger-600: #DC2626;
 
-  /* Semantic Surface & Border Aliases */
+  /* Semantic Surface, Text, Border & Brand Aliases */
   --color-bg-canvas: var(--loqme-neutral-25);
   --color-bg-surface: var(--loqme-neutral-0);
   --color-bg-muted: var(--loqme-neutral-50);
@@ -62,6 +62,10 @@
   --color-text-muted: var(--loqme-neutral-400);
   --color-primary: var(--loqme-primary-600);
   --color-primary-hover: var(--loqme-primary-700);
+  --color-primary-soft: var(--loqme-primary-50);
+  --color-success: var(--loqme-success-600);
+  --color-warning: var(--loqme-warning-600);
+  --color-danger: var(--loqme-danger-600);
 
   /* ==========================================================================
      2. SPACING SCALE (Base 4px)
@@ -192,3 +196,59 @@ button, input, select, a.btn {
     scroll-behavior: auto !important;
   }
 }
+
+/* ==========================================================================
+   7. KEYFRAMES & UTILITY CLASSES (Loqme Design Engineering)
+   ========================================================================== */
+
+/* Shimmer Loading Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--loqme-neutral-100) 0%,
+    var(--loqme-neutral-200) 50%,
+    var(--loqme-neutral-100) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite ease-in-out;
+}
+
+/* Hide Scrollbars while maintaining scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Styled Scrollbars for desktop */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--loqme-neutral-300);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--loqme-neutral-400);
+}
+
+/* Card Float Shadow */
+.shadow-float {
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+}
+

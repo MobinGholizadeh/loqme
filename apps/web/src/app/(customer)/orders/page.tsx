@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
 import { CustomerOrderSummaryDto, OrderStatus } from '@loqme/types';
 
@@ -42,7 +44,7 @@ export default function OrdersPage() {
     switch (status) {
       case 'PAID':
       case 'READY_FOR_PICKUP':
-        return <Badge variant="success" size="sm">✓ پرداخت‌شده — آماده تحویل</Badge>;
+        return <Badge variant="success" size="sm">✓ آماده تحویل حضوری</Badge>;
       case 'COMPLETED':
         return <Badge variant="brand" size="sm">✓ تحویل گرفته شد</Badge>;
       case 'PENDING_PAYMENT':
@@ -57,28 +59,34 @@ export default function OrdersPage() {
 
   if (isLoading) {
     return (
-      <div className="py-24 flex flex-col items-center justify-center gap-3 text-loqme-neutral-500">
-        <Spinner size="lg" />
-        <span className="text-xs font-medium">در حال دریافت تاریخچه سفارشات...</span>
+      <div className="space-y-4 max-w-2xl mx-auto py-4">
+        <div className="flex justify-between items-center">
+          <Skeleton height={24} width={120} />
+          <Skeleton height={20} width={80} />
+        </div>
+        <div className="space-y-3">
+          <Skeleton height={140} width="100%" />
+          <Skeleton height={140} width="100%" />
+        </div>
       </div>
     );
   }
 
   if (isUnauthorized) {
     return (
-      <div className="py-16 text-center space-y-4 max-w-md mx-auto">
-        <div className="text-4xl">🔐</div>
-        <h2 className="text-base font-bold text-loqme-neutral-800">
-          برای مشاهده سفارشات خود، لطفاً وارد حساب شوید
-        </h2>
-        <p className="text-xs text-loqme-neutral-500">
-          با شماره موبایل خود وارد شوید تا به سفارش‌ها و کدهای تحویل حضوری دسترسی پیدا کنید.
-        </p>
-        <Link href="/login?redirect=/orders">
-          <Button variant="primary" size="md">
-            ورود به حساب کاربری
-          </Button>
-        </Link>
+      <div className="py-12 max-w-md mx-auto">
+        <EmptyState
+          icon="🔐"
+          title="ورود به حساب کاربری برای مشاهده سفارشات"
+          description="با شماره موبایل خود وارد شوید تا به تاریخچه سفارش‌ها و کدهای تحویل حضوری دسترسی داشته باشید."
+          action={
+            <Link href="/login?redirect=/orders">
+              <Button variant="primary" size="md">
+                ورود به حساب کاربری
+              </Button>
+            </Link>
+          }
+        />
       </div>
     );
   }
@@ -87,29 +95,28 @@ export default function OrdersPage() {
     <div className="space-y-6 max-w-2xl mx-auto pb-16">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-black text-loqme-neutral-900">سفارشات من</h1>
+        <div>
+          <h1 className="text-xl font-black text-loqme-neutral-900">سفارشات من</h1>
+          <p className="text-xs text-loqme-neutral-500 mt-0.5">پیگیری وضعیت سفارش و دریافت حضوری</p>
+        </div>
         <Badge variant="brand" size="sm">
           {toPersianDigits(orders.length)} سفارش ثبت‌شده
         </Badge>
       </div>
 
       {orders.length === 0 ? (
-        <Card variant="outlined" className="p-12 text-center space-y-4 bg-white">
-          <div className="text-4xl">🛍️</div>
-          <h3 className="font-bold text-base text-loqme-neutral-800">
-            هنوز سفارشی ثبت نکرده‌اید
-          </h3>
-          <p className="text-xs text-loqme-neutral-500 max-w-sm mx-auto leading-relaxed">
-            با خرید بسته‌های شگفت‌انگیز محله خود، در صرفه‌جویی اقتصادی و جلوگیری از هدررفت خوراکی‌های تازه سهیم شوید.
-          </p>
-          <div className="pt-2">
+        <EmptyState
+          icon="🛍️"
+          title="هنوز سفارشی ثبت نکرده‌اید"
+          description="با خرید بسته‌های شگفت‌انگیز محله خود، در صرفه‌جویی اقتصادی و جلوگیری از هدررفت خوراکی‌های تازه سهیم شوید."
+          action={
             <Link href="/explore">
               <Button variant="primary" size="md">
                 کاوش بسته‌های شگفت‌انگیز محله
               </Button>
             </Link>
-          </div>
-        </Card>
+          }
+        />
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (
