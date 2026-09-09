@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { LoqmeLogo } from '@/components/ui/LoqmeLogo';
 import { toPersianDigits, isValidIranianMobile } from '@/lib/utils/persian';
 
 interface OtpLoginFormProps {
@@ -142,12 +143,9 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   };
 
   return (
-    <Card className="auth-card max-w-md w-full mx-auto p-6" variant="elevated">
-      <div className="auth-header text-center mb-6">
-        <div className="brand-badge mb-2">
-          <span className="brand-logo-text">لقمه</span>
-          <span className="brand-subtitle">Loqme</span>
-        </div>
+    <Card className="auth-card max-w-md w-full mx-auto p-6 rounded-3xl" variant="elevated">
+      <div className="auth-header text-center mb-6 flex flex-col items-center">
+        <LoqmeLogo size="lg" variant="stacked" theme="teal" className="mb-3" />
         <h2 className="auth-title">
           {step === 'PHONE' ? 'ورود یا ثبت‌نام در لقمه' : 'کد تایید پیامک‌شده'}
         </h2>
@@ -188,9 +186,9 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
           </Button>
 
           {/* Quick Demo Test Buttons */}
-          <div className="demo-presets-box mt-6 p-4 rounded-xl border border-dashed border-loqme-neutral-300 bg-loqme-neutral-50">
+          <div className="mt-6 p-4 rounded-xl border border-dashed border-stone-200 bg-stone-50">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-loqme-neutral-700">
+              <span className="text-xs font-semibold text-stone-600">
                 🚀 ورود سریع با حساب‌های آزمایشی:
               </span>
               <Badge variant="neutral" size="sm">
@@ -200,44 +198,44 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
             <div className="grid grid-cols-1 gap-2">
               <button
                 type="button"
-                className="preset-btn"
+                className="flex flex-col gap-1 text-right bg-white hover:bg-stone-50 p-3.5 rounded-2xl border border-stone-200 hover:border-teal-400 cursor-pointer transition-all active:scale-[0.98] shadow-xs"
                 onClick={() => selectPreset('09121111111')}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm">👤 سارا محمدی</span>
+                  <span className="font-bold text-sm text-stone-800">👤 سارا محمدی</span>
                   <Badge variant="neutral" size="sm">
                     مشتری (Customer)
                   </Badge>
                 </div>
-                <span className="text-xs text-muted font-mono dir-ltr text-right">09121111111</span>
+                <span className="text-xs text-stone-400 font-mono dir-ltr text-right">09121111111</span>
               </button>
 
               <button
                 type="button"
-                className="preset-btn"
+                className="flex flex-col gap-1 text-right bg-white hover:bg-stone-50 p-3.5 rounded-2xl border border-stone-200 hover:border-teal-400 cursor-pointer transition-all active:scale-[0.98] shadow-xs"
                 onClick={() => selectPreset('09122222222')}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm">🥖 علی رضایی (نانوایی برکت)</span>
+                  <span className="font-bold text-sm text-stone-800">🥖 علی رضایی (نانوایی برکت)</span>
                   <Badge variant="brand" size="sm">
                     فروشگاه (Merchant)
                   </Badge>
                 </div>
-                <span className="text-xs text-muted font-mono dir-ltr text-right">09122222222</span>
+                <span className="text-xs text-stone-400 font-mono dir-ltr text-right">09122222222</span>
               </button>
 
               <button
                 type="button"
-                className="preset-btn"
+                className="flex flex-col gap-1 text-right bg-white hover:bg-stone-50 p-3.5 rounded-2xl border border-stone-200 hover:border-teal-400 cursor-pointer transition-all active:scale-[0.98] shadow-xs"
                 onClick={() => selectPreset('09123333333')}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm">🛡️ مدیر ارشد سامانه</span>
+                  <span className="font-bold text-sm text-stone-800">🛡️ مدیر ارشد سامانه</span>
                   <Badge variant="danger" size="sm">
                     مدیر (Admin)
                   </Badge>
                 </div>
-                <span className="text-xs text-muted font-mono dir-ltr text-right">09123333333</span>
+                <span className="text-xs text-stone-400 font-mono dir-ltr text-right">09123333333</span>
               </button>
             </div>
           </div>
@@ -248,14 +246,14 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
             e.preventDefault();
             handleVerifyOtp();
           }}
-          className="auth-form space-y-4"
+          className="space-y-4"
         >
           {/* Dev OTP Helper Box */}
           {devReceivedOtp && (
-            <div className="p-3 bg-loqme-primary-50 border border-loqme-primary-200 rounded-lg flex items-center justify-between mb-2 animate-fadeIn">
-              <div className="text-xs text-loqme-primary-900">
+            <div className="p-3.5 bg-teal-50 border border-teal-200 rounded-2xl flex items-center justify-between mb-2">
+              <div className="text-xs text-teal-900">
                 💡 <span className="font-semibold">کد تایید آزمایشی شما:</span>{' '}
-                <span className="font-bold text-sm tracking-widest text-loqme-primary-600 font-mono">
+                <span className="font-black text-sm tracking-widest text-[#135E66] font-mono">
                   {devReceivedOtp}
                 </span>
               </div>
@@ -263,6 +261,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
                 size="sm"
                 variant="secondary"
                 onClick={() => setCode(devReceivedOtp)}
+                className="text-xs"
               >
                 درج خودکار
               </Button>
@@ -271,34 +270,15 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
 
           <Input
             label="کد تایید ۵ رقمی"
-            placeholder="مثال: ۱۲۳۴۵"
+            placeholder="۱۲۳۴۵"
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
             error={error || undefined}
-            maxLength={5}
             autoFocus
             dir="ltr"
-            className="text-center font-mono text-xl tracking-widest"
+            maxLength={5}
+            hint={`ارسال مجدد کد پس از ${toPersianDigits(countdown)} ثانیه`}
           />
-
-          <div className="flex items-center justify-between text-xs text-loqme-neutral-600">
-            <span>
-              {countdown > 0 ? (
-                <>اعتبار کد: {toPersianDigits(countdown)} ثانیه</>
-              ) : (
-                <span className="text-loqme-danger-500">کد منقضی شد</span>
-              )}
-            </span>
-
-            <button
-              type="button"
-              className="text-loqme-primary-600 hover:underline disabled:opacity-50 text-xs"
-              onClick={() => handleRequestOtp()}
-              disabled={countdown > 0 || isLoading}
-            >
-              ارسال مجدد کد
-            </button>
-          </div>
 
           <Button
             type="submit"
@@ -314,7 +294,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
             type="button"
             variant="ghost"
             size="sm"
-            className="w-full text-xs text-muted"
+            className="w-full text-xs text-stone-500 hover:text-stone-800"
             onClick={() => {
               setStep('PHONE');
               setCode('');
@@ -325,70 +305,6 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
           </Button>
         </form>
       )}
-
-      <style jsx>{`
-        .auth-card {
-          border-radius: var(--radius-xl);
-          background: var(--color-bg-surface);
-        }
-
-        .brand-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-2);
-          background: var(--loqme-primary-50);
-          padding: 4px 16px;
-          border-radius: var(--radius-full);
-          border: 1px solid var(--loqme-primary-200);
-        }
-
-        .brand-logo-text {
-          font-weight: 800;
-          font-size: 1.25rem;
-          color: var(--loqme-primary-600);
-        }
-
-        .brand-subtitle {
-          font-size: 0.75rem;
-          color: var(--loqme-primary-400);
-          font-weight: 600;
-        }
-
-        .auth-title {
-          font-size: var(--font-size-xl);
-          font-weight: var(--font-weight-bold);
-          color: var(--color-text-primary);
-          margin-top: var(--space-2);
-        }
-
-        .auth-desc {
-          font-size: var(--font-size-sm);
-          color: var(--color-text-secondary);
-          margin-top: var(--space-1);
-        }
-
-        .preset-btn {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          text-align: right;
-          background: #ffffff;
-          padding: 10px 12px;
-          border-radius: var(--radius-md);
-          border: 1px solid var(--color-border-subtle);
-          cursor: pointer;
-          transition: border-color 150ms var(--ease-out), transform 150ms var(--ease-out);
-        }
-
-        .preset-btn:hover {
-          border-color: var(--loqme-primary-400);
-          transform: translateY(-1px);
-        }
-
-        .preset-btn:active {
-          transform: scale(0.98);
-        }
-      `}</style>
     </Card>
   );
 };

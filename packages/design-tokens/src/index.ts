@@ -13,14 +13,24 @@ export const TOKENS = {
       300: '#5EEAD4',
       400: '#2DD4BF',
       500: '#0D9488', // Vibrant Teal
-      600: '#0F766E', // Base Brand / Primary CTA (سبز کله‌غازی)
-      700: '#115E59', // Hover / Focused state
-      800: '#134E4A',
-      900: '#042F2E',
+      600: '#135E66', // Template Deep Teal Brand / Primary CTA
+      700: '#0F4E55', // Hover / Focused state
+      800: '#0B3E44',
+      900: '#06292D',
+    },
+    accent: {
+      50: '#F0FDF4',
+      100: '#DCFCE7',
+      200: '#BBF7D0',
+      300: '#86EFAC',
+      400: '#5FE0A4',
+      500: '#65CF9B', // Template Mint Green Accent
+      600: '#10B981',
+      700: '#047857',
     },
     neutral: {
       0: '#FFFFFF',
-      25: '#FFFFFF',  // Clean White Canvas Foundation
+      25: '#FAF7F5',  // Template Soft Warm Cream Foundation
       50: '#F8FAFC',
       100: '#F1F5F9',
       200: '#E2E8F0',
@@ -30,8 +40,8 @@ export const TOKENS = {
       600: '#475569',
       700: '#334155',
       800: '#1E293B',
-      900: '#0F172A', // Deep Charcoal Slate Typography
-      950: '#020617',
+      900: '#222026', // Template Dark Charcoal Slate Typography
+      950: '#0F172A',
     },
     success: {
       50: '#ECFDF5',
@@ -144,13 +154,19 @@ export function generateCssVariables(): Record<string, string> {
     '--brand-teal-500': TOKENS.colors.primary[500],
     '--brand-teal-600': TOKENS.colors.primary[600],
     '--brand-teal-700': TOKENS.colors.primary[700],
+    '--brand-accent-400': TOKENS.colors.accent[400],
+    '--brand-accent-500': TOKENS.colors.accent[500],
     '--border-subtle': TOKENS.colors.neutral[200],
     '--border-focus': TOKENS.colors.primary[600],
     // Semantic tokens
     '--color-primary': TOKENS.colors.primary[600],
     '--color-primary-hover': TOKENS.colors.primary[700],
     '--color-primary-soft': TOKENS.colors.primary[50],
-    '--color-background': TOKENS.colors.neutral[0],
+    '--color-accent': TOKENS.colors.accent[500],
+    '--color-accent-hover': TOKENS.colors.accent[600],
+    '--color-accent-soft': TOKENS.colors.accent[100],
+    '--color-background': TOKENS.colors.neutral[25],
+    '--color-canvas-warm': TOKENS.colors.neutral[25],
     '--color-surface': TOKENS.colors.neutral[0],
     '--color-surface-muted': TOKENS.colors.neutral[50],
     '--color-text': TOKENS.colors.neutral[900],

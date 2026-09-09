@@ -46,12 +46,14 @@ describe('Shared Packages Architecture Verification', () => {
 
   describe('@loqme/design-tokens', () => {
     it('provides unified White + Teal visual palette and motion tokens', () => {
-      expect(TOKENS.colors.primary[600]).toBe('#0F766E'); // Base Brand / Teal
+      expect(TOKENS.colors.primary[600]).toBe('#135E66'); // Base Brand / Teal
+      expect(TOKENS.colors.accent[500]).toBe('#65CF9B');  // Template Mint Green
       expect(TOKENS.colors.neutral[0]).toBe('#FFFFFF');    // Clean White Foundation
       expect(TOKENS.motion.scale.activePress).toBe(0.97);
 
       const cssVars = generateCssVariables();
-      expect(cssVars['--brand-teal-600']).toBe('#0F766E');
+      expect(cssVars['--brand-teal-600']).toBe('#135E66');
+      expect(cssVars['--color-accent']).toBe('#65CF9B');
       expect(cssVars['--bg-canvas']).toBe('#FFFFFF');
     });
   });

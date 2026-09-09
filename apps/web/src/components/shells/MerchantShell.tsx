@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { LoqmeLogo } from '@/components/ui/LoqmeLogo';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils/cn';
 
@@ -35,7 +36,8 @@ export const MerchantShell: React.FC<MerchantShellProps> = ({ children }) => {
 
   const navItems = [
     { href: '/merchant', label: 'داشبورد فروشگاه', icon: '📊' },
-    { href: '/merchant/orders', label: 'صف تحویل حضوری', icon: '📦' },
+    { href: '/merchant/listings', label: 'مدیریت بسته‌های مازاد', icon: '📦' },
+    { href: '/merchant/orders', label: 'تحویل حضوری و اسکن QR', icon: '🛍️' },
     { href: '/merchant/settings', label: 'تنظیمات و ساعات کاری', icon: '⚙️' },
   ];
 
@@ -45,10 +47,7 @@ export const MerchantShell: React.FC<MerchantShellProps> = ({ children }) => {
       <aside className="merchant-sidebar w-full md:w-64 bg-white border-b md:border-b-0 md:border-l border-loqme-neutral-200 flex flex-col">
         <div className="sidebar-header p-4 border-b border-loqme-neutral-200 flex items-center justify-between">
           <Link href="/merchant" className="flex items-center gap-2">
-            <span className="text-xl font-black text-loqme-primary-600">لقمه</span>
-            <Badge variant="brand" size="sm">
-              پنل همکاران
-            </Badge>
+            <LoqmeLogo size="sm" variant="horizontal" subtext="پنل همکاران" />
           </Link>
         </div>
 

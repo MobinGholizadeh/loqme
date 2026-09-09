@@ -1,25 +1,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap');
 @import 'leaflet/dist/leaflet.css';
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   /* ==========================================================================
-     1. COLOR PALETTE TOKENS — White + Teal / Dark Turquoise (سبز کله‌غازی)
+     1. COLOR PALETTE TOKENS — Loqme Design Template System
      ========================================================================== */
-  /* Primary Brand: Sophisticated Dark Turquoise / Deep Teal */
+  --bg-0: #09090b;
+  --bg-100: #18181b;
+  --bg-200: #27272a;
+  --bg-300: #3f3f46;
+  --text-100: #fafafa;
+  --text-200: #e4e4e7;
+  --text-300: #a1a1aa;
+  --text-400: #71717a;
+  --radius: 0.5rem;
+
+  /* Primary Brand: Template Deep Teal */
   --loqme-primary-50: #F0FDFA;  /* Subtle soft background tint */
   --loqme-primary-100: #CCFBF1; /* Subtle border / light chips */
   --loqme-primary-200: #99F6E4; /* Soft accent borders */
   --loqme-primary-300: #5EEAD4;
   --loqme-primary-400: #2DD4BF;
   --loqme-primary-500: #0D9488; /* Vibrant Teal Accent */
-  --loqme-primary-600: #0F766E; /* Base Brand / Primary CTA (سبز کله‌غازی عمیق) */
-  --loqme-primary-700: #115E59; /* Hover / Active CTA */
-  --loqme-primary-800: #134E4A; /* Deep Contrast Text */
-  --loqme-primary-900: #042F2E; /* Darkest Teal */
+  --loqme-primary-600: #135E66; /* Base Brand / Primary CTA (Template Deep Teal) */
+  --loqme-primary-700: #0F4E55; /* Hover / Active CTA */
+  --loqme-primary-800: #0B3E44; /* Deep Contrast Text */
+  --loqme-primary-900: #06292D; /* Darkest Teal */
 
-  /* Neutrals & Slate Charcoal (Clean White dominant canvas) */
+  /* Secondary Accent: Template Fresh Mint Green */
+  --loqme-accent-50: #F0FDF4;
+  --loqme-accent-100: #DCFCE7;
+  --loqme-accent-200: #BBF7D0;
+  --loqme-accent-300: #86EFAC;
+  --loqme-accent-400: #5FE0A4;
+  --loqme-accent-500: #65CF9B; /* Template Mint Green ("Become a partner" CTA) */
+  --loqme-accent-600: #10B981;
+  --loqme-accent-700: #047857;
+
+  /* Neutrals & Typography: Warm Cream & Charcoal Slate */
   --loqme-neutral-0: #FFFFFF;
-  --loqme-neutral-25: #FFFFFF; /* Pure White Canvas (70-85% of visual area) */
+  --loqme-neutral-25: #FAF7F5; /* Template Soft Warm Cream Foundation */
   --loqme-neutral-50: #F8FAFC; /* Secondary Card / Subtle Surface */
   --loqme-neutral-100: #F1F5F9;
   --loqme-neutral-200: #E2E8F0; /* Subtle Borders */
@@ -29,8 +53,8 @@
   --loqme-neutral-600: #475569; /* Secondary Text */
   --loqme-neutral-700: #334155;
   --loqme-neutral-800: #1E293B;
-  --loqme-neutral-900: #0F172A; /* Primary Text (Deep Charcoal) */
-  --loqme-neutral-950: #020617;
+  --loqme-neutral-900: #222026; /* Template Dark Charcoal Typography */
+  --loqme-neutral-950: #0F172A;
 
   /* Semantic Accents: Trust, Safety & Savings (Restrained Emerald) */
   --loqme-success-50: #ECFDF5;
@@ -55,6 +79,7 @@
   --color-bg-canvas: var(--loqme-neutral-25);
   --color-bg-surface: var(--loqme-neutral-0);
   --color-bg-muted: var(--loqme-neutral-50);
+  --color-canvas-warm: var(--loqme-neutral-25);
   --color-border-subtle: var(--loqme-neutral-200);
   --color-border-strong: var(--loqme-neutral-300);
   --color-text-primary: var(--loqme-neutral-900);
@@ -63,6 +88,9 @@
   --color-primary: var(--loqme-primary-600);
   --color-primary-hover: var(--loqme-primary-700);
   --color-primary-soft: var(--loqme-primary-50);
+  --color-accent: var(--loqme-accent-500);
+  --color-accent-hover: var(--loqme-accent-600);
+  --color-accent-soft: var(--loqme-accent-100);
   --color-success: var(--loqme-success-600);
   --color-warning: var(--loqme-warning-600);
   --color-danger: var(--loqme-danger-600);

@@ -5,8 +5,9 @@ import { cn } from '@/lib/utils/cn';
 import { Spinner } from './Spinner';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive' | 'accent' | 'outline';
   size?: 'sm' | 'md' | 'lg';
+  rounded?: 'default' | 'pill';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
@@ -19,6 +20,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       className,
       variant = 'primary',
       size = 'md',
+      rounded = 'pill',
       isLoading = false,
       disabled,
       leftIcon,
@@ -28,22 +30,27 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    const baseStyle =
-      'inline-flex items-center justify-center font-medium select-none cursor-pointer border rounded-lg transition-transform focus-visible:outline-none';
-
     // Size variants
     const sizeStyles = {
-      sm: 'h-9 px-3 text-xs gap-1.5 min-h-[36px]',
-      md: 'h-11 px-4 text-sm gap-2 min-h-[44px]',
-      lg: 'h-13 px-6 text-base gap-2.5 min-h-[52px]',
+      sm: 'h-9 px-4 text-xs gap-1.5 min-h-[36px]',
+      md: 'h-11 px-6 text-sm gap-2 min-h-[44px]',
+      lg: 'h-13 px-8 text-base gap-2.5 min-h-[52px]',
+    };
+
+    // Rounded styles
+    const roundedStyles = {
+      default: 'rounded-2xl',
+      pill: 'rounded-full',
     };
 
     // Semantic variants
     const variantStyles = {
-      primary: 'btn-primary',
-      secondary: 'btn-secondary',
-      ghost: 'btn-ghost',
-      destructive: 'btn-destructive',
+      primary: 'bg-[#135E66] hover:bg-[#0F4E55] text-white border border-transparent shadow-sm hover:shadow-md font-bold',
+      secondary: 'bg-stone-100 hover:bg-stone-200 text-stone-900 border border-stone-200 font-bold',
+      accent: 'bg-[#65CF9B] hover:bg-[#5FE0A4] text-[#135E66] border border-transparent shadow-sm hover:shadow-md font-black',
+      outline: 'bg-white hover:bg-teal-50 text-[#135E66] border-2 border-[#135E66] font-bold',
+      ghost: 'bg-transparent hover:bg-stone-100 text-stone-700 border border-transparent font-medium',
+      destructive: 'bg-red-600 hover:bg-red-700 text-white border border-transparent shadow-sm font-bold',
     };
 
     return (
@@ -52,10 +59,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         type={type}
         disabled={disabled || isLoading}
         className={cn(
-          baseStyle,
+          'inline-flex items-center justify-center select-none cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 active:scale-[0.97]',
           sizeStyles[size],
+          roundedStyles[rounded],
           variantStyles[variant],
-          (disabled || isLoading) && 'opacity-60 cursor-not-allowed pointer-events-none',
+          (disabled || isLoading) && 'opacity-60 cursor-not-allowed pointer-events-none active:scale-100',
           className
         )}
         {...props}
@@ -66,80 +74,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             color={variant === 'primary' || variant === 'destructive' ? 'white' : 'primary'}
           />
         ) : (
-          rightIcon && <span className="btn-icon-right">{rightIcon}</span>
+          rightIcon && <span className="shrink-0">{rightIcon}</span>
         )}
 
-        <span className={cn('btn-content', isLoading && 'opacity-70')}>{children}</span>
+        <span className={cn('truncate', isLoading && 'opacity-70')}>{children}</span>
 
-        {!isLoading && leftIcon && <span className="btn-icon-left">{leftIcon}</span>}
-
-        <style jsx>{`
-          button {
-            border-radius: var(--radius-md);
-            font-family: var(--font-family-base);
-            transition: transform var(--duration-press) var(--ease-out),
-              background-color 160ms ease,
-              border-color 160ms ease,
-              box-shadow 160ms ease;
-          }
-
-          /* Press feedback following Emil Kowalski guidelines */
-          button:active:not(:disabled) {
-            transform: scale(0.97);
-          }
-
-          .btn-primary {
-            background-color: var(--loqme-primary-600);
-            color: #ffffff;
-            border-color: var(--loqme-primary-700);
-            box-shadow: var(--shadow-sm);
-          }
-
-          @media (hover: hover) and (pointer: fine) {
-            .btn-primary:hover:not(:disabled) {
-              background-color: var(--loqme-primary-700);
-              border-color: var(--loqme-primary-800);
-              box-shadow: var(--shadow-md);
-            }
-          }
-
-          .btn-secondary {
-            background-color: var(--loqme-primary-50);
-            color: var(--loqme-primary-700);
-            border-color: var(--loqme-primary-200);
-          }
-
-          @media (hover: hover) and (pointer: fine) {
-            .btn-secondary:hover:not(:disabled) {
-              background-color: var(--loqme-primary-100);
-              border-color: var(--loqme-primary-300);
-            }
-          }
-
-          .btn-ghost {
-            background-color: transparent;
-            color: var(--color-text-primary);
-            border-color: transparent;
-          }
-
-          @media (hover: hover) and (pointer: fine) {
-            .btn-ghost:hover:not(:disabled) {
-              background-color: var(--loqme-neutral-100);
-            }
-          }
-
-          .btn-destructive {
-            background-color: var(--loqme-danger-500);
-            color: #ffffff;
-            border-color: var(--loqme-danger-600);
-          }
-
-          @media (hover: hover) and (pointer: fine) {
-            .btn-destructive:hover:not(:disabled) {
-              background-color: var(--loqme-danger-600);
-            }
-          }
-        `}</style>
+        {!isLoading && leftIcon && <span className="shrink-0">{leftIcon}</span>}
       </button>
     );
   }

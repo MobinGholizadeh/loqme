@@ -128,6 +128,7 @@
 - [x] **CP-UI.5 — Checkout, Receipt & Orders Flow Polish**: Polished `/checkout/[reservationId]` with live 10-minute hold countdown timer, `/orders/[id]/receipt` with complete payment confirmation and pickup directions, and `/orders` with tabbed order history, skeleton loading, and empty states.
 - [x] **CP-UI.6 — Accessibility, RTL & Cross-Viewport Validation**: Full accessibility pass (proper ARIA attributes, semantic landmarks, high contrast ratios, touch targets >= 44px). Validated RTL layout across Desktop (1280px), Tablet (768px), and Mobile (390px) via browser subagent recording (`design_system_inspection_1788728557320.webp`).
 - [x] **CP-UI.7 — Authoritative Governance & Design System Docs**: Updated `docs/DESIGN_SYSTEM.md` with complete token tables and component usage; updated `AGENTS.md` with strict rules prohibiting browser-default UI and mandating production-quality UI across all milestones.
+- [x] **CP-UI.8 — Design Template & Official Logo Alignment**: Integrated user's official sprout-glyph logo into SVG vector component `<LoqmeLogo />`, `favicon.ico`, `favicon.svg`, `icon.svg`, and `logo.png`. Applied full visual design system from the provided design template: Deep Teal (`#135E66`), Mint Green accent (`#65CF9B`), Warm Cream canvas (`#FAF7F5`), Dark Charcoal typography (`#222026`), full pill buttons (`rounded-full`), hero banner with branded bag photography, Deep Teal category navigation ribbon, warm mission statement card, 4-photo lifestyle showcase grid, and full Deep Teal branded trust footer. Production build exit code 0.
 
 ---
 

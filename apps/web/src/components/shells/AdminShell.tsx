@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { LoqmeLogo } from '@/components/ui/LoqmeLogo';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils/cn';
 
@@ -45,10 +46,7 @@ export const AdminShell: React.FC<AdminShellProps> = ({ children }) => {
       <aside className="admin-sidebar w-full md:w-64 bg-loqme-neutral-950 border-b md:border-b-0 md:border-l border-loqme-neutral-800 flex flex-col">
         <div className="p-4 border-b border-loqme-neutral-800 flex items-center justify-between">
           <Link href="/admin" className="flex items-center gap-2">
-            <span className="text-xl font-black text-loqme-primary-500">لقمه</span>
-            <Badge variant="danger" size="sm">
-              کنسول ارشد
-            </Badge>
+            <LoqmeLogo size="sm" variant="horizontal" theme="white" subtext="کنسول نظارت ارشد" />
           </Link>
         </div>
 

@@ -24,15 +24,17 @@ export default function LoginPage() {
       </div>
 
       {/* Main Login Form Box wrapped in Suspense for useSearchParams */}
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center p-12">
-            <Spinner size="lg" />
-          </div>
-        }
-      >
-        <OtpLoginForm />
-      </Suspense>
+      <div className="w-full max-w-md">
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center p-12 bg-white rounded-3xl border border-stone-200">
+              <Spinner size="lg" />
+            </div>
+          }
+        >
+          <OtpLoginForm />
+        </Suspense>
+      </div>
 
       <div className="mt-8 text-center text-xs text-loqme-neutral-500 max-w-xs leading-relaxed">
         ورود به معنای پذیرش قوانین ایمنی مواد غذایی و شرایط استفاده از خدمات لقمه (Loqme) است.

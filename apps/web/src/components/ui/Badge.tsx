@@ -12,82 +12,36 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 export const Badge: React.FC<BadgeProps> = ({
   children,
   className,
-  variant = 'brand',
+  variant = 'neutral',
   size = 'md',
   icon,
   ...props
 }) => {
+  const sizeStyles = {
+    sm: 'px-2.5 py-0.5 text-[11px] gap-1',
+    md: 'px-3 py-1 text-xs gap-1.5',
+  };
+
+  const variantStyles = {
+    brand: 'bg-[#F0FDFA] text-[#135E66] border border-teal-200 font-bold',
+    success: 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold',
+    warning: 'bg-amber-50 text-amber-800 border border-amber-200 font-medium',
+    danger: 'bg-red-50 text-red-700 border border-red-200 font-medium',
+    neutral: 'bg-stone-100 text-stone-700 border border-stone-200 font-medium',
+  };
+
   return (
     <span
       className={cn(
-        'loqme-badge',
-        `badge-${variant}`,
-        `badge-${size}`,
+        'inline-flex items-center rounded-full font-bold select-none',
+        sizeStyles[size],
+        variantStyles[variant],
         className
       )}
       {...props}
     >
-      {icon && <span className="badge-icon">{icon}</span>}
-      <span className="badge-text">{children}</span>
-
-      <style jsx>{`
-        .loqme-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-1);
-          font-family: var(--font-family-base);
-          font-weight: var(--font-weight-medium);
-          border-radius: var(--radius-full);
-          width: fit-content;
-          white-space: nowrap;
-          user-select: none;
-        }
-
-        .badge-sm {
-          font-size: var(--font-size-xs);
-          padding: 2px 8px;
-        }
-
-        .badge-md {
-          font-size: var(--font-size-sm);
-          padding: 4px 12px;
-        }
-
-        .badge-brand {
-          background-color: var(--loqme-primary-50);
-          color: var(--loqme-primary-700);
-          border: 1px solid var(--loqme-primary-200);
-        }
-
-        .badge-success {
-          background-color: var(--loqme-success-50);
-          color: var(--loqme-success-700);
-          border: 1px solid var(--loqme-success-100);
-        }
-
-        .badge-warning {
-          background-color: var(--loqme-warning-50);
-          color: var(--loqme-warning-600);
-          border: 1px solid var(--loqme-warning-100);
-        }
-
-        .badge-danger {
-          background-color: var(--loqme-danger-50);
-          color: var(--loqme-danger-600);
-          border: 1px solid var(--loqme-danger-100);
-        }
-
-        .badge-neutral {
-          background-color: var(--loqme-neutral-100);
-          color: var(--loqme-neutral-700);
-          border: 1px solid var(--loqme-neutral-200);
-        }
-
-        .badge-icon {
-          display: inline-flex;
-          align-items: center;
-        }
-      `}</style>
+      {icon && <span className="shrink-0">{icon}</span>}
+      <span>{children}</span>
     </span>
   );
 };
