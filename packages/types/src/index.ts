@@ -1044,3 +1044,71 @@ export interface SystemSettingsDto {
   activeSmsProvider: 'MOCK' | 'KAVENEGAR' | 'FARAZSMS';
 }
 
+// =============================================================================
+// Milestone M09 — Marketplace Analytics Contracts & DTOs
+// =============================================================================
+
+export type AnalyticsTimeframe = 'TODAY' | '7D' | '30D' | '90D' | '1Y' | 'CUSTOM';
+
+export interface MarketplaceAnalyticsKpiDto {
+  gmvToman: number;
+  platformCommissionToman: number;
+  averageOrderValueToman: number;
+  totalOrdersCount: number;
+  totalBagsSold: number;
+  customerCumulativeSavingsToman: number;
+  merchantNetPayoutToman: number;
+  sellThroughRate: number;
+  pickupCompletionRate: number;
+  refundRate: number;
+  repeatCustomerRate: number;
+}
+
+export interface DailyAnalyticsTrendPointDto {
+  dateIso: string;
+  dateFa: string;
+  gmvToman: number;
+  ordersCount: number;
+  commissionToman: number;
+  soldBags: number;
+}
+
+export interface CategoryDistributionDto {
+  categoryId: string;
+  categoryNameFa: string;
+  listingsCount: number;
+  soldBagsCount: number;
+  gmvToman: number;
+  percentage: number;
+}
+
+export interface NeighborhoodDensityDto {
+  neighborhoodId: string;
+  neighborhoodNameFa: string;
+  cityNameFa: string;
+  activeMerchantsCount: number;
+  activeListingsCount: number;
+  totalOrdersCount: number;
+  totalGmvToman: number;
+  unmetDemandScore: number;
+}
+
+export interface CustomerCohortAnalyticsDto {
+  totalCustomers: number;
+  activeOrderingCustomers: number;
+  repeatCustomers: number;
+  repeatRate14Days: number;
+  repeatRate30Days: number;
+}
+
+export interface MarketplaceAnalyticsReportDto {
+  timeframe: AnalyticsTimeframe;
+  startDateIso: string;
+  endDateIso: string;
+  kpis: MarketplaceAnalyticsKpiDto;
+  dailyTrends: DailyAnalyticsTrendPointDto[];
+  categoryDistribution: CategoryDistributionDto[];
+  neighborhoodDensity: NeighborhoodDensityDto[];
+  cohorts: CustomerCohortAnalyticsDto;
+}
+

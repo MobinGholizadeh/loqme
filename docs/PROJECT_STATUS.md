@@ -10,11 +10,11 @@
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **Ready for M09 — Marketplace Analytics** |
-| **Milestone Status** | `Milestone Completed` (M08 Admin Platform Completed & Verified) |
-| **Overall Completion** | `78%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%, M06 100%, M07 100%, M08 100%) |
+| **Current Milestone** | **Ready for M10 — UX, SEO, PWA & Performance** |
+| **Milestone Status** | `Milestone Completed` (M09 Marketplace Analytics Completed & Verified) |
+| **Overall Completion** | `85%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%, M06 100%, M07 100%, M08 100%, M09 100%) |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running) |
-| **Last Updated** | 2026-09-10 (M08 Admin Platform Completed: Verification Queue, Customer Inspector, Listing Moderation, Categories, Settlement Engine, Feature Flags & Audit Logs) |
+| **Last Updated** | 2026-09-10 (M09 Marketplace Analytics Completed: Financial KPIs, Sell-Through & Pickup Ratios, Trend Visualizer, Urmia Neighborhood Density & CSV Exporter) |
 
 ---
 
@@ -59,7 +59,7 @@
 | **M06** | **Trust, Safety & Moderation** | `Completed` | `100%` |
 | **M07** | **Merchant Product** | `Completed` | `100%` |
 | **M08** | **Admin Platform** | `Completed` | `100%` |
-| **M09** | Marketplace Analytics | `Pending` | `0%` |
+| **M09** | **Marketplace Analytics** | `Completed` | `100%` |
 | **M10** | UX, SEO, PWA & Performance | `Pending` | `0%` |
 | **M11** | Production Readiness | `Pending` | `0%` |
 
@@ -178,6 +178,18 @@
 
 ---
 
+### Milestone M09 Checklist — Marketplace Analytics
+
+- [x] **CP-09.1 — AnalyticsService Core Calculation Engine**: Implemented `AnalyticsService` executing SQL aggregations across operational tables (`Order`, `OrderItem`, `Payment`, `Listing`, `ListingInventory`, `Refund`, `Customer`) calculating GMV, platform commission, AOV, net merchant payouts, and cumulative customer savings strictly from actual transactions (`apps/web/src/domain/analytics/analytics.service.ts`).
+- [x] **CP-09.2 — Indexed Operational Performance Rollups**: Structured query filters on indexed range keys (`createdAt >= :start AND createdAt <= :end`) and status enums (`PAID`, `READY_FOR_PICKUP`, `COMPLETED`, `REFUNDED`, `NO_SHOW`) ensuring sub-200ms retrieval.
+- [x] **CP-09.3 — Admin Marketplace Analytics Console (`/admin/analytics`)**: Built comprehensive operational intelligence portal with timeframe filters (`TODAY`, `7D`, `30D`, `90D`, `1Y`), KPI cards, operational ratios bar, category donut chart, and customer cohort retention cards (`apps/web/src/app/(admin)/admin/analytics/page.tsx`, `apps/web/src/app/api/admin/analytics/route.ts`).
+- [x] **CP-09.4 — Interactive Native SVG Visual Charts**: Implemented `TrendChart` (continuous line and gradient area chart with hover tooltips and Persian numerals) and `CategoryDonutChart` (SVG donut slices with interactive hover highlights and responsive legend) with zero heavy external charting dependencies (`apps/web/src/components/analytics/TrendChart.tsx`, `apps/web/src/components/analytics/CategoryDonutChart.tsx`).
+- [x] **CP-09.5 — Hyper-Local Geographic Neighborhood Density**: Built `NeighborhoodDensityTable` analyzing and ranking Urmia neighborhoods (دانشکده، خیام، گلشهر، بهداری، ایثار، شیخ‌تپه) by order volume, GMV, merchant supply, and unmet demand scores (`apps/web/src/components/analytics/NeighborhoodDensityTable.tsx`).
+- [x] **CP-09.6 — CSV Financial & Operational Exporter**: Built `/api/admin/analytics/export` generating standardized UTF-8 BOM CSV files with Persian column headers for financial auditing and operational reviews (`apps/web/src/app/api/admin/analytics/export/route.ts`).
+- [x] **CP-09.7 — Mathematical Verification & Security Test Suite**: Authored 12 tests in `tests/m09-analytics.test.ts` (12/12 passing) verifying mathematical accuracy of GMV, Commission, AOV, Sell-Through %, Pickup Completion %, Customer Savings, and strict admin RBAC protection.
+
+---
+
 ## 5. Important Technical Decisions
 
 1. **Multi-Client Monorepo (`apps/*` + `packages/*`)**: Standard npm workspaces without heavy tooling overhead; provides instant sharing of types, schemas, tokens, and API client.
@@ -201,6 +213,8 @@
 19. **Atomic Listing Pause on Merchant Suspension**: To preserve customer safety and marketplace integrity, suspending or rejecting a merchant executes an atomic transaction that simultaneously pauses all active `PUBLISHED` listings of that store, instantly removing them from public exploration and proximity search.
 20. **Protected Non-Negative Settlement Balances**: Settlement math dynamically applies merchant-specific commission tiers (`grossGmv * commissionPercent / 100`), deducts customer refunds, and enforces a zero floor (`Math.max(0, netPayable)`) to prevent negative payout liabilities.
 21. **Mandatory Administrative Audit Logging**: Every administrative mutation (approvals, suspensions, customer status overrides, commission adjustments, category creations, system settings) writes an immutable audit record containing actor ID, role (`ADMIN`), action type, entity type, entity ID, and JSON details.
+22. **Zero-Fabrication Analytics Architecture**: All analytics computations strictly aggregate real database rows without synthetic constants, random mock values, or predictive fabrications, in strict compliance with Loqme Product Principles.
+23. **Lightweight Accessible Native SVG Charting**: Interactive area/line trends and category donut distributions are implemented with pure SVG math and CSS transitions, eliminating heavy chart library bundle bloat while ensuring 100% RTL and Persian numeral support.
 
 ---
 
@@ -223,10 +237,10 @@
 
 ## 8. Latest Validation Results
 
-* **Milestone M08 Test Suite**: 21/21 tests passing in `tests/m08-admin.test.ts` (Zod schemas, admin RBAC gatekeeper, merchant approval and suspension, automatic listing pausing, customer account toggling, settlement math and Paya export, category creation, system settings, and audit trails).
-* **Comprehensive Test Suite**: 70/70 unit and domain tests passing across `tests/m08-admin.test.ts`, `tests/m07-merchant.test.ts`, `tests/m06-trust-safety.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, and `tests/shared-packages.test.ts`.
+* **Milestone M09 Test Suite**: 12/12 tests passing in `tests/m09-analytics.test.ts` (Zod validation, timeframe boundaries, Jalali date formatting, GMV, commission, AOV, savings, sell-through %, pickup %, retention cohorts, neighborhood ranking, CSV export, and RBAC protection).
+* **Comprehensive Test Suite**: 82/82 unit and domain tests passing across `tests/m09-analytics.test.ts`, `tests/m08-admin.test.ts`, `tests/m07-merchant.test.ts`, `tests/m06-trust-safety.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, and `tests/shared-packages.test.ts`.
 * **TypeScript Typecheck**: `npx tsc --noEmit` exited with code 0 (zero errors across all packages and apps).
 * **ESLint Validation**: `npm run lint` reported 0 errors.
-* **Production Build**: `npm run build` completed successfully (exit code 0, 45 routes compiled and optimized including `/admin`, `/admin/merchants`, `/admin/customers`, `/admin/listings`, `/admin/moderation`, `/admin/finance`, `/admin/audit`, `/admin/settings`, and all `/api/admin/*` routes).
-* **Design System Conformance**: White + Teal (`#135E66`) tokens, Vazirmatn Persian typography, RTL layout (`dir="rtl"`), and production-quality UI across all administrative operations pages.
+* **Production Build**: `npm run build` completed successfully (exit code 0, 48 routes compiled and optimized including `/admin/analytics`, `/api/admin/analytics`, `/api/admin/analytics/export`, and all existing customer, merchant, and admin routes).
+* **Design System Conformance**: White + Teal (`#135E66`) tokens, Vazirmatn Persian typography, RTL layout (`dir="rtl"`), and production-quality UI across all analytics visualization components.
 

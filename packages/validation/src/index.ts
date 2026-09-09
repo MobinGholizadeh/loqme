@@ -519,3 +519,17 @@ export const UpdateSystemSettingsSchema = z.object({
 
 export type UpdateSystemSettingsInput = z.infer<typeof UpdateSystemSettingsSchema>;
 
+// ==========================================
+// 10. Marketplace Analytics Schemas (Milestone M09)
+// ==========================================
+
+export const AnalyticsQuerySchema = z.object({
+  timeframe: z.enum(['TODAY', '7D', '30D', '90D', '1Y', 'CUSTOM']).default('30D'),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  merchantId: z.string().uuid().optional(),
+  cityId: z.string().uuid().optional(),
+});
+
+export type AnalyticsQueryInput = z.infer<typeof AnalyticsQuerySchema>;
+
