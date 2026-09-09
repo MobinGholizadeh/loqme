@@ -122,6 +122,7 @@ model User {
   staffRoles       MerchantStaff[]
   sessions         Session[]
   processedRefunds Refund[]        @relation("RefundProcessor")
+  verifiedPickups  PickupVerification[] @relation("VerifiedPickups")
 
   @@index([mobile])
 }
@@ -173,6 +174,7 @@ model MerchantStaff {
 
   merchant      Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedPickups PickupVerification[] @relation("StaffVerifiedPickups")
 
   @@unique([merchantId, userId])
 }
@@ -436,10 +438,12 @@ model Order {
   payments                  Payment[]
   financialTransactions     FinancialTransaction[]
   refunds                   Refund[]
+  pickupVerification        PickupVerification?
 
   @@index([customerId])
   @@index([merchantId])
   @@index([status])
+  @@index([merchantId, status])
   @@index([createdAt])
 }
 
@@ -531,5 +535,30 @@ model Refund {
   @@index([orderId])
   @@index([status])
 }
+
+model PickupVerification {
+  id                String         @id @default(uuid())
+  orderId           String         @unique
+  qrCodeHash        String?
+  otpCode           String         // 4-digit numeric code e.g. "8491"
+  isVerified        Boolean        @default(false)
+  verifiedAt        DateTime?
+  verifiedByUserId  String?
+  verifiedByStaffId String?
+  attemptCount      Int            @default(0)
+  lockedUntil       DateTime?
+  reminderSentAt    DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  order             Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  verifiedByUser    User?          @relation("VerifiedPickups", fields: [verifiedByUserId], references: [id], onDelete: SetNull)
+  verifiedByStaff   MerchantStaff? @relation("StaffVerifiedPickups", fields: [verifiedByStaffId], references: [id], onDelete: SetNull)
+
+  @@index([otpCode, isVerified])
+  @@index([orderId])
+  @@index([isVerified])
+}
+
 
 

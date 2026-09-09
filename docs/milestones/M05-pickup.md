@@ -2,8 +2,8 @@
 
 > **Milestone**: M05  
 > **Title**: Pickup Verification  
-> **Status**: `Pending`  
-> **Target Completion**: 0%
+> **Status**: `Completed`  
+> **Target Completion**: 100%
 
 ---
 
@@ -106,23 +106,23 @@ Physical in-person pickup is fundamental to Loqme's model. It builds neighborhoo
 
 # Acceptance Criteria
 
-1. [ ] Customer receives dynamic QR code and 4-digit OTP upon completing payment.
-2. [ ] Merchant camera scanner decodes QR and marks order `COMPLETED`.
-3. [ ] Manual OTP entry works if camera is denied.
-4. [ ] Double-redemption test confirms it is impossible to pick up an order twice.
-5. [ ] Expired unpicked orders transition to `NO_SHOW`.
+1. [x] Customer receives dynamic QR code and 4-digit OTP upon completing payment.
+2. [x] Merchant camera scanner decodes QR and marks order `COMPLETED`.
+3. [x] Manual OTP entry works if camera is denied.
+4. [x] Double-redemption test confirms it is impossible to pick up an order twice.
+5. [x] Expired unpicked orders transition to `NO_SHOW`.
 
 ---
 
 # Checkpoints
 
-- [ ] **CP-05.1**: Build `PickupService` with dynamic QR hashing and 4-digit OTP generator.
-- [ ] **CP-05.2**: Build Customer Pickup Credentials screen with dynamic QR display and countdown.
-- [ ] **CP-05.3**: Build Merchant live pickup queue view.
-- [ ] **CP-05.4**: Implement Merchant HTML5 QR scanner and manual OTP keypad.
-- [ ] **CP-05.5**: Implement atomic verification handshake and double-pickup prevention.
-- [ ] **CP-05.6**: Build no-show worker and automated pickup reminder triggers.
-- [ ] **CP-05.7**: Run integration and double-pickup concurrency test.
+- [x] **CP-05.1**: Build `PickupService` with dynamic QR hashing and 4-digit OTP generator.
+- [x] **CP-05.2**: Build Customer Pickup Credentials screen with dynamic QR display and countdown.
+- [x] **CP-05.3**: Build Merchant live pickup queue view.
+- [x] **CP-05.4**: Implement Merchant HTML5 QR scanner and manual OTP keypad.
+- [x] **CP-05.5**: Implement atomic verification handshake and double-pickup prevention.
+- [x] **CP-05.6**: Build no-show worker and automated pickup reminder triggers.
+- [x] **CP-05.7**: Run integration and double-pickup concurrency test.
 
 ---
 

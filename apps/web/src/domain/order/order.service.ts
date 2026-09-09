@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { inventoryService } from '@/domain/inventory/inventory.service';
 import { paymentService } from '@/domain/payment/payment.service';
+import { pickupService } from '@/domain/pickup/pickup.service';
 import {
   OrderStatus,
   ReservationStatus,
@@ -220,14 +221,21 @@ export class OrderService {
 
     const now = new Date();
 
-    // 3. Update Order status to PAID and READY_FOR_PICKUP
+    // 3. Update Order status to READY_FOR_PICKUP
     const updatedOrder = await prisma.order.update({
       where: { id: order.id },
       data: {
-        status: OrderStatus.PAID,
+        status: OrderStatus.READY_FOR_PICKUP,
         updatedAt: now,
       },
     });
+
+    // Initialize pickup verification record (QR token base and 4-digit OTP)
+    try {
+      await pickupService.getOrCreateVerification(order.id);
+    } catch (verErr) {
+      console.warn('Failed to pre-initialize pickup verification:', verErr);
+    }
 
     // 4. Convert reservation to CONVERTED_TO_ORDER
     if (order.reservationId) {

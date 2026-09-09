@@ -7,14 +7,17 @@ interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   color?: 'primary' | 'white' | 'neutral';
+  variant?: 'primary' | 'white' | 'neutral';
 }
 
 export const Spinner: React.FC<SpinnerProps> = ({
   size = 'md',
   className,
   color = 'primary',
+  variant,
 }) => {
   const sizePixels = size === 'sm' ? 16 : size === 'lg' ? 28 : 20;
+  const activeColor = variant || color;
 
   const colorStyles: Record<string, string> = {
     primary: 'text-[var(--loqme-primary-600)]',
@@ -24,7 +27,7 @@ export const Spinner: React.FC<SpinnerProps> = ({
 
   return (
     <svg
-      className={cn('loqme-spinner animate-spin', colorStyles[color], className)}
+      className={cn('loqme-spinner animate-spin', colorStyles[activeColor], className)}
       width={sizePixels}
       height={sizePixels}
       viewBox="0 0 24 24"

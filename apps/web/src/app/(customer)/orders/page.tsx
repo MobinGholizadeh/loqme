@@ -10,11 +10,13 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
 import { CustomerOrderSummaryDto, OrderStatus } from '@loqme/types';
+import { CustomerPickupPassModal } from '@/components/pickup/CustomerPickupPassModal';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<CustomerOrderSummaryDto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUnauthorized, setIsUnauthorized] = useState<boolean>(false);
+  const [passOrderId, setPassOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchOrders() {
@@ -164,15 +166,46 @@ export default function OrdersPage() {
                   </span>
                 </div>
 
-                <Link href={`/orders/${order.id}/receipt`}>
-                  <Button size="sm" variant="secondary">
-                    مشاهده رسید و فاکتور
-                  </Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                  {(order.status === 'READY_FOR_PICKUP' || order.status === 'PAID') && (
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      className="gap-1 shadow-xs"
+                      onClick={() => setPassOrderId(order.id)}
+                    >
+                      <span>📱</span>
+                      <span>کارت و بارکد تحویل</span>
+                    </Button>
+                  )}
+
+                  <Link href={`/orders/${order.id}/receipt`}>
+                    <Button size="sm" variant="secondary">
+                      رسید و فاکتور
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Customer Pickup Pass Modal */}
+      {passOrderId && (
+        <CustomerPickupPassModal
+          orderId={passOrderId}
+          isOpen={Boolean(passOrderId)}
+          onClose={() => setPassOrderId(null)}
+          onVerified={() => {
+            // refresh orders
+            fetch('/api/orders')
+              .then((r) => r.json())
+              .then((d) => {
+                if (d.success) setOrders(d.data || []);
+              });
+          }}
+        />
       )}
     </div>
   );

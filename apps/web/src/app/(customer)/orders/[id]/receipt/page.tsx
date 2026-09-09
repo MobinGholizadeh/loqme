@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
+import { CustomerPickupPassModal } from '@/components/pickup/CustomerPickupPassModal';
 
 interface OrderReceiptData {
   id: string;
@@ -60,6 +61,7 @@ export default function OrderReceiptPage() {
 
   const [order, setOrder] = useState<OrderReceiptData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showPickupPass, setShowPickupPass] = useState<boolean>(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -160,6 +162,46 @@ export default function OrderReceiptPage() {
           </div>
         )}
       </Card>
+
+      {/* Pickup Pass Card & Modal CTA */}
+      <Card variant="elevated" className="p-5 bg-gradient-to-br from-loqme-primary-50 to-teal-50/50 border-2 border-loqme-primary-300 text-center space-y-3 shadow-md">
+        <div className="flex items-center justify-between text-xs text-loqme-primary-900 font-bold">
+          <span className="flex items-center gap-1.5">
+            <span>🎟️</span>
+            <span>گواهی دیجیتال تحویل حضوری (QR و کد ۴ رقمی)</span>
+          </span>
+          <Badge variant="brand" size="sm">آماده تحویل</Badge>
+        </div>
+        <p className="text-xs text-loqme-neutral-600 leading-relaxed">
+          هنگام مراجعه به فروشگاه، بارکد پویا را به متصدی فروشگاه نشان دهید یا کد ۴ رقمی را اعلام فرمایید.
+        </p>
+        <Button
+          variant="primary"
+          size="md"
+          className="w-full gap-2 text-sm shadow-sm"
+          onClick={() => setShowPickupPass(true)}
+        >
+          <span>📱</span>
+          <span>مشاهده بارکد QR و کد ۴ رقمی تحویل</span>
+        </Button>
+      </Card>
+
+      {/* Modal instance */}
+      {orderId && (
+        <CustomerPickupPassModal
+          orderId={orderId}
+          isOpen={showPickupPass}
+          onClose={() => setShowPickupPass(false)}
+          onVerified={() => {
+            // refresh order details
+            fetch(`/api/orders/${orderId}`)
+              .then((r) => r.json())
+              .then((d) => {
+                if (d.success) setOrder(d.data);
+              });
+          }}
+        />
+      )}
 
       {/* Pickup Instructions */}
       <Card variant="outlined" className="p-5 space-y-3 bg-white">

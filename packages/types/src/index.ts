@@ -523,4 +523,101 @@ export interface CustomerOrderSummaryDto {
   createdAt: string;
 }
 
+// ==========================================
+// 9. Milestone M05: Pickup Verification
+// ==========================================
+
+export interface PickupVerificationEntity {
+  id: string;
+  orderId: string;
+  qrCodeHash?: string | null;
+  otpCode: string;
+  isVerified: boolean;
+  verifiedAt?: Date | string | null;
+  verifiedByUserId?: string | null;
+  verifiedByStaffId?: string | null;
+  attemptCount: number;
+  lockedUntil?: Date | string | null;
+  reminderSentAt?: Date | string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface CustomerPickupCredentialsDto {
+  orderId: string;
+  orderNumber: string;
+  status: OrderStatus;
+  otpCode: string;
+  otpCodePersian: string;
+  qrToken: string;
+  qrSvg?: string;
+  qrDataUrl?: string;
+  expiresInSeconds: number; // Duration until dynamic token refresh
+  isVerified: boolean;
+  verifiedAt?: string | null;
+  pickupWindowFa: string;
+  pickupStartIso: string;
+  pickupEndIso: string;
+  isPastPickupEnd: boolean;
+  listingTitleFa: string;
+  quantity: number;
+  totalAmountToman: number;
+  merchant: {
+    id: string;
+    businessNameFa: string;
+    addressFa?: string;
+    phone?: string;
+    latitude?: number;
+    longitude?: number;
+    directionsUrl?: string;
+  };
+}
+
+export interface VerifyPickupInputDto {
+  qrToken?: string;
+  otpCode?: string;
+  orderNumber?: string;
+  orderId?: string;
+}
+
+export interface VerifyPickupResponseDto {
+  success: boolean;
+  message: string;
+  orderId: string;
+  orderNumber: string;
+  status: OrderStatus;
+  verifiedAt: string;
+  customerNameFa: string;
+  listingTitleFa: string;
+  quantity: number;
+  totalAmountToman: number;
+  alreadyVerified?: boolean;
+}
+
+export interface MerchantPickupQueueItemDto {
+  orderId: string;
+  orderNumber: string;
+  status: OrderStatus;
+  customerNameFa: string;
+  customerMobileMasked: string;
+  listingTitleFa: string;
+  quantity: number;
+  totalAmountToman: number;
+  pickupWindowFa: string;
+  pickupStartIso: string;
+  pickupEndIso: string;
+  isPastPickupEnd: boolean;
+  otpCode: string;
+  isVerified: boolean;
+  verifiedAt?: string | null;
+  createdAt: string;
+}
+
+export interface NoShowSweepResultDto {
+  success: boolean;
+  sweptCount: number;
+  orderIds: string[];
+}
+
+
 

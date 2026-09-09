@@ -118,7 +118,7 @@ export const CreateSurpriseBagSchema = z.object({
   path: ['discountedPrice'],
 });
 
-export type CreateSurpriseBagInput = z.infer<typeof CreateSurpriseBagSchema>;
+export type CreateSurpriseBagInput = z.input<typeof CreateSurpriseBagSchema>;
 
 export const CreateListingSchema = z.object({
   merchantId: z.string().uuid('شناسه فروشگاه نامعتبر است'),
@@ -247,5 +247,36 @@ export const ToggleFavoriteSchema = z.object({
 });
 
 export type ToggleFavoriteInput = z.infer<typeof ToggleFavoriteSchema>;
+
+// ==========================================
+// 9. Milestone M05: Pickup Verification Schemas
+// ==========================================
+
+export const VerifyPickupSchema = z
+  .object({
+    qrToken: z.string().trim().optional(),
+    otpCode: z
+      .string()
+      .optional()
+      .transform((val) => (val ? toEnglishDigits(val).trim() : undefined)),
+    orderNumber: z
+      .string()
+      .optional()
+      .transform((val) => (val ? toEnglishDigits(val).trim().toUpperCase() : undefined)),
+    orderId: z.string().optional(),
+  })
+  .refine((data) => Boolean(data.qrToken || data.otpCode), {
+    message: 'ارائه توکن اسکن QR یا کد ۴ رقمی تحویل الزامی است',
+    path: ['otpCode'],
+  });
+
+export type VerifyPickupInput = z.infer<typeof VerifyPickupSchema>;
+
+export const PickupCredentialsQuerySchema = z.object({
+  orderId: z.string().min(1, 'شناسه سفارش الزامی است'),
+});
+
+export type PickupCredentialsQueryInput = z.infer<typeof PickupCredentialsQuerySchema>;
+
 
 
