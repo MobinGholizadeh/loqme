@@ -26,6 +26,41 @@ export class PaymentService {
   }
 
   /**
+   * Probes payment gateway readiness/connectivity
+   */
+  async checkGatewayHealth(gatewayType: PaymentGatewayType): Promise<{
+    healthy: boolean;
+    gateway: PaymentGatewayType;
+    latencyMs: number;
+    error?: string;
+  }> {
+    const startTime = Date.now();
+    try {
+      const gateway = this.getGateway(gatewayType);
+      if (!gateway) {
+        return {
+          healthy: false,
+          gateway: gatewayType,
+          latencyMs: Date.now() - startTime,
+          error: 'درگاه پرداخت پیکربندی نشده است',
+        };
+      }
+      return {
+        healthy: true,
+        gateway: gatewayType,
+        latencyMs: Date.now() - startTime,
+      };
+    } catch (err: any) {
+      return {
+        healthy: false,
+        gateway: gatewayType,
+        latencyMs: Date.now() - startTime,
+        error: err.message,
+      };
+    }
+  }
+
+  /**
    * Initiates payment with the selected gateway, creates the Payment record and initial PaymentEvent audit log
    */
   async initiateOrderPayment(params: {

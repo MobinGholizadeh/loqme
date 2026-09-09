@@ -1,0 +1,45 @@
+# ==============================================================================
+# Production Caddyfile for Loqme (لقمه) Reverse Proxy & SSL Termination
+# Domain: loqme.shop
+# ==============================================================================
+
+loqme.shop, www.loqme.shop {
+    # Automatic Let's Encrypt / ZeroSSL TLS certificate issuance
+    tls ops@loqme.shop
+
+    # Enable compression
+    encode gzip zstd
+
+    # Security Headers
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(self), microphone=(), geolocation=(self)"
+        -Server
+    }
+
+    # Proxy all traffic to the Next.js standalone container
+    reverse_proxy web:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+
+        # Health check probe configuration
+        health_uri /api/health/live
+        health_interval 15s
+        health_timeout 5s
+    }
+
+    # Logging in structured JSON
+    log {
+        output file /var/log/caddy/loqme_access.log {
+            roll_size 20mb
+            roll_keep 10
+            roll_keep_for 720h
+        }
+        format json
+    }
+}
