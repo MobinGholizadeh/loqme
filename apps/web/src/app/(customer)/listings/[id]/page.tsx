@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
+import { generateProductListingSchema } from '@/lib/seo/structured-data';
 
 interface ListingDetailData {
   id: string;
@@ -194,8 +195,27 @@ export default function ListingDetailPage() {
 
   const isSurpriseBag = data.type === 'SURPRISE_BAG';
 
+  const productSchema = generateProductListingSchema(
+    {
+      id: data.id,
+      titleFa: data.titleFa,
+      descriptionFa: data.descriptionFa,
+      originalPriceToman: data.originalPriceToman,
+      discountedPriceToman: data.discountedPriceToman,
+      status: data.status,
+      pickupEnd: data.pickupEnd,
+    },
+    data.merchant
+  );
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-16">
+      {/* Schema.org Product Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+
       {/* Breadcrumb / Back button */}
       <div className="flex items-center justify-between text-xs text-loqme-neutral-500">
         <button

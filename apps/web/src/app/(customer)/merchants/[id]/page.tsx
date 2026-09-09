@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
+import { generateLocalBusinessSchema } from '@/lib/seo/structured-data';
 
 interface MerchantDetailData {
   id: string;
@@ -158,8 +159,33 @@ export default function MerchantProfilePage() {
     );
   }
 
+  const businessSchema = generateLocalBusinessSchema({
+    id: data.id,
+    businessNameFa: data.businessNameFa,
+    businessType: data.businessType,
+    ratingAverage: data.ratingAverage,
+    ratingCount: data.ratingCount,
+    phone: data.location?.phone,
+    locations: data.location
+      ? [
+          {
+            addressFa: data.location.addressFa,
+            latitude: data.location.latitude,
+            longitude: data.location.longitude,
+            city: { nameFa: data.location.cityNameFa },
+          },
+        ]
+      : [],
+  });
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-16">
+      {/* Schema.org LocalBusiness Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
+      />
+
       {/* Back button */}
       <button
         type="button"

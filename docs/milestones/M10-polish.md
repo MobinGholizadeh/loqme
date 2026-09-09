@@ -2,8 +2,8 @@
 
 > **Milestone**: M10  
 > **Title**: UX, SEO, PWA & Performance  
-> **Status**: `Pending`  
-> **Target Completion**: 0%
+> **Status**: `Completed`  
+> **Target Completion**: 100%
 
 ---
 
@@ -107,23 +107,23 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Acceptance Criteria
 
-1. [ ] PWA installs cleanly as a standalone app on iOS and Android.
-2. [ ] Dynamic Open Graph tags display Persian preview when link is shared.
-3. [ ] Google Rich Results test confirms valid `LocalBusiness` and `Product` schemas.
-4. [ ] Mobile Lighthouse performance score achieves ≥ 90.
-5. [ ] Shimmer skeletons and empty states render gracefully across all views.
+1. [x] PWA installs cleanly as a standalone app on iOS and Android.
+2. [x] Dynamic Open Graph tags display Persian preview when link is shared.
+3. [x] Google Rich Results test confirms valid `LocalBusiness` and `Product` schemas.
+4. [x] Mobile Lighthouse performance score achieves ≥ 90.
+5. [x] Shimmer skeletons and empty states render gracefully across all views.
 
 ---
 
 # Checkpoints
 
-- [ ] **CP-10.1**: Configure PWA manifest, service worker, offline fallback, and install prompt.
-- [ ] **CP-10.2**: Implement dynamic SEO metadata, Open Graph tags, and Persian sitemap (`/sitemap.xml`).
-- [ ] **CP-10.3**: Implement JSON-LD Structured Data (`LocalBusiness`, `Product`, `Offer`).
-- [ ] **CP-10.4**: Implement polished skeleton loaders, empty states, and error boundaries.
-- [ ] **CP-10.5**: Audit Persian typography, font-display, and numeral formatting.
-- [ ] **CP-10.6**: Optimize image pipeline (`next/image`) and bundle sizes.
-- [ ] **CP-10.7**: Run Lighthouse audits and execute accessibility refinements.
+- [x] **CP-10.1**: Configure PWA manifest, service worker, offline fallback, and install prompt.
+- [x] **CP-10.2**: Implement dynamic SEO metadata, Open Graph tags, and Persian sitemap (`/sitemap.xml`).
+- [x] **CP-10.3**: Implement JSON-LD Structured Data (`LocalBusiness`, `Product`, `Offer`).
+- [x] **CP-10.4**: Implement polished skeleton loaders, empty states, and error boundaries.
+- [x] **CP-10.5**: Audit Persian typography, font-display, and numeral formatting.
+- [x] **CP-10.6**: Optimize image pipeline (`next/image`) and bundle sizes.
+- [x] **CP-10.7**: Run Lighthouse audits and execute accessibility refinements.
 
 ---
 

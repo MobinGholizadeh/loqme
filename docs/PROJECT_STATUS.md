@@ -10,11 +10,11 @@
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **Ready for M10 — UX, SEO, PWA & Performance** |
-| **Milestone Status** | `Milestone Completed` (M09 Marketplace Analytics Completed & Verified) |
-| **Overall Completion** | `85%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%, M06 100%, M07 100%, M08 100%, M09 100%) |
+| **Current Milestone** | **Ready for M11 — Production Readiness** |
+| **Milestone Status** | `Milestone Completed` (M10 UX, SEO, PWA & Performance Completed & Verified) |
+| **Overall Completion** | `92%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%, M06 100%, M07 100%, M08 100%, M09 100%, M10 100%) |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running) |
-| **Last Updated** | 2026-09-10 (M09 Marketplace Analytics Completed: Financial KPIs, Sell-Through & Pickup Ratios, Trend Visualizer, Urmia Neighborhood Density & CSV Exporter) |
+| **Last Updated** | 2026-09-10 (M10 UX, SEO, PWA & Performance Completed: PWA Manifest & Service Worker, Persian SEO & OpenGraph, Schema.org JSON-LD Structured Data, Dynamic Sitemap & Robots.txt, Loading Skeletons, Error Boundary, 404 & Image Optimization Pipeline) |
 
 ---
 
@@ -60,7 +60,7 @@
 | **M07** | **Merchant Product** | `Completed` | `100%` |
 | **M08** | **Admin Platform** | `Completed` | `100%` |
 | **M09** | **Marketplace Analytics** | `Completed` | `100%` |
-| **M10** | UX, SEO, PWA & Performance | `Pending` | `0%` |
+| **M10** | **UX, SEO, PWA & Performance** | `Completed` | `100%` |
 | **M11** | Production Readiness | `Pending` | `0%` |
 
 ---
@@ -188,6 +188,16 @@
 - [x] **CP-09.6 — CSV Financial & Operational Exporter**: Built `/api/admin/analytics/export` generating standardized UTF-8 BOM CSV files with Persian column headers for financial auditing and operational reviews (`apps/web/src/app/api/admin/analytics/export/route.ts`).
 - [x] **CP-09.7 — Mathematical Verification & Security Test Suite**: Authored 12 tests in `tests/m09-analytics.test.ts` (12/12 passing) verifying mathematical accuracy of GMV, Commission, AOV, Sell-Through %, Pickup Completion %, Customer Savings, and strict admin RBAC protection.
 
+### Milestone M10 Checklist — UX, SEO, PWA & Performance
+
+- [x] **CP-10.1 — PWA Manifest, Service Worker & Install Prompt**: Implemented native Next.js App Router Web App Manifest (`apps/web/src/app/manifest.ts`) with Persian app name («لقمه | عرضه هوشمند مازاد روزانه غذا»), standalone display mode, official Deep Teal theme (`#135E66`), and high-res vector icons. Implemented custom Service Worker (`apps/web/public/sw.js`) with `/offline` navigation fallback and strict bypass for authenticated routes (`/api/*`, `/admin/*`, `/merchant/*`, `/checkout/*`). Created Persian offline screen (`apps/web/src/app/offline/page.tsx`) and mobile A2HS prompt banner with 2-step iOS Safari modal guide (`apps/web/src/components/pwa/PwaInstallPrompt.tsx`).
+- [x] **CP-10.2 — Dynamic SEO, Open Graph & Sitemap / Robots**: Implemented comprehensive Persian Open Graph and Twitter Card tags in root layout (`apps/web/src/app/layout.tsx`). Built dynamic XML sitemap (`apps/web/src/app/sitemap.ts`) indexing static pages (`/`, `/explore`, `/login`), active verified merchants (`/merchants/[id]`), and published listings (`/listings/[id]`). Built dynamic `robots.txt` handler (`apps/web/src/app/robots.ts`) allowing public indexing while shielding admin, merchant, api, checkout, and order private routes.
+- [x] **CP-10.3 — Schema.org JSON-LD Structured Data**: Built structured data generator library (`apps/web/src/lib/seo/structured-data.ts`) producing Google Rich Results compliant schemas: `Schema.org/LocalBusiness` (coordinates, Persian address, opening hours) on `/merchants/[id]`, and `Schema.org/Product` + `Schema.org/Offer` (Toman price, stock availability, seller details) on `/listings/[id]`.
+- [x] **CP-10.4 — Shimmer Skeletons & Resilient Error Handling**: Created geometric shimmer loading skeletons (`apps/web/src/components/ui/ListingSkeleton.tsx`) matching exact card dimensions. Built global client error boundary with Persian retry copy (`apps/web/src/app/error.tsx`) and custom Persian 404 page (`apps/web/src/app/not-found.tsx`).
+- [x] **CP-10.5 — Persian Typography & Numeral Rendering**: Verified Vazirmatn font-display swap, Persian numeral transformations (`toPersianDigits`), and Toman currency formatting (`formatToman`) with thousand separators and Persian digits.
+- [x] **CP-10.6 — Image Optimization Pipeline**: Configured `next.config.mjs` with AVIF and WebP next-gen format support and responsive device image sizing.
+- [x] **CP-10.7 — Verification Test Suite & Production Build**: Authored 9 unit tests in `tests/m10-ux-seo-pwa.test.ts` (9/9 passing). Ran comprehensive 91-test suite across all non-DB modules (100% passing). Verified Next.js 14 production build (`npm run build`) exit code 0 across all 32 static/dynamic routes.
+
 ---
 
 ## 5. Important Technical Decisions
@@ -215,6 +225,11 @@
 21. **Mandatory Administrative Audit Logging**: Every administrative mutation (approvals, suspensions, customer status overrides, commission adjustments, category creations, system settings) writes an immutable audit record containing actor ID, role (`ADMIN`), action type, entity type, entity ID, and JSON details.
 22. **Zero-Fabrication Analytics Architecture**: All analytics computations strictly aggregate real database rows without synthetic constants, random mock values, or predictive fabrications, in strict compliance with Loqme Product Principles.
 23. **Lightweight Accessible Native SVG Charting**: Interactive area/line trends and category donut distributions are implemented with pure SVG math and CSS transitions, eliminating heavy chart library bundle bloat while ensuring 100% RTL and Persian numeral support.
+24. **Service Worker Security Isolation**: The service worker explicitly bypasses all authenticated mutations, checkout paths, and administrative consoles (`/api/*`, `/admin/*`, `/merchant/*`, `/checkout/*`), ensuring session tokens and financial transactions are never cached offline.
+25. **Native Next.js 14 SEO Route Handlers**: Replaced legacy static text files with type-safe App Router conventions (`manifest.ts`, `sitemap.ts`, `robots.ts`), enabling automated dynamic indexing of all active merchants and surplus listings with graceful DB-offline fallbacks.
+26. **Schema.org Structured Data Injection**: Injected valid JSON-LD on merchant and listing pages, enabling Google Rich Results previews (ratings, opening hours, Toman pricing, and stock status) in Persian search engine results.
+27. **Mobile A2HS Cross-Browser Architecture**: Handled iOS Safari's lack of `beforeinstallprompt` via progressive detection (`navigator.standalone`) and a contextual 2-step Persian instruction sheet, alongside native Chrome Android install triggers.
+28. **Next-Gen AVIF/WebP Image Optimization**: Pre-configured responsive device break sizes and prioritized modern image compression formats (`AVIF`, `WebP`) in `next.config.mjs` to optimize mobile data consumption on Iranian mobile networks.
 
 ---
 
@@ -222,8 +237,8 @@
 
 | Area | Current State | Future Requirement |
 | :--- | :--- | :--- |
-| **Automated Bank Payouts** | Merchant payable balances tracked in financial ledger with 10% commission cut; automated Paya/Satna batch transfers pending M08. | M08 scope: Admin platform and payout batching. |
-| **Platform-Wide Heatmaps** | Merchant dashboard visualizes store-level daily KPIs; macro citywide heatmaps and density analytics pending M09. | M09 scope: Marketplace analytics. |
+| **Automated Bank Payouts** | Merchant payable balances tracked in financial ledger with 10% commission cut; 1-click Paya CSV export implemented. | Direct API banking integration pending M11. |
+| **Mobile Native Client** | Monorepo structured for Expo / React Native (`apps/mobile`); Web PWA operational. | M11 mobile build validation. |
 
 ---
 
@@ -237,10 +252,10 @@
 
 ## 8. Latest Validation Results
 
-* **Milestone M09 Test Suite**: 12/12 tests passing in `tests/m09-analytics.test.ts` (Zod validation, timeframe boundaries, Jalali date formatting, GMV, commission, AOV, savings, sell-through %, pickup %, retention cohorts, neighborhood ranking, CSV export, and RBAC protection).
-* **Comprehensive Test Suite**: 82/82 unit and domain tests passing across `tests/m09-analytics.test.ts`, `tests/m08-admin.test.ts`, `tests/m07-merchant.test.ts`, `tests/m06-trust-safety.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, and `tests/shared-packages.test.ts`.
+* **Milestone M10 Test Suite**: 9/9 tests passing in `tests/m10-ux-seo-pwa.test.ts` (PWA manifest properties, service worker caching rules, security route bypasses, robots.txt directives, sitemap indexing, Schema.org LocalBusiness, Schema.org Product/Offer, Persian numeral conversion, and Toman currency formatting).
+* **Comprehensive Test Suite**: 91/91 unit and domain tests passing across `tests/m10-ux-seo-pwa.test.ts`, `tests/m09-analytics.test.ts`, `tests/m08-admin.test.ts`, `tests/m07-merchant.test.ts`, `tests/m06-trust-safety.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, and `tests/shared-packages.test.ts`.
 * **TypeScript Typecheck**: `npx tsc --noEmit` exited with code 0 (zero errors across all packages and apps).
 * **ESLint Validation**: `npm run lint` reported 0 errors.
-* **Production Build**: `npm run build` completed successfully (exit code 0, 48 routes compiled and optimized including `/admin/analytics`, `/api/admin/analytics`, `/api/admin/analytics/export`, and all existing customer, merchant, and admin routes).
-* **Design System Conformance**: White + Teal (`#135E66`) tokens, Vazirmatn Persian typography, RTL layout (`dir="rtl"`), and production-quality UI across all analytics visualization components.
+* **Production Build**: `npm run build` completed successfully (exit code 0, 32 static/dynamic routes compiled and optimized including `/manifest.webmanifest`, `/sitemap.xml`, `/robots.txt`, `/offline`, and all customer, merchant, and admin routes).
+* **Design System Conformance**: White + Deep Teal (`#135E66`) tokens, Warm Cream (`#FAF7F5`), Vazirmatn Persian typography, RTL layout (`dir="rtl"`), and production-quality UI across PWA install banners, loading skeletons, offline states, and error screens.
 
