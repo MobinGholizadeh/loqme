@@ -54,44 +54,23 @@ export const LoqmeLogo: React.FC<LoqmeLogoProps> = ({
 
   const colors = colorMap[theme];
 
-  const IconSvg = (
-    <svg
+  const logoSrc = theme === 'white' ? '/logo-white.png' : '/logo.png';
+
+  const IconGlyph = (
+    <img
+      src={logoSrc}
+      alt="Loqme Logo"
       width={dim.icon}
       height={dim.icon}
-      viewBox="0 0 100 110"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="shrink-0 transition-transform duration-200 group-hover:scale-105"
-      aria-label="Loqme Logo"
-    >
-      {/* Top Leaves (Sprout) */}
-      {/* Left Leaf */}
-      <path
-        d="M50 42C50 42 34 38 32 25C30 13 41 8 41 8C41 8 50 17 49 29C49 34 50 42 50 42Z"
-        fill={colors.fill}
-      />
-      {/* Right Leaf */}
-      <path
-        d="M50 42C50 42 54 34 60 29C66 22 75 23 75 23C75 23 71 33 63 39C57 42 50 42 50 42Z"
-        fill={colors.fill}
-      />
-      {/* Center Dot / Sprout Seed */}
-      <circle cx="52" cy="48" r="5" fill={colors.fill} />
-
-      {/* Organic Swirl / Fruit / Seed Body */}
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M48 43C39 45 31 54 31 66C31 79 41.5 89.5 54.5 89.5C67.5 89.5 78 79 78 66C78 54 70 45 61 44.5C60.5 49 58 52 54.5 53C61.5 54.5 67 59.5 67 66.5C67 74 60.5 80 53 80C45.5 80 40 74 40 66.5C40 58.5 46 53 53 52C52.5 48.5 50.5 45.5 48 43ZM53 73C56.6 73 59.5 70.1 59.5 66.5C59.5 62.9 56.6 60 53 60C49.4 60 46.5 62.9 46.5 66.5C46.5 70.1 49.4 73 53 73Z"
-        fill={colors.fill}
-      />
-    </svg>
+      className="object-contain shrink-0 transition-transform duration-200 group-hover:scale-105 select-none"
+      style={{ width: `${dim.icon}px`, height: `${dim.icon}px` }}
+    />
   );
 
   if (variant === 'icon') {
     return (
       <div className={cn('inline-flex items-center justify-center', className)}>
-        {IconSvg}
+        {IconGlyph}
       </div>
     );
   }
@@ -99,7 +78,7 @@ export const LoqmeLogo: React.FC<LoqmeLogoProps> = ({
   if (variant === 'stacked') {
     return (
       <div className={cn('flex flex-col items-center text-center gap-1.5 group', className)}>
-        {IconSvg}
+        {IconGlyph}
         <div className="flex flex-col items-center">
           <span className={cn('font-black tracking-tight leading-none', dim.text, colors.primaryText)}>
             لقمه
@@ -120,7 +99,7 @@ export const LoqmeLogo: React.FC<LoqmeLogoProps> = ({
   // Horizontal variant (default)
   return (
     <div className={cn('inline-flex items-center gap-2.5 select-none group', className)}>
-      {IconSvg}
+      {IconGlyph}
       <div className="flex flex-col">
         <div className="flex items-center gap-1.5">
           <span className={cn('font-black leading-none', dim.text, colors.primaryText)}>
