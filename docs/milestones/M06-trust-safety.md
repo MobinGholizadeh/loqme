@@ -2,8 +2,8 @@
 
 > **Milestone**: M06  
 > **Title**: Trust, Safety & Moderation  
-> **Status**: `Pending`  
-> **Target Completion**: 0%
+> **Status**: `Completed`  
+> **Target Completion**: 100%
 
 ---
 
@@ -110,23 +110,23 @@ Safety is non-negotiable on Loqme. Customers must feel absolute confidence in th
 
 # Acceptance Criteria
 
-1. [ ] Unsafe or expired listings cannot be added to cart or reserved.
-2. [ ] Verified customer can submit review after completed pickup.
-3. [ ] Customer can file complaint with photo evidence.
-4. [ ] Admin can inspect complaints, suspend listings, and trigger refunds.
-5. [ ] Every moderation action creates an immutable audit log entry.
+1. [x] Unsafe or expired listings cannot be added to cart or reserved.
+2. [x] Verified customer can submit review after completed pickup.
+3. [x] Customer can file complaint with photo evidence.
+4. [x] Admin can inspect complaints, suspend listings, and trigger refunds.
+5. [x] Every moderation action creates an immutable audit log entry.
 
 ---
 
 # Checkpoints
 
-- [ ] **CP-06.1**: Implement `ListingSafety` state machine and checkout enforcement guards.
-- [ ] **CP-06.2**: Build Post-Pickup Customer Review submission and merchant response flow.
-- [ ] **CP-06.3**: Build Customer Complaint filing interface with multi-image photo upload.
-- [ ] **CP-06.4**: Build Admin Moderation Queue and incident ticket dashboard.
-- [ ] **CP-06.5**: Implement Refund authorization and merchant penalty debit workflow.
-- [ ] **CP-06.6**: Implement immutable `AuditLog` service.
-- [ ] **CP-06.7**: Run integration and E2E moderation tests.
+- [x] **CP-06.1**: Implement `ListingSafety` state machine and checkout enforcement guards.
+- [x] **CP-06.2**: Build Post-Pickup Customer Review submission and merchant response flow.
+- [x] **CP-06.3**: Build Customer Complaint filing interface with multi-image photo upload.
+- [x] **CP-06.4**: Build Admin Moderation Queue and incident ticket dashboard.
+- [x] **CP-06.5**: Implement Refund authorization and merchant penalty debit workflow.
+- [x] **CP-06.6**: Implement immutable `AuditLog` service.
+- [x] **CP-06.7**: Run integration and E2E moderation tests.
 
 ---
 

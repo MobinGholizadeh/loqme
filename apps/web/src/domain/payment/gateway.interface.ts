@@ -31,8 +31,23 @@ export interface VerifyPaymentResult {
   errorMessage?: string;
 }
 
+export interface RefundPaymentParams {
+  authority: string;
+  amountToman: number;
+  reason: string;
+}
+
+export interface RefundPaymentResult {
+  success: boolean;
+  refundId?: string;
+  errorMessage?: string;
+  rawPayload?: Record<string, any>;
+}
+
 export interface IPaymentGateway {
   readonly gatewayType: PaymentGatewayType;
   initiatePayment(params: InitiatePaymentParams): Promise<InitiatePaymentResult>;
   verifyPayment(params: VerifyPaymentParams): Promise<VerifyPaymentResult>;
+  refundPayment?(params: RefundPaymentParams): Promise<RefundPaymentResult>;
 }
+

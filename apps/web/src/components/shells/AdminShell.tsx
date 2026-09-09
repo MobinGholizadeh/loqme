@@ -36,8 +36,9 @@ export const AdminShell: React.FC<AdminShellProps> = ({ children }) => {
 
   const navItems = [
     { href: '/admin', label: 'داشبورد نظارت و آمار', icon: '📈' },
+    { href: '/admin/moderation', label: 'مرکز شکایات و ایمنی غذا', icon: '🚨' },
     { href: '/admin/merchants', label: 'تایید فروشگاه‌ها و بازرسی', icon: '🛡️' },
-    { href: '/admin/audit', label: 'لاگ بازرسی و لاگین‌ها', icon: '📜' },
+    { href: '/admin/audit', label: 'لاگ‌های حسابرسی و امنیتی', icon: '📜' },
   ];
 
   return (

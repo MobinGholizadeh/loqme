@@ -2,7 +2,14 @@ import { prisma } from '@/lib/prisma';
 import { IPaymentGateway, InitiatePaymentResult, VerifyPaymentResult } from './gateway.interface';
 import { mockPaymentGateway } from './mock.gateway';
 import { zarinpalGateway } from './zarinpal.gateway';
-import { PaymentGatewayType, PaymentStatus, Order } from '@prisma/client';
+import {
+  PaymentGatewayType,
+  PaymentStatus,
+  RefundStatus,
+  OrderStatus,
+  FinancialTransactionType,
+  Order,
+} from '@prisma/client';
 
 export class PaymentService {
   /**
@@ -157,6 +164,152 @@ export class PaymentService {
       referenceId: verifyResult.referenceId,
     };
   }
+
+  /**
+   * Processes a refund via the payment gateway, settles refund record,
+   * updates financial ledger, and updates payment/order status.
+   */
+  async refundPayment(params: {
+    paymentId: string;
+    amountToman?: number;
+    reasonFa: string;
+    processedByUserId?: string;
+  }): Promise<{
+    success: boolean;
+    refund?: any;
+    errorMessage?: string;
+  }> {
+    const { paymentId, amountToman, reasonFa, processedByUserId } = params;
+
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: { order: true },
+    });
+
+    if (!payment) {
+      return { success: false, errorMessage: 'اطلاعات پرداخت جهت استرداد وجه یافت نشد' };
+    }
+
+    if (payment.status !== PaymentStatus.SUCCESS) {
+      return { success: false, errorMessage: 'تنها تراکنش‌های پرداخت موفق قابل استرداد وجه می‌باشند' };
+    }
+
+    const refundAmount = amountToman ?? Number(payment.amountToman);
+    const gateway = this.getGateway(payment.gateway);
+
+    let refundResult = { success: true, refundId: `REF-${Date.now()}`, errorMessage: undefined as string | undefined };
+    if (gateway.refundPayment) {
+      const res = await gateway.refundPayment({
+        authority: payment.authority,
+        amountToman: refundAmount,
+        reason: reasonFa,
+      });
+      refundResult = {
+        success: res.success,
+        refundId: res.refundId || `REF-${Date.now()}`,
+        errorMessage: res.errorMessage,
+      };
+    }
+
+    if (!refundResult.success) {
+      return {
+        success: false,
+        errorMessage: refundResult.errorMessage || 'درخواست استرداد وجه توسط درگاه بانکی رد شد',
+      };
+    }
+
+    const now = new Date();
+    const refund = await prisma.$transaction(async (tx) => {
+      const refundRecord = await tx.refund.create({
+        data: {
+          paymentId: payment.id,
+          orderId: payment.orderId,
+          amountToman: BigInt(refundAmount),
+          reasonFa,
+          status: RefundStatus.SETTLED,
+          processedByUserId,
+        },
+      });
+
+      // Update Payment status to REFUNDED
+      await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.REFUNDED,
+          events: {
+            create: {
+              eventType: 'REFUNDED',
+              payloadJson: {
+                refundId: refundRecord.id,
+                amountToman: refundAmount,
+                reasonFa,
+              },
+            },
+          },
+        },
+      });
+
+      // Update Order status to REFUNDED
+      await tx.order.update({
+        where: { id: payment.orderId },
+        data: {
+          status: OrderStatus.REFUNDED,
+          updatedAt: now,
+        },
+      });
+
+      // Double-entry ledger reversal:
+      // A. Merchant payable debit penalty (reversing payable allocated to merchant)
+      const merchantPayoutRefund = BigInt(payment.order.merchantPayoutAmountToman);
+      const totalOrderAmount = BigInt(payment.order.totalAmountToman);
+      const platformCommissionRefund = BigInt(payment.order.commissionAmountToman);
+
+      await tx.financialTransaction.create({
+        data: {
+          orderId: payment.orderId,
+          type: FinancialTransactionType.CUSTOMER_REFUND,
+          debitAccount: 'MERCHANT_PAYABLE',
+          creditAccount: 'PLATFORM_CLEARING',
+          amountToman: merchantPayoutRefund,
+          referenceNumber: refundRecord.id,
+        },
+      });
+
+      // B. Platform clearing refunded to customer
+      await tx.financialTransaction.create({
+        data: {
+          orderId: payment.orderId,
+          type: FinancialTransactionType.CUSTOMER_REFUND,
+          debitAccount: 'PLATFORM_CLEARING',
+          creditAccount: 'CUSTOMER_PAYMENT',
+          amountToman: totalOrderAmount,
+          referenceNumber: refundRecord.id,
+        },
+      });
+
+      // C. Platform commission reversal
+      if (platformCommissionRefund > BigInt(0)) {
+        await tx.financialTransaction.create({
+          data: {
+            orderId: payment.orderId,
+            type: FinancialTransactionType.CUSTOMER_REFUND,
+            debitAccount: 'PLATFORM_COMMISSION',
+            creditAccount: 'PLATFORM_CLEARING',
+            amountToman: platformCommissionRefund,
+            referenceNumber: refundRecord.id,
+          },
+        });
+      }
+
+      return refundRecord;
+    });
+
+    return {
+      success: true,
+      refund,
+    };
+  }
 }
 
 export const paymentService = new PaymentService();
+

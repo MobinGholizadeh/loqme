@@ -11,12 +11,16 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
 import { CustomerOrderSummaryDto, OrderStatus } from '@loqme/types';
 import { CustomerPickupPassModal } from '@/components/pickup/CustomerPickupPassModal';
+import { ReviewModal } from '@/components/reviews/ReviewModal';
+import { ComplaintModal } from '@/components/complaints/ComplaintModal';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<CustomerOrderSummaryDto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUnauthorized, setIsUnauthorized] = useState<boolean>(false);
   const [passOrderId, setPassOrderId] = useState<string | null>(null);
+  const [reviewOrder, setReviewOrder] = useState<CustomerOrderSummaryDto | null>(null);
+  const [complaintOrder, setComplaintOrder] = useState<CustomerOrderSummaryDto | null>(null);
 
   useEffect(() => {
     async function fetchOrders() {
@@ -166,7 +170,7 @@ export default function OrdersPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-end gap-2">
                   {(order.status === 'READY_FOR_PICKUP' || order.status === 'PAID') && (
                     <Button
                       size="sm"
@@ -176,6 +180,39 @@ export default function OrdersPage() {
                     >
                       <span>📱</span>
                       <span>کارت و بارکد تحویل</span>
+                    </Button>
+                  )}
+
+                  {order.status === 'COMPLETED' && (
+                    <>
+                      {order.hasReview ? (
+                        <span className="text-[11px] font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200 flex items-center gap-1">
+                          <span>★</span>
+                          <span>نظر شما ثبت شده</span>
+                        </span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setReviewOrder(order)}
+                          className="text-teal-700 border-teal-600 hover:bg-teal-50 text-xs"
+                        >
+                          ★ ثبت نظر و امتیاز
+                        </Button>
+                      )}
+                    </>
+                  )}
+
+                  {/* Complaint / Dispute button for paid or completed orders */}
+                  {(order.status === 'COMPLETED' || order.status === 'READY_FOR_PICKUP' || order.status === 'PAID') && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setComplaintOrder(order)}
+                      className="text-gray-500 hover:text-rose-700 hover:bg-rose-50 text-xs"
+                      title="گزارش مغایرت، فاسد بودن یا مشکل بسته"
+                    >
+                      🛡️ ثبت گزارش
                     </Button>
                   )}
 
@@ -199,6 +236,42 @@ export default function OrdersPage() {
           onClose={() => setPassOrderId(null)}
           onVerified={() => {
             // refresh orders
+            fetch('/api/orders')
+              .then((r) => r.json())
+              .then((d) => {
+                if (d.success) setOrders(d.data || []);
+              });
+          }}
+        />
+      )}
+
+      {/* Verified Customer Review Modal */}
+      {reviewOrder && (
+        <ReviewModal
+          isOpen={Boolean(reviewOrder)}
+          onClose={() => setReviewOrder(null)}
+          orderId={reviewOrder.id}
+          orderNumber={reviewOrder.orderNumber}
+          merchantName={reviewOrder.merchantNameFa}
+          onSuccess={() => {
+            fetch('/api/orders')
+              .then((r) => r.json())
+              .then((d) => {
+                if (d.success) setOrders(d.data || []);
+              });
+          }}
+        />
+      )}
+
+      {/* Customer Complaint / Dispute Modal */}
+      {complaintOrder && (
+        <ComplaintModal
+          isOpen={Boolean(complaintOrder)}
+          onClose={() => setComplaintOrder(null)}
+          orderId={complaintOrder.id}
+          orderNumber={complaintOrder.orderNumber}
+          merchantName={complaintOrder.merchantNameFa}
+          onSuccess={() => {
             fetch('/api/orders')
               .then((r) => r.json())
               .then((d) => {

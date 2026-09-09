@@ -278,5 +278,128 @@ export const PickupCredentialsQuerySchema = z.object({
 
 export type PickupCredentialsQueryInput = z.infer<typeof PickupCredentialsQuerySchema>;
 
+// ==========================================
+// 10. Milestone M06: Trust, Safety & Moderation Schemas
+// ==========================================
+
+export const CreateReviewSchema = z
+  .object({
+    orderId: z.string().min(1, 'شناسه سفارش الزامی است'),
+    overallRating: z.coerce.number().int().min(1, 'امتیاز باید بین ۱ تا ۵ باشد').max(5, 'امتیاز باید بین ۱ تا ۵ باشد').optional(),
+    ratingScore: z.coerce.number().int().min(1, 'امتیاز باید بین ۱ تا ۵ باشد').max(5, 'امتیاز باید بین ۱ تا ۵ باشد').optional(),
+    qualityRating: z.coerce.number().int().min(1, 'کیفیت غذا باید بین ۱ تا ۵ باشد').max(5, 'کیفیت غذا باید بین ۱ تا ۵ باشد').optional(),
+    foodQualityScore: z.coerce.number().int().min(1, 'کیفیت غذا باید بین ۱ تا ۵ باشد').max(5, 'کیفیت غذا باید بین ۱ تا ۵ باشد').optional(),
+    valueRating: z.coerce.number().int().min(1, 'ارزش خرید باید بین ۱ تا ۵ باشد').max(5, 'ارزش خرید باید بین ۱ تا ۵ باشد').optional(),
+    valueScore: z.coerce.number().int().min(1, 'ارزش خرید باید بین ۱ تا ۵ باشد').max(5, 'ارزش خرید باید بین ۱ تا ۵ باشد').optional(),
+    commentFa: z.string().max(1000, 'متن نظر نمی‌تواند بیش از ۱۰۰۰ حرف باشد').optional(),
+  })
+  .refine(
+    (d) =>
+      (d.overallRating !== undefined && d.overallRating >= 1 && d.overallRating <= 5) ||
+      (d.ratingScore !== undefined && d.ratingScore >= 1 && d.ratingScore <= 5),
+    { message: 'امتیاز کلی باید بین ۱ تا ۵ باشد' }
+  )
+  .transform((data) => ({
+    orderId: data.orderId,
+    overallRating: data.overallRating ?? data.ratingScore ?? 5,
+    qualityRating: data.qualityRating ?? data.foodQualityScore ?? 5,
+    valueRating: data.valueRating ?? data.valueScore ?? 5,
+    commentFa: data.commentFa,
+  }));
+
+export type CreateReviewInput = z.infer<typeof CreateReviewSchema>;
+
+export const MerchantReplyReviewSchema = z.object({
+  replyFa: z.string().trim().min(3, 'متن پاسخ باید حداقل ۳ حرف باشد').max(1000, 'متن پاسخ نمی‌تواند بیش از ۱۰۰۰ حرف باشد'),
+});
+
+export type MerchantReplyReviewInput = z.infer<typeof MerchantReplyReviewSchema>;
+
+export const CreateComplaintSchema = z
+  .object({
+    orderId: z.string().min(1, 'شناسه سفارش الزامی است'),
+    category: z.enum([
+      'EXPIRED_FOOD',
+      'SPOILED_FOOD',
+      'MISMATCHED_DESCRIPTION',
+      'POOR_HYGIENE',
+      'STORE_CLOSED',
+      'MISSING_ITEMS',
+      'OTHER',
+      'VALUE_DEFICIT',
+      'WRONG_ITEMS',
+    ]),
+    descriptionFa: z
+      .string()
+      .trim()
+      .min(10, 'لطفاً توضیحات کامل‌تری (حداقل ۱۰ حرف) درباره مشکل ارائه نمایید')
+      .max(2000, 'توضیحات نمی‌تواند بیش از ۲۰۰۰ حرف باشد'),
+    evidencePhotos: z.array(z.string()).optional(),
+    evidenceImageUrls: z.array(z.string()).optional(),
+  })
+  .transform((data) => ({
+    orderId: data.orderId,
+    category: data.category === 'VALUE_DEFICIT' ? 'MISMATCHED_DESCRIPTION' : data.category === 'WRONG_ITEMS' ? 'MISSING_ITEMS' : data.category,
+    descriptionFa: data.descriptionFa,
+    evidencePhotos: data.evidencePhotos ?? data.evidenceImageUrls ?? [],
+  }));
+
+export type CreateComplaintInput = z.infer<typeof CreateComplaintSchema>;
+
+export const ResolveComplaintSchema = z
+  .object({
+    action: z.enum(['REFUND', 'REJECT', 'WARNING']).optional(),
+    status: z
+      .enum([
+        'OPEN',
+        'INVESTIGATING',
+        'RESOLVED_REFUND',
+        'DISMISSED',
+        'PENDING',
+        'RESOLVED_REFUNDED',
+        'RESOLVED_REJECTED',
+        'RESOLVED_WARNING',
+      ])
+      .optional(),
+    notesFa: z.string().max(2000).optional(),
+    adminNotesFa: z.string().max(2000).optional(),
+    authorizeRefund: z.boolean().default(false).optional(),
+    refundAmountToman: z.coerce.number().int().positive().optional(),
+  })
+  .transform((data) => ({
+    action: (data.action ??
+      (data.authorizeRefund || data.status === 'RESOLVED_REFUND' || data.status === 'RESOLVED_REFUNDED'
+        ? 'REFUND'
+        : data.status === 'DISMISSED' || data.status === 'RESOLVED_REJECTED'
+        ? 'REJECT'
+        : 'WARNING')) as 'REFUND' | 'REJECT' | 'WARNING',
+    notesFa: data.notesFa ?? data.adminNotesFa,
+    refundAmountToman: data.refundAmountToman,
+  }));
+
+export type ResolveComplaintInput = z.infer<typeof ResolveComplaintSchema>;
+
+export const UpdateListingSafetySchema = z
+  .object({
+    safetyStatus: z.enum([
+      'PENDING_REVIEW',
+      'APPROVED',
+      'RESTRICTED',
+      'REJECTED',
+      'UNSAFE',
+      'EXPIRED',
+    ]),
+    reasonFa: z.string().trim().max(1000).optional(),
+    reason: z.string().trim().max(1000).optional(),
+  })
+  .transform((data) => ({
+    safetyStatus: data.safetyStatus,
+    reasonFa: data.reasonFa ?? data.reason,
+  }));
+
+export type UpdateListingSafetyInput = z.infer<typeof UpdateListingSafetySchema>;
+
+
+
 
 

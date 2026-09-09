@@ -521,6 +521,8 @@ export interface CustomerOrderSummaryDto {
   pickupWindowFa: string;
   pickupEndIso: string;
   createdAt: string;
+  hasReview?: boolean;
+  complaintCount?: number;
 }
 
 // ==========================================
@@ -618,6 +620,160 @@ export interface NoShowSweepResultDto {
   sweptCount: number;
   orderIds: string[];
 }
+
+// ==========================================
+// 10. Milestone M06: Trust, Safety & Moderation
+// ==========================================
+
+export type ComplaintCategory =
+  | 'EXPIRED_FOOD'
+  | 'SPOILED_FOOD'
+  | 'MISMATCHED_DESCRIPTION'
+  | 'POOR_HYGIENE'
+  | 'STORE_CLOSED'
+  | 'MISSING_ITEMS'
+  | 'OTHER'
+  | 'VALUE_DEFICIT'
+  | 'WRONG_ITEMS';
+
+export type ComplaintStatus =
+  | 'PENDING'
+  | 'INVESTIGATING'
+  | 'RESOLVED_REFUNDED'
+  | 'RESOLVED_REJECTED'
+  | 'RESOLVED_WARNING'
+  | 'OPEN'
+  | 'RESOLVED_REFUND'
+  | 'DISMISSED';
+
+export interface ReviewEntity {
+  id: string;
+  orderId: string;
+  customerId: string;
+  merchantId: string;
+  overallRating: number;
+  qualityRating: number;
+  valueRating: number;
+  ratingScore?: number;
+  foodQualityScore?: number;
+  valueScore?: number;
+  commentFa?: string | null;
+  isPublic?: boolean;
+  merchantReplyFa?: string | null;
+  merchantReplyAt?: Date | string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface ComplaintEntity {
+  id: string;
+  orderId: string;
+  customerId: string;
+  merchantId: string;
+  category: ComplaintCategory;
+  descriptionFa: string;
+  evidencePhotos?: string[];
+  evidenceImageUrls?: string[];
+  status: ComplaintStatus;
+  adminNotesFa?: string | null;
+  resolvedAt?: Date | string | null;
+  resolvedByUserId?: string | null;
+  refundId?: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface AuditLogEntity {
+  id: string;
+  actorId?: string | null;
+  actorRole?: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  detailsJson?: any;
+  ipAddress?: string | null;
+  createdAt: Date | string;
+}
+
+export interface CreateReviewInputDto {
+  orderId: string;
+  overallRating?: number;
+  qualityRating?: number;
+  valueRating?: number;
+  ratingScore?: number;
+  foodQualityScore?: number;
+  valueScore?: number;
+  commentFa?: string;
+}
+
+export interface ReviewSummaryDto {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  customerNameFa: string;
+  overallRating: number;
+  qualityRating: number;
+  valueRating: number;
+  commentFa?: string | null;
+  merchantReplyFa?: string | null;
+  merchantReplyAt?: string | null;
+  createdAt: string;
+  verifiedBuyer: boolean;
+}
+
+export interface MerchantReplyReviewDto {
+  replyFa: string;
+}
+
+export interface CreateComplaintInputDto {
+  orderId: string;
+  category: ComplaintCategory;
+  descriptionFa: string;
+  evidencePhotos?: string[];
+  evidenceImageUrls?: string[];
+}
+
+export interface ComplaintSummaryDto {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  customerId: string;
+  customerNameFa: string;
+  customerMobile: string;
+  merchantId: string;
+  merchantNameFa: string;
+  category: ComplaintCategory;
+  descriptionFa: string;
+  evidencePhotos?: string[];
+  evidenceImageUrls?: string[];
+  status: ComplaintStatus;
+  adminNotesFa?: string | null;
+  resolvedAt?: string | null;
+  refundAmountToman?: number | null;
+  createdAt: string;
+}
+
+export interface ResolveComplaintInputDto {
+  action?: 'REFUND' | 'REJECT' | 'WARNING';
+  status?: ComplaintStatus;
+  notesFa?: string;
+  adminNotesFa?: string;
+  authorizeRefund?: boolean;
+  refundAmountToman?: number;
+}
+
+export interface AuditLogItemDto {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  actorId?: string | null;
+  actorRole?: string | null;
+  detailsJson?: any;
+  ipAddress?: string | null;
+  createdAt: string;
+}
+
 
 
 

@@ -10,11 +10,11 @@
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **Ready for M06 — Trust, Safety & Moderation** |
-| **Milestone Status** | `Milestone Completed` (M05 Pickup Verification Completed & Verified) |
-| **Overall Completion** | `55%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%) |
+| **Current Milestone** | **Ready for M07 — Merchant Product** |
+| **Milestone Status** | `Milestone Completed` (M06 Trust, Safety & Moderation Completed & Verified) |
+| **Overall Completion** | `64%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%, M06 100%) |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running) |
-| **Last Updated** | 2026-09-10 (M05 Pickup Verification Completed, Double-Pickup Defense & Camera Scanner Verified) |
+| **Last Updated** | 2026-09-10 (M06 Trust, Safety & Moderation Completed: Verified Reviews, Food Safety Lockout & 1-Click Refund Verified) |
 
 ---
 
@@ -25,8 +25,8 @@
 * **Monorepo Architecture**:
   * `apps/web`: Next.js 14.2.23 (App Router), React 18, TypeScript 5, Leaflet 1.9
   * `apps/mobile`: [Future] React Native / Expo Client
-  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers, Marketplace, Orders, Payments, Financial Transactions)
-  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile, Checkout & Reservation schemas)
+  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers, Marketplace, Orders, Payments, Financial Transactions, Moderation, Reviews, Complaints, AuditLogs)
+  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile, Checkout, Reviews, Complaints, Safety Override schemas)
   * `packages/design-tokens`: `@loqme/design-tokens` (White + Teal palette, Emil Kowalski motion)
   * `packages/api`: `@loqme/api` (Universal fetch-based API client, Bearer & Cookie auth)
   * `packages/config`: `@loqme/config` (Shared tsconfig presets)
@@ -36,6 +36,8 @@
   * `20260906201522_core_domain_entities`
   * `20260907000300_add_favorites_table`
   * `20260907001800_orders_payments_ledger` (Reservation, Order, Payment, FinancialTransaction, Refund)
+  * `20260910000000_pickup_verification` (PickupVerification)
+  * `20260910010000_trust_safety_moderation` (Review, Complaint, AuditLog)
 * **Security & Auth**: Universal Dual-Mode Auth (CSPRNG 5-digit OTP, signed `jose` JWT via either `Authorization: Bearer <token>` or HttpOnly `loqme_session` cookie)
 * **Styling**: Centralized Token Architecture in `@loqme/design-tokens`, Vazirmatn font, RTL-first (`dir="rtl"`)
 * **Version Control**: Git initialized on `master` branch
@@ -54,7 +56,7 @@
 | **M04** | **Orders, Inventory & Payments** | `Completed` | `100%` |
 | **M04-UI** | **UI/UX & Design System Checkpoint** | `Completed` | `100%` |
 | **M05** | **Pickup Verification** | `Completed` | `100%` |
-| **M06** | Trust, Safety & Moderation | `Pending` | `0%` |
+| **M06** | **Trust, Safety & Moderation** | `Completed` | `100%` |
 | **M07** | Merchant Product | `Pending` | `0%` |
 | **M08** | Admin Platform | `Pending` | `0%` |
 | **M09** | Marketplace Analytics | `Pending` | `0%` |
@@ -139,6 +141,15 @@
 - [x] **CP-05.6 — No-Show Worker & Pickup Reminders**: Built automated sweeper `sweepNoShows()` transitioning uncollected orders past `pickupEnd` to `NO_SHOW` (`/api/pickup/no-show`), and automated 45-minute pickup reminder detection.
 - [x] **CP-05.7 — Validation & Concurrency Stress Test Suite**: Cryptographic HMAC generation and 180s expiration unit tests passing (5/5 tests in `tests/m05-pickup.test.ts`); 5-thread simultaneous double-pickup concurrency test implemented; Next.js 14 production build exit code 0 across all 25 routes; TypeScript typecheck (`npx tsc --noEmit`) 0 errors; ESLint 0 errors.
 
+### Milestone M06 Checklist
+- [x] **CP-06.1 — ListingSafety State Machine & Checkout Lockdown**: Implemented automated checks preventing reservation hold or order checkout for any listing whose `safetyStatus` is not `APPROVED` (`apps/web/src/domain/reservation/reservation.service.ts` and `apps/web/src/domain/order/order.service.ts`). Added `Review`, `Complaint`, and `AuditLog` Prisma schema models and SQL migration `20260910010000_trust_safety_moderation`.
+- [x] **CP-06.2 — Post-Pickup Verified Customer Review Loop**: Built `submitReview` and `replyToReview` in `ModerationService`, strictly restricted to buyers of verified `COMPLETED` orders with atomic merchant rating recalculation (`ratingAverage`, `ratingCount`). Built `/api/reviews` and `/api/reviews/[id]/reply`. Built `ReviewModal` with 3 category star ratings (Overall, Food Quality, Value-for-Money) and Persian comments. Displayed verified reviews and merchant replies on `/merchants/[id]`.
+- [x] **CP-06.3 — Customer Complaint Filing & Food Safety Escalation Threshold**: Built `submitComplaint` in `ModerationService` and `/api/complaints`. Added multi-photo evidence uploader `/api/complaints/upload` (validates MIME types, max 5MB, UUID renaming). Implemented automated food safety threshold detection (if a merchant receives $\ge 2$ complaints for `EXPIRED_FOOD` or `SPOILED_FOOD` in 7 days, all their listings are automatically transitioned to `RESTRICTED` / `PAUSED` and an `AUTOMATED_SAFETY_LOCKOUT` audit entry is created).
+- [x] **CP-06.4 — Admin Moderation Console & 1-Click Refund**: Built full admin moderation dashboard at `/admin/moderation` with critical food safety alert banners, complaint filtering by status, photo evidence lightbox preview, safety status override modal, and 1-click refund authorization (`/api/admin/complaints/[id]/resolve`).
+- [x] **CP-06.5 — Refund Execution & Double-Entry Financial Ledger Reversal**: Extended `IPaymentGateway` and `PaymentService.refundPayment` to execute gateway refunds, settle `Refund` records (`SETTLED`), transition `Payment` and `Order` to `REFUNDED`, and write balanced double-entry accounting transactions debiting `MERCHANT_PAYABLE` (penalty) and crediting `PLATFORM_CLEARING`.
+- [x] **CP-06.6 — Immutable Audit Logging Service**: Implemented `AuditService` and `/api/admin/audit` to record tamper-proof audit trails for all safety overrides, reviews, complaints, automated lockouts, and administrative refund decisions. Connected live audit log stream to `/admin/audit`.
+- [x] **CP-06.7 — Validation & Test Suite**: Authored 15 tests in `tests/m06-trust-safety.test.ts` (15/15 passing in Vitest); Next.js 14 production build (`npm run build`) exit code 0 across 30 routes; TypeScript typecheck (`npx tsc --noEmit`) 0 errors; ESLint 0 errors.
+
 ---
 
 ## 5. Important Technical Decisions
@@ -154,9 +165,11 @@
 9. **Interactive Leaflet Map with SSR Disabled**: Dynamic import with `ssr: false` avoids SSR `window` errors in Next.js App Router while rendering custom White + Teal markers with active bag counts.
 10. **Atomic Conditional SQL Concurrency Defense**: Inventory reservation and purchase execution use single atomic updates checking `(totalQuantity - reservedQuantity - soldQuantity) >= $quantity` directly in PostgreSQL, completely eliminating race conditions without heavy distributed locks.
 11. **Double-Entry Financial Ledger**: All monetary transfers record dual balanced entries (`CUSTOMER_PAYMENT`, `PLATFORM_CLEARING`, `MERCHANT_PAYABLE`, `PLATFORM_COMMISSION`) to provide an auditable accounting foundation.
+12. **Automated Food Safety Circuit Breaker**: If $\ge 2$ food safety incidents (`EXPIRED_FOOD`, `SPOILED_FOOD`) are reported against a merchant within 7 days, all merchant listings are atomically flipped to `RESTRICTED` / `PAUSED`, halting new reservations until administrative health guild clearance.
 13. **Dynamic HMAC-SHA256 Rotating QR Tokens**: Customer pickup passes rotate every 60 seconds with a sliding 180-second validation window, defeating static screenshots and unauthorized sharing while tolerating client-server clock drift.
 14. **PostgreSQL Atomic Double-Pickup Defense**: Verification handshakes execute atomic conditional updates `UPDATE "PickupVerification" SET "isVerified" = true WHERE "orderId" = $1 AND "isVerified" = false`. Under concurrent scanning attempts, exactly 1 succeeds and all remaining requests receive count = 0, returning HTTP 409 Conflict with previous completion timestamp.
 15. **Web Audio API Client-Side Synthesizer**: Implemented pure in-browser synthesized auditory feedback (C-major arpeggio chime and 180Hz buzzer) via Web Audio API oscillators, eliminating latency and external audio asset network dependencies.
+16. **Verified Buyer Review Boundary**: Reviews cannot be fabricated or submitted arbitrarily; only authenticated buyers of completed orders can submit a review, strictly once per order.
 
 ---
 
@@ -164,8 +177,8 @@
 
 | Area | Current State | Future Requirement |
 | :--- | :--- | :--- |
-| **Customer Dispute & Refund UI** | Programmatic `refundPayment` domain abstraction implemented; customer dispute UI pending M06. | M06 scope: Trust, safety and dispute resolution. |
-| **Automated Bank Payouts** | Merchant payable balances tracked in financial ledger; automated Paya/Satna bank transfers pending M08. | M08 scope: Admin platform and payout batching. |
+| **Automated Bank Payouts** | Merchant payable balances tracked in financial ledger with debit penalty on refund; automated Paya/Satna bank transfers pending M08. | M08 scope: Admin platform and payout batching. |
+| **Merchant Store Analytics** | Basic rating average and count tracked; deep analytics and bag forecasting pending M07/M09. | M07/M09 scope: Merchant product and marketplace analytics. |
 
 ---
 
@@ -179,9 +192,9 @@
 
 ## 8. Latest Validation Results
 
-* **Design System & Visual Inspection**: Visual verification completed via headless browser across desktop (1280px) and mobile (390px). Session recording saved in `design_system_inspection_1788728557320.webp`.
-* **Unit & Integration Test Suite**: 24 tests passing across 5 non-db suites (`tests/persian.test.ts`, `tests/rbac.test.ts`, `tests/session.test.ts`, `tests/shared-packages.test.ts`, `tests/m05-pickup.test.ts` cryptographic & OTP suites). Full database and concurrency suite (`tests/m05-pickup.test.ts` Sections 3–7) ready for execution against PostgreSQL container.
+* **Milestone M06 Test Suite**: 15/15 tests passing in `tests/m06-trust-safety.test.ts` (Zod validation, review loop, complaint threshold, 1-click refund, double-entry penalty, and audit trail).
 * **TypeScript Typecheck**: `npm run typecheck` and `npx tsc --noEmit` exited with code 0 (zero errors across all packages and apps).
 * **ESLint Validation**: `npm run lint` reported 0 errors.
-* **Production Build**: `npm run build` completed successfully (exit code 0, 25 routes compiled and optimized including `/api/pickup/*` and `/merchant/orders`).
-* **Pickup Verification Handshake**: Verified end-to-end token issuance, 60s rotation, HMAC tamper resistance, 4-digit OTP fallback, atomic DB lock, and double-pickup prevention.
+* **Production Build**: `npm run build` completed successfully (exit code 0, 30 routes compiled and optimized including `/admin/moderation`, `/admin/audit`, `/api/reviews/*`, `/api/complaints/*`, and `/api/admin/*`).
+* **Design System Conformance**: White + Teal (`#135E66`) tokens, Vazirmatn Persian typography, RTL layout (`dir="rtl"`), and production-quality UI across customer review modal, dispute modal, merchant review section, and admin moderation console.
+

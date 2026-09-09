@@ -109,6 +109,24 @@ enum RefundStatus {
   REJECTED
 }
 
+enum ComplaintCategory {
+  EXPIRED_FOOD
+  SPOILED_FOOD
+  MISMATCHED_DESCRIPTION
+  POOR_HYGIENE
+  STORE_CLOSED
+  MISSING_ITEMS
+  OTHER
+}
+
+enum ComplaintStatus {
+  PENDING
+  INVESTIGATING
+  RESOLVED_REFUNDED
+  RESOLVED_REJECTED
+  RESOLVED_WARNING
+}
+
 model User {
   id          String          @id @default(uuid())
   mobile      String          @unique
@@ -123,6 +141,8 @@ model User {
   sessions         Session[]
   processedRefunds Refund[]        @relation("RefundProcessor")
   verifiedPickups  PickupVerification[] @relation("VerifiedPickups")
+  resolvedComplaints Complaint[]   @relation("ResolvedComplaints")
+  auditLogs        AuditLog[]
 
   @@index([mobile])
 }
@@ -139,6 +159,8 @@ model Customer {
   favorites              Favorite[]
   reservations           Reservation[]
   orders                 Order[]
+  reviews                Review[]
+  complaints             Complaint[]
 }
 
 model Merchant {
@@ -160,6 +182,8 @@ model Merchant {
   listings           Listing[]
   favorites          Favorite[]
   orders             Order[]
+  reviews            Review[]
+  complaints         Complaint[]
 
   @@index([ownerUserId])
 }
@@ -439,6 +463,8 @@ model Order {
   financialTransactions     FinancialTransaction[]
   refunds                   Refund[]
   pickupVerification        PickupVerification?
+  review                    Review?
+  complaints                Complaint[]
 
   @@index([customerId])
   @@index([merchantId])
@@ -530,6 +556,7 @@ model Refund {
   payment           Payment      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
   order             Order        @relation(fields: [orderId], references: [id], onDelete: Restrict)
   processedBy       User?        @relation("RefundProcessor", fields: [processedByUserId], references: [id], onDelete: SetNull)
+  complaint         Complaint?
 
   @@index([paymentId])
   @@index([orderId])
@@ -559,6 +586,78 @@ model PickupVerification {
   @@index([orderId])
   @@index([isVerified])
 }
+
+model Review {
+  id              String    @id @default(uuid())
+  orderId         String    @unique
+  customerId      String
+  merchantId      String
+  overallRating   Int       // 1-5
+  qualityRating   Int       // 1-5
+  valueRating     Int       // 1-5
+  commentFa       String?
+  merchantReplyFa String?
+  merchantReplyAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  merchant        Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+model Complaint {
+  id               String            @id @default(uuid())
+  orderId          String
+  customerId       String
+  merchantId       String
+  category         ComplaintCategory
+  descriptionFa    String
+  evidencePhotos   String[]          // URLs / file paths
+  status           ComplaintStatus   @default(PENDING)
+  adminNotesFa     String?
+  resolvedByUserId String?
+  resolvedAt       DateTime?
+  refundId         String?           @unique
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customer         Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  merchant         Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  resolvedByUser   User?             @relation("ResolvedComplaints", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
+  refund           Refund?           @relation(fields: [refundId], references: [id], onDelete: SetNull)
+
+  @@index([merchantId])
+  @@index([customerId])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String   // e.g. "SAFETY_OVERRIDE", "COMPLAINT_RESOLVED", "MERCHANT_RESTRICTED"
+  entityType  String   // e.g. "ListingSafety", "Complaint", "Merchant", "Order"
+  entityId    String
+  actorId     String?
+  actorRole   Role?
+  detailsJson Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  actor       User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+}
+
 
 
 

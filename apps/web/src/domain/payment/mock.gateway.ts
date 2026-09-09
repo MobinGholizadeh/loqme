@@ -60,6 +60,26 @@ export class MockPaymentGateway implements IPaymentGateway {
       },
     };
   }
+
+  async refundPayment(params: {
+    authority: string;
+    amountToman: number;
+    reason: string;
+  }) {
+    const refundId = `REFUND-MOCK-${Date.now()}`;
+    return {
+      success: true,
+      refundId,
+      rawPayload: {
+        gateway: 'MOCK',
+        refundedAt: new Date().toISOString(),
+        authority: params.authority,
+        amountToman: params.amountToman,
+        reason: params.reason,
+      },
+    };
+  }
 }
 
 export const mockPaymentGateway = new MockPaymentGateway();
+

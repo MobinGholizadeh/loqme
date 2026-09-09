@@ -63,6 +63,8 @@ export default function MerchantProfilePage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isFavorited, setIsFavorited] = useState<boolean>(false);
   const [favoriteLoading, setFavoriteLoading] = useState<boolean>(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!merchantId) return;
@@ -87,7 +89,23 @@ export default function MerchantProfilePage() {
       }
     }
 
+    async function fetchReviews() {
+      setReviewsLoading(true);
+      try {
+        const res = await fetch(`/api/reviews?merchantId=${merchantId}`);
+        const json = await res.json();
+        if (json.success) {
+          setReviews(json.items || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch reviews:', err);
+      } finally {
+        setReviewsLoading(false);
+      }
+    }
+
     fetchMerchant();
+    fetchReviews();
   }, [merchantId]);
 
   const handleToggleFavorite = async () => {
@@ -319,6 +337,101 @@ export default function MerchantProfilePage() {
                 </div>
               </Card>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Verified Customer Reviews Section */}
+      <div className="space-y-4 pt-4 border-t border-loqme-neutral-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-extrabold text-loqme-neutral-900 flex items-center gap-2">
+              <span>★</span>
+              <span>نظرات و تجربیات خریداران تایید شده</span>
+            </h2>
+            <p className="text-xs text-loqme-neutral-500 mt-0.5">
+              تنها کاربرانی که بسته را شخصاً تحویل گرفته‌اند مجاز به ثبت نظر هستند
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
+            <span className="text-amber-500 text-sm font-bold">★ {toPersianDigits(data.ratingAverage.toFixed(1))}</span>
+            <span className="text-[11px] text-amber-800">({toPersianDigits(data.ratingCount)} نظر)</span>
+          </div>
+        </div>
+
+        {reviewsLoading ? (
+          <div className="space-y-3">
+            <Skeleton height={90} width="100%" />
+            <Skeleton height={90} width="100%" />
+          </div>
+        ) : reviews.length === 0 ? (
+          <Card variant="outlined" className="p-6 text-center space-y-2 bg-white">
+            <div className="text-2xl">💬</div>
+            <h3 className="font-bold text-xs text-loqme-neutral-800">
+              هنوز نظری برای این فروشگاه ثبت نشده است
+            </h3>
+            <p className="text-[11px] text-loqme-neutral-500 max-w-sm mx-auto">
+              پس از خرید و تحویل حضوری بسته، نظر شما با نشان «خریدار تایید شده» در این بخش نمایش داده خواهد شد.
+            </p>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {reviews.map((rev) => {
+              const customerName =
+                rev.customer?.fullName ||
+                (rev.customer?.user?.mobile
+                  ? `خریدار ${rev.customer.user.mobile.slice(0, 4)}***${rev.customer.user.mobile.slice(-3)}`
+                  : 'خریدار لقمه');
+              const itemTitle = rev.order?.items?.[0]?.listing?.titleFa;
+
+              return (
+                <Card key={rev.id} variant="elevated" className="p-4 space-y-3 bg-white">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-loqme-neutral-900">{customerName}</span>
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                          <span>✓</span>
+                          <span>خریدار تایید شده</span>
+                        </span>
+                      </div>
+                      {itemTitle && (
+                        <p className="text-[11px] text-loqme-neutral-500">
+                          سفارش: {itemTitle}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1 direction-ltr text-amber-400 text-sm" dir="ltr">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <span key={s} className={s <= rev.overallRating ? 'text-amber-400' : 'text-gray-200'}>
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {rev.commentFa && (
+                    <p className="text-xs text-loqme-neutral-700 leading-relaxed bg-gray-50/50 p-2.5 rounded-xl border border-gray-100">
+                      {rev.commentFa}
+                    </p>
+                  )}
+
+                  {/* Merchant official reply */}
+                  {rev.merchantReplyFa && (
+                    <div className="p-3 bg-teal-50/70 border border-teal-100 rounded-xl space-y-1 mr-4 border-r-2 border-r-teal-600">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-teal-900">
+                        <span>پاسخ فروشگاه {data.businessNameFa}:</span>
+                        <span className="text-teal-600 font-normal">رسمی ✓</span>
+                      </div>
+                      <p className="text-xs text-teal-800 leading-relaxed">
+                        {rev.merchantReplyFa}
+                      </p>
+                    </div>
+                  )}
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

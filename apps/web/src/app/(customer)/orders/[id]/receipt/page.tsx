@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { formatToman, toPersianDigits } from '@/lib/utils/persian';
 import { CustomerPickupPassModal } from '@/components/pickup/CustomerPickupPassModal';
+import { ComplaintModal } from '@/components/complaints/ComplaintModal';
 
 interface OrderReceiptData {
   id: string;
@@ -62,6 +63,7 @@ export default function OrderReceiptPage() {
   const [order, setOrder] = useState<OrderReceiptData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showPickupPass, setShowPickupPass] = useState<boolean>(false);
+  const [showComplaintModal, setShowComplaintModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -257,6 +259,25 @@ export default function OrderReceiptPage() {
         </div>
       </Card>
 
+      {/* Safety and Feedback Card */}
+      <Card variant="outlined" className="p-4 bg-teal-50/40 border border-teal-100 flex items-center justify-between gap-3">
+        <div className="space-y-0.5">
+          <div className="text-xs font-bold text-teal-900 flex items-center gap-1.5">
+            <span>🛡️</span>
+            <span>تضمین سلامت و اصالت لقمه</span>
+          </div>
+          <p className="text-[11px] text-teal-700">
+            در صورت هرگونه مغایرت بسته با مشخصات، انقضا یا فساد، تیم نظارت در کنار شماست.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowComplaintModal(true)}
+          className="px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50 rounded-lg border border-rose-200 transition flex-shrink-0"
+        >
+          ثبت گزارش مغایرت
+        </button>
+      </Card>
+
       {/* Navigation Buttons */}
       <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
         <Link href="/orders" className="w-full sm:flex-1">
@@ -270,6 +291,17 @@ export default function OrderReceiptPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Complaint Modal */}
+      {order && (
+        <ComplaintModal
+          isOpen={showComplaintModal}
+          onClose={() => setShowComplaintModal(false)}
+          orderId={order.id}
+          orderNumber={order.orderNumber}
+          merchantName={order.merchant.businessNameFa}
+        />
+      )}
     </div>
   );
 }

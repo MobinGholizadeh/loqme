@@ -7,6 +7,7 @@ import {
   ReservationStatus,
   PaymentGatewayType,
   FinancialTransactionType,
+  SafetyStatus,
 } from '@prisma/client';
 
 export interface CreateOrderResult {
@@ -61,7 +62,7 @@ export class OrderService {
       where: { id: reservationId },
       include: {
         listing: {
-          include: { merchant: true },
+          include: { merchant: true, safety: true },
         },
         order: true,
       },
@@ -77,6 +78,11 @@ export class OrderService {
 
     if (reservation.status !== ReservationStatus.PENDING || reservation.expiresAt <= now) {
       return { success: false, message: 'مهلت ۱۰ دقیقه‌ای این رزرو منقضی شده است. لطفاً مجدداً رزرو نمایید.' };
+    }
+
+    // Safety lockout check
+    if (reservation.listing.safety?.safetyStatus && reservation.listing.safety.safetyStatus !== SafetyStatus.APPROVED) {
+      return { success: false, message: 'این بسته به علت بررسی سلامت و بهداشت در حال حاضر قابل سفارش نیست' };
     }
 
     // 2. Check if an order already exists for this reservation
@@ -349,6 +355,10 @@ export class OrderService {
           take: 1,
           orderBy: { createdAt: 'desc' },
         },
+        review: true,
+        complaints: {
+          select: { id: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -382,6 +392,8 @@ export class OrderService {
         pickupWindowFa,
         pickupEndIso: pickupEnd ? pickupEnd.toISOString() : '',
         createdAt: order.createdAt.toISOString(),
+        hasReview: Boolean(order.review),
+        complaintCount: order.complaints.length,
       };
     });
   }
