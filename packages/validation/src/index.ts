@@ -399,7 +399,79 @@ export const UpdateListingSafetySchema = z
 
 export type UpdateListingSafetyInput = z.infer<typeof UpdateListingSafetySchema>;
 
+// ==========================================
+// 8. Merchant Portal Validation Schemas (Milestone M07)
+// ==========================================
 
+export const FastCreateListingSchema = z
+  .object({
+    categoryId: z.string().optional(),
+    categorySlug: z.string().optional(),
+    titleFa: z.string().trim().min(3, 'عنوان بسته حداقل باید ۳ کاراکتر باشد').max(100),
+    descriptionFa: z.string().trim().min(5, 'توضیحات بسته حداقل باید ۵ کاراکتر باشد').max(1000),
+    originalPriceToman: z.coerce.number().positive('قیمت اصلی باید مقداری مثبت باشد'),
+    discountedPriceToman: z.coerce.number().positive('قیمت با تخفیف باید مقداری مثبت باشد'),
+    quantity: z.coerce.number().int().min(1, 'حداقل تعداد بسته ۱ عدد می‌باشد').max(100, 'حداکثر ۱۰۰ بسته مجاز است'),
+    pickupDate: z.string().optional(),
+    pickupStart: z.string().optional(),
+    pickupEnd: z.string().optional(),
+    allergens: z.array(z.string()).default([]),
+    dietaryTags: z.array(z.string()).default([]),
+    storageInstructionsFa: z.string().optional(),
+    temperatureRequirement: z
+      .enum(['ROOM_TEMP', 'REFRIGERATED', 'FROZEN', 'HEATED'])
+      .default('ROOM_TEMP'),
+  })
+  .refine((data) => data.discountedPriceToman < data.originalPriceToman, {
+    message: 'قیمت با تخفیف باید کمتر از قیمت اصلی باشد',
+    path: ['discountedPriceToman'],
+  });
 
+export type FastCreateListingInput = z.infer<typeof FastCreateListingSchema>;
 
+export const UpdateListingStockSchema = z.object({
+  deltaQuantity: z.number().int().optional(),
+  totalQuantity: z.number().int().min(0).optional(),
+  status: z.enum(['PUBLISHED', 'PAUSED', 'SOLD_OUT', 'ARCHIVED']).optional(),
+});
 
+export type UpdateListingStockInput = z.infer<typeof UpdateListingStockSchema>;
+
+export const CreateStaffSchema = z.object({
+  mobile: z
+    .string({ required_error: 'شماره موبایل الزامی است' })
+    .trim()
+    .min(1, 'شماره موبایل الزامی است')
+    .refine((val) => isValidIranianMobile(val), {
+      message: 'شماره موبایل باید با ۰۹ شروع شده و ۱۱ رقم باشد',
+    })
+    .transform((val) => normalizeIranianMobile(val)),
+  fullName: z.string().trim().max(100).optional(),
+  role: z.enum(['MANAGER', 'CASHIER'], {
+    errorMap: () => ({ message: 'نقش باید یکی از گزینه‌های مدیر یا صندوق‌دار باشد' }),
+  }),
+  canScanPickup: z.boolean().default(true),
+});
+
+export type CreateStaffInput = z.infer<typeof CreateStaffSchema>;
+
+export const OperatingHoursDaySchema = z.object({
+  dayOfWeek: z.number().int().min(0).max(6),
+  isOpen: z.boolean(),
+  storeOpenTime: z.string().regex(/^\d{2}:\d{2}$/, 'فرمت زمان باید HH:mm باشد'),
+  storeCloseTime: z.string().regex(/^\d{2}:\d{2}$/, 'فرمت زمان باید HH:mm باشد'),
+  defaultPickupStart: z.string().regex(/^\d{2}:\d{2}$/, 'فرمت زمان باید HH:mm باشد'),
+  defaultPickupEnd: z.string().regex(/^\d{2}:\d{2}$/, 'فرمت زمان باید HH:mm باشد'),
+});
+
+export const UpdateStoreSettingsSchema = z.object({
+  businessNameFa: z.string().trim().min(2, 'نام فروشگاه حداقل باید ۲ کاراکتر باشد').max(100).optional(),
+  phone: z.string().trim().max(30).optional().nullable(),
+  addressFa: z.string().trim().min(5, 'آدرس حداقل باید ۵ کاراکتر باشد').max(255).optional(),
+  postalCode: z.string().trim().max(20).optional().nullable(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  hours: z.array(OperatingHoursDaySchema).optional(),
+});
+
+export type UpdateStoreSettingsInput = z.infer<typeof UpdateStoreSettingsSchema>;

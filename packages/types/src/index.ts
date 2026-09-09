@@ -774,6 +774,155 @@ export interface AuditLogItemDto {
   createdAt: string;
 }
 
+// ==========================================
+// 10. Merchant Product & Portal (Milestone M07)
+// ==========================================
 
+export interface MerchantDashboardDto {
+  merchantId: string;
+  businessNameFa: string;
+  verificationStatus: string;
+  activeListingsCount: number;
+  reservedBagsCount: number;
+  soldTodayCount: number;
+  pendingPickupsCount: number;
+  grossRevenueTodayToman: number;
+  netPayoutTodayToman: number;
+  ratingAverage: number;
+  ratingCount: number;
+  nextPickupWindow?: {
+    start: string;
+    end: string;
+    labelFa: string;
+    startsInMinutes: number;
+  } | null;
+}
 
+export interface QuickListingTemplateDto {
+  id: string;
+  categorySlug: string;
+  titleFa: string;
+  descriptionFa: string;
+  defaultOriginalPriceToman: number;
+  defaultDiscountedPriceToman: number;
+  defaultQuantity: number;
+  storageInstructionsFa?: string;
+  temperatureRequirement: string;
+  allergens: string[];
+  dietaryTags: string[];
+}
 
+export interface FastCreateListingDto {
+  categoryId?: string;
+  categorySlug?: string;
+  titleFa: string;
+  descriptionFa: string;
+  originalPriceToman: number;
+  discountedPriceToman: number;
+  quantity: number;
+  pickupDate?: string;
+  pickupStart?: string;
+  pickupEnd?: string;
+  allergens?: string[];
+  dietaryTags?: string[];
+  storageInstructionsFa?: string;
+  temperatureRequirement?: string;
+}
+
+export interface UpdateListingStockDto {
+  deltaQuantity?: number;
+  totalQuantity?: number;
+  status?: 'PUBLISHED' | 'PAUSED' | 'SOLD_OUT' | 'ARCHIVED';
+}
+
+export interface MerchantStaffMemberDto {
+  id: string;
+  userId: string;
+  mobile: string;
+  fullName: string | null;
+  role: 'OWNER' | 'MANAGER' | 'CASHIER';
+  canScanPickup: boolean;
+  createdAt: string;
+}
+
+export interface CreateStaffInputDto {
+  mobile: string;
+  fullName?: string;
+  role: 'MANAGER' | 'CASHIER';
+  canScanPickup?: boolean;
+}
+
+export interface OperatingHoursDayDto {
+  dayOfWeek: number; // 0 = Saturday, ..., 6 = Friday
+  dayNameFa: string;
+  isOpen: boolean;
+  storeOpenTime: string;
+  storeCloseTime: string;
+  defaultPickupStart: string;
+  defaultPickupEnd: string;
+}
+
+export interface MerchantStoreSettingsDto {
+  id: string;
+  businessNameFa: string;
+  businessType: string;
+  licenseNumber: string | null;
+  commissionPercent: number;
+  verificationStatus: string;
+  ratingAverage: number;
+  ratingCount: number;
+  primaryLocation: {
+    id: string;
+    addressFa: string;
+    phone: string | null;
+    postalCode: string | null;
+    latitude: number;
+    longitude: number;
+    cityId: string;
+    cityNameFa?: string;
+  } | null;
+  hours: OperatingHoursDayDto[];
+}
+
+export interface UpdateStoreSettingsDto {
+  businessNameFa?: string;
+  phone?: string;
+  addressFa?: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
+  hours?: Array<{
+    dayOfWeek: number;
+    isOpen: boolean;
+    storeOpenTime: string;
+    storeCloseTime: string;
+    defaultPickupStart: string;
+    defaultPickupEnd: string;
+  }>;
+}
+
+export interface MerchantFinanceSummaryDto {
+  merchantId: string;
+  businessNameFa: string;
+  commissionPercent: number;
+  grossSalesToman: number;
+  platformCommissionToman: number;
+  netPayableBalanceToman: number;
+  totalOrdersCount: number;
+  completedOrdersCount: number;
+  shabaNumber?: string | null;
+  isBankVerified?: boolean;
+  transactions: MerchantLedgerEntryDto[];
+}
+
+export interface MerchantLedgerEntryDto {
+  id: string;
+  orderId?: string | null;
+  orderNumber?: string | null;
+  type: string;
+  descriptionFa: string;
+  grossAmountToman: number;
+  commissionAmountToman: number;
+  netAmountToman: number;
+  createdAt: string;
+}

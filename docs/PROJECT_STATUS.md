@@ -10,11 +10,11 @@
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **Ready for M07 — Merchant Product** |
-| **Milestone Status** | `Milestone Completed` (M06 Trust, Safety & Moderation Completed & Verified) |
-| **Overall Completion** | `64%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%, M06 100%) |
+| **Current Milestone** | **Ready for M08 — Admin Platform** |
+| **Milestone Status** | `Milestone Completed` (M07 Merchant Product Completed & Verified) |
+| **Overall Completion** | `71%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%, M06 100%, M07 100%) |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running) |
-| **Last Updated** | 2026-09-10 (M06 Trust, Safety & Moderation Completed: Verified Reviews, Food Safety Lockout & 1-Click Refund Verified) |
+| **Last Updated** | 2026-09-10 (M07 Merchant Product Completed: Dashboard KPIs, Fast Listing Creator, 1-Tap Pause, Location Editor, Staff RBAC & Finance Statement) |
 
 ---
 
@@ -25,8 +25,8 @@
 * **Monorepo Architecture**:
   * `apps/web`: Next.js 14.2.23 (App Router), React 18, TypeScript 5, Leaflet 1.9
   * `apps/mobile`: [Future] React Native / Expo Client
-  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers, Marketplace, Orders, Payments, Financial Transactions, Moderation, Reviews, Complaints, AuditLogs)
-  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile, Checkout, Reviews, Complaints, Safety Override schemas)
+  * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers, Marketplace, Orders, Payments, Financial Transactions, Moderation, Reviews, Complaints, AuditLogs, Merchant Portal DTOs)
+  * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile, Checkout, Reviews, Complaints, Fast Listings, Staff, Store Settings)
   * `packages/design-tokens`: `@loqme/design-tokens` (White + Teal palette, Emil Kowalski motion)
   * `packages/api`: `@loqme/api` (Universal fetch-based API client, Bearer & Cookie auth)
   * `packages/config`: `@loqme/config` (Shared tsconfig presets)
@@ -57,7 +57,7 @@
 | **M04-UI** | **UI/UX & Design System Checkpoint** | `Completed` | `100%` |
 | **M05** | **Pickup Verification** | `Completed` | `100%` |
 | **M06** | **Trust, Safety & Moderation** | `Completed` | `100%` |
-| **M07** | Merchant Product | `Pending` | `0%` |
+| **M07** | **Merchant Product** | `Completed` | `100%` |
 | **M08** | Admin Platform | `Pending` | `0%` |
 | **M09** | Marketplace Analytics | `Pending` | `0%` |
 | **M10** | UX, SEO, PWA & Performance | `Pending` | `0%` |
@@ -152,6 +152,19 @@
 
 ---
 
+### Milestone M07 Checklist — Merchant Product
+
+- [x] **CP-07.1 — Merchant Dashboard Overview & Real-Time KPIs**: Built `/merchant` with live polling for active listings, today's sold bags, pending pickups queue count, gross revenue (Toman), net payout balance (Toman, 10% commission cut), rating average, and active pickup window alert banner with countdown timer.
+- [x] **CP-07.2 — Under 60-Second Rapid Listing Creator**: Built `FastListingModal` with 4 preset category templates (Bakery, Pastry, Restaurant meals, Cafe/Salads), automatic discount percentage badge calculation, safety declaration checklist, and instant marketplace publishing.
+- [x] **CP-07.3 — Active Listing & Inventory Management**: Built `/merchant/listings` with 1-tap pause/resume toggle (`PUBLISHED` ↔ `PAUSED`) providing optimistic UI feedback and instant search visibility reflection, plus atomic stock stepper (`+` / `-`) preventing stock drops below reserved/sold limits.
+- [x] **CP-07.4 — Storefront Location Map Pin Editor**: Built interactive entrance coordinates picker in `/merchant/settings` allowing merchants to fine-tune exact storefront latitude and longitude for customer proximity discovery.
+- [x] **CP-07.5 — 7-Day Operating Hours & Pickup Schedule**: Built weekly Sat–Fri schedule editor in `/merchant/settings` with `isOpen` toggle, store open/close times, default pickup start/end windows, and 1-click batch application to all weekdays.
+- [x] **CP-07.6 — Staff Management & Multi-Tenant Access Control**: Built `/merchant/staff` allowing store owners to invite employees by Iranian mobile number, assign roles (`MANAGER`, `CASHIER`), and revoke staff access with confirmation dialogs.
+- [x] **CP-07.7 — Financial Settlement Statements & Ledger**: Built `/merchant/finance` with GMV calculations, 10% platform commission breakdown, net payable balance, Sheba (شبا) bank account verification display, and full double-entry ledger transactions history.
+- [x] **CP-07.8 — Tenant Security & Workflow Verification Suite**: Authored 15 tests in `tests/m07-merchant.test.ts` (15/15 passing) verifying Zod validation, fast listing prefill, atomic stock adjustment, financial calculations, owner RBAC, and strict multi-tenant boundary isolation (preventing cross-store edits).
+
+---
+
 ## 5. Important Technical Decisions
 
 1. **Multi-Client Monorepo (`apps/*` + `packages/*`)**: Standard npm workspaces without heavy tooling overhead; provides instant sharing of types, schemas, tokens, and API client.
@@ -170,6 +183,7 @@
 14. **PostgreSQL Atomic Double-Pickup Defense**: Verification handshakes execute atomic conditional updates `UPDATE "PickupVerification" SET "isVerified" = true WHERE "orderId" = $1 AND "isVerified" = false`. Under concurrent scanning attempts, exactly 1 succeeds and all remaining requests receive count = 0, returning HTTP 409 Conflict with previous completion timestamp.
 15. **Web Audio API Client-Side Synthesizer**: Implemented pure in-browser synthesized auditory feedback (C-major arpeggio chime and 180Hz buzzer) via Web Audio API oscillators, eliminating latency and external audio asset network dependencies.
 16. **Verified Buyer Review Boundary**: Reviews cannot be fabricated or submitted arbitrarily; only authenticated buyers of completed orders can submit a review, strictly once per order.
+17. **Multi-Tenant Scoped Domain Queries & RBAC**: Every merchant endpoint evaluates `resolveMerchantAndAuthorize` to ensure callers cannot inspect or mutate resources outside their assigned store. Cashiers are strictly restricted to pickup queue scanning, while financial records and staff invitations require Owner role.
 
 ---
 
@@ -177,8 +191,8 @@
 
 | Area | Current State | Future Requirement |
 | :--- | :--- | :--- |
-| **Automated Bank Payouts** | Merchant payable balances tracked in financial ledger with debit penalty on refund; automated Paya/Satna bank transfers pending M08. | M08 scope: Admin platform and payout batching. |
-| **Merchant Store Analytics** | Basic rating average and count tracked; deep analytics and bag forecasting pending M07/M09. | M07/M09 scope: Merchant product and marketplace analytics. |
+| **Automated Bank Payouts** | Merchant payable balances tracked in financial ledger with 10% commission cut; automated Paya/Satna batch transfers pending M08. | M08 scope: Admin platform and payout batching. |
+| **Platform-Wide Heatmaps** | Merchant dashboard visualizes store-level daily KPIs; macro citywide heatmaps and density analytics pending M09. | M09 scope: Marketplace analytics. |
 
 ---
 
@@ -192,9 +206,10 @@
 
 ## 8. Latest Validation Results
 
-* **Milestone M06 Test Suite**: 15/15 tests passing in `tests/m06-trust-safety.test.ts` (Zod validation, review loop, complaint threshold, 1-click refund, double-entry penalty, and audit trail).
-* **TypeScript Typecheck**: `npm run typecheck` and `npx tsc --noEmit` exited with code 0 (zero errors across all packages and apps).
+* **Milestone M07 Test Suite**: 15/15 tests passing in `tests/m07-merchant.test.ts` (Zod schemas, fast listing creation, 1-tap pause/resume toggle, atomic stock adjustment, staff invitations, and financial settlement statement).
+* **Comprehensive Test Suite**: 49/49 unit and domain tests passing across `tests/m07-merchant.test.ts`, `tests/m06-trust-safety.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, and `tests/shared-packages.test.ts`.
+* **TypeScript Typecheck**: `npx tsc --noEmit` exited with code 0 (zero errors across all packages and apps).
 * **ESLint Validation**: `npm run lint` reported 0 errors.
-* **Production Build**: `npm run build` completed successfully (exit code 0, 30 routes compiled and optimized including `/admin/moderation`, `/admin/audit`, `/api/reviews/*`, `/api/complaints/*`, and `/api/admin/*`).
-* **Design System Conformance**: White + Teal (`#135E66`) tokens, Vazirmatn Persian typography, RTL layout (`dir="rtl"`), and production-quality UI across customer review modal, dispute modal, merchant review section, and admin moderation console.
+* **Production Build**: `npm run build` completed successfully (exit code 0, 36 routes compiled and optimized including `/merchant`, `/merchant/listings`, `/merchant/orders`, `/merchant/staff`, `/merchant/finance`, `/merchant/settings`, and all `/api/merchant/*` routes).
+* **Design System Conformance**: White + Teal (`#135E66`) tokens, Vazirmatn Persian typography, RTL layout (`dir="rtl"`), and production-quality UI across all merchant management pages.
 

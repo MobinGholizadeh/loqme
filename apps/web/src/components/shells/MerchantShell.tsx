@@ -38,6 +38,8 @@ export const MerchantShell: React.FC<MerchantShellProps> = ({ children }) => {
     { href: '/merchant', label: 'داشبورد فروشگاه', icon: '📊' },
     { href: '/merchant/listings', label: 'مدیریت بسته‌های مازاد', icon: '📦' },
     { href: '/merchant/orders', label: 'تحویل حضوری و اسکن QR', icon: '🛍️' },
+    { href: '/merchant/staff', label: 'همکاران و دسترسی‌ها', icon: '👥' },
+    { href: '/merchant/finance', label: 'صورت‌حساب و تسویه', icon: '💰' },
     { href: '/merchant/settings', label: 'تنظیمات و ساعات کاری', icon: '⚙️' },
   ];
 

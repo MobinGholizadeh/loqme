@@ -2,8 +2,8 @@
 
 > **Milestone**: M07  
 > **Title**: Merchant Product  
-> **Status**: `Pending`  
-> **Target Completion**: 0%
+> **Status**: `Completed`  
+> **Target Completion**: 100%
 
 ---
 
@@ -108,24 +108,24 @@ Merchants are busy shopkeepers, bakers, and cafe baristas operating during peak 
 
 # Acceptance Criteria
 
-1. [ ] Merchant owner can create and publish a Surprise Bag in under 60 seconds.
-2. [ ] Merchant can adjust remaining stock or pause listing with instant marketplace reflection.
-3. [ ] Store owner can add cashier staff; cashier can successfully verify customer pickups.
-4. [ ] Merchant dashboard displays accurate daily sales, commissions, and net earnings.
-5. [ ] Merchant operates all regular daily workflows without admin assistance.
+1. [x] Merchant owner can create and publish a Surprise Bag in under 60 seconds.
+2. [x] Merchant can adjust remaining stock or pause listing with instant marketplace reflection.
+3. [x] Store owner can add cashier staff; cashier can successfully verify customer pickups.
+4. [x] Merchant dashboard displays accurate daily sales, commissions, and net earnings.
+5. [x] Merchant operates all regular daily workflows without admin assistance.
 
 ---
 
 # Checkpoints
 
-- [ ] **CP-07.1**: Build Merchant Dashboard layout shell, header, and today's KPI cards.
-- [ ] **CP-07.2**: Build 60-Second Fast Listing Creator with preset templates.
-- [ ] **CP-07.3**: Build Active Listing Manager with instant pause/stock adjustment.
-- [ ] **CP-07.4**: Build Business Profile and Storefront Location map editor.
-- [ ] **CP-07.5**: Build Operating Hours and Pickup Window configuration view.
-- [ ] **CP-07.6**: Build Staff Management view with role invitations.
-- [ ] **CP-07.7**: Build Financial & Settlement statement view.
-- [ ] **CP-07.8**: Run tenant security tests and end-to-end merchant workflow tests.
+- [x] **CP-07.1**: Build Merchant Dashboard layout shell, header, and today's KPI cards.
+- [x] **CP-07.2**: Build 60-Second Fast Listing Creator with preset templates.
+- [x] **CP-07.3**: Build Active Listing Manager with instant pause/stock adjustment.
+- [x] **CP-07.4**: Build Business Profile and Storefront Location map editor.
+- [x] **CP-07.5**: Build Operating Hours and Pickup Window configuration view.
+- [x] **CP-07.6**: Build Staff Management view with role invitations.
+- [x] **CP-07.7**: Build Financial & Settlement statement view.
+- [x] **CP-07.8**: Run tenant security tests and end-to-end merchant workflow tests.
 
 ---
 

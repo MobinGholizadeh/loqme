@@ -236,6 +236,124 @@ export class ListingService {
       data: { status },
     });
   }
+
+  /**
+   * CP-07.3: Retrieves all listings for a merchant store with inventory and safety metadata
+   */
+  async getMerchantListings(merchantId: string) {
+    return await prisma.listing.findMany({
+      where: { merchantId },
+      include: {
+        category: true,
+        inventory: true,
+        safety: true,
+        orderItems: {
+          select: { id: true, quantity: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * CP-07.3: 1-Tap Toggle between PUBLISHED and PAUSED with tenant security
+   */
+  async toggleListingStatus(merchantId: string, listingId: string, targetStatus?: ListingStatus) {
+    const listing = await prisma.listing.findUnique({
+      where: { id: listingId },
+    });
+
+    if (!listing) {
+      throw new Error('بسته مورد نظر یافت نشد');
+    }
+
+    if (listing.merchantId !== merchantId) {
+      throw new Error('عدم دسترسی: این بسته متعلق به فروشگاه شما نمی‌باشد');
+    }
+
+    const nextStatus =
+      targetStatus ||
+      (listing.status === ListingStatus.PUBLISHED ? ListingStatus.PAUSED : ListingStatus.PUBLISHED);
+
+    return await prisma.listing.update({
+      where: { id: listingId },
+      data: { status: nextStatus },
+      include: { inventory: true, safety: true, category: true },
+    });
+  }
+
+  /**
+   * CP-07.3: Fast Stock Adjustment (+/- 1) with concurrency and tenant security
+   */
+  async adjustListingStock(
+    merchantId: string,
+    listingId: string,
+    options: { deltaQuantity?: number; totalQuantity?: number; status?: ListingStatus }
+  ) {
+    const listing = await prisma.listing.findUnique({
+      where: { id: listingId },
+      include: { inventory: true },
+    });
+
+    if (!listing) {
+      throw new Error('بسته مورد نظر یافت نشد');
+    }
+
+    if (listing.merchantId !== merchantId) {
+      throw new Error('عدم دسترسی: این بسته متعلق به فروشگاه شما نمی‌باشد');
+    }
+
+    const currentInventory = listing.inventory;
+    if (!currentInventory) {
+      throw new Error('رکورد موجودی برای این بسته یافت نشد');
+    }
+
+    let newTotal = currentInventory.totalQuantity;
+    if (options.totalQuantity !== undefined) {
+      newTotal = options.totalQuantity;
+    } else if (options.deltaQuantity !== undefined) {
+      newTotal = currentInventory.totalQuantity + options.deltaQuantity;
+    }
+
+    // Minimum check: totalQuantity cannot be less than reserved + sold
+    const minRequired = currentInventory.reservedQuantity + currentInventory.soldQuantity;
+    if (newTotal < minRequired) {
+      throw new Error(
+        `موجودی کل نمی‌تواند کمتر از بسته‌های در حال رزرو یا فروخته‌شده (${minRequired} عدد) باشد`
+      );
+    }
+
+    return await prisma.$transaction(async (tx) => {
+      // 1. Update Inventory
+      const updatedInventory = await tx.listingInventory.update({
+        where: { id: currentInventory.id },
+        data: {
+          totalQuantity: newTotal,
+          version: { increment: 1 },
+        },
+      });
+
+      // 2. Adjust listing status if sold out or if stock added back
+      let newListingStatus = options.status || listing.status;
+      if (newTotal <= currentInventory.soldQuantity) {
+        newListingStatus = ListingStatus.SOLD_OUT;
+      } else if (listing.status === ListingStatus.SOLD_OUT && newTotal > currentInventory.soldQuantity) {
+        newListingStatus = ListingStatus.PUBLISHED;
+      }
+
+      const updatedListing = await tx.listing.update({
+        where: { id: listingId },
+        data: { status: newListingStatus },
+        include: { inventory: true, safety: true, category: true },
+      });
+
+      return {
+        ...updatedListing,
+        inventory: updatedInventory,
+      };
+    });
+  }
 }
 
 export const listingService = new ListingService();
+
