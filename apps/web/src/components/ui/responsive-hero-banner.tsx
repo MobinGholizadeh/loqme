@@ -97,14 +97,14 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                     {/* Brand Logo & Name */}
                     <Link
                         href="/"
-                        className="inline-flex items-center gap-3 py-1.5 px-3 rounded-full bg-white/10 hover:bg-white/15 ring-1 ring-white/15 backdrop-blur-md transition-all shadow-lg group"
+                        className="inline-flex items-center gap-2.5 py-1.5 px-3.5 rounded-full bg-white/10 hover:bg-white/15 ring-1 ring-white/15 backdrop-blur-md transition-all shadow-lg group shrink-0"
                     >
-                        <div className="w-8 h-8 rounded-full bg-[#135E66] flex items-center justify-center p-1 shadow-inner ring-1 ring-emerald-400/40 group-hover:scale-105 transition-transform">
-                            <LoqmeLogo size={22} className="w-full h-full object-contain" />
+                        <div className="w-8 h-8 rounded-full bg-[#135E66] flex items-center justify-center p-1.5 shadow-inner ring-1 ring-emerald-400/40 group-hover:scale-105 transition-transform overflow-hidden shrink-0">
+                            <LoqmeLogo variant="icon" size={20} theme="white" />
                         </div>
-                        <div className="flex flex-col">
-                            <span className="font-extrabold text-base tracking-tight text-white leading-none">لقمه</span>
-                            <span className="text-[10px] tracking-wider text-emerald-300 font-sans font-medium uppercase">Loqme</span>
+                        <div className="flex flex-col text-right">
+                            <span className="font-black text-base tracking-tight text-white leading-none">لقمه</span>
+                            <span className="text-[10px] tracking-wider text-emerald-300 font-sans font-semibold uppercase mt-0.5">Loqme</span>
                         </div>
                     </Link>
 
@@ -212,21 +212,11 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                 </AnimatePresence>
             </header>
 
-            {/* Central Hero Headline & CTA Area */}
-            <div className="z-10 relative flex-1 flex items-center justify-center py-12 sm:py-16 md:py-20 px-4 sm:px-6">
+            {/* Central Hero Headline & CTA Area — Positioned to keep character's face & eyes clear */}
+            <div className="z-10 relative flex-1 flex items-center justify-center pt-24 sm:pt-32 md:pt-36 pb-10 sm:pb-14 px-4 sm:px-6">
                 <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
-                    {/* Glassmorphic Pill Badge */}
-                    <div className="mb-6 inline-flex items-center gap-2.5 rounded-full bg-white/10 hover:bg-white/15 px-3.5 py-1.5 ring-1 ring-white/20 backdrop-blur-md animate-fade-slide-in-1 shadow-lg transition-colors cursor-default">
-                        <span className="inline-flex items-center text-xs font-black text-neutral-950 bg-emerald-300 rounded-full py-0.5 px-2.5 shadow-sm">
-                            {badgeLabel}
-                        </span>
-                        <span className="text-xs sm:text-sm font-medium text-white/95">
-                            {badgeText}
-                        </span>
-                    </div>
-
                     {/* Massive Elegant Typography */}
-                    <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight sm:leading-tight md:leading-tight font-extrabold text-white tracking-tight animate-fade-slide-in-2 drop-shadow-sm">
+                    <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight sm:leading-tight md:leading-tight font-extrabold text-white tracking-tight animate-fade-slide-in-1 drop-shadow-sm">
                         {title}
                         <br className="hidden sm:block" />
                         <span className="bg-gradient-to-r from-emerald-300 via-teal-100 to-amber-200 bg-clip-text text-transparent block sm:inline sm:mr-2">
@@ -235,12 +225,22 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                     </h1>
 
                     {/* Descriptive Lead Paragraph */}
-                    <p className="sm:text-lg animate-fade-slide-in-3 text-sm md:text-base text-white/80 max-w-2xl mt-5 sm:mt-6 leading-relaxed">
+                    <p className="sm:text-lg animate-fade-slide-in-2 text-sm md:text-base text-white/85 max-w-2xl mt-4 sm:mt-5 leading-relaxed font-normal">
                         {description}
                     </p>
 
+                    {/* Glassmorphic Pill Badge — Safely positioned between description and CTAs, away from the character's face/eyes */}
+                    <div className="mt-6 mb-2 inline-flex items-center gap-2.5 rounded-full bg-white/10 hover:bg-white/15 px-4 py-1.5 ring-1 ring-white/20 backdrop-blur-md animate-fade-slide-in-3 shadow-lg transition-colors cursor-default">
+                        <span className="inline-flex items-center text-xs font-black text-neutral-950 bg-emerald-300 rounded-full py-0.5 px-2.5 shadow-sm">
+                            {badgeLabel}
+                        </span>
+                        <span className="text-xs sm:text-sm font-medium text-white/95">
+                            {badgeText}
+                        </span>
+                    </div>
+
                     {/* Action Pill Buttons */}
-                    <div className="flex flex-col sm:flex-row sm:gap-4 mt-8 sm:mt-10 gap-3 items-center justify-center w-full max-w-md animate-fade-slide-in-4">
+                    <div className="flex flex-col sm:flex-row sm:gap-4 mt-6 sm:mt-7 gap-3 items-center justify-center w-full max-w-md animate-fade-slide-in-4">
                         <Link
                             href={primaryButtonHref}
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 hover:bg-white/25 text-sm font-bold text-white bg-white/15 ring-white/25 ring-1 rounded-full py-3.5 px-7 backdrop-blur-md transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98] group"

@@ -385,12 +385,12 @@ export default function HomePage() {
             {/* Column 1: Brand Logo & Description */}
             <div className="space-y-4 text-center md:text-right">
               <div className="flex items-center justify-center md:justify-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#135E66] flex items-center justify-center p-1.5 ring-1 ring-emerald-400/40">
-                  <LoqmeLogo size={26} className="w-full h-full object-contain" />
+                <div className="w-10 h-10 rounded-full bg-[#135E66] flex items-center justify-center p-2 ring-1 ring-emerald-400/40 shadow-inner overflow-hidden shrink-0">
+                  <LoqmeLogo variant="icon" size={24} theme="white" />
                 </div>
                 <div className="flex flex-col text-right">
-                  <span className="font-extrabold text-lg text-white">لقمه</span>
-                  <span className="text-[10px] text-emerald-400 font-sans tracking-wider uppercase">Loqme.shop</span>
+                  <span className="font-black text-xl text-white leading-none">لقمه</span>
+                  <span className="text-[10px] text-emerald-400 font-sans tracking-wider uppercase font-medium mt-0.5">Loqme.shop</span>
                 </div>
               </div>
               <p className="text-xs text-white/70 leading-relaxed">
