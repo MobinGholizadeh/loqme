@@ -475,3 +475,47 @@ export const UpdateStoreSettingsSchema = z.object({
 });
 
 export type UpdateStoreSettingsInput = z.infer<typeof UpdateStoreSettingsSchema>;
+
+// ==========================================
+// 9. Admin Platform Validation Schemas (Milestone M08)
+// ==========================================
+
+export const AdminUpdateMerchantSchema = z.object({
+  verificationStatus: z
+    .enum(['PENDING', 'APPROVED', 'SUSPENDED', 'REJECTED'])
+    .optional(),
+  commissionPercent: z.coerce.number().min(0, 'کارمزد نمی‌تواند منفی باشد').max(50, 'حداکثر کارمزد ۵۰٪ است').optional(),
+  reasonFa: z.string().trim().max(1000).optional(),
+});
+
+export type AdminUpdateMerchantInput = z.infer<typeof AdminUpdateMerchantSchema>;
+
+export const AdminUpdateCustomerSchema = z.object({
+  isActive: z.boolean(),
+  reasonFa: z.string().trim().max(1000).optional(),
+});
+
+export type AdminUpdateCustomerInput = z.infer<typeof AdminUpdateCustomerSchema>;
+
+export const CreateCategorySchema = z.object({
+  slug: z
+    .string()
+    .trim()
+    .min(2, 'شناسه انگلیسی حداقل ۲ کاراکتر است')
+    .max(50)
+    .regex(/^[a-z0-9-]+$/, 'شناسه باید با حروف کوچک انگلیسی و خط تیره باشد'),
+  nameFa: z.string().trim().min(2, 'نام فارسی دسته‌بندی حداقل ۲ کاراکتر است').max(100),
+  iconUrl: z.string().trim().max(255).optional().nullable(),
+  parentId: z.string().uuid().optional().nullable(),
+});
+
+export type CreateCategoryInput = z.infer<typeof CreateCategorySchema>;
+
+export const UpdateSystemSettingsSchema = z.object({
+  maintenanceMode: z.boolean().optional(),
+  announcementBannerFa: z.string().trim().max(500).optional(),
+  activeSmsProvider: z.enum(['MOCK', 'KAVENEGAR', 'FARAZSMS']).optional(),
+});
+
+export type UpdateSystemSettingsInput = z.infer<typeof UpdateSystemSettingsSchema>;
+

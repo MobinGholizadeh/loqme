@@ -10,11 +10,11 @@
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **Ready for M08 — Admin Platform** |
-| **Milestone Status** | `Milestone Completed` (M07 Merchant Product Completed & Verified) |
-| **Overall Completion** | `71%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%, M06 100%, M07 100%) |
+| **Current Milestone** | **Ready for M09 — Marketplace Analytics** |
+| **Milestone Status** | `Milestone Completed` (M08 Admin Platform Completed & Verified) |
+| **Overall Completion** | `78%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%, M06 100%, M07 100%, M08 100%) |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running) |
-| **Last Updated** | 2026-09-10 (M07 Merchant Product Completed: Dashboard KPIs, Fast Listing Creator, 1-Tap Pause, Location Editor, Staff RBAC & Finance Statement) |
+| **Last Updated** | 2026-09-10 (M08 Admin Platform Completed: Verification Queue, Customer Inspector, Listing Moderation, Categories, Settlement Engine, Feature Flags & Audit Logs) |
 
 ---
 
@@ -58,7 +58,7 @@
 | **M05** | **Pickup Verification** | `Completed` | `100%` |
 | **M06** | **Trust, Safety & Moderation** | `Completed` | `100%` |
 | **M07** | **Merchant Product** | `Completed` | `100%` |
-| **M08** | Admin Platform | `Pending` | `0%` |
+| **M08** | **Admin Platform** | `Completed` | `100%` |
 | **M09** | Marketplace Analytics | `Pending` | `0%` |
 | **M10** | UX, SEO, PWA & Performance | `Pending` | `0%` |
 | **M11** | Production Readiness | `Pending` | `0%` |
@@ -165,6 +165,19 @@
 
 ---
 
+### Milestone M08 Checklist — Admin Platform
+
+- [x] **CP-08.1 — Admin Layout Shell, Navigation & Real-Time KPIs**: Built `/admin` overview dashboard with 8 dedicated sub-navigation routes (`/admin`, `/admin/merchants`, `/admin/customers`, `/admin/listings`, `/admin/moderation`, `/admin/finance`, `/admin/audit`, `/admin/settings`), real-time operational cards (Active Merchants, Pending Verifications, Suspended Stores, Active Bags, 24h GMV, Platform Commission, Open Complaints), quick-action links, and infrastructure health telemetry (`apps/web/src/app/(admin)/admin/page.tsx`, `apps/web/src/components/shells/AdminShell.tsx`).
+- [x] **CP-08.2 — Merchant Verification & Governance Console**: Built `/admin/merchants` with status filters (`ALL`, `PENDING`, `APPROVED`, `SUSPENDED`, `REJECTED`), live search by business name, license, or mobile, full merchant detail modal with guild permit inspection, per-merchant custom commission rate adjustment, and 1-click status overrides with mandatory reason recording (`/api/admin/merchants`, `/api/admin/merchants/[id]`). Implemented automated transaction protection: whenever a store is suspended or rejected, all its active published listings are atomically transitioned to `PAUSED`.
+- [x] **CP-08.3 — Customer Profile & Purchase History Inspector**: Built `/admin/customers` with live customer search, registration date, active status badges, total cumulative savings, order count, complaint history summary, and administrative account active status toggle (`/api/admin/customers`, `/api/admin/customers/[id]`).
+- [x] **CP-08.4 — Global Listing & Category Manager**: Built `/admin/listings` providing cross-merchant listing search, category filtering, price and stock inspection, food safety status pills, and category hierarchy manager (`/api/admin/categories`) with modal for creating new categories (slug, Persian title, icon URL) with duplicate slug conflict detection.
+- [x] **CP-08.5 — Dispute Resolution & Refund Console**: Connected centralized moderation workflow at `/admin/moderation` with customer complaint triage, photo evidence lightbox, safety classification override modal, and 1-click gateway refund triggering double-entry ledger reversals (`/api/admin/complaints/[id]/resolve`).
+- [x] **CP-08.6 — Commission Rule Engine & Settlement Exporter**: Built `/admin/finance` calculating aggregate platform GMV, platform commission cuts, customer refunds deducted, and net payable balances per merchant. Added 1-click Paya bank transfer CSV exporter (`لوقمه_تسویه_پایا_...csv`) generating formatted Sheba (شبا) transfer rows for Iranian banking portals (`/api/admin/finance/settlements`).
+- [x] **CP-08.7 — Audit Log Viewer & System Configuration**: Built `/admin/settings` providing platform maintenance mode toggle, emergency announcement banner editor, and active SMS provider switcher (`MOCK`, `KAVENEGAR`, `FARAZSMS`). Built `/admin/audit` rendering immutable event stream with actor, role, action, target entity, timestamp, and JSON diff viewer (`/api/admin/audit`, `/api/admin/settings`).
+- [x] **CP-08.8 — Admin Security & Verification Suite**: Authored 21 tests in `tests/m08-admin.test.ts` (21/21 passing) verifying Zod validation, strict RBAC gatekeeper (`requireAdminSession` returning 401 for unauthenticated and 403 for `CUSTOMER`/`MERCHANT_OWNER`/`MERCHANT_STAFF`), merchant verification state transitions, automatic listing pausing on suspension, customer deactivation, settlement mathematical accuracy, and tamper-proof audit logging.
+
+---
+
 ## 5. Important Technical Decisions
 
 1. **Multi-Client Monorepo (`apps/*` + `packages/*`)**: Standard npm workspaces without heavy tooling overhead; provides instant sharing of types, schemas, tokens, and API client.
@@ -184,6 +197,10 @@
 15. **Web Audio API Client-Side Synthesizer**: Implemented pure in-browser synthesized auditory feedback (C-major arpeggio chime and 180Hz buzzer) via Web Audio API oscillators, eliminating latency and external audio asset network dependencies.
 16. **Verified Buyer Review Boundary**: Reviews cannot be fabricated or submitted arbitrarily; only authenticated buyers of completed orders can submit a review, strictly once per order.
 17. **Multi-Tenant Scoped Domain Queries & RBAC**: Every merchant endpoint evaluates `resolveMerchantAndAuthorize` to ensure callers cannot inspect or mutate resources outside their assigned store. Cashiers are strictly restricted to pickup queue scanning, while financial records and staff invitations require Owner role.
+18. **Strict Admin Gatekeeper Protocol (`requireAdminSession`)**: All administrative routes and mutations enforce `session.role === 'ADMIN'`. Non-admin sessions (Customer, Cashier, Merchant Owner) are rejected with HTTP 403, and missing/corrupted sessions return HTTP 401.
+19. **Atomic Listing Pause on Merchant Suspension**: To preserve customer safety and marketplace integrity, suspending or rejecting a merchant executes an atomic transaction that simultaneously pauses all active `PUBLISHED` listings of that store, instantly removing them from public exploration and proximity search.
+20. **Protected Non-Negative Settlement Balances**: Settlement math dynamically applies merchant-specific commission tiers (`grossGmv * commissionPercent / 100`), deducts customer refunds, and enforces a zero floor (`Math.max(0, netPayable)`) to prevent negative payout liabilities.
+21. **Mandatory Administrative Audit Logging**: Every administrative mutation (approvals, suspensions, customer status overrides, commission adjustments, category creations, system settings) writes an immutable audit record containing actor ID, role (`ADMIN`), action type, entity type, entity ID, and JSON details.
 
 ---
 
@@ -206,10 +223,10 @@
 
 ## 8. Latest Validation Results
 
-* **Milestone M07 Test Suite**: 15/15 tests passing in `tests/m07-merchant.test.ts` (Zod schemas, fast listing creation, 1-tap pause/resume toggle, atomic stock adjustment, staff invitations, and financial settlement statement).
-* **Comprehensive Test Suite**: 49/49 unit and domain tests passing across `tests/m07-merchant.test.ts`, `tests/m06-trust-safety.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, and `tests/shared-packages.test.ts`.
+* **Milestone M08 Test Suite**: 21/21 tests passing in `tests/m08-admin.test.ts` (Zod schemas, admin RBAC gatekeeper, merchant approval and suspension, automatic listing pausing, customer account toggling, settlement math and Paya export, category creation, system settings, and audit trails).
+* **Comprehensive Test Suite**: 70/70 unit and domain tests passing across `tests/m08-admin.test.ts`, `tests/m07-merchant.test.ts`, `tests/m06-trust-safety.test.ts`, `tests/rbac.test.ts`, `tests/persian.test.ts`, `tests/session.test.ts`, and `tests/shared-packages.test.ts`.
 * **TypeScript Typecheck**: `npx tsc --noEmit` exited with code 0 (zero errors across all packages and apps).
 * **ESLint Validation**: `npm run lint` reported 0 errors.
-* **Production Build**: `npm run build` completed successfully (exit code 0, 36 routes compiled and optimized including `/merchant`, `/merchant/listings`, `/merchant/orders`, `/merchant/staff`, `/merchant/finance`, `/merchant/settings`, and all `/api/merchant/*` routes).
-* **Design System Conformance**: White + Teal (`#135E66`) tokens, Vazirmatn Persian typography, RTL layout (`dir="rtl"`), and production-quality UI across all merchant management pages.
+* **Production Build**: `npm run build` completed successfully (exit code 0, 45 routes compiled and optimized including `/admin`, `/admin/merchants`, `/admin/customers`, `/admin/listings`, `/admin/moderation`, `/admin/finance`, `/admin/audit`, `/admin/settings`, and all `/api/admin/*` routes).
+* **Design System Conformance**: White + Teal (`#135E66`) tokens, Vazirmatn Persian typography, RTL layout (`dir="rtl"`), and production-quality UI across all administrative operations pages.
 

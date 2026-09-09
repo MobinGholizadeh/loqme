@@ -926,3 +926,121 @@ export interface MerchantLedgerEntryDto {
   netAmountToman: number;
   createdAt: string;
 }
+
+// ==========================================
+// 11. Admin Platform Operations (Milestone M08)
+// ==========================================
+
+export interface AdminDashboardKpiDto {
+  activeMerchantsCount: number;
+  pendingMerchantsCount: number;
+  suspendedMerchantsCount: number;
+  activeListingsCount: number;
+  totalOrders24hCount: number;
+  gmv24hToman: number;
+  commission24hToman: number;
+  openComplaintsCount: number;
+  systemHealth: {
+    database: boolean;
+    auth: boolean;
+    rbac: boolean;
+  };
+}
+
+export interface AdminMerchantItemDto {
+  id: string;
+  businessNameFa: string;
+  businessType: string;
+  ownerMobile: string;
+  ownerFullName?: string | null;
+  licenseNumber: string | null;
+  commissionPercent: number;
+  verificationStatus: 'PENDING' | 'APPROVED' | 'SUSPENDED' | 'REJECTED';
+  ratingAverage: number;
+  ratingCount: number;
+  addressFa?: string;
+  cityNameFa?: string;
+  activeListingsCount: number;
+  totalOrdersCount: number;
+  createdAt: string;
+}
+
+export interface AdminUpdateMerchantDto {
+  verificationStatus?: 'PENDING' | 'APPROVED' | 'SUSPENDED' | 'REJECTED';
+  commissionPercent?: number;
+  reasonFa?: string;
+}
+
+export interface AdminCustomerItemDto {
+  id: string;
+  userId: string;
+  mobile: string;
+  fullName: string | null;
+  isActive: boolean;
+  cumulativeSavingsToman: number;
+  totalOrdersCount: number;
+  complaintsCount: number;
+  createdAt: string;
+}
+
+export interface AdminListingItemDto {
+  id: string;
+  merchantId: string;
+  merchantNameFa: string;
+  categoryId: string;
+  categoryNameFa?: string;
+  titleFa: string;
+  originalPriceToman: number;
+  discountedPriceToman: number;
+  quantity: number;
+  status: string;
+  safetyStatus: string;
+  pickupStart: string | null;
+  pickupEnd: string | null;
+  createdAt: string;
+}
+
+export interface AdminCategoryDto {
+  id: string;
+  slug: string;
+  nameFa: string;
+  iconUrl?: string | null;
+  parentId?: string | null;
+  listingsCount: number;
+  createdAt: string;
+}
+
+export interface CreateCategoryInputDto {
+  slug: string;
+  nameFa: string;
+  iconUrl?: string;
+  parentId?: string;
+}
+
+export interface MerchantSettlementSheetDto {
+  merchantId: string;
+  businessNameFa: string;
+  commissionPercent: number;
+  grossGmvToman: number;
+  commissionCutToman: number;
+  refundsDeductedToman: number;
+  netPayableToman: number;
+  shabaNumber: string;
+  ordersCount: number;
+}
+
+export interface AdminSettlementReportDto {
+  generatedAt: string;
+  totalGmvToman: number;
+  totalPlatformCommissionToman: number;
+  totalRefundsToman: number;
+  totalNetPayableToman: number;
+  merchants: MerchantSettlementSheetDto[];
+}
+
+export interface SystemSettingsDto {
+  maintenanceMode: boolean;
+  announcementBannerFa: string;
+  activeSmsProvider: 'MOCK' | 'KAVENEGAR' | 'FARAZSMS';
+}
+

@@ -2,8 +2,8 @@
 
 > **Milestone**: M08  
 > **Title**: Admin Platform  
-> **Status**: `Pending`  
-> **Target Completion**: 0%
+> **Status**: `Completed`  
+> **Target Completion**: 100%
 
 ---
 
@@ -109,24 +109,24 @@ To maintain trust, legal compliance, and quality control at scale, marketplace a
 
 # Acceptance Criteria
 
-1. [ ] Non-admin users are strictly blocked from `/admin/*`.
-2. [ ] Admin can inspect pending merchants and approve or suspend them.
-3. [ ] Admin can review customer complaints and authorize immediate refunds.
-4. [ ] Admin can modify commission rates globally or per merchant.
-5. [ ] Every admin action is recorded with full diff in `AuditLog`.
+1. [x] Non-admin users are strictly blocked from `/admin/*`.
+2. [x] Admin can inspect pending merchants and approve or suspend them.
+3. [x] Admin can review customer complaints and authorize immediate refunds.
+4. [x] Admin can modify commission rates globally or per merchant.
+5. [x] Every admin action is recorded with full diff in `AuditLog`.
 
 ---
 
 # Checkpoints
 
-- [ ] **CP-08.1**: Build Admin layout shell, navigation, and core KPI dashboard.
-- [ ] **CP-08.2**: Build Merchant Verification and Management console.
-- [ ] **CP-08.3**: Build Customer Profile and Order History inspector.
-- [ ] **CP-08.4**: Build Global Listing and Category Manager.
-- [ ] **CP-08.5**: Build Dispute Resolution and Refund Console.
-- [ ] **CP-08.6**: Build Commission Rule engine and settlement exporter.
-- [ ] **CP-08.7**: Build Audit Log viewer and system configuration view.
-- [ ] **CP-08.8**: Run admin security tests and verification workflows.
+- [x] **CP-08.1**: Build Admin layout shell, navigation, and core KPI dashboard.
+- [x] **CP-08.2**: Build Merchant Verification and Management console.
+- [x] **CP-08.3**: Build Customer Profile and Order History inspector.
+- [x] **CP-08.4**: Build Global Listing and Category Manager.
+- [x] **CP-08.5**: Build Dispute Resolution and Refund Console.
+- [x] **CP-08.6**: Build Commission Rule engine and settlement exporter.
+- [x] **CP-08.7**: Build Audit Log viewer and system configuration view.
+- [x] **CP-08.8**: Run admin security tests and verification workflows.
 
 ---
 
