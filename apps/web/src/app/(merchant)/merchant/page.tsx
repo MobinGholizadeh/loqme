@@ -31,26 +31,26 @@ export default function MerchantDashboardPage() {
 
   useEffect(() => {
     fetchStats();
-    // Auto-refresh every 30 seconds
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, [fetchStats]);
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 max-w-6xl mx-auto pb-16 px-4">
+      {/* Stitch Design Board: Seller & Store Portal Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black text-loqme-neutral-900">داشبورد فروشگاه</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-primary">پنل فروشندگان و اصناف لقمه</h1>
             {stats && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                ● زنده
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-secondary-container text-on-secondary-container">
+                <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+                <span>داشبورد زنده</span>
               </span>
             )}
           </div>
-          <p className="text-xs text-loqme-neutral-500 mt-1">
-            وضعیت موجودی مازاد، سفارش‌های امروز، صف تحویل و درآمد خالص
+          <p className="text-xs text-on-surface-variant mt-1">
+            پایش موجودی مازاد روزانه، صف تحویل حضوری، بازه زمانی تحویل و تسویه حساب مالی
           </p>
         </div>
 
@@ -58,24 +58,26 @@ export default function MerchantDashboardPage() {
           <Button
             size="md"
             variant="primary"
-            className="gap-2 shadow-sm font-bold"
+            rounded="pill"
+            className="gap-2 shadow-sm font-bold bg-primary hover:bg-primary-container text-white text-xs px-4"
             onClick={() => setIsFastListingOpen(true)}
           >
-            <span>⚡</span>
-            <span>+ ثبت سریع بسته (زیر ۶۰ ثانیه)</span>
+            <span className="material-symbols-outlined text-[18px]">add_circle</span>
+            <span>+ ثبت سریع لقمه (زیر ۶۰ ثانیه)</span>
           </Button>
 
           <Button
             size="md"
             variant="outline"
-            className="gap-1.5"
+            rounded="pill"
+            className="border-outline-variant text-on-surface hover:bg-surface-container"
             onClick={() => {
               setIsLoading(true);
               fetchStats();
             }}
             title="بروزرسانی داده‌ها"
           >
-            <span>🔄</span>
+            <span className="material-symbols-outlined text-[18px]">refresh</span>
           </Button>
         </div>
       </div>
@@ -83,123 +85,139 @@ export default function MerchantDashboardPage() {
       {isLoading && !stats ? (
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
-          <p className="text-xs text-loqme-neutral-500">در حال دریافت وضعیت فروشگاه...</p>
+          <p className="text-xs text-on-surface-variant">در حال دریافت وضعیت فروشگاه...</p>
         </div>
       ) : (
         <>
-          {/* Active Pickup Window Alert */}
+          {/* Active Pickup Window Alert matching Stitch Portal Banner */}
           {stats?.nextPickupWindow && (
-            <Card variant="elevated" className="bg-loqme-primary-50 border-2 border-loqme-primary-300 p-5 shadow-xs">
+            <div className="rounded-3xl bg-surface-container-low border-2 border-primary-container p-5 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="brand" size="md">
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary-container text-on-primary">
                       بازه تحویل حضوری امروز
-                    </Badge>
+                    </span>
                     {stats.nextPickupWindow.startsInMinutes > 0 && (
-                      <span className="text-xs font-bold text-loqme-primary-800 bg-white px-2 py-0.5 rounded-md border border-loqme-primary-200">
+                      <span className="text-xs font-bold text-primary bg-surface-container-lowest px-2.5 py-0.5 rounded-full border border-outline-variant/30">
                         شروع در {toPersianDigits(stats.nextPickupWindow.startsInMinutes)} دقیقه دیگر
                       </span>
                     )}
                   </div>
-                  <h3 className="font-black text-base text-loqme-primary-950">
+                  <h3 className="font-black text-base text-primary">
                     {stats.nextPickupWindow.labelFa}
                   </h3>
-                  <p className="text-xs text-loqme-neutral-600">
-                    لطفاً بسته‌های رزرو شده را از قبل تفکیک کنید تا هنگام مراجعه مشتریان، تحویل با اسکن
-                    سریع QR یا کد ۴ رقمی بدون معطلی انجام شود.
+                  <p className="text-xs text-on-surface-variant">
+                    لطفاً بسته‌های رزروشده را تفکیک فرمایید تا تحویل با اسکن سریع QR بارکد یا کد ۴ رقمی اختصاصی مشتریان در کمترین زمان انجام گیرد.
                   </p>
                 </div>
 
                 <Link href="/merchant/orders">
-                  <Button size="md" variant="primary" className="w-full sm:w-auto shadow-xs whitespace-nowrap">
+                  <Button size="md" variant="primary" rounded="pill" className="w-full sm:w-auto bg-primary hover:bg-primary-container text-white shadow-xs whitespace-nowrap text-xs font-bold">
                     مشاهده صف تحویل ({toPersianDigits(stats.pendingPickupsCount)})
                   </Button>
                 </Link>
               </div>
-            </Card>
+            </div>
           )}
 
-          {/* Primary KPI Cards Grid */}
+          {/* Primary KPI Cards Grid matching Stitch Metric Architecture */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">بسته‌های فعال امروز</span>
-              <div className="text-2xl font-black text-loqme-primary-600 mt-2">
-                {toPersianDigits(stats?.activeListingsCount ?? 0)} عدد
+            <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-on-surface-variant font-medium">بسته‌های فعال امروز</span>
+                <span className="material-symbols-outlined text-[20px] text-primary">inventory_2</span>
               </div>
-              <span className="text-[11px] text-loqme-success-600 mt-1 block">
-                {toPersianDigits(stats?.reservedBagsCount ?? 0)} عدد رزرو شده توسط مشتریان
+              <div className="text-2xl font-black text-primary">
+                {toPersianDigits(stats?.activeListingsCount ?? 0)} بسته
+              </div>
+              <span className="text-[11px] text-secondary font-bold block">
+                {toPersianDigits(stats?.reservedBagsCount ?? 0)} عدد رزرو قطعی
               </span>
-            </Card>
+            </div>
 
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">فروش قطعی امروز</span>
-              <div className="text-2xl font-black text-loqme-neutral-900 mt-2">
+            <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-on-surface-variant font-medium">فروش ناخالص امروز</span>
+                <span className="material-symbols-outlined text-[20px] text-primary">point_of_sale</span>
+              </div>
+              <div className="text-2xl font-black text-on-surface">
                 {formatToman(stats?.grossRevenueTodayToman ?? 0)}
               </div>
-              <span className="text-[11px] text-loqme-neutral-500 mt-1 block">
-                {toPersianDigits(stats?.soldTodayCount ?? 0)} بسته تحویل شده / فروخته شده
+              <span className="text-[11px] text-on-surface-variant block">
+                {toPersianDigits(stats?.soldTodayCount ?? 0)} بسته تحویل شده
               </span>
-            </Card>
+            </div>
 
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">تسویه خالص امروز (۹۰٪)</span>
-              <div className="text-2xl font-black text-emerald-700 mt-2">
+            <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-on-surface-variant font-medium">تسویه خالص فروشگاه (۹۰٪)</span>
+                <span className="material-symbols-outlined text-[20px] text-secondary">payments</span>
+              </div>
+              <div className="text-2xl font-black text-secondary">
                 {formatToman(stats?.netPayoutTodayToman ?? 0)}
               </div>
-              <span className="text-[11px] text-loqme-neutral-500 mt-1 block">
-                پس از کسر کارمزد ۱۰٪ لقمه
+              <span className="text-[11px] text-outline block">
+                پس از کسر ۱۰٪ کارمزد پلتفرم
               </span>
-            </Card>
+            </div>
 
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">امتیاز و رضایت مشتریان</span>
-              <div className="text-2xl font-black text-amber-500 mt-2 flex items-center gap-1.5">
-                <span>⭐</span>
+            <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-on-surface-variant font-medium">رضایت مشتریان</span>
+                <span className="material-symbols-outlined text-[20px] text-amber-500">star</span>
+              </div>
+              <div className="text-2xl font-black text-amber-500 flex items-center gap-1">
                 <span>{toPersianDigits(stats?.ratingAverage?.toFixed(2) ?? '۵.۰۰')}</span>
               </div>
-              <span className="text-[11px] text-loqme-neutral-500 mt-1 block">
-                بر اساس {toPersianDigits(stats?.ratingCount ?? 0)} نظر ثبت شده
+              <span className="text-[11px] text-outline block">
+                بر اساس {toPersianDigits(stats?.ratingCount ?? 0)} نظر ثبت‌شده
               </span>
-            </Card>
+            </div>
           </div>
 
           {/* Quick Navigation Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             <Link href="/merchant/listings" className="group">
-              <Card variant="elevated" className="p-5 bg-white border border-loqme-neutral-200 group-hover:border-loqme-primary-400 transition-all">
-                <div className="text-2xl mb-2">📦</div>
-                <h3 className="font-bold text-sm text-loqme-neutral-900 group-hover:text-loqme-primary-700">
+              <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 group-hover:border-primary/50 transition-all shadow-xs space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-primary-fixed text-on-primary-fixed flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[22px]">inventory_2</span>
+                </div>
+                <h3 className="font-bold text-sm text-on-surface group-hover:text-primary">
                   مدیریت بسته‌های مازاد
                 </h3>
-                <p className="text-xs text-loqme-neutral-500 mt-1">
-                  توقف موقت (Pause)، افزودن یا کاهش موجودی، و مشاهده وضعیت لحظه‌ای بسته‌ها.
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  توقف موقت فروش، افزایش یا کاهش موجودی، و بررسی وضعیت بسته‌های فعال.
                 </p>
-              </Card>
+              </div>
             </Link>
 
             <Link href="/merchant/orders" className="group">
-              <Card variant="elevated" className="p-5 bg-white border border-loqme-neutral-200 group-hover:border-loqme-primary-400 transition-all">
-                <div className="text-2xl mb-2">🛍️</div>
-                <h3 className="font-bold text-sm text-loqme-neutral-900 group-hover:text-loqme-primary-700">
+              <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 group-hover:border-primary/50 transition-all shadow-xs space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-secondary-container text-on-secondary-container flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[22px]">qr_code_scanner</span>
+                </div>
+                <h3 className="font-bold text-sm text-on-surface group-hover:text-primary">
                   صف تحویل حضوری و اسکن
                 </h3>
-                <p className="text-xs text-loqme-neutral-500 mt-1">
-                  اسکن بارکد QR خریدار با دوربین یا ثبت کد ۴ رقمی جهت تایید آنی سفارش.
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  اسکن بارکد QR خریداران یا وارد کردن کد ۴ رقمی جهت تایید آنی تحویل.
                 </p>
-              </Card>
+              </div>
             </Link>
 
             <Link href="/merchant/finance" className="group">
-              <Card variant="elevated" className="p-5 bg-white border border-loqme-neutral-200 group-hover:border-loqme-primary-400 transition-all">
-                <div className="text-2xl mb-2">💰</div>
-                <h3 className="font-bold text-sm text-loqme-neutral-900 group-hover:text-loqme-primary-700">
-                  صورت‌حساب مالی و تسویه
+              <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 group-hover:border-primary/50 transition-all shadow-xs space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[22px]">account_balance</span>
+                </div>
+                <h3 className="font-bold text-sm text-on-surface group-hover:text-primary">
+                  صورت‌حساب و دفاتر مالی
                 </h3>
-                <p className="text-xs text-loqme-neutral-500 mt-1">
-                  ریز تراکنش‌های دفاتر کل، محاسبه دقیق ۱۰٪ کارمزد و مانده قابل تسویه حساب.
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  ریز تراکنش‌های بانکی، ثبت شماره شبا و درخواست تسویه حساب پایا.
                 </p>
-              </Card>
+              </div>
             </Link>
           </div>
         </>

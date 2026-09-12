@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { CustomerPickupCredentialsDto } from '@loqme/types';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { toPersianDigits, formatToman } from '@/lib/utils/persian';
+import { toPersianDigits } from '@/lib/utils/persian';
 
 interface CustomerPickupPassModalProps {
   orderId: string;
@@ -64,7 +63,6 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
     const timer = setInterval(() => {
       setSecondsRemaining((prev) => {
         if (prev <= 1) {
-          // Token expired, silently fetch fresh dynamic token
           fetchCredentials(true);
           return 60;
         }
@@ -103,26 +101,26 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
     >
       <div
         className={`relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 ${
-          highContrast ? 'bg-white text-black ring-8 ring-white' : 'bg-white text-loqme-neutral-900'
+          highContrast ? 'bg-white text-black ring-8 ring-white' : 'bg-surface text-on-surface'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 px-6 border-b border-loqme-neutral-100 bg-loqme-neutral-50/70">
+        <div className="flex items-center justify-between p-4 px-6 border-b border-outline-variant/30 bg-surface-container-low">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🎟️</span>
+            <span className="material-symbols-outlined text-[22px] text-secondary">confirmation_number</span>
             <div>
-              <h2 className="font-black text-sm text-loqme-neutral-900">کارت تحویل حضوری لقمه</h2>
-              <span className="text-[11px] text-loqme-neutral-500 font-mono">
+              <h2 className="font-black text-sm text-primary">ووچر دریافت حضوری لقمه</h2>
+              <span className="text-[11px] text-outline font-mono">
                 {credentials?.orderNumber || '...'}
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-400 hover:text-loqme-neutral-700 hover:bg-loqme-neutral-100 transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
             aria-label="بستن"
           >
-            ✕
+            <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
 
@@ -131,41 +129,41 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
           {isLoading ? (
             <div className="py-16 text-center space-y-3">
               <Spinner size="lg" variant="primary" className="mx-auto" />
-              <p className="text-xs text-loqme-neutral-500">در حال تولید بارکد امن و دریافت اطلاعات...</p>
+              <p className="text-xs text-on-surface-variant">در حال تولید بارکد امن و دریافت اطلاعات...</p>
             </div>
           ) : errorMsg ? (
             <div className="py-10 text-center space-y-3">
-              <div className="text-3xl">⚠️</div>
-              <p className="text-sm text-loqme-danger-600 font-bold">{errorMsg}</p>
+              <span className="material-symbols-outlined text-[36px] text-error">warning</span>
+              <p className="text-sm text-error font-bold">{errorMsg}</p>
               <Button size="sm" variant="secondary" onClick={() => fetchCredentials()}>
                 تلاش مجدد
               </Button>
             </div>
           ) : credentials?.isVerified ? (
-            /* Warm celebration view upon completed handoff */
-            <div className="py-8 text-center space-y-4 animate-scale-up">
-              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-4xl mx-auto shadow-md">
-                ✓
+            /* Celebration view */
+            <div className="py-8 text-center space-y-4">
+              <div className="w-20 h-20 bg-secondary-container text-on-secondary-container rounded-full flex items-center justify-center text-4xl mx-auto shadow-md">
+                <span className="material-symbols-outlined text-[40px] text-secondary">check</span>
               </div>
               <div className="space-y-1.5">
-                <Badge variant="success" size="md">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-secondary-container text-on-secondary-container">
                   تحویل با موفقیت تایید شد
-                </Badge>
-                <h3 className="text-2xl font-black text-loqme-neutral-900 pt-2">
+                </span>
+                <h3 className="text-2xl font-black text-primary pt-2">
                   نوش جان!
                 </h3>
-                <p className="text-xs text-loqme-neutral-600 leading-relaxed max-w-xs mx-auto">
-                  امیدواریم از لقمه‌تان لذت ببرید. از همراهی شما در کاهش هدررفت و حمایت از کسب‌وکارهای محلی سپاسگزاریم.
+                <p className="text-xs text-on-surface-variant leading-relaxed max-w-xs mx-auto">
+                  امیدواریم از لقمه‌تان نهایت لذت را ببرید. از همراهی شما در کاهش هدررفت و نجات غذا سپاسگزاریم.
                 </p>
               </div>
 
               {credentials.verifiedAt && (
-                <div className="p-3 rounded-2xl bg-loqme-neutral-50 border border-loqme-neutral-100 text-xs text-loqme-neutral-500">
+                <div className="p-3 rounded-2xl bg-surface-container-low border border-outline-variant/30 text-xs text-outline">
                   زمان ثبت تحویل: {new Date(credentials.verifiedAt).toLocaleTimeString('fa-IR')}
                 </div>
               )}
 
-              <Button variant="primary" size="md" className="w-full mt-4" onClick={onClose}>
+              <Button variant="primary" size="md" rounded="pill" className="w-full mt-4 bg-primary hover:bg-primary-container text-white" onClick={onClose}>
                 متشکرم
               </Button>
             </div>
@@ -173,21 +171,21 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
             /* Active Pickup Pass */
             <>
               {/* High Brightness helper toggle */}
-              <div className="flex items-center justify-between p-2.5 rounded-2xl bg-loqme-primary-50 border border-loqme-primary-200 text-xs">
-                <span className="text-loqme-primary-900 font-medium">
+              <div className="flex items-center justify-between p-2.5 rounded-2xl bg-surface-container-low border border-outline-variant/30 text-xs">
+                <span className="text-on-surface font-medium">
                   نور صفحه را برای اسکن سریع‌تر افزایش دهید
                 </span>
                 <button
                   onClick={() => setHighContrast(!highContrast)}
-                  className="px-2.5 py-1 rounded-xl bg-loqme-primary-600 text-white text-[11px] font-bold hover:bg-loqme-primary-700 transition-colors shadow-xs"
+                  className="px-3 py-1 rounded-xl bg-primary text-white text-[11px] font-bold hover:bg-primary-container transition-colors shadow-xs"
                 >
                   {highContrast ? 'حالت عادی' : '☀️ نور حداکثر'}
                 </button>
               </div>
 
-              {/* Dynamic QR Code Display */}
+              {/* Dynamic QR Code Display with Stitch Corners */}
               <div className="text-center space-y-3">
-                <div className="relative mx-auto w-56 h-56 p-2 bg-white rounded-3xl border-2 border-loqme-primary-500 shadow-card flex items-center justify-center">
+                <div className="relative mx-auto w-56 h-56 p-3 bg-white rounded-3xl border-2 border-primary-container shadow-md flex items-center justify-center">
                   {credentials?.qrDataUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -199,22 +197,22 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
                     <Spinner size="md" variant="primary" />
                   )}
 
-                  {/* Corner brackets overlay */}
-                  <div className="absolute top-1 right-1 w-4 h-4 border-t-2 border-r-2 border-loqme-primary-600 rounded-tr-lg pointer-events-none" />
-                  <div className="absolute top-1 left-1 w-4 h-4 border-t-2 border-l-2 border-loqme-primary-600 rounded-tl-lg pointer-events-none" />
-                  <div className="absolute bottom-1 right-1 w-4 h-4 border-b-2 border-r-2 border-loqme-primary-600 rounded-br-lg pointer-events-none" />
-                  <div className="absolute bottom-1 left-1 w-4 h-4 border-b-2 border-l-2 border-loqme-primary-600 rounded-bl-lg pointer-events-none" />
+                  {/* Corner accents */}
+                  <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-primary rounded-tr-lg pointer-events-none" />
+                  <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-primary rounded-tl-lg pointer-events-none" />
+                  <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-primary rounded-br-lg pointer-events-none" />
+                  <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-primary rounded-bl-lg pointer-events-none" />
                 </div>
 
                 {/* 60-Second Auto-refresh indicator */}
-                <div className="flex items-center justify-center gap-2 text-xs text-loqme-neutral-500">
+                <div className="flex items-center justify-center gap-2 text-xs text-on-surface-variant">
                   <div className="relative w-4 h-4 flex items-center justify-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-loqme-primary-500 animate-ping absolute" />
-                    <span className="w-2 h-2 rounded-full bg-loqme-primary-600 relative" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-secondary animate-ping absolute" />
+                    <span className="w-2 h-2 rounded-full bg-secondary relative" />
                   </div>
                   <span>
-                    بارکد امن پویا • بروزرسانی خودکار در{' '}
-                    <span className="font-mono font-bold text-loqme-primary-800">
+                    بارکد امن پویا • انقضا و تازه‌سازی در{' '}
+                    <span className="font-mono font-bold text-primary">
                       {toPersianDigits(secondsRemaining)}
                     </span>{' '}
                     ثانیه
@@ -223,46 +221,46 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
               </div>
 
               {/* Backup 4-Digit OTP Display */}
-              <div className="p-4 rounded-2xl bg-loqme-neutral-50 border border-loqme-neutral-200 text-center space-y-2">
-                <span className="text-[11px] text-loqme-neutral-500 block">
+              <div className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30 text-center space-y-2">
+                <span className="text-[11px] text-on-surface-variant block">
                   کد ۴ رقمی جایگزین (در صورت عدم اسکن بارکد):
                 </span>
                 <div className="flex items-center justify-center gap-3">
-                  <span className="font-mono font-black text-3xl tracking-widest text-loqme-primary-800 bg-white px-5 py-2 rounded-2xl border-2 border-loqme-primary-300 shadow-xs">
+                  <span className="font-mono font-black text-3xl tracking-widest text-primary bg-white px-5 py-2 rounded-2xl border-2 border-primary-container shadow-xs">
                     {credentials?.otpCodePersian || '----'}
                   </span>
                   <button
                     onClick={copyToClipboard}
-                    className="p-2.5 rounded-xl border border-loqme-neutral-200 bg-white text-xs text-loqme-neutral-600 hover:text-loqme-primary-700 hover:border-loqme-primary-300 transition-colors"
+                    className="p-2.5 rounded-xl border border-outline-variant/40 bg-white text-xs text-on-surface hover:text-primary hover:border-primary transition-colors"
                     title="کپی کد"
                   >
-                    {copiedOtp ? '✓ کپی شد' : '📋 کپی'}
+                    {copiedOtp ? '✓ کپی شد' : 'کپی'}
                   </button>
                 </div>
-                <p className="text-[11px] text-loqme-neutral-400">
-                  این کد را هنگام مراجعه حضوری به فروشنده اعلام نمایید.
+                <p className="text-[11px] text-outline">
+                  این کد را هنگام مراجعه حضوری به متصدی فروشگاه اعلام فرمایید.
                 </p>
               </div>
 
               {/* Order & Store Details */}
-              <div className="space-y-2.5 text-xs text-loqme-neutral-700 pt-1">
-                <div className="p-3 rounded-2xl bg-loqme-neutral-50 border border-loqme-neutral-100 space-y-1.5">
-                  <div className="flex items-center justify-between font-bold text-loqme-neutral-900">
+              <div className="space-y-2.5 text-xs text-on-surface pt-1">
+                <div className="p-3 rounded-2xl bg-surface-container-low border border-outline-variant/30 space-y-1.5">
+                  <div className="flex items-center justify-between font-bold text-on-surface">
                     <span>{credentials?.merchant.businessNameFa}</span>
-                    <span className="text-loqme-primary-700">
+                    <span className="text-primary font-black">
                       {toPersianDigits(credentials?.quantity || 1)} × {credentials?.listingTitleFa}
                     </span>
                   </div>
 
                   {credentials?.merchant.addressFa && (
-                    <p className="text-[11px] text-loqme-neutral-500">
+                    <p className="text-[11px] text-on-surface-variant">
                       📍 {credentials.merchant.addressFa}
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between text-[11px] pt-1 text-loqme-neutral-500 border-t border-loqme-neutral-100">
+                  <div className="flex items-center justify-between text-[11px] pt-1 text-outline border-t border-outline-variant/20">
                     <span>بازه تحویل امروز:</span>
-                    <span className="font-bold text-loqme-neutral-800">
+                    <span className="font-bold text-on-surface">
                       {credentials?.pickupWindowFa}
                     </span>
                   </div>
@@ -277,8 +275,8 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
                       rel="noopener noreferrer"
                       className="flex-1"
                     >
-                      <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-                        <span>🗺️</span>
+                      <Button variant="outline" size="sm" rounded="pill" className="w-full gap-1.5 text-xs border-outline-variant text-on-surface">
+                        <span className="material-symbols-outlined text-[16px]">navigation</span>
                         <span>مسیریابی نقشه</span>
                       </Button>
                     </a>
@@ -286,8 +284,8 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
 
                   {credentials?.merchant.phone && (
                     <a href={`tel:${credentials.merchant.phone}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-                        <span>📞</span>
+                      <Button variant="outline" size="sm" rounded="pill" className="w-full gap-1.5 text-xs border-outline-variant text-on-surface">
+                        <span className="material-symbols-outlined text-[16px]">call</span>
                         <span>تماس با فروشگاه</span>
                       </Button>
                     </a>

@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { Select } from '@/components/ui/Select';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -21,7 +21,7 @@ const MarketplaceMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-[480px] md:h-[580px] rounded-3xl bg-loqme-neutral-100 flex flex-col items-center justify-center gap-3 text-loqme-neutral-500">
+      <div className="w-full h-[480px] md:h-[580px] rounded-3xl bg-surface-container-low flex flex-col items-center justify-center gap-3 text-on-surface-variant">
         <Spinner size="lg" />
         <span className="text-xs font-medium">در حال بارگذاری نقشه محله...</span>
       </div>
@@ -56,13 +56,13 @@ const NEIGHBORHOODS: NeighborhoodOption[] = [
 ];
 
 const CATEGORIES = [
-  { slug: 'all', nameFa: 'همه دسته‌ها', icon: '✨' },
-  { slug: 'bakery', nameFa: 'نان و شیرینی', icon: '🍞' },
-  { slug: 'cafe', nameFa: 'کافه و دسر', icon: '☕' },
-  { slug: 'restaurant', nameFa: 'غذا و رستوران', icon: '🍲' },
-  { slug: 'supermarket', nameFa: 'سوپرمارکت', icon: '🛒' },
-  { slug: 'produce', nameFa: 'میوه و تره‌بار', icon: '🥦' },
-  { slug: 'deli', nameFa: 'پروتئین و دلی', icon: '🥩' },
+  { slug: 'all', nameFa: 'همه دسته‌ها', icon: 'apps' },
+  { slug: 'bakery', nameFa: 'نان و شیرینی', icon: 'bakery_dining' },
+  { slug: 'cafe', nameFa: 'کافه و دسر', icon: 'coffee' },
+  { slug: 'restaurant', nameFa: 'غذا و رستوران', icon: 'restaurant' },
+  { slug: 'supermarket', nameFa: 'سوپرمارکت', icon: 'storefront' },
+  { slug: 'produce', nameFa: 'میوه و تره‌بار', icon: 'nutrition' },
+  { slug: 'deli', nameFa: 'پروتئین و دلی', icon: 'lunch_dining' },
 ];
 
 export default function ExplorePage() {
@@ -73,6 +73,7 @@ export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState<boolean>(false);
+  const [radiusKm, setRadiusKm] = useState<number>(5);
   const [filters, setFilters] = useState<FilterState>({
     radiusMeters: 5000,
     businessType: undefined,
@@ -98,7 +99,6 @@ export default function ExplorePage() {
 
     try {
       if (debouncedSearch) {
-        // Use debounced search route
         const params = new URLSearchParams({
           q: debouncedSearch,
           limit: '40',
@@ -111,11 +111,10 @@ export default function ExplorePage() {
           setErrorMsg(json.message || 'خطا در بارگذاری نتایج جستجو');
         }
       } else {
-        // Use proximity radius route
         const params = new URLSearchParams({
           latitude: selectedNeighborhood.lat.toString(),
           longitude: selectedNeighborhood.lng.toString(),
-          radiusMeters: filters.radiusMeters.toString(),
+          radiusMeters: (radiusKm * 1000).toString(),
           limit: '40',
         });
 
@@ -137,7 +136,7 @@ export default function ExplorePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedNeighborhood, debouncedSearch, filters]);
+  }, [selectedNeighborhood, debouncedSearch, filters, radiusKm]);
 
   useEffect(() => {
     fetchListings();
@@ -182,7 +181,7 @@ export default function ExplorePage() {
           addressFa: item.addressFa || '',
           activeListingCount: 1,
           minPriceToman: item.discountedPriceToman,
-          ratingAverage: 4.9, // Default fallback
+          ratingAverage: 4.9,
         });
       }
     });
@@ -190,104 +189,139 @@ export default function ExplorePage() {
     return Array.from(map.values());
   }, [listings]);
 
-  // Active filter count
   const activeFilterCount = (filters.businessType ? 1 : 0) + filters.dietaryTags.length;
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Dynamic Warm Brand Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-loqme-primary-700 via-loqme-primary-800 to-loqme-primary-900 text-white p-6 md:p-8 shadow-card">
-        <div className="relative z-10 max-w-2xl space-y-2">
-          <Badge variant="brand" size="sm" className="bg-white/20 text-white border-none backdrop-blur-md">
-            ✨ کشف هوشمندانه محله
-          </Badge>
-          <h1 className="text-xl md:text-3xl font-extrabold leading-tight">
-            امروز چه طعم تازه‌ای در محله شما منتظر کشف است؟
-          </h1>
-          <p className="text-xs md:text-sm text-loqme-primary-100/90 leading-relaxed pt-1">
-            خوراکی‌ها و بسته‌های شگفت‌انگیز نان، شیرینی و کافه‌های معتبر شهر با ۵۰٪ تا ۷۰٪ تخفیف واقعی
-          </p>
+      {/* Stitch Design Board: Top Hero & Discovery Controller */}
+      <section className="relative w-full overflow-hidden bg-surface-container-lowest rounded-3xl border border-outline-variant/30 shadow-sm">
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-l from-primary-fixed/20 via-transparent to-secondary-fixed/20 opacity-70" />
+        <div className="px-5 py-8 md:p-10 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            {/* Hero Text & Location Pill */}
+            <div className="lg:col-span-7 flex flex-col gap-4">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container w-fit">
+                <span className="material-symbols-outlined text-[18px]">eco</span>
+                <span className="text-xs font-bold">جنبش سراسری مبارزه با اسراف غذا</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-primary tracking-tight leading-tight">
+                غذای باکیفیت و تازه را با{' '}
+                <span className="text-tertiary underline decoration-secondary decoration-wavy decoration-2 underline-offset-8">
+                  یک‌سوم قیمت
+                </span>{' '}
+                نجات دهید!
+              </h1>
+              <p className="text-xs sm:text-sm text-on-surface-variant max-w-2xl leading-relaxed">
+                روزانه صدها نانوایی، شیرینی‌فروشی، رستوران و کافه در ارومیه و تهران بسته‌های شگفت‌انگیز غذای تازه و دست‌نخورده خود را با ۵۰٪ تا ۷۰٪ تخفیف عرضه می‌کنند.
+              </p>
+
+              {/* Interactive Search & Geo Filter */}
+              <div className="mt-2 bg-surface-container-low p-2 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center gap-2 border border-outline-variant/40">
+                <div className="flex items-center gap-2 flex-1 px-3 py-1.5 w-full">
+                  <span className="material-symbols-outlined text-secondary text-[22px]">location_on</span>
+                  <div className="flex flex-col flex-1">
+                    <span className="text-[11px] text-on-surface-variant">موقعیت محله</span>
+                    <select
+                      value={selectedNeighborhood.slug}
+                      onChange={(e) => {
+                        const found = NEIGHBORHOODS.find((n) => n.slug === e.target.value);
+                        if (found) setSelectedNeighborhood(found);
+                      }}
+                      className="bg-transparent text-xs sm:text-sm font-bold text-on-surface outline-none cursor-pointer"
+                    >
+                      <optgroup label="شهر ارومیه (فاز ۱ - لانچ)">
+                        {NEIGHBORHOODS.filter((n) => n.city === 'urmia').map((n) => (
+                          <option key={n.slug} value={n.slug}>
+                            ارومیه — {n.nameFa}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="شهر تهران (فاز ۲ - توسعه)">
+                        {NEIGHBORHOODS.filter((n) => n.city === 'tehran').map((n) => (
+                          <option key={n.slug} value={n.slug}>
+                            تهران — {n.nameFa}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="h-8 w-px bg-outline-variant/50 hidden sm:block" />
+
+                <div className="flex items-center gap-2 px-3 py-1.5 w-full sm:w-auto">
+                  <span className="material-symbols-outlined text-outline text-[20px]">radar</span>
+                  <select
+                    value={radiusKm}
+                    onChange={(e) => setRadiusKm(Number(e.target.value))}
+                    className="bg-transparent text-xs font-bold text-on-surface outline-none cursor-pointer"
+                  >
+                    <option value={3}>تا شعاع ۳ ک‌م</option>
+                    <option value={5}>تا شعاع ۵ ک‌م</option>
+                    <option value={10}>تا شعاع ۱۰ ک‌م</option>
+                    <option value={25}>تا شعاع ۲۵ ک‌م</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={() => setViewMode(viewMode === 'feed' ? 'map' : 'feed')}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-primary text-on-primary text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-primary-container transition-all shadow-sm active:scale-95 shrink-0"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {viewMode === 'feed' ? 'map' : 'view_list'}
+                  </span>
+                  <span>{viewMode === 'feed' ? 'مشاهده نقشه زنده' : 'مشاهده لیست'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Hero Impact Teaser Graphic */}
+            <div className="lg:col-span-5 relative flex justify-center">
+              <div className="relative w-full max-w-md aspect-[16/10] sm:aspect-square rounded-2xl overflow-hidden bg-surface-container shadow-md border border-outline-variant/30">
+                <Image
+                  src="/hero-banner.jpg"
+                  alt="Loqme Persian Food Rescue"
+                  fill
+                  priority
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/30 to-transparent flex flex-col justify-end p-5 text-on-primary">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-secondary-fixed animate-ping" />
+                      <span className="text-xs font-bold text-secondary-fixed">
+                        بیش از {toPersianDigits(listings.length || 18)} بسته در دسترس
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold bg-surface/20 backdrop-blur-md px-2.5 py-1 rounded-full text-white">
+                      میانگین ذخیره: ٪۶۵
+                    </span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold mt-1 text-on-primary">بسته‌های شگفت‌انگیز محله شما</h3>
+                  <p className="text-xs text-on-primary-container">پیش از پایان زمان تحویل رزرو کنید.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        {/* Decorative background glow circles */}
-        <div className="absolute -left-12 -bottom-16 w-56 h-56 rounded-full bg-loqme-primary-500/20 blur-3xl" />
-        <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-loqme-primary-400/15 blur-2xl" />
-      </div>
-
-      {/* Neighborhood & City Selector Bar */}
-      <div className="bg-white p-3.5 rounded-2xl shadow-card border border-loqme-neutral-200 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-1 min-w-[260px] max-w-md">
-          <Select
-            icon={<span>📍</span>}
-            value={selectedNeighborhood.slug}
-            onChange={(e) => {
-              const found = NEIGHBORHOODS.find((n) => n.slug === e.target.value);
-              if (found) setSelectedNeighborhood(found);
-            }}
-            className="text-xs font-bold text-loqme-primary-800 py-1.5"
-          >
-            <optgroup label="شهر ارومیه (فاز ۱ - لانچ بازار)">
-              {NEIGHBORHOODS.filter((n) => n.city === 'urmia').map((n) => (
-                <option key={n.slug} value={n.slug}>
-                  ارومیه — {n.nameFa}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="شهر تهران (فاز ۲ - توسعه)">
-              {NEIGHBORHOODS.filter((n) => n.city === 'tehran').map((n) => (
-                <option key={n.slug} value={n.slug}>
-                  تهران — {n.nameFa}
-                </option>
-              ))}
-            </optgroup>
-          </Select>
-        </div>
-
-        {/* View Mode Switcher (Feed vs Map) */}
-        <div className="flex items-center gap-1 bg-loqme-neutral-100 p-1 rounded-xl">
-          <button
-            type="button"
-            onClick={() => setViewMode('feed')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-              viewMode === 'feed'
-                ? 'bg-white text-loqme-primary-700 shadow-xs'
-                : 'text-loqme-neutral-600 hover:text-loqme-neutral-900'
-            }`}
-          >
-            <span>📋</span>
-            <span>لیست بسته‌ها</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('map')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-              viewMode === 'map'
-                ? 'bg-white text-loqme-primary-700 shadow-xs'
-                : 'text-loqme-neutral-600 hover:text-loqme-neutral-900'
-            }`}
-          >
-            <span>🗺️</span>
-            <span>نقشه زنده</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Search & Filter Bar */}
-      <div className="bg-white p-2.5 rounded-2xl shadow-card border border-loqme-neutral-200 flex items-center justify-between gap-3 focus-within:border-loqme-primary-500 focus-within:ring-2 focus-within:ring-loqme-primary-50 transition-all">
-        <div className="flex items-center gap-2.5 flex-1 px-2">
-          <span className="text-loqme-primary-600 text-sm">🔍</span>
+      {/* Search Input and Filter Bar */}
+      <div className="bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/40 shadow-sm flex items-center justify-between gap-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary-fixed/40 transition-all">
+        <div className="flex items-center gap-2 flex-1 px-2">
+          <span className="material-symbols-outlined text-outline text-[20px]">search</span>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="جستجوی نان تازه، شیرینی سنتی ارومیه، باقلوا، کافه..."
-            className="w-full bg-transparent border-none text-xs md:text-sm outline-none text-loqme-neutral-900 placeholder:text-loqme-neutral-400 font-medium"
+            placeholder="جستجوی نانوایی، کافه، باقلوا، رستوران یا سوپرمارکت..."
+            className="w-full bg-transparent border-none text-xs sm:text-sm outline-none text-on-surface placeholder:text-outline font-medium"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="text-xs w-5 h-5 rounded-full bg-loqme-neutral-100 text-loqme-neutral-500 hover:bg-loqme-neutral-200 flex items-center justify-center transition-colors"
+              className="text-xs w-5 h-5 rounded-full bg-surface-container text-on-surface-variant hover:bg-surface-container-high flex items-center justify-center transition-colors"
             >
               ✕
             </button>
@@ -297,48 +331,53 @@ export default function ExplorePage() {
         <button
           type="button"
           onClick={() => setIsFilterModalOpen(true)}
-          className="flex items-center gap-1.5 bg-loqme-neutral-50 hover:bg-loqme-neutral-100 border border-loqme-neutral-200 px-3.5 py-2 rounded-xl text-xs font-bold text-loqme-neutral-700 transition-colors shadow-xs"
+          className="flex items-center gap-1.5 bg-surface-container-low hover:bg-surface-container border border-outline-variant/40 px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface transition-colors shrink-0 shadow-xs"
         >
-          <span>⚡ فیلترها</span>
+          <span className="material-symbols-outlined text-[18px]">tune</span>
+          <span>فیلترها</span>
           {activeFilterCount > 0 && (
-            <span className="w-4 h-4 rounded-full bg-loqme-primary-600 text-white text-[10px] flex items-center justify-center font-bold">
+            <span className="w-4 h-4 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-bold">
               {toPersianDigits(activeFilterCount)}
             </span>
           )}
         </button>
       </div>
 
-      {/* Category Carousel */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-        {CATEGORIES.map((cat) => {
-          const active = selectedCategory === cat.slug;
-          return (
-            <button
-              key={cat.slug}
-              type="button"
-              onClick={() => setSelectedCategory(cat.slug)}
-              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                active
-                  ? 'bg-loqme-primary-700 text-white shadow-xs'
-                  : 'bg-white text-loqme-neutral-700 border border-loqme-neutral-200 hover:bg-loqme-neutral-50'
-              }`}
-            >
-              <span>{cat.icon}</span>
-              <span>{cat.nameFa}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Stitch Design Board: Categories Horizontal Filter Strip */}
+      <section className="w-full bg-surface-container-low/80 py-2.5 px-3 rounded-2xl border border-outline-variant/30 sticky top-20 z-30 shadow-xs backdrop-blur-md">
+        <div className="overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-2 min-w-max">
+            {CATEGORIES.map((cat) => {
+              const active = selectedCategory === cat.slug;
+              return (
+                <button
+                  key={cat.slug}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.slug)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all shadow-xs ${
+                    active
+                      ? 'bg-primary text-on-primary'
+                      : 'bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high border border-outline-variant/30'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">{cat.icon}</span>
+                  <span>{cat.nameFa}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* View Content: MAP VIEW or FEED VIEW */}
       {viewMode === 'map' ? (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-sm text-loqme-neutral-900">
-              نقشه فروشگاه‌های دارای بسته در محدوده {selectedNeighborhood.nameFa}
+            <h3 className="font-bold text-sm text-on-surface">
+              نقشه فروشگاه‌های فعال دارای بسته در محدوده {selectedNeighborhood.nameFa}
             </h3>
-            <span className="text-xs text-loqme-neutral-500">
-              {toPersianDigits(mapPins.length)} فروشگاه فعال
+            <span className="text-xs text-on-surface-variant">
+              {toPersianDigits(mapPins.length)} فروشگاه شناسایی شد
             </span>
           </div>
 
@@ -351,15 +390,9 @@ export default function ExplorePage() {
       ) : (
         /* FEED VIEW */
         <div className="space-y-8">
-          {/* Loading State: Shimmer Skeletons */}
+          {/* Loading State: Skeletons */}
           {isLoading && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="h-5 w-40 bg-loqme-neutral-200 rounded-lg animate-shimmer" />
-                  <div className="h-3 w-64 bg-loqme-neutral-100 rounded-lg animate-shimmer" />
-                </div>
-              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CardSkeleton />
                 <CardSkeleton />
@@ -383,13 +416,14 @@ export default function ExplorePage() {
             <EmptyState
               icon="🌾"
               title="در این محدوده فعلاً بسته فعالی یافت نشد"
-              description="می‌توانید شعاع جستجو را افزایش دهید، دسته‌بندی را تغییر دهید یا محله دیگری از ارومیه (مثل دانشکده، شیخ‌تپه یا خیام) را انتخاب کنید."
+              description="می‌توانید شعاع جستجو را افزایش دهید، دسته‌بندی را تغییر دهید یا محله دیگری از ارومیه یا تهران را انتخاب کنید."
               action={
                 <Button
                   size="sm"
                   variant="primary"
+                  className="bg-primary text-on-primary"
                   onClick={() => {
-                    setFilters((prev) => ({ ...prev, radiusMeters: 25000 }));
+                    setRadiusKm(25);
                     setSelectedCategory('all');
                     setSearchQuery('');
                   }}
@@ -405,21 +439,21 @@ export default function ExplorePage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base md:text-lg font-bold text-loqme-neutral-900">
+                  <h2 className="text-base md:text-lg font-bold text-on-surface">
                     بسته‌های شگفت‌انگیز (Surprise Bags)
                   </h2>
-                  <p className="text-xs text-loqme-neutral-500 mt-0.5">
+                  <p className="text-xs text-on-surface-variant mt-0.5">
                     محتوای هیجان‌انگیز از بهترین محصولات تازه روز با بالاترین ارزش اقتصادی
                   </p>
                 </div>
-                <Badge variant="brand" size="sm">
+                <Badge variant="brand" size="sm" className="bg-primary-container text-on-primary">
                   {toPersianDigits(surpriseBags.length)} بسته
                 </Badge>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {surpriseBags.map((bag) => (
-                  <ListingCard key={bag.id} listing={bag} />
+                  <StitchListingCard key={bag.id} listing={bag} />
                 ))}
               </div>
             </div>
@@ -430,21 +464,21 @@ export default function ExplorePage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base md:text-lg font-bold text-loqme-neutral-900">
-                    تخفیف‌های ویژه مستقیم (Flash Deals)
+                  <h2 className="text-base md:text-lg font-bold text-on-surface">
+                    تخفیف‌های ویژه مشخص (Flash Deals)
                   </h2>
-                  <p className="text-xs text-loqme-neutral-500 mt-0.5">
-                    اقلام مشخص و آماده با قیمت‌های فوق‌العاده
+                  <p className="text-xs text-on-surface-variant mt-0.5">
+                    اقلام مشخص و شناسنامه‌دار با تخفیف‌های استثنایی
                   </p>
                 </div>
-                <Badge variant="brand" size="sm">
+                <Badge variant="brand" size="sm" className="bg-primary-container text-on-primary">
                   {toPersianDigits(flashDeals.length)} پیشنهاد
                 </Badge>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {flashDeals.map((deal) => (
-                  <ListingCard key={deal.id} listing={deal} />
+                  <StitchListingCard key={deal.id} listing={deal} />
                 ))}
               </div>
             </div>
@@ -470,94 +504,119 @@ export default function ExplorePage() {
   );
 }
 
-// Reusable Listing Card Component
-function ListingCard({ listing }: { listing: ListingSummaryDto }) {
+// Stitch-Styled Card matching 16:10 Ratio, Remaining Pill and Dual Price
+function StitchListingCard({ listing }: { listing: ListingSummaryDto }) {
   const distanceFormatted = listing.distanceMeters
     ? listing.distanceMeters < 1000
       ? `${toPersianDigits(Math.round(listing.distanceMeters))} متر`
-      : `${toPersianDigits((listing.distanceMeters / 1000).toFixed(1))} کیلومتر`
+      : `${toPersianDigits((listing.distanceMeters / 1000).toFixed(1))} ک‌م`
     : null;
 
-  const savingsToman = listing.originalPriceToman - listing.discountedPriceToman;
+  const isLowInventory = listing.remainingQuantity <= 3;
 
   return (
     <Card
       variant="elevated"
       isInteractive
-      className="p-5 flex flex-col justify-between hover:border-loqme-primary-400/80 transition-all rounded-2xl bg-white shadow-card hover:shadow-md"
+      className="overflow-hidden rounded-2xl bg-surface-container-lowest border border-outline-variant/30 flex flex-col justify-between hover:shadow-md hover:border-primary/40 transition-all group"
     >
       <div>
-        {/* Store & Category Header */}
-        <div className="flex items-start justify-between gap-2 mb-2.5">
-          <div className="space-y-0.5">
-            <Link
-              href={`/merchants/${listing.merchantId}`}
-              className="font-black text-sm text-loqme-neutral-900 hover:text-loqme-primary-700 transition-colors"
+        {/* Top Photographic Header (16:10 Aspect Ratio) */}
+        <div className="relative aspect-[16/10] w-full bg-surface-container overflow-hidden">
+          <Image
+            src="/hero-banner.jpg"
+            alt={listing.titleFa}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+
+          {/* Floating Badges */}
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+            <span
+              className={`px-2.5 py-1 rounded-full text-[11px] font-bold shadow-xs flex items-center gap-1 ${
+                isLowInventory
+                  ? 'bg-tertiary-container text-on-tertiary animate-pulse'
+                  : 'bg-secondary-container text-on-secondary-container'
+              }`}
             >
-              {listing.storeNameFa}
-            </Link>
-            <div className="text-[11px] font-medium text-loqme-neutral-500">
-              {listing.categoryNameFa}
-              {distanceFormatted && ` • ${distanceFormatted}`}
-            </div>
+              {isLowInventory && <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />}
+              <span>تنها {toPersianDigits(listing.remainingQuantity)} عدد</span>
+            </span>
           </div>
 
-          {listing.safetyVerified && (
-            <Badge variant="success" size="sm">
-              ✓ تضمین سلامت
-            </Badge>
-          )}
+          <div className="absolute top-2.5 left-2.5">
+            <span className="px-2.5 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md text-primary font-black text-xs shadow-xs">
+              ٪{toPersianDigits(listing.discountPercent)} تخفیف
+            </span>
+          </div>
+
+          {/* Store Name Over Image */}
+          <div className="absolute bottom-2.5 right-2.5 left-2.5 flex items-center justify-between text-white">
+            <Link
+              href={`/merchants/${listing.merchantId}`}
+              className="font-bold text-xs hover:underline flex items-center gap-1 drop-shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[16px]">store</span>
+              <span>{listing.storeNameFa}</span>
+            </Link>
+            {distanceFormatted && (
+              <span className="text-[11px] font-medium bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-md">
+                {distanceFormatted}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Title */}
-        <Link href={`/listings/${listing.id}`}>
-          <h3 className="font-bold text-base text-loqme-neutral-950 my-2 hover:text-loqme-primary-600 transition-colors line-clamp-1">
-            {listing.titleFa}
-          </h3>
-        </Link>
+        {/* Card Body */}
+        <div className="p-4 space-y-2.5">
+          <Link href={`/listings/${listing.id}`}>
+            <h3 className="font-bold text-sm text-on-surface line-clamp-1 group-hover:text-primary transition-colors">
+              {listing.titleFa}
+            </h3>
+          </Link>
 
-        {listing.descriptionFa && (
-          <p className="text-xs text-loqme-neutral-600 line-clamp-2 mb-3 leading-relaxed">
-            {listing.descriptionFa}
-          </p>
-        )}
+          {listing.descriptionFa && (
+            <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
+              {listing.descriptionFa}
+            </p>
+          )}
 
-        {/* Pickup Window & Real Scarcity Indicator */}
-        <div className="bg-loqme-primary-50/70 text-loqme-primary-950 text-xs px-3 py-2 rounded-xl flex items-center justify-between my-2.5 border border-loqme-primary-100">
-          <span className="flex items-center gap-1 font-medium">
-            <span>⏰</span>
-            <span>تحویل: {listing.pickupWindowFa}</span>
-          </span>
-          <span className="font-bold text-[11px] text-loqme-primary-700 bg-white px-2 py-0.5 rounded-lg border border-loqme-primary-200">
-            تنها {toPersianDigits(listing.remainingQuantity)} بسته
-          </span>
+          {/* Pickup Window Pill */}
+          <div className="bg-surface-container-low px-3 py-1.5 rounded-xl flex items-center justify-between text-xs text-on-surface-variant border border-outline-variant/30">
+            <div className="flex items-center gap-1">
+              <span className="material-symbols-outlined text-[16px] text-secondary">schedule</span>
+              <span>تحویل: {listing.pickupWindowFa}</span>
+            </div>
+            {listing.safetyVerified && (
+              <span className="text-[10px] font-bold text-secondary flex items-center gap-0.5">
+                <span className="material-symbols-outlined text-[14px]">verified</span>
+                <span>تضمین بهداشت</span>
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Price & Action Button Footer */}
-      <div className="pt-3.5 border-t border-loqme-neutral-100 mt-2 flex items-center justify-between gap-3">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-loqme-neutral-400 line-through">
-              {formatToman(listing.originalPriceToman)}
-            </span>
-            <Badge variant="brand" size="sm" className="bg-loqme-primary-100 text-loqme-primary-800 font-bold border-none text-[10px]">
-              {toPersianDigits(listing.discountPercent)}٪ تخفیف
-            </Badge>
+      {/* Price and Action Footer */}
+      <div className="p-4 pt-0 mt-2 flex items-center justify-between border-t border-outline-variant/20 pt-3">
+        <div>
+          <div className="text-[11px] text-outline line-through">
+            {formatToman(listing.originalPriceToman)}
           </div>
-          <div className="font-black text-lg text-loqme-primary-700 leading-none pt-0.5">
+          <div className="font-extrabold text-base text-primary leading-none">
             {formatToman(listing.discountedPriceToman)}
           </div>
-          {savingsToman > 0 && (
-            <div className="text-[10px] text-emerald-700 font-bold">
-              سود شما: {formatToman(savingsToman)}
-            </div>
-          )}
         </div>
 
         <Link href={`/listings/${listing.id}`}>
-          <Button size="sm" variant="primary" className="font-bold px-4 shadow-xs">
-            رزرو بسته
+          <Button
+            size="sm"
+            variant="primary"
+            rounded="pill"
+            className="bg-primary hover:bg-primary-container text-white px-4 text-xs font-bold shadow-xs active:scale-95"
+          >
+            رزرو لقمه
           </Button>
         </Link>
       </div>

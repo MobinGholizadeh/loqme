@@ -71,7 +71,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fa-IR" dir="rtl" className={vazirmatn.variable}>
-      <body className="font-sans antialiased bg-[#FAF7F5] text-stone-900 min-h-screen selection:bg-teal-100 selection:text-[#135E66]">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap"
+        />
+      </head>
+      <body className="font-sans antialiased bg-surface text-on-surface min-h-screen selection:bg-primary-fixed selection:text-on-primary-fixed">
         {children}
         <PwaInstallPrompt />
       </body>
