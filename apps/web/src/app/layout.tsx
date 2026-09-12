@@ -17,14 +17,14 @@ export const metadata: Metadata = {
     template: '%s | لقمه',
   },
   description:
-    'سامانه لقمه (Loqme) — بازارچه محلی کشف و خرید بسته‌های شگفت‌انگیز و مازاد تازه نانوایی‌ها، قنادی‌ها و رستوران‌ها با ۵۰٪ تا ۷۰٪ تخفیف و تضمین سلامت در شهر ارومیه.',
+    'سامانه لقمه (Loqme) — بازارچه محلی کشف و خرید بسته‌های شگفت‌انگیز و مازاد تازه نانوایی‌ها، قنادی‌ها و رستوران‌ها با ۵۰٪ تا ۷۰٪ تخفیف و تضمین سلامت در سراسر کشور.',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/logo.png', type: 'image/png' },
+      { url: '/favicon.ico' },
     ],
-    shortcut: '/favicon.svg',
+    shortcut: '/logo.png',
     apple: '/logo.png',
   },
   openGraph: {
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: 'لقمه | Loqme',
     title: 'لقمه | عرضه هوشمند مازاد تازه خوراکی‌ها با تخفیف شگفت‌انگیز',
     description:
-      'کشف بسته‌های تازه روزانه نانوایی‌ها، کافه‌ها و رستوران‌ها با تخفیف ۵۰٪ تا ۷۰٪ و ضمانت بهداشت و سلامت در ارومیه.',
+      'کشف بسته‌های تازه روزانه نانوایی‌ها، کافه‌ها و رستوران‌ها با تخفیف ۵۰٪ تا ۷۰٪ و ضمانت بهداشت و سلامت.',
     images: [
       {
         url: '/logo.png',

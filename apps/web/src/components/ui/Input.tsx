@@ -38,13 +38,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
         <div
           className={cn(
-            'flex items-center bg-white border border-stone-300 rounded-full px-4 min-h-[46px] transition-all overflow-hidden focus-within:border-[#135E66] focus-within:ring-2 focus-within:ring-teal-500/20 shadow-xs',
+            'flex items-center bg-white border border-stone-200 rounded-full px-4 min-h-[48px] transition-all focus-within:border-[#135E66] focus-within:ring-2 focus-within:ring-teal-500/20 shadow-xs gap-2',
             error && 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20',
             disabled && 'bg-stone-100 opacity-60 cursor-not-allowed'
           )}
         >
           {prefixElement && (
-            <div className="flex items-center text-stone-400 text-xs select-none pl-3 border-l border-stone-200 ml-2 shrink-0">
+            <div className="flex items-center text-stone-500 text-xs select-none shrink-0 font-medium">
               {prefixElement}
             </div>
           )}
@@ -54,14 +54,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             disabled={disabled}
             className={cn(
-              'flex-1 w-full bg-transparent border-none outline-none text-stone-900 text-sm font-medium placeholder:text-stone-400 py-2.5',
+              'flex-1 w-full bg-transparent border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-0 text-stone-900 text-sm font-medium placeholder:text-stone-400 py-2.5',
               className
             )}
             {...props}
           />
 
           {suffixElement && (
-            <div className="flex items-center text-stone-400 text-xs select-none pr-2 shrink-0">
+            <div className="flex items-center text-stone-500 text-xs select-none shrink-0 font-medium">
               {suffixElement}
             </div>
           )}
@@ -69,7 +69,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
         {error && (
           <p className="text-xs text-red-600 font-medium mt-1 flex items-center gap-1" role="alert">
-            <span>⚠️</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
             <span>{error}</span>
           </p>
         )}

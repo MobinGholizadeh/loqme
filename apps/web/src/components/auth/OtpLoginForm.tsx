@@ -2,12 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { LoqmeLogo } from '@/components/ui/LoqmeLogo';
 import { toPersianDigits, isValidIranianMobile } from '@/lib/utils/persian';
+import {
+  UserIcon,
+  Store01Icon,
+  SparklesIcon,
+  ArrowRight01Icon,
+} from 'hugeicons-react';
+import { Icons } from '@/components/ui/icons';
 
 interface OtpLoginFormProps {
   onSuccess?: () => void;
@@ -118,7 +125,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
         onSuccess();
       }
 
-      // Determine smart redirect based on role or URL param
+      // Smart redirect
       if (targetRedirect) {
         router.push(targetRedirect);
       } else if (data.user?.role === 'MERCHANT_OWNER' || data.user?.role === 'MERCHANT_STAFF') {
@@ -143,16 +150,18 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   };
 
   return (
-    <Card className="auth-card max-w-md w-full mx-auto p-6 rounded-3xl" variant="elevated">
-      <div className="auth-header text-center mb-6 flex flex-col items-center">
-        <LoqmeLogo size="lg" variant="stacked" theme="teal" className="mb-3" />
-        <h2 className="auth-title">
-          {step === 'PHONE' ? 'ورود یا ثبت‌نام در لقمه' : 'کد تایید پیامک‌شده'}
+    <div className="w-full space-y-6">
+      <div className="text-right space-y-2">
+        <div className="md:hidden flex justify-center mb-4">
+          <LoqmeLogo size="md" variant="stacked" theme="teal" />
+        </div>
+        <h2 className="text-2xl lg:text-3xl font-black text-stone-900 tracking-tight">
+          {step === 'PHONE' ? 'ورود به حساب کاربری' : 'کد تایید پیامک‌شده'}
         </h2>
-        <p className="auth-desc">
+        <p className="text-xs sm:text-sm text-stone-500 leading-relaxed">
           {step === 'PHONE'
-            ? 'برای دسترسی به بسته‌های شگفت‌انگیز و پنل مدیریت، شماره خود را وارد کنید.'
-            : `کد تایید به شماره ${toPersianDigits(mobile)} ارسال شد.`}
+            ? 'برای دسترسی به بسته‌های شگفت‌انگیز محله خود و مدیریت سفارشات، شماره همراه خود را وارد کنید.'
+            : `کد تایید ۵ رقمی به شماره ${toPersianDigits(mobile)} ارسال گردید.`}
         </p>
       </div>
 
@@ -162,80 +171,106 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
             e.preventDefault();
             handleRequestOtp();
           }}
-          className="auth-form space-y-4"
+          className="space-y-4"
         >
-          <Input
-            label="شماره موبایل"
-            placeholder="۰۹۱۲۳۴۵۶۷۸۹"
-            value={mobile}
-            onChange={(e) => setMobile(e.target.value)}
-            error={error || undefined}
-            autoFocus
-            dir="ltr"
-            prefixElement={<span className="text-muted">🇮🇷 +۹۸</span>}
-          />
+          <div className="space-y-1 text-right">
+            <Input
+              label="شماره موبایل"
+              placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+              error={error || undefined}
+              autoFocus
+              dir="ltr"
+              prefixElement={<span className="text-stone-400 font-mono text-xs select-none">IR +۹۸</span>}
+            />
+          </div>
 
           <Button
             type="submit"
             size="lg"
-            className="w-full mt-2"
+            className="w-full bg-[#135E66] hover:bg-[#0e484e] text-white font-black rounded-full h-12 shadow-sm transition-all"
             isLoading={isLoading}
             disabled={!mobile}
           >
             دریافت کد تایید
           </Button>
 
+          {/* Business Sign Up CTA (Matching Screenshot 2 & 3) */}
+          <div className="pt-2">
+            <Link href="/merchant/register" className="block w-full">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="w-full border-2 border-[#135E66] text-[#135E66] hover:bg-teal-50 rounded-full h-12 font-bold transition-all text-xs sm:text-sm"
+              >
+                ثبت‌نام و همکاری فروشگاه‌ها (Sign up your food business)
+              </Button>
+            </Link>
+          </div>
+
           {/* Quick Demo Test Buttons */}
-          <div className="mt-6 p-4 rounded-xl border border-dashed border-stone-200 bg-stone-50">
+          <div className="mt-6 p-4 rounded-2xl border border-stone-200 bg-stone-50/80">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-stone-600">
-                🚀 ورود سریع با حساب‌های آزمایشی:
+              <span className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
+                <SparklesIcon size={15} className="text-teal-600" />
+                <span>ورود سریع با حساب‌های آزمایشی:</span>
               </span>
               <Badge variant="neutral" size="sm">
-                آزمایشی
+                تستی
               </Badge>
             </div>
             <div className="grid grid-cols-1 gap-2">
               <button
                 type="button"
-                className="flex flex-col gap-1 text-right bg-white hover:bg-stone-50 p-3.5 rounded-2xl border border-stone-200 hover:border-teal-400 cursor-pointer transition-all active:scale-[0.98] shadow-xs"
+                className="flex flex-col gap-1 text-right bg-white hover:bg-teal-50/50 p-3 rounded-xl border border-stone-200 hover:border-teal-400 cursor-pointer transition-all active:scale-[0.99] shadow-xs"
                 onClick={() => selectPreset('09121111111')}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-stone-800">👤 سارا محمدی</span>
+                  <span className="font-bold text-xs text-stone-800 flex items-center gap-1.5">
+                    <UserIcon size={14} className="text-stone-500" />
+                    <span>سارا محمدی</span>
+                  </span>
                   <Badge variant="neutral" size="sm">
                     مشتری (Customer)
                   </Badge>
                 </div>
-                <span className="text-xs text-stone-400 font-mono dir-ltr text-right">09121111111</span>
+                <span className="text-[11px] text-stone-400 font-mono dir-ltr text-right">09121111111</span>
               </button>
 
               <button
                 type="button"
-                className="flex flex-col gap-1 text-right bg-white hover:bg-stone-50 p-3.5 rounded-2xl border border-stone-200 hover:border-teal-400 cursor-pointer transition-all active:scale-[0.98] shadow-xs"
+                className="flex flex-col gap-1 text-right bg-white hover:bg-teal-50/50 p-3 rounded-xl border border-stone-200 hover:border-teal-400 cursor-pointer transition-all active:scale-[0.99] shadow-xs"
                 onClick={() => selectPreset('09122222222')}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-stone-800">🥖 علی رضایی (نانوایی برکت)</span>
+                  <span className="font-bold text-xs text-stone-800 flex items-center gap-1.5">
+                    <Store01Icon size={14} className="text-teal-600" />
+                    <span>علی رضایی (نانوایی برکت)</span>
+                  </span>
                   <Badge variant="brand" size="sm">
                     فروشگاه (Merchant)
                   </Badge>
                 </div>
-                <span className="text-xs text-stone-400 font-mono dir-ltr text-right">09122222222</span>
+                <span className="text-[11px] text-stone-400 font-mono dir-ltr text-right">09122222222</span>
               </button>
 
               <button
                 type="button"
-                className="flex flex-col gap-1 text-right bg-white hover:bg-stone-50 p-3.5 rounded-2xl border border-stone-200 hover:border-teal-400 cursor-pointer transition-all active:scale-[0.98] shadow-xs"
+                className="flex flex-col gap-1 text-right bg-white hover:bg-teal-50/50 p-3 rounded-xl border border-stone-200 hover:border-teal-400 cursor-pointer transition-all active:scale-[0.99] shadow-xs"
                 onClick={() => selectPreset('09123333333')}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-stone-800">🛡️ مدیر ارشد سامانه</span>
+                  <span className="font-bold text-xs text-stone-800 flex items-center gap-1.5">
+                    <Icons.Shield size={14} className="text-stone-600" />
+                    <span>مدیر ارشد سامانه</span>
+                  </span>
                   <Badge variant="danger" size="sm">
                     مدیر (Admin)
                   </Badge>
                 </div>
-                <span className="text-xs text-stone-400 font-mono dir-ltr text-right">09123333333</span>
+                <span className="text-[11px] text-stone-400 font-mono dir-ltr text-right">09123333333</span>
               </button>
             </div>
           </div>
@@ -252,7 +287,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
           {devReceivedOtp && (
             <div className="p-3.5 bg-teal-50 border border-teal-200 rounded-2xl flex items-center justify-between mb-2">
               <div className="text-xs text-teal-900">
-                💡 <span className="font-semibold">کد تایید آزمایشی شما:</span>{' '}
+                <span className="font-semibold">کد تایید آزمایشی:</span>{' '}
                 <span className="font-black text-sm tracking-widest text-[#135E66] font-mono">
                   {devReceivedOtp}
                 </span>
@@ -261,7 +296,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
                 size="sm"
                 variant="secondary"
                 onClick={() => setCode(devReceivedOtp)}
-                className="text-xs"
+                className="text-xs py-1 px-3"
               >
                 درج خودکار
               </Button>
@@ -283,7 +318,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
           <Button
             type="submit"
             size="lg"
-            className="w-full mt-2"
+            className="w-full bg-[#135E66] hover:bg-[#0e484e] text-white font-black rounded-full h-12 shadow-sm transition-all"
             isLoading={isLoading}
             disabled={code.length !== 5}
           >
@@ -301,10 +336,11 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
               setError(null);
             }}
           >
-            ویرایش شماره موبایل
+            <ArrowRight01Icon size={14} className="ml-1" />
+            <span>ویرایش شماره موبایل</span>
           </Button>
         </form>
       )}
-    </Card>
+    </div>
   );
 };
