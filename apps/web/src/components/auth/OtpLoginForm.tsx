@@ -1,4 +1,5 @@
 "use client";
+import { useSession } from "@/components/auth/SessionProvider";
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,6 +17,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   redirectPath,
 }) => {
   const router = useRouter();
+  const session = useSession();
   const searchParams = useSearchParams();
 
   const [step, setStep] = useState<"PHONE" | "OTP">("PHONE");
@@ -104,6 +106,8 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
       }
 
       // Success
+      if (data.user) session.setUser(data.user);
+      else await session.refresh();
       if (onSuccess) {
         onSuccess();
       }

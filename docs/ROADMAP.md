@@ -150,7 +150,7 @@
 
 ### Post-M11 Web Checkpoint: CP-10.8 Stitch Redesign
 
-Follow-up CP-10.9 (authorized 2026-09-14, in progress): role-aware portals, publishing/category corrections, gallery and illustrative listing images, and all-region discovery with region labels. See M10 checkpoints for scope and validation status.
+CP-10.9 completed: role-aware portals, publishing/categories, images and all-region discovery. CP-10.10 completed 2026-09-14: per-store admin account settings/order oversight, atomic audited owner management and persistent session UI. Final validation: 192 Vitest tests, 33 browser tests, live isolated API smoke, lint, explicit web/shared types and production build pass. User authorized delivery to `master` and pushing preserved Docker changes. Compose validates; Docker image build is blocked by Docker Hub network timeout. No deployment. See M10 checkpoints and `STITCH_REDESIGN.md` for evidence and remaining operational gates.
 
 Approved 2026-09-13. `codex/stitch-ui-redesign` adapts the 16 screens in Stitch project `4335349565403348576` across existing customer, merchant and admin workflows. Discovery-first homepage, shared tokens and controls, responsive layouts, URL-persisted discovery and consistent secondary states are implemented. Backend authority and existing integrations are preserved. No new migrations, deployment, merge or native-mobile scope; two previously pending migrations were applied locally with explicit user approval. Validation: 160 integration/unit tests, responsive browser coverage, clean lint/typechecks and production build. Evidence and release acceptance limits: `docs/STITCH_REDESIGN.md`.
 

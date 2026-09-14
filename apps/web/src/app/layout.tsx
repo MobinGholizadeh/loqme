@@ -3,6 +3,7 @@ import { generateCssVariables } from "@loqme/design-tokens";
 import { Vazirmatn } from "next/font/google";
 import "./globals.css";
 import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
+import { SessionProvider } from "@/components/auth/SessionProvider";
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic", "latin"],
@@ -80,8 +81,10 @@ export default function RootLayout({
       style={generateCssVariables() as React.CSSProperties}
     >
       <body className="font-sans antialiased min-h-screen">
-        {children}
-        <PwaInstallPrompt />
+        <SessionProvider>
+          {children}
+          <PwaInstallPrompt />
+        </SessionProvider>
       </body>
     </html>
   );

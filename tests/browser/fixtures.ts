@@ -156,6 +156,12 @@ export async function installFixtures(page: Page, role = "CUSTOMER") {
     ]);
   const qrDataUrl = await QRCode.toDataURL("isolated-ui-test-pickup");
   const data: Record<string, unknown> = {
+    "/api/admin/merchants/ui-store/account": {
+      id: "ui-store", businessNameFa: merchant.businessNameFa, verificationStatus: "APPROVED",
+      owner: { id: "00000000-0000-4000-8000-000000000010", mobile: "09122222222", fullName: "مالک آزمایشی", role: "MERCHANT_OWNER", isActive: true, ownedStoreCount: 1 },
+      staff: [{ id: "staff", mobile: "09121112233", fullName: "همکار آزمایشی", role: "CASHIER", isActive: true }],
+      orders: [{ id: "test-order", orderNumber: "LQ-1024", status: "READY_FOR_PICKUP", createdAt: now, customerName: "مشتری آزمایشی", totalAmountToman: 65000, items: [{ titleFa: "نان تازه", quantity: 1 }] }], totalOrders: 1, page: 1, pageSize: 20,
+    },
     "/api/categories": ["bakery", "cafe", "restaurant", "supermarket", "produce", "deli"].map((slug) => ({ id: slug, slug, nameFa: slug })),
     "/api/listings/nearby": listings,
     "/api/listings/search": listings,

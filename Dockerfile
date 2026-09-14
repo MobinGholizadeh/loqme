@@ -59,6 +59,9 @@ RUN apk add --no-cache openssl curl
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
+RUN mkdir -p /app/.data/listing-images && chown -R nextjs:nodejs /app/.data
+ENV LISTING_IMAGE_STORAGE_DIR=/app/.data/listing-images
+
 # Copy static assets and public directory
 COPY --from=builder /app/apps/web/public ./apps/web/public
 

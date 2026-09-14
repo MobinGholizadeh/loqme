@@ -9,6 +9,7 @@ node_modules/
 
 # Next.js Build Output & Caches
 .next/
+.next-*/
 .next-stitch/
 .next-redesign-build/
 test-results/

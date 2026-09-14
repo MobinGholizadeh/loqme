@@ -34,6 +34,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      LISTING_IMAGE_STORAGE_DIR: /app/.data/listing-images
       DATABASE_URL: postgresql://${POSTGRES_USER:-loqme_admin}:${POSTGRES_PASSWORD:-loqme_secure_db_pass_2026}@postgres:5432/${POSTGRES_DB:-loqme}?schema=public
       SESSION_SECRET: ${SESSION_SECRET}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://loqme.shop}
@@ -42,6 +43,8 @@ services:
       ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID}
     ports:
       - "127.0.0.1:3000:3000"
+    volumes:
+      - loqme_prod_listing_images:/app/.data/listing-images
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health/ready"]
       interval: 20s
@@ -56,5 +59,7 @@ networks:
     driver: bridge
 
 volumes:
+  loqme_prod_listing_images:
+    driver: local
   loqme_prod_pgdata:
     driver: local

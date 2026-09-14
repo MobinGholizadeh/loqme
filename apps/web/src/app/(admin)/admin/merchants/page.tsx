@@ -10,6 +10,8 @@ import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { toPersianDigits, toEnglishDigits } from "@/lib/utils/persian";
 import { AdminMerchantItemDto } from "@loqme/types";
+import Link from "next/link";
+import { Settings } from "lucide-react";
 
 export default function AdminMerchantsPage() {
   const [loadError, setLoadError] = useState("");
@@ -294,6 +296,7 @@ export default function AdminMerchantsPage() {
                   </td>
 
                   <td className="p-4 text-left">
+                    <Link href={`/admin/merchants/${m.id}/settings`} className="action-link mb-2" aria-label={`تنظیمات ${m.businessNameFa}`}><Settings size={16} />تنظیمات</Link>
                     <Button
                       size="sm"
                       variant="outline"

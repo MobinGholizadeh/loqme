@@ -47,7 +47,8 @@
     ".next/types/**/*.ts",
     ".next-stitch/types/**/*.ts",
     ".next-redesign-build/types/**/*.ts",
-    ".next-feedback-build/types/**/*.ts"
+    ".next-feedback-build/types/**/*.ts",
+    ".next-account-build/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

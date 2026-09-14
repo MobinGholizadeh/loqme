@@ -435,6 +435,12 @@ export const FastCreateListingSchema = z
 
 export type FastCreateListingInput = z.infer<typeof FastCreateListingSchema>;
 
+export const AdminMerchantAccountSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('UPDATE_ACCOUNT'), expectedOwnerId: z.string().uuid(), fullName: z.string().trim().min(2, 'نام حداقل دو حرف باشد').max(100), isActive: z.boolean(), reasonFa: z.string().trim().min(5, 'علت تغییر را وارد کنید').max(500) }),
+  z.object({ action: z.literal('ASSIGN_OWNER'), expectedOwnerId: z.string().uuid(), mobile: z.string().transform(normalizeIranianMobile).refine(isValidIranianMobile, 'شماره موبایل معتبر نیست'), fullName: z.string().trim().min(2).max(100), reasonFa: z.string().trim().min(5, 'علت تغییر را وارد کنید').max(500) }),
+]);
+export type AdminMerchantAccountInput = z.infer<typeof AdminMerchantAccountSchema>;
+
 export const UpdateListingStockSchema = z.object({
   deltaQuantity: z.number().int().optional(),
   totalQuantity: z.number().int().min(0).optional(),

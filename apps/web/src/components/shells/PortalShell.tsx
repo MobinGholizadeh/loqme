@@ -1,5 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useSession } from "@/components/auth/SessionProvider";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -51,17 +52,9 @@ export function PortalShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<{ fullName?: string; role?: string } | null>(
-    null,
-  );
+  const { user, setUser } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutError, setLogoutError] = useState(false);
-  useEffect(() => {
-    fetch("/api/auth/session")
-      .then((r) => r.json())
-      .then((data) => setUser(data.user || null))
-      .catch(() => {});
-  }, []);
   const items = (role === "admin" ? adminItems : merchantItems).filter(
     (item) =>
       user?.role !== "MERCHANT_STAFF" ||
@@ -70,13 +63,14 @@ export function PortalShell({
       ),
   );
   const title = role === "admin" ? "مدیریت لقمه" : "پنل فروشگاه";
+  const isActive = (href: string) => pathname === href || (href !== `/${role}` && pathname.startsWith(href + "/"));
   const navigation = (
     <nav aria-label={title} className="portal-nav">
       {items.map((item) => (
         <Link
           key={item.href}
           href={item.href}
-          aria-current={pathname === item.href ? "page" : undefined}
+          aria-current={isActive(item.href) ? "page" : undefined}
           onClick={() => setMenuOpen(false)}
         >
           <item.icon size={19} aria-hidden="true" />
@@ -89,6 +83,7 @@ export function PortalShell({
     try {
       const response = await fetch("/api/auth/logout", { method: "POST" });
       if (!response.ok) throw new Error();
+      setUser(null);
       router.push("/login");
       router.refresh();
     } catch {
@@ -128,7 +123,7 @@ export function PortalShell({
               <Menu size={22} />
             </button>
             <span>
-              {items.find((item) => item.href === pathname)?.label || title}
+              {items.find((item) => isActive(item.href))?.label || title}
             </span>
           </div>
           <div className="portal-user">

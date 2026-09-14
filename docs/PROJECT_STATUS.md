@@ -8,9 +8,17 @@
 
 ## 1. Project Health & Current State
 
-### In Progress: CP-10.9 Merchant Feedback (2026-09-14)
+### Completed: CP-10.10 Merchant Account Administration (2026-09-14)
 
-User-reported role/navigation and publishing defects are being corrected, together with requested image selection and all-region discovery. Previous CP-10.8 validation below is historical, not validation of these changes. Purchase-role policy remains unchanged; admin oversight stays in the admin console rather than merchant impersonation.
+Implemented per-store admin settings with linked owner identity/phone/status management, independently confirmed owner replacement, scoped order pagination and staff summaries. Account changes require an audit reason and commit atomically with the audit record; stale ownership, cross-store accounts and admin-account assignment are rejected. Persistent root session UI removes the logged-out flash. Authentication remains phone/OTP; no plaintext password display, impersonation or new migrations.
+
+Final validation: **192/192 Vitest tests in 20 suites** on fresh disposable `loqme_account_test_final_20260914`; **33/33 browser tests** with route matrices at 360/390/768/1440/1920px; four account tests rerun after screenshot focus restoration. Lint has no warnings/errors, explicit web/four shared package TypeScript checks pass, and production `.next-account-build` succeeds. Live isolated API checks confirm all five merchant sections, 15 role boundaries, six category publications, WebP upload serving, all-region labels, inactive-session rejection, old-owner access removal, new-owner access and three atomic audit records. No main database reseeding or account reassignment was performed.
+
+Docker was restarted successfully. User Compose/favicon commits `1d1b59b` and `cf7944e` are preserved. Both Compose configurations validate; upload volumes persist with non-root ownership. Docker image build could not fetch the `node:20-alpine` token from Docker Hub due to a network timeout; container build/runtime is not certified. The native preview at `http://localhost:3003` returns HTTP 200 and database readiness succeeds. At the final check, the main database had zero currently valid published offers, so the feed correctly shows an empty state. User now authorizes delivery to `master` and pushing Docker files; no deployment is included. Provider/device gates and previous Lighthouse evidence remain in `STITCH_REDESIGN.md`.
+
+### Completed: CP-10.9 Merchant Feedback (2026-09-14)
+
+Implemented role-aware navigation/merchant authorization (including pickup queue), canonical categories/temperature, gallery and illustrative photos, and paginated all-region discovery with city/neighborhood labels. Validation: 180/180 Vitest on a fresh disposable DB, 29/29 browser tests, lint, explicit web/shared typechecks and production build pass. Live disposable API smoke verified 15 role checks, six category publications with persisted images, public WebP serving and region labels. Main data was not reseeded; preview on port 3003 returned two active listings. Purchase-role policy is unchanged. Concurrent user commit `2b4f637` included generated `.next-feedback-build` artifacts; it was not reverted or rewritten. `.next-*/` is now ignored for future untracked build outputs.
 
 ### Active Checkpoint: CP-10.8 Stitch Redesign (2026-09-13)
 

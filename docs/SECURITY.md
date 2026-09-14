@@ -25,6 +25,16 @@
 * **Merchant Ownership Verification**: Every merchant API mutation verifies that the authenticated user is the verified owner or staff of that specific `merchantId`.
 * **Order Ownership**: Customers can only inspect their own orders. Merchants can only inspect orders directed to their storefronts.
 
+CP-10.9: Merchant portal pages are for `MERCHANT_OWNER` and `MERCHANT_STAFF` only. `ADMIN` uses `/admin`, not merchant impersonation; authenticated users with the wrong role are redirected to their own area, not back to login. The merchant resolver checks current active user role and store membership, including pickup queue reads with an explicit merchant ID. Header/footer portal links follow the session role. Existing personal purchasing behavior for signed-in accounts is unchanged pending a separate product decision.
+
+Listing gallery uploads accept authenticated store members only, stream at most 5 MiB, decode JPEG/PNG/WebP with a 20-million-pixel limit, reject animation, auto-orient and re-encode to metadata-free WebP. Random filenames and validated merchant UUID paths prevent traversal and cross-store references. Photos are intentionally public. `LISTING_IMAGE_STORAGE_DIR` must point to persistent storage for deployment; the local adapter defaults to `.data/listing-images`. Catalog photos are explicitly illustrative and marked in every `ListingImage` rendering. No database migration is needed. Deployment still requires proxy request/rate limits, storage quotas, backups and lifecycle management of unreferenced uploads; this local checkpoint does not introduce a managed object-store service.
+
+CP-10.10: `/api/admin/merchants/[id]/account` requires a currently active database `ADMIN`, not only a signed role claim. Responses contain the linked owner's phone/identity/status, staff summaries and paginated orders scoped to that merchant; they never include passwords, OTPs or pickup credentials. Loqme uses phone/OTP authentication and does not have retrievable static passwords. The admin settings screen is oversight, not impersonation.
+
+Account edits and owner assignment use a serializable transaction with an expected-owner concurrency check and an audit record in the same transaction. An independent owner cannot already belong to another store or be an admin/inactive account. Shared legacy owners must be separated before editing their account. Reassignment removes the previous owner's staff membership for that store. Disabling an owner blocks OTP verification, session discovery, merchant APIs and pickup verification through live active-user checks. No existing store accounts are automatically reassigned by this checkpoint.
+
+The root session provider stores only public account metadata in React memory; credentials remain in the existing HttpOnly cookie. Unknown session state is not rendered as logout. Network failures preserve a previously known state, while successful session refresh reflects current database role/status. This UI cache is not an authorization decision. Docker Compose mounts persistent listing-image volumes, owned by the unprivileged runtime user.
+
 ---
 
 ## 3. Server-Side Validation & Untrusted Client Rules

@@ -7,7 +7,7 @@ import { SignJWT } from "jose";
 
 async function main() {
   const database = new URL(process.env.DATABASE_URL || "");
-  assert(database.pathname.startsWith("/loqme_feedback_test_"), "Disposable feedback DB required");
+  assert(/^\/loqme_(feedback|account)_test_/.test(database.pathname), "Disposable feedback/account DB required");
   const base = process.env.LOQME_TEST_URL;
   assert.equal(base, "http://localhost:3004");
   const env = parseEnv(readFileSync("apps/web/.env", "utf8"));

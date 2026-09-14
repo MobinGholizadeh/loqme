@@ -167,6 +167,7 @@ export class AuthService {
 
     // 2. Fetch or create User profile
     const user = await userService.findOrCreateCustomer(mobile);
+    if (!user.isActive) return { success: false, message: 'این حساب غیرفعال است؛ با پشتیبانی لقمه تماس بگیرید' };
 
     // 3. Issue signed JWT session token
     const token = await createSessionToken({

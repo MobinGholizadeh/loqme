@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,32 +10,18 @@ import {
   ArrowUpLeft,
 } from "lucide-react";
 import { LoqmeLogo } from "@/components/ui/LoqmeLogo";
-import type { UserRole } from "@loqme/types";
+import { useSession } from "@/components/auth/SessionProvider";
 export function CustomerShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [authenticated, setAuthenticated] = useState(false);
-  const [role, setRole] = useState<UserRole | null>(null);
+  const { user, status, refresh } = useSession();
+  const authenticated = status === "authenticated";
+  const role = user?.role;
   const portal =
     role === "ADMIN"
       ? { href: "/admin", label: "پنل مدیریت" }
       : role === "MERCHANT_OWNER" || role === "MERCHANT_STAFF"
         ? { href: "/merchant", label: "پنل فروشگاه" }
         : null;
-  useEffect(() => {
-    let active = true;
-    fetch("/api/auth/session")
-      .then((r) => r.json())
-      .then((data) => {
-        if (active) {
-          setAuthenticated(Boolean(data.authenticated));
-          setRole(data.authenticated ? (data.user?.role ?? null) : null);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [pathname]);
   const items = [
     { href: "/", label: "کشف لقمه", icon: Compass, active: pathname === "/" },
     {
@@ -85,13 +71,33 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
                 {portal.label} <ArrowUpLeft size={16} />
               </Link>
             )}
-            <Link
-              href={authenticated ? "/profile" : "/login"}
-              className="action-link"
-            >
-              <UserRound size={18} />
-              {authenticated ? "حساب من" : "ورود / ثبت‌نام"}
-            </Link>
+            {status === "loading" ? (
+              <span
+                className="action-link min-w-32"
+                aria-label="در حال بررسی حساب"
+                aria-busy="true"
+              >
+                <UserRound size={18} />
+                <span className="animate-shimmer h-4 w-20 rounded" />
+              </span>
+            ) : status === "unavailable" ? (
+              <button
+                className="action-link"
+                title="بررسی دوباره حساب"
+                onClick={refresh}
+              >
+                <UserRound size={18} />
+                حساب کاربری
+              </button>
+            ) : (
+              <Link
+                href={authenticated ? "/profile" : "/login"}
+                className="action-link"
+              >
+                <UserRound size={18} />
+                {authenticated ? "حساب من" : "ورود / ثبت‌نام"}
+              </Link>
+            )}
           </div>
         </div>
       </header>

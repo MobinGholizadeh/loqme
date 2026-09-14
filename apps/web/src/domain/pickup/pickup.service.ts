@@ -373,7 +373,7 @@ export class PickupService {
     // 3. Authorization Check: Staff or Owner of THIS specific merchant (or ADMIN)
     const actorUser = await prisma.user.findUnique({
       where: { id: merchantUserId },
-      select: { role: true },
+      select: { role: true, isActive: true },
     });
 
     const isPlatformAdmin = actorUser?.role === Role.ADMIN;
@@ -382,7 +382,7 @@ export class PickupService {
       (s) => s.userId === merchantUserId && s.canScanPickup
     );
 
-    if (!isPlatformAdmin && !isStoreOwner && !staffMember) {
+    if (!actorUser?.isActive || (!isPlatformAdmin && !isStoreOwner && !staffMember)) {
       console.warn(
         `Security Alert: Unauthorized pickup attempt on order ${order.orderNumber} by user ${merchantUserId}`
       );

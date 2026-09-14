@@ -91,10 +91,12 @@ CP-10.8 is **implemented and locally validated**. Physical-device/provider accep
 
 ## Reproduce And Preview
 
+CP-10.10 follow-up (2026-09-14): the latest user instruction authorizes committing and fast-forwarding the redesign to `master`, including Docker files. Earlier no-merge statements describe CP-10.8 delivery, not this updated authorization. Deployment remains outside this task. User commits `1d1b59b` (Compose) and `cf7944e` (favicon) were incorporated without rewriting them.
+
 PowerShell, repository root:
 
 ```powershell
-$env:LOQME_BUILD_DIR = '.next-redesign-build'
+$env:LOQME_BUILD_DIR = '.next-account-build'
 npm.cmd run build
 node node_modules/next/dist/bin/next start apps/web --port 3003
 ```
@@ -106,6 +108,28 @@ $env:LOQME_TEST_URL = 'http://localhost:3003'
 npm.cmd run test:browser
 ```
 
-Without `LOQME_TEST_URL`, Playwright starts an isolated development build on port 3002 using `.next-stitch`. Keep test targets local; intercepted API responses and signed fixture sessions are not production test accounts. The current preview is `http://localhost:3003`. No deployment, merge or commit was made.
+Without `LOQME_TEST_URL`, Playwright starts an isolated development build on port 3002 using `.next-stitch`. Keep test targets local; intercepted API responses and signed fixture sessions are not production test accounts. The current preview is `http://localhost:3003`; port 3004 is reserved for disposable API/browser validation. No deployment was performed.
 
 For full domain validation, initialize a **fresh disposable database** using the existing six migrations and seed, set `DATABASE_URL` to that database, and run `npm test -- --no-file-parallelism` with `SMS_PROVIDER=console`. The seed's clock-dependent pickup windows must be current; this run used start = now minus one hour, end = now plus three hours and 100 inventory units in the test database only. Legacy suites consume fixtures and create fixed-number orders, so rerunning them against already-consumed data is not equivalent to a fresh run. Never run this setup or these mutating domain tests against the preview or production database.
+
+## Merchant Feedback And Account Follow-Up
+
+CP-10.9 adds merchant-only portal navigation and tenant checks, canonical food temperature values, clearer six-category publication, optional gallery/catalog photos and `scope=all` discovery with per-card city/neighborhood labels. Personal purchase-role policy is unchanged. Main inventory is never extended or seeded just to populate the homepage.
+
+CP-10.10 adds `/admin/merchants/[id]/settings`: linked owner phone, identity and active status, independently confirmed owner replacement, scoped paginated orders and staff summaries. Account changes require an audit reason. Session state now persists across customer-shell remounts, with neutral loading/retry presentation instead of a false login button. Confirmation dialogs preserve focus after successful saves. See `SECURITY.md` for enforcement boundaries.
+
+### Catalog Asset Provenance
+
+The three optional decorative photos were generated with the built-in image generation tool, not obtained from merchant inventory. Saved deliverables: `apps/web/public/listing-defaults/bread.png`, `meal.png`, `produce.png`. All are presented as illustrative, never as evidence of the actual bag contents. Shared art direction: landscape 4:3 photoreal catalog photography, fresh modest portions, white/light-gray surface, natural daylight, no people, text or logos. Subjects: barbari bread and croissants; Persian rice, cooked chicken and tomato; a produce box with apples, oranges, cucumbers and tomatoes. The originals remain in the local Codex generated-images directory for this task. Merchants can instead upload their actual JPEG/PNG/WebP photograph; the server re-encodes it as metadata-free WebP.
+
+### Docker Validation Boundary
+
+Both Compose configurations pass `docker compose ... config --quiet`. Listing uploads have persistent named volumes in development and production; `.dockerignore` excludes nested dependencies, generated builds, local uploads, test artifacts and environment secrets. A real Docker image build was attempted but stopped while requesting the anonymous Docker Hub token for `node:20-alpine` because `auth.docker.io` timed out. Container build/runtime success is therefore **not verified**; the native Next.js production build is separately verified. No image was deployed. Production gateway credentials, TLS, upload quotas/backups and physical-device/provider acceptance remain operational gates.
+
+### Final CP-10.10 Evidence
+
+- Fresh disposable `loqme_account_test_final_20260914`: six existing migrations, seed, test-only current pickup windows and stock; 192/192 Vitest tests in 20 suites pass serially.
+- 33/33 Playwright tests pass on optimized port 3004, including role-correct 27-route matrices at 360/390/768/1440/1920px, decoded images, accessibility, error/empty states and established customer/merchant/admin actions. Four account tests rerun after restoring focus following Axe's contrast audit. Account screenshots at 390/1440px were inspected; dialog focus returns to its trigger after save.
+- Live API scripts on that isolated database pass: 15 merchant-role checks, six category publications with persisted photos, gallery WebP serving, all-region labels, scoped admin orders, disabled-owner session/API rejection, confirmed owner transfer, removed old access and three atomic audit records. These scripts reject non-test databases and non-local test URLs.
+- ESLint: zero warnings/errors. Explicit TypeScript checks: web, types, validation, API and design tokens pass. Production `.next-account-build`: pass. Compose syntax: pass; image build network limitation above.
+- Main preview: root HTTP 200 and readiness pass; no valid published offers at final check. Main inventory, pickup windows and accounts were not changed by these tests. Existing generated build files accidentally tracked by user commit `2b4f637` were not removed from history; unrelated expired image-cache deletions remain unstaged. Future `.next-*` outputs are ignored.

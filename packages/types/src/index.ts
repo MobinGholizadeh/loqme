@@ -9,6 +9,18 @@
 
 export type UserRole = 'CUSTOMER' | 'MERCHANT_STAFF' | 'MERCHANT_OWNER' | 'ADMIN';
 
+export interface AdminMerchantAccountDto {
+  id: string;
+  businessNameFa: string;
+  verificationStatus: string;
+  owner: { id: string; mobile: string; fullName: string; role: UserRole; isActive: boolean; ownedStoreCount: number };
+  staff: Array<{ id: string; mobile: string; fullName: string; role: string; isActive: boolean }>;
+  orders: Array<{ id: string; orderNumber: string; status: string; createdAt: string; customerName: string; totalAmountToman: number; items: Array<{ titleFa: string; quantity: number }> }>;
+  totalOrders: number;
+  page: number;
+  pageSize: number;
+}
+
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
   CUSTOMER: 1,
   MERCHANT_STAFF: 2,
