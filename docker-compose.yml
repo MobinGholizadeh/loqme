@@ -17,6 +17,35 @@ services:
       timeout: 5s
       retries: 5
 
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: loqme-web
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/loqme?schema=public
+      SESSION_SECRET: ${SESSION_SECRET:-loqme-development-session-super-secret-key-change-in-production-32c}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      SMS_PROVIDER: ${SMS_PROVIDER:-console}
+      KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY:-}
+      FARAZSMS_API_KEY: ${FARAZSMS_API_KEY:-}
+      ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID:-}
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
 volumes:
   loqme_pgdata:
     driver: local
+
