@@ -144,6 +144,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   deli: "پروتئین و محصولات پلمب تاریخ‌دار",
 };
 
+function futureTime(hoursAhead: number) {
+  const date = new Date(Date.now() + hoursAhead * 60 * 60 * 1000);
+  return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+}
+
 export const FastListingModal: React.FC<FastListingModalProps> = ({
   isOpen,
   onClose,
@@ -159,8 +164,8 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
   const [originalPrice, setOriginalPrice] = useState<number>(160000);
   const [discountedPrice, setDiscountedPrice] = useState<number>(75000);
   const [quantity, setQuantity] = useState<number>(4);
-  const [pickupStart, setPickupStart] = useState<string>("19:30");
-  const [pickupEnd, setPickupEnd] = useState<string>("21:30");
+  const [pickupStart, setPickupStart] = useState<string>(() => futureTime(1));
+  const [pickupEnd, setPickupEnd] = useState<string>(() => futureTime(3));
   const [temperatureReq, setTemperatureReq] =
     useState<FastCreateListingInput["temperatureRequirement"]>("CHILLED");
   const [allergens, setAllergens] = useState("تخم‌مرغ، لبنیات، گلوتن");
@@ -171,6 +176,8 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
     Array<{ slug: string; nameFa: string }>
   >([]);
   const errorRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [safetyConfirmed, setSafetyConfirmed] = useState<boolean>(false);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -221,16 +228,45 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setFieldErrors({});
+
+    const errors: Record<string, string> = {};
+    if (!categorySlug) errors.categorySlug = "دسته‌بندی خوراکی را انتخاب کنید";
+    if (titleFa.trim().length < 3)
+      errors.titleFa = "عنوان بسته حداقل ۳ کاراکتر باشد";
+    if (descriptionFa.trim().length < 5)
+      errors.descriptionFa = "توضیحات بسته حداقل ۵ کاراکتر باشد";
+    if (!originalPrice || originalPrice <= 0)
+      errors.originalPriceToman = "قیمت اصلی را وارد کنید";
+    if (!discountedPrice || discountedPrice <= 0)
+      errors.discountedPriceToman = "قیمت فروش را وارد کنید";
+    if (discountedPrice >= originalPrice)
+      errors.discountedPriceToman = "قیمت فروش باید کمتر از قیمت اصلی باشد";
+    if (!quantity || quantity < 1) errors.quantity = "تعداد باید حداقل ۱ باشد";
+    if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(pickupStart))
+      errors.pickupStart = "زمان شروع را مانند ۱۹:۳۰ وارد کنید";
+    if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(pickupEnd))
+      errors.pickupEnd = "زمان پایان را مانند ۲۱:۳۰ وارد کنید";
+    if (Object.keys(errors).length === 0 && pickupEnd <= pickupStart)
+      errors.pickupEnd = "زمان پایان باید بعد از زمان شروع باشد";
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErrorMessage("اطلاعات بسته کامل نیست؛ موارد مشخص‌شده را اصلاح کنید");
+      requestAnimationFrame(() => {
+        const first = Object.keys(errors)[0];
+        const field = formRef.current?.querySelector<HTMLElement>(
+          `[data-field="${first}"]`,
+        );
+        field?.scrollIntoView({ behavior: "smooth", block: "center" });
+        window.setTimeout(() => field?.focus(), 250);
+      });
+      return;
+    }
 
     if (!safetyConfirmed) {
       setErrorMessage(
         "لطفاً انطباق اقلام با استاندارد بهداشت و سلامت لقمه را تایید فرمایید",
       );
-      return;
-    }
-
-    if (discountedPrice >= originalPrice) {
-      setErrorMessage("قیمت فروش باید کمتر از قیمت اصلی منو باشد");
       return;
     }
 
@@ -311,7 +347,12 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+        <form
+          ref={formRef}
+          noValidate
+          onSubmit={handleSubmit}
+          className="space-y-5 mt-4"
+        >
           {/* Step 1: Preset Templates Selection */}
           <div>
             <label className="block text-xs font-bold text-loqme-neutral-700 mb-2">
@@ -349,10 +390,13 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
 
           {/* Step 2: Title and Description */}
           <Select
+            id="merchant-category"
+            data-field="categorySlug"
             label="دسته‌بندی خوراکی"
             value={categorySlug}
             onChange={(e) => setCategorySlug(e.target.value)}
             required
+            error={fieldErrors.categorySlug}
           >
             {categories.map((category) => (
               <option key={category.slug} value={category.slug}>
@@ -363,10 +407,13 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Input
+                id="merchant-title"
+                data-field="titleFa"
                 label="عنوان نمایشی بسته در بازار"
                 value={titleFa}
                 onChange={(e) => setTitleFa(e.target.value)}
                 required
+                error={fieldErrors.titleFa}
               />
             </div>
             <div>
@@ -378,12 +425,19 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
               </label>
               <input
                 id="merchant-field-1"
+                data-field="descriptionFa"
                 type="text"
                 value={descriptionFa}
                 onChange={(e) => setDescriptionFa(e.target.value)}
+                aria-invalid={fieldErrors.descriptionFa ? true : undefined}
                 className="w-full px-3 py-2 text-xs border border-loqme-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-loqme-primary-500"
                 required
               />
+              {fieldErrors.descriptionFa && (
+                <p className="text-xs text-red-600 mt-1" role="alert">
+                  {fieldErrors.descriptionFa}
+                </p>
+              )}
             </div>
           </div>
 
@@ -442,8 +496,12 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                 </label>
                 <input
                   id="merchant-field-2"
+                  data-field="originalPriceToman"
                   type="number"
                   value={originalPrice}
+                  aria-invalid={
+                    fieldErrors.originalPriceToman ? true : undefined
+                  }
                   onChange={(e) =>
                     setOriginalPrice(Number(toEnglishDigits(e.target.value)))
                   }
@@ -451,6 +509,11 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                   className="w-full px-3 py-2 text-sm font-mono font-bold border border-loqme-neutral-300 rounded-lg text-left focus:ring-2 focus:ring-loqme-primary-500"
                   required
                 />
+                {fieldErrors.originalPriceToman && (
+                  <p className="text-xs text-red-600 mt-1" role="alert">
+                    {fieldErrors.originalPriceToman}
+                  </p>
+                )}
                 <span className="text-[10px] text-loqme-neutral-500 mt-0.5 block">
                   {formatToman(originalPrice)}
                 </span>
@@ -465,8 +528,12 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                 </label>
                 <input
                   id="merchant-field-3"
+                  data-field="discountedPriceToman"
                   type="number"
                   value={discountedPrice}
+                  aria-invalid={
+                    fieldErrors.discountedPriceToman ? true : undefined
+                  }
                   onChange={(e) =>
                     setDiscountedPrice(Number(toEnglishDigits(e.target.value)))
                   }
@@ -474,6 +541,11 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                   className="w-full px-3 py-2 text-sm font-mono font-black border-2 border-loqme-primary-500 rounded-lg text-left bg-white text-loqme-primary-800 focus:ring-2 focus:ring-loqme-primary-500"
                   required
                 />
+                {fieldErrors.discountedPriceToman && (
+                  <p className="text-xs text-red-600 mt-1" role="alert">
+                    {fieldErrors.discountedPriceToman}
+                  </p>
+                )}
                 <span className="text-[10px] text-loqme-primary-600 font-bold mt-0.5 block">
                   {formatToman(discountedPrice)}
                 </span>
@@ -504,6 +576,11 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                     +
                   </button>
                 </div>
+                {fieldErrors.quantity && (
+                  <p className="text-xs text-red-600 mt-1" role="alert">
+                    {fieldErrors.quantity}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -519,8 +596,10 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
               </label>
               <input
                 id="merchant-field-4"
+                data-field="pickupStart"
                 type="text"
                 value={pickupStart}
+                aria-invalid={fieldErrors.pickupStart ? true : undefined}
                 onChange={(e) =>
                   setPickupStart(toEnglishDigits(e.target.value))
                 }
@@ -528,6 +607,11 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                 className="w-full px-3 py-2 text-center font-mono text-sm font-bold border border-loqme-neutral-300 rounded-lg"
                 required
               />
+              {fieldErrors.pickupStart && (
+                <p className="text-xs text-red-600 mt-1" role="alert">
+                  {fieldErrors.pickupStart}
+                </p>
+              )}
             </div>
             <div>
               <label
@@ -538,13 +622,20 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
               </label>
               <input
                 id="merchant-field-5"
+                data-field="pickupEnd"
                 type="text"
                 value={pickupEnd}
+                aria-invalid={fieldErrors.pickupEnd ? true : undefined}
                 onChange={(e) => setPickupEnd(toEnglishDigits(e.target.value))}
                 placeholder="21:30"
                 className="w-full px-3 py-2 text-center font-mono text-sm font-bold border border-loqme-neutral-300 rounded-lg"
                 required
               />
+              {fieldErrors.pickupEnd && (
+                <p className="text-xs text-red-600 mt-1" role="alert">
+                  {fieldErrors.pickupEnd}
+                </p>
+              )}
             </div>
           </div>
 
