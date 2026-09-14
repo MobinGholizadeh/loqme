@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { cn } from '@/lib/utils/cn';
+import React from "react";
+import { cn } from "@/lib/utils/cn";
 
 export interface SelectOption {
   value: string;
@@ -32,9 +32,10 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       disabled,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const selectId = id || (label ? `select-${label.replace(/\s+/g, '-')}` : undefined);
+    const generatedId = React.useId();
+    const selectId = id || generatedId;
 
     return (
       <div className="select-container w-full">
@@ -44,19 +45,31 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           </label>
         )}
 
-        <div className={cn('select-wrapper', error && 'select-has-error', disabled && 'select-disabled')}>
+        <div
+          className={cn(
+            "select-wrapper",
+            error && "select-has-error",
+            disabled && "select-disabled",
+          )}
+        >
           {icon && <div className="select-icon-prefix">{icon}</div>}
 
           <select
             ref={ref}
             id={selectId}
             disabled={disabled}
-            className={cn('select-field', className)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error || hint ? `${selectId}-message` : undefined}
+            className={cn("select-field", className)}
             {...props}
           >
             {options
               ? options.map((opt) => (
-                  <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                  <option
+                    key={opt.value}
+                    value={opt.value}
+                    disabled={opt.disabled}
+                  >
                     {opt.label}
                   </option>
                 ))
@@ -74,7 +87,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-loqme-neutral-400"
+              className="text-loqme-neutral-500"
             >
               <polyline points="6 9 12 15 18 9" />
             </svg>
@@ -82,12 +95,20 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         </div>
 
         {error && (
-          <p className="select-error-msg" role="alert">
+          <p
+            id={`${selectId}-message`}
+            className="select-error-msg"
+            role="alert"
+          >
             {error}
           </p>
         )}
 
-        {!error && hint && <p className="select-hint-msg">{hint}</p>}
+        {!error && hint && (
+          <p id={`${selectId}-message`} className="select-hint-msg">
+            {hint}
+          </p>
+        )}
 
         <style jsx>{`
           .select-container {
@@ -111,7 +132,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             background-color: var(--color-bg-surface);
             border: 1px solid var(--color-border-strong);
             border-radius: var(--radius-md);
-            transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+            transition:
+              border-color 150ms var(--ease-out),
+              box-shadow 150ms var(--ease-out);
             min-height: 44px;
           }
 
@@ -138,7 +161,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             flex: 1;
             width: 100%;
             height: 100%;
-            padding: var(--space-2) var(--space-8) var(--space-2) var(--space-4);
+            padding-block: var(--space-2);
+            padding-inline: var(--space-3) var(--space-8);
             border: none;
             background: transparent;
             color: var(--color-text-primary);
@@ -156,7 +180,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           .select-icon-prefix {
             display: flex;
             align-items: center;
-            padding-right: var(--space-3);
+            padding-inline-start: var(--space-3);
             color: var(--color-text-muted);
             font-size: var(--font-size-sm);
             user-select: none;
@@ -164,7 +188,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
 
           .select-chevron {
             position: absolute;
-            left: var(--space-3);
+            inset-inline-end: var(--space-3);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -184,7 +208,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         `}</style>
       </div>
     );
-  }
+  },
 );
 
-Select.displayName = 'Select';
+Select.displayName = "Select";

@@ -39,9 +39,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // If authenticated but role lacks authorization
-    const unauthorizedUrl = new URL('/login', request.url);
-    unauthorizedUrl.searchParams.set('unauthorized', '1');
-    unauthorizedUrl.searchParams.set('role', userRole);
+    const unauthorizedUrl = new URL(userRole === 'ADMIN' ? '/admin' : '/', request.url);
     return NextResponse.redirect(unauthorizedUrl);
   }
 

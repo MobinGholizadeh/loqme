@@ -7,6 +7,7 @@
 import crypto from 'crypto';
 import QRCode from 'qrcode';
 import { prisma } from '@/lib/prisma';
+import { merchantService } from '@/domain/merchant/merchant.service';
 import {
   OrderStatus,
   Role,
@@ -562,8 +563,8 @@ export class PickupService {
     merchantId?: string
   ): Promise<MerchantPickupQueueItemDto[]> {
     // 1. Resolve merchant ID
-    const targetMerchantId = merchantId || (await this.getPrimaryMerchantIdForUser(merchantUserId));
-    if (!targetMerchantId) return [];
+    const { merchant } = await merchantService.resolveMerchantAndAuthorize(merchantUserId, merchantId);
+    const targetMerchantId = merchant.id;
 
     // Automatically trigger background sweep for elapsed orders
     await this.sweepNoShows().catch((err) => {

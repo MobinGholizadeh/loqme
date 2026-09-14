@@ -404,6 +404,7 @@ describe('Milestone M07 — Merchant Product & Management Portal', () => {
     });
 
     it('rejects access if user does not belong to the target store (Tenant Isolation)', async () => {
+      vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({ role: 'MERCHANT_OWNER', isActive: true } as any);
       vi.spyOn(prisma.merchant, 'findUnique').mockResolvedValue({
         id: merchantId,
         ownerUserId: 'real-owner-id',

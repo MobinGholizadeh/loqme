@@ -1,9 +1,11 @@
-'use client';
+"use client";
+import { DialogSurface } from "@/components/ui/DialogSurface";
+import * as RedesignIcons from "lucide-react";
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
-import jsQR from 'jsqr';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import jsQR from "jsqr";
+import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface QRCameraScannerProps {
   isOpen: boolean;
@@ -22,8 +24,12 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameId = useRef<number | null>(null);
 
-  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">(
+    "environment",
+  );
+  const [hasCameraPermission, setHasCameraPermission] = useState<
+    boolean | null
+  >(null);
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -49,7 +55,7 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
       return;
     }
 
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
     canvas.width = video.videoWidth;
@@ -58,7 +64,7 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const code = jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: 'dontInvert',
+      inversionAttempts: "dontInvert",
     });
 
     if (code && code.data) {
@@ -80,7 +86,7 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setHasCameraPermission(false);
-      setErrorMessage('مرورگر شما از دسترسی به دوربین پشتیبانی نمی‌کند');
+      setErrorMessage("مرورگر شما از دسترسی به دوربین پشتیبانی نمی‌کند");
       setIsInitializing(false);
       return;
     }
@@ -97,16 +103,18 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.setAttribute('playsinline', 'true');
+        videoRef.current.setAttribute("playsinline", "true");
         await videoRef.current.play();
         setHasCameraPermission(true);
         setIsInitializing(false);
         animationFrameId.current = requestAnimationFrame(scanFrame);
       }
     } catch (err: unknown) {
-      console.error('Camera access error:', err);
+      console.error("Camera access error:", err);
       setHasCameraPermission(false);
-      setErrorMessage('دسترسی به دوربین مسدود شده یا خطایی در راه‌اندازی رخ داده است');
+      setErrorMessage(
+        "دسترسی به دوربین مسدود شده یا خطایی در راه‌اندازی رخ داده است",
+      );
       setIsInitializing(false);
     }
   }, [facingMode, scanFrame, stopStream]);
@@ -126,24 +134,26 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
   if (!isOpen) return null;
 
   const toggleCamera = () => {
-    setFacingMode((prev) => (prev === 'environment' ? 'user' : 'environment'));
+    setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
-      dir="rtl"
-    >
-      <div className="relative w-full max-w-md bg-loqme-neutral-900 rounded-3xl overflow-hidden shadow-2xl border border-loqme-neutral-800 text-white">
+    <DialogSurface onClose={onClose}>
+      <div className="relative w-full max-w-md bg-loqme-neutral-900 rounded-lg overflow-hidden shadow-2xl border border-loqme-neutral-800 text-white">
         {/* Header */}
         <div className="flex items-center justify-between p-4 px-6 border-b border-loqme-neutral-800 bg-black/40">
           <div className="flex items-center gap-2">
-            <span className="text-lg">📷</span>
-            <h2 className="font-bold text-sm text-white">اسکن بارکد تحویل حضوری</h2>
+            <span className="text-lg">
+              <RedesignIcons.Camera size={20} aria-hidden="true" />
+            </span>
+            <h2 className="font-bold text-sm text-white">
+              اسکن بارکد تحویل حضوری
+            </h2>
           </div>
           <button
+            aria-label="بستن"
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-500 hover:text-white hover:bg-white/10 transition-colors"
           >
             ✕
           </button>
@@ -164,16 +174,22 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
           {isInitializing ? (
             <div className="relative z-10 text-center space-y-2 p-6">
               <Spinner size="lg" variant="white" className="mx-auto" />
-              <p className="text-xs text-loqme-neutral-400">در حال فعال‌سازی دوربین...</p>
+              <p className="text-xs text-loqme-neutral-500">
+                در حال فعال‌سازی دوربین...
+              </p>
             </div>
           ) : errorMessage || hasCameraPermission === false ? (
             <div className="relative z-10 p-6 text-center space-y-4">
               <div className="text-3xl">🚫</div>
               <p className="text-xs text-loqme-neutral-300 max-w-xs mx-auto leading-relaxed">
-                {errorMessage || 'دسترسی به دوربین مسدود شده است.'}
+                {errorMessage || "دسترسی به دوربین مسدود شده است."}
               </p>
               <div className="space-y-2">
-                <Button size="sm" variant="primary" onClick={() => startStream()}>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => startStream()}
+                >
                   تلاش مجدد
                 </Button>
                 {onFallbackToManual && (
@@ -195,7 +211,7 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
             /* Active Scanning Overlay */
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
               {/* Darkened vignette around target */}
-              <div className="relative w-64 h-64 rounded-3xl border-2 border-dashed border-loqme-primary-400/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.55)] flex items-center justify-center overflow-hidden">
+              <div className="relative w-64 h-64 rounded-lg border-2 border-dashed border-loqme-primary-400/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.55)] flex items-center justify-center overflow-hidden">
                 {/* Glowing Corner Accents */}
                 <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-loqme-primary-400 rounded-tr-xl" />
                 <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-loqme-primary-400 rounded-tl-xl" />
@@ -211,14 +227,14 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
 
         {/* Footer controls */}
         <div className="p-4 px-6 flex items-center justify-between bg-black/60 border-t border-loqme-neutral-800 text-xs">
-          <span className="text-loqme-neutral-400 text-[11px]">
+          <span className="text-loqme-neutral-500 text-[11px]">
             کادر را روی بارکد مشتری قرار دهید
           </span>
 
           <div className="flex items-center gap-2">
             <button
               onClick={toggleCamera}
-              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
               title="تغییر دوربین"
             >
               🔄 چرخش دوربین
@@ -230,7 +246,7 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
                   onClose();
                   onFallbackToManual();
                 }}
-                className="px-3 py-1.5 rounded-xl bg-loqme-primary-600 hover:bg-loqme-primary-700 text-white text-xs font-bold transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-loqme-primary-600 hover:bg-loqme-primary-700 text-white text-xs font-bold transition-colors"
               >
                 کد ۴ رقمی
               </button>
@@ -238,6 +254,6 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </DialogSurface>
   );
 };

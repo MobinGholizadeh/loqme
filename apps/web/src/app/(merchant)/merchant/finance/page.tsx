@@ -1,27 +1,35 @@
-'use client';
+"use client";
+import { ErrorState } from "@/components/ui/ErrorState";
+import * as RedesignIcons from "lucide-react";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { formatToman, toPersianDigits } from '@/lib/utils/persian';
-import { MerchantFinanceSummaryDto } from '@loqme/types';
+import React, { useState, useEffect, useCallback } from "react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { formatToman, toPersianDigits } from "@/lib/utils/persian";
+import { MerchantFinanceSummaryDto } from "@loqme/types";
 
 export default function MerchantFinancePage() {
-  const [finance, setFinance] = useState<MerchantFinanceSummaryDto | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [finance, setFinance] = useState<MerchantFinanceSummaryDto | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchFinance = useCallback(async () => {
+    setLoadError("");
     try {
-      const res = await fetch('/api/merchant/finance');
+      const res = await fetch("/api/merchant/finance");
       const json = await res.json();
+      if (!res.ok || !json.success)
+        throw new Error(json.message || "دریافت اطلاعات ممکن نشد");
       if (json.success && json.data) {
         setFinance(json.data);
       }
     } catch (err) {
-      console.error('Failed to fetch merchant finance:', err);
+      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
     } finally {
       setIsLoading(false);
     }
@@ -31,14 +39,26 @@ export default function MerchantFinancePage() {
     fetchFinance();
   }, [fetchFinance]);
 
+  if (loadError)
+    return (
+      <ErrorState
+        title="دریافت اطلاعات انجام نشد"
+        message={loadError}
+        onRetry={() => window.location.reload()}
+      />
+    );
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-loqme-neutral-900">صورت‌حساب مالی و تسویه</h1>
+          <h1 className="text-2xl font-black text-loqme-neutral-900">
+            صورت‌حساب مالی و تسویه
+          </h1>
           <p className="text-xs text-loqme-neutral-500 mt-1">
-            گزارش فروش ناخالص، کارمزد پلتفرم، مانده قابل تسویه و ریز تراکنش‌های دفاتر کل
+            گزارش فروش ناخالص، کارمزد پلتفرم، مانده قابل تسویه و ریز تراکنش‌های
+            دفاتر کل
           </p>
         </div>
 
@@ -51,7 +71,9 @@ export default function MerchantFinancePage() {
           }}
           className="gap-2"
         >
-          <span>🔄</span>
+          <span>
+            <RedesignIcons.RefreshCw size={20} aria-hidden="true" />
+          </span>
           <span>بروزرسانی حساب</span>
         </Button>
       </div>
@@ -59,14 +81,21 @@ export default function MerchantFinancePage() {
       {isLoading && !finance ? (
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
-          <p className="text-xs text-loqme-neutral-500">در حال محاسبه صورت‌حساب مالی...</p>
+          <p className="text-xs text-loqme-neutral-500">
+            در حال محاسبه صورت‌حساب مالی...
+          </p>
         </div>
       ) : (
         <>
           {/* KPI Financial Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">فروش ناخالص کل (GMV)</span>
+            <Card
+              variant="elevated"
+              className="p-4 bg-white border border-loqme-neutral-200"
+            >
+              <span className="text-xs text-loqme-neutral-500 font-medium">
+                فروش ناخالص کل (GMV)
+              </span>
               <div className="text-2xl font-black text-loqme-neutral-900 mt-2">
                 {formatToman(finance?.grossSalesToman ?? 0)}
               </div>
@@ -75,8 +104,13 @@ export default function MerchantFinancePage() {
               </span>
             </Card>
 
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">کارمزد پلتفرم لقمه (۱۰٪)</span>
+            <Card
+              variant="elevated"
+              className="p-4 bg-white border border-loqme-neutral-200"
+            >
+              <span className="text-xs text-loqme-neutral-500 font-medium">
+                کارمزد پلتفرم لقمه (۱۰٪)
+              </span>
               <div className="text-2xl font-black text-rose-600 mt-2">
                 {formatToman(finance?.platformCommissionToman ?? 0)}
               </div>
@@ -85,8 +119,13 @@ export default function MerchantFinancePage() {
               </span>
             </Card>
 
-            <Card variant="elevated" className="p-4 bg-loqme-primary-50 border-2 border-loqme-primary-300">
-              <span className="text-xs text-loqme-primary-800 font-medium">مانده قابل تسویه همکار (۹۰٪)</span>
+            <Card
+              variant="elevated"
+              className="p-4 bg-loqme-primary-50 border-2 border-loqme-primary-300"
+            >
+              <span className="text-xs text-loqme-primary-800 font-medium">
+                مانده قابل تسویه همکار (۹۰٪)
+              </span>
               <div className="text-2xl font-black text-loqme-primary-900 mt-2">
                 {formatToman(finance?.netPayableBalanceToman ?? 0)}
               </div>
@@ -95,25 +134,36 @@ export default function MerchantFinancePage() {
               </span>
             </Card>
 
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">سفارش‌های تکمیل‌شده</span>
+            <Card
+              variant="elevated"
+              className="p-4 bg-white border border-loqme-neutral-200"
+            >
+              <span className="text-xs text-loqme-neutral-500 font-medium">
+                سفارش‌های تکمیل‌شده
+              </span>
               <div className="text-2xl font-black text-emerald-700 mt-2">
                 {toPersianDigits(finance?.completedOrdersCount ?? 0)} سفارش
               </div>
               <span className="text-[11px] text-loqme-neutral-500 mt-1 block">
-                از مجموع {toPersianDigits(finance?.totalOrdersCount ?? 0)} سفارش ثبت شده
+                از مجموع {toPersianDigits(finance?.totalOrdersCount ?? 0)} سفارش
+                ثبت شده
               </span>
             </Card>
           </div>
 
           {/* Bank Account / Shaba Card */}
-          <Card variant="elevated" className="p-5 bg-white border border-loqme-neutral-200">
+          <Card
+            variant="elevated"
+            className="p-5 bg-white border border-loqme-neutral-200"
+          >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
-                <span className="text-xs text-loqme-neutral-500 font-medium">حساب بانکی جهت تسویه خودکار:</span>
+                <span className="text-xs text-loqme-neutral-500 font-medium">
+                  حساب بانکی جهت تسویه خودکار:
+                </span>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-base font-bold text-loqme-neutral-900 tracking-wider">
-                    {finance?.shabaNumber || 'IR820170000000109283746501'}
+                    {finance?.shabaNumber || "IR820170000000109283746501"}
                   </span>
                   <Badge variant="success" size="sm">
                     ✓ شبا تایید شده در سامانه پایا/ساتنا
@@ -121,14 +171,19 @@ export default function MerchantFinancePage() {
                 </div>
               </div>
               <div className="text-xs text-loqme-neutral-500">
-                چرخه تسویه: <strong className="text-loqme-neutral-800">هفتگی (یکشنبه‌ها)</strong>
+                چرخه تسویه:{" "}
+                <strong className="text-loqme-neutral-800">
+                  هفتگی (یکشنبه‌ها)
+                </strong>
               </div>
             </div>
           </Card>
 
           {/* Ledger Transactions Table */}
           <div className="space-y-3">
-            <h3 className="font-bold text-sm text-loqme-neutral-900">ریز تراکنش‌های دفاتر کل (Ledger)</h3>
+            <h3 className="font-bold text-sm text-loqme-neutral-900">
+              ریز تراکنش‌های دفاتر کل (Ledger)
+            </h3>
 
             {!finance?.transactions || finance.transactions.length === 0 ? (
               <EmptyState
@@ -137,7 +192,7 @@ export default function MerchantFinancePage() {
                 description="پس از پرداخت سفارش‌ها توسط مشتریان، اسناد بستانکاری فروشگاه در این بخش ثبت می‌گردند."
               />
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-loqme-neutral-200 bg-white">
+              <div className="overflow-x-auto rounded-lg border border-loqme-neutral-200 bg-white">
                 <table className="w-full text-right text-xs">
                   <thead className="bg-loqme-neutral-50 border-b border-loqme-neutral-200 text-loqme-neutral-600 font-bold">
                     <tr>
@@ -154,12 +209,14 @@ export default function MerchantFinancePage() {
                     {finance.transactions.map((tx) => (
                       <tr key={tx.id} className="hover:bg-loqme-neutral-50/50">
                         <td className="p-3 font-mono text-loqme-neutral-500">
-                          {new Date(tx.createdAt).toLocaleDateString('fa-IR')}
+                          {new Date(tx.createdAt).toLocaleDateString("fa-IR")}
                         </td>
                         <td className="p-3 font-mono font-bold text-loqme-primary-800">
-                          {tx.orderNumber || '-'}
+                          {tx.orderNumber || "-"}
                         </td>
-                        <td className="p-3 text-loqme-neutral-800">{tx.descriptionFa}</td>
+                        <td className="p-3 text-loqme-neutral-800">
+                          {tx.descriptionFa}
+                        </td>
                         <td className="p-3 font-bold text-loqme-neutral-900">
                           {formatToman(tx.grossAmountToman)}
                         </td>

@@ -121,6 +121,7 @@ export const CreateSurpriseBagSchema = z.object({
 export type CreateSurpriseBagInput = z.input<typeof CreateSurpriseBagSchema>;
 
 export const CreateListingSchema = z.object({
+  imageUrl: z.string().max(500).optional(),
   merchantId: z.string().uuid('شناسه فروشگاه نامعتبر است'),
   merchantLocationId: z.string().uuid('شناسه شعبه نامعتبر است').optional(),
   categoryId: z.string().min(1, 'شناسه دسته‌بندی الزامی است'),
@@ -219,6 +220,10 @@ export const ListingSearchQuerySchema = z.object({
 export type ListingSearchQueryInput = z.infer<typeof ListingSearchQuerySchema>;
 
 export const MarketplaceFilterSchema = z.object({
+  scope: z.enum(['nearby', 'all']).default('nearby'),
+  offset: z.coerce.number().int().min(0).max(100000).default(0),
+  q: z.string().trim().max(100).optional(),
+  categorySlug: z.string().max(100).optional(),
   latitude: z.coerce.number().min(-90).max(90).optional(),
   longitude: z.coerce.number().min(-180).max(180).optional(),
   lat: z.coerce.number().min(-90).max(90).optional(),
@@ -405,6 +410,7 @@ export type UpdateListingSafetyInput = z.infer<typeof UpdateListingSafetySchema>
 
 export const FastCreateListingSchema = z
   .object({
+    imageUrl: z.string().max(500).optional(),
     categoryId: z.string().optional(),
     categorySlug: z.string().optional(),
     titleFa: z.string().trim().min(3, 'عنوان بسته حداقل باید ۳ کاراکتر باشد').max(100),
@@ -419,7 +425,7 @@ export const FastCreateListingSchema = z
     dietaryTags: z.array(z.string()).default([]),
     storageInstructionsFa: z.string().optional(),
     temperatureRequirement: z
-      .enum(['ROOM_TEMP', 'REFRIGERATED', 'FROZEN', 'HEATED'])
+      .enum(['ROOM_TEMP', 'CHILLED', 'FROZEN'])
       .default('ROOM_TEMP'),
   })
   .refine((data) => data.discountedPriceToman < data.originalPriceToman, {

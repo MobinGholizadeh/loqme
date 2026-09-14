@@ -1,9 +1,8 @@
 // Loqme (لقمه) Service Worker — Version 1.0.0
-const CACHE_NAME = 'loqme-cache-v1';
+const CACHE_NAME = 'loqme-cache-v3';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
-  '/',
   OFFLINE_URL,
   '/favicon.svg',
   '/logo.png',
@@ -13,8 +12,19 @@ const PRECACHE_ASSETS = [
 // 1. Install: Precache essential offline fallback assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await cache.addAll(PRECACHE_ASSETS);
+      const offline = await cache.match(OFFLINE_URL);
+      const html = await offline.text();
+      // Workers have no DOMParser. Extract only our generated Next static asset URLs.
+      const assets = new Set();
+      for (const match of html.matchAll(/(?:src|href)="([^"<>]+)"/g)) {
+        const url = new URL(match[1], self.location.origin);
+        if (url.origin === self.location.origin && url.pathname.startsWith('/_next/static/')) {
+          assets.add(url.href);
+        }
+      }
+      await cache.addAll([...assets]);
     })
   );
   self.skipWaiting();
@@ -44,6 +54,11 @@ self.addEventListener('fetch', (event) => {
   // Security guard: never cache API calls, mutations, or private checkout/admin routes
   if (
     request.method !== 'GET' ||
+    url.origin !== self.location.origin ||
+    request.headers.has('Authorization') ||
+    url.pathname.startsWith('/orders') ||
+    url.pathname.startsWith('/profile') ||
+    url.pathname.startsWith('/login') ||
     url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/admin') ||
     url.pathname.startsWith('/merchant') ||

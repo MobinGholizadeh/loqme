@@ -8,6 +8,16 @@
 
 ## 1. Project Health & Current State
 
+### In Progress: CP-10.9 Merchant Feedback (2026-09-14)
+
+User-reported role/navigation and publishing defects are being corrected, together with requested image selection and all-region discovery. Previous CP-10.8 validation below is historical, not validation of these changes. Purchase-role policy remains unchanged; admin oversight stays in the admin console rather than merchant impersonation.
+
+### Active Checkpoint: CP-10.8 Stitch Redesign (2026-09-13)
+
+The historical milestone sign-offs below describe the previous release. `codex/stitch-ui-redesign` implements CP-10.8 across customer discovery/auth/details/checkout/profile, shared controls, merchant/admin shells, dialogs and system states. Existing user logo/favicon/manifest changes are preserved. No merge or deployment was performed.
+
+Baseline: web TypeScript passed, lint had six warnings, and unavailable PostgreSQL caused five failing Vitest suites. After the user started Docker, the two existing pending migrations were applied with explicit approval and a pre-migration backup. Final integration validation passes **160/160 tests across 16 suites** in an isolated seeded database; lint has zero warnings/errors; explicit web and four shared-package typechecks pass; production build passes. Browser checks cover 22 tests, 27 routes and five viewport sizes, including decoded images, accessibility and real offline service-worker behavior. Lighthouse homepage/login both score **94 performance / 100 accessibility / 100 best practices / 100 SEO**. Full evidence and remaining device/provider acceptance checks are in `docs/STITCH_REDESIGN.md`. Local preview: `http://localhost:3003`. The local database currently has no unexpired published inventory, so real discovery correctly shows an empty state.
+
 | Metric | Status |
 | :--- | :--- |
 | **Current Milestone** | **Production Ready** |

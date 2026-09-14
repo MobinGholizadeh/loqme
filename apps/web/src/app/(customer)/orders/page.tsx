@@ -1,43 +1,48 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { formatToman, toPersianDigits } from '@/lib/utils/persian';
-import { CustomerOrderSummaryDto, OrderStatus } from '@loqme/types';
-import { CustomerPickupPassModal } from '@/components/pickup/CustomerPickupPassModal';
-import { ReviewModal } from '@/components/reviews/ReviewModal';
-import { ComplaintModal } from '@/components/complaints/ComplaintModal';
+import React, { useState, useEffect } from "react";
+import { ErrorState } from "@/components/ui/ErrorState";
+import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { formatToman, toPersianDigits } from "@/lib/utils/persian";
+import { CustomerOrderSummaryDto, OrderStatus } from "@loqme/types";
+import { CustomerPickupPassModal } from "@/components/pickup/CustomerPickupPassModal";
+import { ReviewModal } from "@/components/reviews/ReviewModal";
+import { ComplaintModal } from "@/components/complaints/ComplaintModal";
 
 export default function OrdersPage() {
+  const [error, setError] = useState(false);
   const [orders, setOrders] = useState<CustomerOrderSummaryDto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUnauthorized, setIsUnauthorized] = useState<boolean>(false);
   const [passOrderId, setPassOrderId] = useState<string | null>(null);
-  const [reviewOrder, setReviewOrder] = useState<CustomerOrderSummaryDto | null>(null);
-  const [complaintOrder, setComplaintOrder] = useState<CustomerOrderSummaryDto | null>(null);
+  const [reviewOrder, setReviewOrder] =
+    useState<CustomerOrderSummaryDto | null>(null);
+  const [complaintOrder, setComplaintOrder] =
+    useState<CustomerOrderSummaryDto | null>(null);
 
   useEffect(() => {
     async function fetchOrders() {
       setIsLoading(true);
       try {
-        const res = await fetch('/api/orders');
+        const res = await fetch("/api/orders");
         if (res.status === 401) {
           setIsUnauthorized(true);
           return;
         }
 
         const json = await res.json();
+        if (!res.ok || !json.success) throw new Error("Orders unavailable");
         if (json.success) {
           setOrders(json.data || []);
         }
       } catch (err) {
-        console.error('Failed to fetch orders:', err);
+        setError(true);
       } finally {
         setIsLoading(false);
       }
@@ -48,18 +53,38 @@ export default function OrdersPage() {
 
   const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
-      case 'PAID':
-      case 'READY_FOR_PICKUP':
-        return <Badge variant="success" size="sm">✓ آماده تحویل حضوری</Badge>;
-      case 'COMPLETED':
-        return <Badge variant="brand" size="sm">✓ تحویل گرفته شد</Badge>;
-      case 'PENDING_PAYMENT':
-        return <Badge variant="warning" size="sm">در انتظار پرداخت</Badge>;
-      case 'CANCELLED':
-      case 'REFUNDED':
-        return <Badge variant="danger" size="sm">لغو شده</Badge>;
+      case "PAID":
+      case "READY_FOR_PICKUP":
+        return (
+          <Badge variant="success" size="sm">
+            ✓ آماده تحویل حضوری
+          </Badge>
+        );
+      case "COMPLETED":
+        return (
+          <Badge variant="brand" size="sm">
+            ✓ تحویل گرفته شد
+          </Badge>
+        );
+      case "PENDING_PAYMENT":
+        return (
+          <Badge variant="warning" size="sm">
+            در انتظار پرداخت
+          </Badge>
+        );
+      case "CANCELLED":
+      case "REFUNDED":
+        return (
+          <Badge variant="danger" size="sm">
+            لغو شده
+          </Badge>
+        );
       default:
-        return <Badge variant="neutral" size="sm">{status}</Badge>;
+        return (
+          <Badge variant="neutral" size="sm">
+            {status}
+          </Badge>
+        );
     }
   };
 
@@ -78,6 +103,15 @@ export default function OrdersPage() {
     );
   }
 
+  if (error)
+    return (
+      <ErrorState
+        title="دریافت سفارش‌ها انجام نشد"
+        message="دوباره تلاش کنید."
+        onRetry={() => window.location.reload()}
+      />
+    );
+
   if (isUnauthorized) {
     return (
       <div className="py-12 max-w-md mx-auto">
@@ -86,10 +120,8 @@ export default function OrdersPage() {
           title="ورود به حساب کاربری برای مشاهده سفارشات"
           description="با شماره موبایل خود وارد شوید تا به تاریخچه سفارش‌ها و کدهای تحویل حضوری دسترسی داشته باشید."
           action={
-            <Link href="/login?redirect=/orders">
-              <Button variant="primary" size="md">
-                ورود به حساب کاربری
-              </Button>
+            <Link className="action-link" href="/login?redirect=/orders">
+              ورود به حساب کاربری
             </Link>
           }
         />
@@ -102,8 +134,12 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-black text-loqme-neutral-900">سفارشات من</h1>
-          <p className="text-xs text-loqme-neutral-500 mt-0.5">پیگیری وضعیت سفارش و دریافت حضوری</p>
+          <h1 className="text-xl font-black text-loqme-neutral-900">
+            سفارشات من
+          </h1>
+          <p className="text-xs text-loqme-neutral-500 mt-0.5">
+            پیگیری وضعیت سفارش و دریافت حضوری
+          </p>
         </div>
         <Badge variant="brand" size="sm">
           {toPersianDigits(orders.length)} سفارش ثبت‌شده
@@ -116,21 +152,25 @@ export default function OrdersPage() {
           title="هنوز سفارشی ثبت نکرده‌اید"
           description="با خرید بسته‌های شگفت‌انگیز محله خود، در صرفه‌جویی اقتصادی و جلوگیری از هدررفت خوراکی‌های تازه سهیم شوید."
           action={
-            <Link href="/explore">
-              <Button variant="primary" size="md">
-                کاوش بسته‌های شگفت‌انگیز محله
-              </Button>
+            <Link className="action-link" href="/explore">
+              کاوش بسته‌های شگفت‌انگیز محله
             </Link>
           }
         />
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (
-            <Card key={order.id} variant="elevated" className="p-5 space-y-3 bg-white">
+            <Card
+              key={order.id}
+              variant="elevated"
+              className="p-5 space-y-3 bg-white"
+            >
               <div className="flex items-start justify-between pb-3 border-b border-loqme-neutral-100">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-loqme-neutral-400">شماره سفارش:</span>
+                    <span className="text-[11px] text-loqme-neutral-500">
+                      شماره سفارش:
+                    </span>
                     <span className="font-mono font-bold text-xs text-loqme-primary-800 bg-loqme-primary-50 px-2 py-0.5 rounded-lg border border-loqme-primary-200">
                       {order.orderNumber}
                     </span>
@@ -147,11 +187,13 @@ export default function OrdersPage() {
               </div>
 
               {/* Pickup info */}
-              <div className="p-3 bg-loqme-neutral-50 rounded-xl border border-loqme-neutral-100 text-xs space-y-1">
+              <div className="p-3 bg-loqme-neutral-50 rounded-lg border border-loqme-neutral-100 text-xs space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-loqme-neutral-500">زمان تحویل حضوری:</span>
+                  <span className="text-loqme-neutral-500">
+                    زمان تحویل حضوری:
+                  </span>
                   <span className="font-bold text-loqme-neutral-800">
-                    {order.pickupWindowFa || 'امروز در ساعات کاری'}
+                    {order.pickupWindowFa || "امروز در ساعات کاری"}
                   </span>
                 </div>
                 {order.merchantAddressFa && (
@@ -171,7 +213,8 @@ export default function OrdersPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-end gap-2">
-                  {(order.status === 'READY_FOR_PICKUP' || order.status === 'PAID') && (
+                  {(order.status === "READY_FOR_PICKUP" ||
+                    order.status === "PAID") && (
                     <Button
                       size="sm"
                       variant="primary"
@@ -183,7 +226,7 @@ export default function OrdersPage() {
                     </Button>
                   )}
 
-                  {order.status === 'COMPLETED' && (
+                  {order.status === "COMPLETED" && (
                     <>
                       {order.hasReview ? (
                         <span className="text-[11px] font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200 flex items-center gap-1">
@@ -204,7 +247,9 @@ export default function OrdersPage() {
                   )}
 
                   {/* Complaint / Dispute button for paid or completed orders */}
-                  {(order.status === 'COMPLETED' || order.status === 'READY_FOR_PICKUP' || order.status === 'PAID') && (
+                  {(order.status === "COMPLETED" ||
+                    order.status === "READY_FOR_PICKUP" ||
+                    order.status === "PAID") && (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -216,10 +261,11 @@ export default function OrdersPage() {
                     </Button>
                   )}
 
-                  <Link href={`/orders/${order.id}/receipt`}>
-                    <Button size="sm" variant="secondary">
-                      رسید و فاکتور
-                    </Button>
+                  <Link
+                    className="action-link secondary"
+                    href={`/orders/${order.id}/receipt`}
+                  >
+                    رسید و فاکتور
                   </Link>
                 </div>
               </div>
@@ -236,7 +282,7 @@ export default function OrdersPage() {
           onClose={() => setPassOrderId(null)}
           onVerified={() => {
             // refresh orders
-            fetch('/api/orders')
+            fetch("/api/orders")
               .then((r) => r.json())
               .then((d) => {
                 if (d.success) setOrders(d.data || []);
@@ -254,7 +300,7 @@ export default function OrdersPage() {
           orderNumber={reviewOrder.orderNumber}
           merchantName={reviewOrder.merchantNameFa}
           onSuccess={() => {
-            fetch('/api/orders')
+            fetch("/api/orders")
               .then((r) => r.json())
               .then((d) => {
                 if (d.success) setOrders(d.data || []);
@@ -272,7 +318,7 @@ export default function OrdersPage() {
           orderNumber={complaintOrder.orderNumber}
           merchantName={complaintOrder.merchantNameFa}
           onSuccess={() => {
-            fetch('/api/orders')
+            fetch("/api/orders")
               .then((r) => r.json())
               .then((d) => {
                 if (d.success) setOrders(d.data || []);

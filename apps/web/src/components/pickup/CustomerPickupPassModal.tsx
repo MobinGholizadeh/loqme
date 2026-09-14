@@ -1,11 +1,13 @@
-'use client';
+"use client";
+import { DialogSurface } from "@/components/ui/DialogSurface";
+import * as RedesignIcons from "lucide-react";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { CustomerPickupCredentialsDto } from '@loqme/types';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
-import { toPersianDigits, formatToman } from '@/lib/utils/persian';
+import React, { useState, useEffect, useCallback } from "react";
+import { CustomerPickupCredentialsDto } from "@loqme/types";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
+import { toPersianDigits, formatToman } from "@/lib/utils/persian";
 
 interface CustomerPickupPassModalProps {
   orderId: string;
@@ -14,13 +16,11 @@ interface CustomerPickupPassModalProps {
   onVerified?: () => void;
 }
 
-export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = ({
-  orderId,
-  isOpen,
-  onClose,
-  onVerified,
-}) => {
-  const [credentials, setCredentials] = useState<CustomerPickupCredentialsDto | null>(null);
+export const CustomerPickupPassModal: React.FC<
+  CustomerPickupPassModalProps
+> = ({ orderId, isOpen, onClose, onVerified }) => {
+  const [credentials, setCredentials] =
+    useState<CustomerPickupCredentialsDto | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(60);
   const [highContrast, setHighContrast] = useState<boolean>(false);
@@ -28,27 +28,31 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Fetch or refresh credentials
-  const fetchCredentials = useCallback(async (silent = false) => {
-    if (!orderId) return;
-    if (!silent) setIsLoading(true);
-    try {
-      const res = await fetch(`/api/pickup/credentials/${orderId}`);
-      const json = await res.json();
-      if (json.success && json.data) {
-        setCredentials(json.data);
-        setSecondsRemaining(json.data.expiresInSeconds || 60);
-        if (json.data.isVerified && onVerified) {
-          onVerified();
+  const fetchCredentials = useCallback(
+    async (silent = false) => {
+      if (!orderId) return;
+      if (!silent) setIsLoading(true);
+      try {
+        const res = await fetch(`/api/pickup/credentials/${orderId}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          setErrorMsg(null);
+          setCredentials(json.data);
+          setSecondsRemaining(json.data.expiresInSeconds || 60);
+          if (json.data.isVerified && onVerified) {
+            onVerified();
+          }
+        } else {
+          setErrorMsg(json.message || "خطا در دریافت اطلاعات تحویل");
         }
-      } else {
-        setErrorMsg(json.message || 'خطا در دریافت اطلاعات تحویل');
+      } catch {
+        setErrorMsg("ارتباط با سرور برقرار نشد");
+      } finally {
+        if (!silent) setIsLoading(false);
       }
-    } catch {
-      setErrorMsg('ارتباط با سرور برقرار نشد');
-    } finally {
-      if (!silent) setIsLoading(false);
-    }
-  }, [orderId, onVerified]);
+    },
+    [orderId, onVerified],
+  );
 
   // Initial load
   useEffect(() => {
@@ -97,13 +101,12 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
-      dir="rtl"
-    >
+    <DialogSurface onClose={onClose} label="کارت تحویل حضوری لقمه">
       <div
-        className={`relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 ${
-          highContrast ? 'bg-white text-black ring-8 ring-white' : 'bg-white text-loqme-neutral-900'
+        className={`relative w-full max-w-md rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ${
+          highContrast
+            ? "bg-white text-black ring-8 ring-white"
+            : "bg-white text-loqme-neutral-900"
         }`}
       >
         {/* Header */}
@@ -111,15 +114,17 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
           <div className="flex items-center gap-2">
             <span className="text-xl">🎟️</span>
             <div>
-              <h2 className="font-black text-sm text-loqme-neutral-900">کارت تحویل حضوری لقمه</h2>
+              <h2 className="font-black text-sm text-loqme-neutral-900">
+                کارت تحویل حضوری لقمه
+              </h2>
               <span className="text-[11px] text-loqme-neutral-500 font-mono">
-                {credentials?.orderNumber || '...'}
+                {credentials?.orderNumber || "..."}
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-400 hover:text-loqme-neutral-700 hover:bg-loqme-neutral-100 transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-500 hover:text-loqme-neutral-700 hover:bg-loqme-neutral-100 transition-colors"
             aria-label="بستن"
           >
             ✕
@@ -131,13 +136,23 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
           {isLoading ? (
             <div className="py-16 text-center space-y-3">
               <Spinner size="lg" variant="primary" className="mx-auto" />
-              <p className="text-xs text-loqme-neutral-500">در حال تولید بارکد امن و دریافت اطلاعات...</p>
+              <p className="text-xs text-loqme-neutral-500">
+                در حال تولید بارکد امن و دریافت اطلاعات...
+              </p>
             </div>
           ) : errorMsg ? (
             <div className="py-10 text-center space-y-3">
-              <div className="text-3xl">⚠️</div>
-              <p className="text-sm text-loqme-danger-600 font-bold">{errorMsg}</p>
-              <Button size="sm" variant="secondary" onClick={() => fetchCredentials()}>
+              <div className="text-3xl">
+                <RedesignIcons.TriangleAlert size={20} aria-hidden="true" />
+              </div>
+              <p className="text-sm text-loqme-danger-600 font-bold">
+                {errorMsg}
+              </p>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => fetchCredentials()}
+              >
                 تلاش مجدد
               </Button>
             </div>
@@ -155,17 +170,24 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
                   نوش جان!
                 </h3>
                 <p className="text-xs text-loqme-neutral-600 leading-relaxed max-w-xs mx-auto">
-                  امیدواریم از لقمه‌تان لذت ببرید. از همراهی شما در کاهش هدررفت و حمایت از کسب‌وکارهای محلی سپاسگزاریم.
+                  امیدواریم از لقمه‌تان لذت ببرید. از همراهی شما در کاهش هدررفت
+                  و حمایت از کسب‌وکارهای محلی سپاسگزاریم.
                 </p>
               </div>
 
               {credentials.verifiedAt && (
-                <div className="p-3 rounded-2xl bg-loqme-neutral-50 border border-loqme-neutral-100 text-xs text-loqme-neutral-500">
-                  زمان ثبت تحویل: {new Date(credentials.verifiedAt).toLocaleTimeString('fa-IR')}
+                <div className="p-3 rounded-lg bg-loqme-neutral-50 border border-loqme-neutral-100 text-xs text-loqme-neutral-500">
+                  زمان ثبت تحویل:{" "}
+                  {new Date(credentials.verifiedAt).toLocaleTimeString("fa-IR")}
                 </div>
               )}
 
-              <Button variant="primary" size="md" className="w-full mt-4" onClick={onClose}>
+              <Button
+                variant="primary"
+                size="md"
+                className="w-full mt-4"
+                onClick={onClose}
+              >
                 متشکرم
               </Button>
             </div>
@@ -173,27 +195,29 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
             /* Active Pickup Pass */
             <>
               {/* High Brightness helper toggle */}
-              <div className="flex items-center justify-between p-2.5 rounded-2xl bg-loqme-primary-50 border border-loqme-primary-200 text-xs">
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-loqme-primary-50 border border-loqme-primary-200 text-xs">
                 <span className="text-loqme-primary-900 font-medium">
-                  نور صفحه را برای اسکن سریع‌تر افزایش دهید
+                  نمایش بارکد با کنتراست بیشتر
                 </span>
                 <button
                   onClick={() => setHighContrast(!highContrast)}
-                  className="px-2.5 py-1 rounded-xl bg-loqme-primary-600 text-white text-[11px] font-bold hover:bg-loqme-primary-700 transition-colors shadow-xs"
+                  role="switch"
+                  aria-checked={highContrast}
+                  className="px-2.5 py-1 rounded-lg bg-loqme-primary-600 text-white text-[11px] font-bold hover:bg-loqme-primary-700 transition-colors shadow-xs"
                 >
-                  {highContrast ? 'حالت عادی' : '☀️ نور حداکثر'}
+                  {highContrast ? "فعال" : "غیرفعال"}
                 </button>
               </div>
 
               {/* Dynamic QR Code Display */}
               <div className="text-center space-y-3">
-                <div className="relative mx-auto w-56 h-56 p-2 bg-white rounded-3xl border-2 border-loqme-primary-500 shadow-card flex items-center justify-center">
+                <div className="relative mx-auto w-56 h-56 p-2 bg-white rounded-lg border-2 border-loqme-primary-500 shadow-card flex items-center justify-center">
                   {credentials?.qrDataUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={credentials.qrDataUrl}
                       alt="بارکد تحویل حضوری"
-                      className="w-full h-full object-contain rounded-2xl"
+                      className="w-full h-full object-contain rounded-lg"
                     />
                   ) : (
                     <Spinner size="md" variant="primary" />
@@ -213,44 +237,45 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
                     <span className="w-2 h-2 rounded-full bg-loqme-primary-600 relative" />
                   </div>
                   <span>
-                    بارکد امن پویا • بروزرسانی خودکار در{' '}
+                    بارکد امن پویا • بروزرسانی خودکار در{" "}
                     <span className="font-mono font-bold text-loqme-primary-800">
                       {toPersianDigits(secondsRemaining)}
-                    </span>{' '}
+                    </span>{" "}
                     ثانیه
                   </span>
                 </div>
               </div>
 
               {/* Backup 4-Digit OTP Display */}
-              <div className="p-4 rounded-2xl bg-loqme-neutral-50 border border-loqme-neutral-200 text-center space-y-2">
+              <div className="p-4 rounded-lg bg-loqme-neutral-50 border border-loqme-neutral-200 text-center space-y-2">
                 <span className="text-[11px] text-loqme-neutral-500 block">
                   کد ۴ رقمی جایگزین (در صورت عدم اسکن بارکد):
                 </span>
                 <div className="flex items-center justify-center gap-3">
-                  <span className="font-mono font-black text-3xl tracking-widest text-loqme-primary-800 bg-white px-5 py-2 rounded-2xl border-2 border-loqme-primary-300 shadow-xs">
-                    {credentials?.otpCodePersian || '----'}
+                  <span className="font-mono font-black text-3xl tracking-widest text-loqme-primary-800 bg-white px-5 py-2 rounded-lg border-2 border-loqme-primary-300 shadow-xs">
+                    {credentials?.otpCodePersian || "----"}
                   </span>
                   <button
                     onClick={copyToClipboard}
-                    className="p-2.5 rounded-xl border border-loqme-neutral-200 bg-white text-xs text-loqme-neutral-600 hover:text-loqme-primary-700 hover:border-loqme-primary-300 transition-colors"
+                    className="p-2.5 rounded-lg border border-loqme-neutral-200 bg-white text-xs text-loqme-neutral-600 hover:text-loqme-primary-700 hover:border-loqme-primary-300 transition-colors"
                     title="کپی کد"
                   >
-                    {copiedOtp ? '✓ کپی شد' : '📋 کپی'}
+                    {copiedOtp ? "✓ کپی شد" : "📋 کپی"}
                   </button>
                 </div>
-                <p className="text-[11px] text-loqme-neutral-400">
+                <p className="text-[11px] text-loqme-neutral-500">
                   این کد را هنگام مراجعه حضوری به فروشنده اعلام نمایید.
                 </p>
               </div>
 
               {/* Order & Store Details */}
               <div className="space-y-2.5 text-xs text-loqme-neutral-700 pt-1">
-                <div className="p-3 rounded-2xl bg-loqme-neutral-50 border border-loqme-neutral-100 space-y-1.5">
+                <div className="p-3 rounded-lg bg-loqme-neutral-50 border border-loqme-neutral-100 space-y-1.5">
                   <div className="flex items-center justify-between font-bold text-loqme-neutral-900">
                     <span>{credentials?.merchant.businessNameFa}</span>
                     <span className="text-loqme-primary-700">
-                      {toPersianDigits(credentials?.quantity || 1)} × {credentials?.listingTitleFa}
+                      {toPersianDigits(credentials?.quantity || 1)} ×{" "}
+                      {credentials?.listingTitleFa}
                     </span>
                   </div>
 
@@ -275,21 +300,22 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
                       href={credentials.merchant.directionsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1"
+                      className="action-link secondary flex-1 w-full gap-1.5 text-xs"
                     >
-                      <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-                        <span>🗺️</span>
-                        <span>مسیریابی نقشه</span>
-                      </Button>
+                      <span>🗺️</span>
+                      <span>مسیریابی نقشه</span>
                     </a>
                   )}
 
                   {credentials?.merchant.phone && (
-                    <a href={`tel:${credentials.merchant.phone}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-                        <span>📞</span>
-                        <span>تماس با فروشگاه</span>
-                      </Button>
+                    <a
+                      href={`tel:${credentials.merchant.phone}`}
+                      className="action-link secondary flex-1 w-full gap-1.5 text-xs"
+                    >
+                      <span>
+                        <RedesignIcons.Phone size={20} aria-hidden="true" />
+                      </span>
+                      <span>تماس با فروشگاه</span>
                     </a>
                   )}
                 </div>
@@ -298,6 +324,6 @@ export const CustomerPickupPassModal: React.FC<CustomerPickupPassModalProps> = (
           )}
         </div>
       </div>
-    </div>
+    </DialogSurface>
   );
 };

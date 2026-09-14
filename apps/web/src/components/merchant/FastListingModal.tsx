@@ -1,12 +1,20 @@
-'use client';
+"use client";
+import { DialogSurface } from "@/components/ui/DialogSurface";
+import * as RedesignIcons from "lucide-react";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
-import { Spinner } from '@/components/ui/Spinner';
-import { formatToman, toPersianDigits, toEnglishDigits } from '@/lib/utils/persian';
+import React, { useEffect, useRef, useState } from "react";
+import type { FastCreateListingInput } from "@loqme/validation";
+import { Select } from "@/components/ui/Select";
+import { ListingImagePicker } from "./ListingImagePicker";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Badge } from "@/components/ui/Badge";
+import { Spinner } from "@/components/ui/Spinner";
+import {
+  formatToman,
+  toPersianDigits,
+  toEnglishDigits,
+} from "@/lib/utils/persian";
 
 interface FastListingModalProps {
   isOpen: boolean;
@@ -14,86 +22,184 @@ interface FastListingModalProps {
   onListingCreated: () => void;
 }
 
-const PRESET_TEMPLATES = [
+export const PRESET_TEMPLATES = [
   {
-    id: 'bakery-bread',
-    titleFa: 'بسته نان تازه سنتی و فانتزی',
-    categorySlug: 'bakery',
-    descriptionFa: 'شامل چند نوع نان تازه پخت امروز (سنگک، بربری و باگت فرانسوی) با کیفیت عالی و کاملاً تازه.',
+    id: "bakery-bread",
+    titleFa: "بسته نان تازه سنتی و فانتزی",
+    categorySlug: "bakery",
+    descriptionFa:
+      "شامل چند نوع نان تازه پخت امروز (سنگک، بربری و باگت فرانسوی) با کیفیت عالی و کاملاً تازه.",
     suggestedOriginal: 80000,
     suggestedDiscounted: 40000,
     defaultQuantity: 6,
-    icon: '🥖',
-    badge: 'نانوایی',
-    temperature: 'ROOM_TEMP',
-    allergens: ['گلوتن', 'کنجد'],
+    icon: RedesignIcons.Croissant,
+    badge: "نان؛ سنگک، بربری، باگت",
+    temperature: "ROOM_TEMP",
+    allergens: ["گلوتن", "کنجد"],
   },
   {
-    id: 'pastry-sweets',
-    titleFa: 'بسته شیرینی تر و کیک عصرانه',
-    categorySlug: 'pastry',
-    descriptionFa: 'مجموعه دست‌چین از رولت، شیرینی دانمارکی و کیک‌های تازه عصرانه تولید کارگاه امروز.',
+    id: "pastry-sweets",
+    titleFa: "بسته شیرینی تر و کیک عصرانه",
+    categorySlug: "bakery",
+    descriptionFa:
+      "مجموعه دست‌چین از رولت، شیرینی دانمارکی و کیک‌های تازه عصرانه تولید کارگاه امروز.",
     suggestedOriginal: 160000,
     suggestedDiscounted: 75000,
     defaultQuantity: 4,
-    icon: '🍰',
-    badge: 'قنادی',
-    temperature: 'REFRIGERATED',
-    allergens: ['تخم‌مرغ', 'لبنیات', 'گلوتن'],
+    icon: RedesignIcons.CakeSlice,
+    badge: "شیرینی و کیک",
+    temperature: "CHILLED",
+    allergens: ["تخم‌مرغ", "لبنیات", "گلوتن"],
   },
   {
-    id: 'restaurant-meal',
-    titleFa: 'بسته غذای روز و سوپرپرسی رستورانی',
-    categorySlug: 'restaurant',
-    descriptionFa: 'خوراک یا چلوکباب لذیذ با برنج ایرانی طبخ امروز ظهر، کاملاً گرم، تازه و دست‌نخورده.',
+    id: "restaurant-meal",
+    titleFa: "بسته غذای پخته روز",
+    categorySlug: "restaurant",
+    descriptionFa:
+      "غذای پخته امروز، سرو نشده و نگهداری‌شده در یخچال؛ پیش از مصرف کاملاً گرم شود.",
     suggestedOriginal: 220000,
     suggestedDiscounted: 110000,
     defaultQuantity: 5,
-    icon: '🍲',
-    badge: 'رستوران',
-    temperature: 'HEATED',
+    icon: RedesignIcons.Utensils,
+    badge: "غذای پخته؛ برنج و خوراک",
+    temperature: "CHILLED",
     allergens: [],
   },
   {
-    id: 'cafe-salad',
-    titleFa: 'بسته سالاد تازه، دسر و نوشیدنی کافه',
-    categorySlug: 'cafe',
-    descriptionFa: 'سالاد سزار تازه آماده‌شده، کروسان شکلاتی و اسموتی یا آبمیوه طبیعی روز.',
+    id: "cafe-salad",
+    titleFa: "بسته سالاد تازه، دسر و نوشیدنی کافه",
+    categorySlug: "cafe",
+    descriptionFa:
+      "سالاد سزار تازه آماده‌شده، کروسان شکلاتی و اسموتی یا آبمیوه طبیعی روز.",
     suggestedOriginal: 140000,
     suggestedDiscounted: 65000,
     defaultQuantity: 3,
-    icon: '🥗',
-    badge: 'کافه',
-    temperature: 'REFRIGERATED',
-    allergens: ['شیر', 'مغزیجات'],
+    icon: RedesignIcons.Coffee,
+    badge: "دسر، سالاد و نوشیدنی",
+    temperature: "CHILLED",
+    allergens: ["شیر", "مغزیجات"],
   },
-];
+  {
+    id: "grocery",
+    titleFa: "بسته خواربار بسته‌بندی‌شده",
+    categorySlug: "supermarket",
+    descriptionFa:
+      "اقلام پلمب و تاریخ‌دار؛ نام اقلام و تاریخ مصرف هر کدام را درج کنید.",
+    suggestedOriginal: 150000,
+    suggestedDiscounted: 75000,
+    defaultQuantity: 3,
+    icon: RedesignIcons.ShoppingBasket,
+    badge: "خواربار؛ لبنیات و اقلام پلمب",
+    temperature: "CHILLED",
+    allergens: [],
+  },
+  {
+    id: "produce",
+    titleFa: "بسته میوه و سبزیجات تازه",
+    categorySlug: "produce",
+    descriptionFa:
+      "میوه و سبزی سالم؛ نوع اقلام و وزن تقریبی هر بسته را درج کنید.",
+    suggestedOriginal: 120000,
+    suggestedDiscounted: 60000,
+    defaultQuantity: 4,
+    icon: RedesignIcons.Apple,
+    badge: "میوه، سبزی و صیفی",
+    temperature: "CHILLED",
+    allergens: [],
+  },
+  {
+    id: "deli",
+    titleFa: "بسته پروتئینی پلمب و تاریخ‌دار",
+    categorySlug: "deli",
+    descriptionFa:
+      "محصول پروتئینی با بسته‌بندی مجاز و زنجیره سرد معتبر؛ نام، وزن و تاریخ مصرف را درج کنید.",
+    suggestedOriginal: 200000,
+    suggestedDiscounted: 100000,
+    defaultQuantity: 2,
+    icon: RedesignIcons.PackageCheck,
+    badge: "پروتئین؛ محصولات پلمب",
+    temperature: "CHILLED",
+    allergens: [],
+  },
+] satisfies Array<{
+  id: string;
+  titleFa: string;
+  categorySlug: string;
+  descriptionFa: string;
+  suggestedOriginal: number;
+  suggestedDiscounted: number;
+  defaultQuantity: number;
+  icon: typeof RedesignIcons.Coffee;
+  badge: string;
+  temperature: FastCreateListingInput["temperatureRequirement"];
+  allergens: string[];
+}>;
+
+const CATEGORY_LABELS: Record<string, string> = {
+  bakery: "نان، شیرینی و کیک",
+  cafe: "دسر، سالاد و نوشیدنی",
+  restaurant: "غذای پخته و وعده آماده",
+  supermarket: "خواربار، لبنیات و اقلام بسته‌بندی",
+  produce: "میوه، سبزی و صیفی",
+  deli: "پروتئین و محصولات پلمب تاریخ‌دار",
+};
 
 export const FastListingModal: React.FC<FastListingModalProps> = ({
   isOpen,
   onClose,
   onListingCreated,
 }) => {
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('pastry-sweets');
-  const [titleFa, setTitleFa] = useState<string>('بسته شیرینی تر و کیک عصرانه');
-  const [categorySlug, setCategorySlug] = useState<string>('pastry');
+  const [selectedTemplateId, setSelectedTemplateId] =
+    useState<string>("pastry-sweets");
+  const [titleFa, setTitleFa] = useState<string>("بسته شیرینی تر و کیک عصرانه");
+  const [categorySlug, setCategorySlug] = useState<string>("bakery");
   const [descriptionFa, setDescriptionFa] = useState<string>(
-    'مجموعه دست‌چین از رولت، شیرینی دانمارکی و کیک‌های تازه عصرانه تولید کارگاه امروز.'
+    "مجموعه دست‌چین از رولت، شیرینی دانمارکی و کیک‌های تازه عصرانه تولید کارگاه امروز.",
   );
   const [originalPrice, setOriginalPrice] = useState<number>(160000);
   const [discountedPrice, setDiscountedPrice] = useState<number>(75000);
   const [quantity, setQuantity] = useState<number>(4);
-  const [pickupStart, setPickupStart] = useState<string>('19:30');
-  const [pickupEnd, setPickupEnd] = useState<string>('21:30');
-  const [temperatureReq, setTemperatureReq] = useState<string>('REFRIGERATED');
-  const [safetyConfirmed, setSafetyConfirmed] = useState<boolean>(true);
+  const [pickupStart, setPickupStart] = useState<string>("19:30");
+  const [pickupEnd, setPickupEnd] = useState<string>("21:30");
+  const [temperatureReq, setTemperatureReq] =
+    useState<FastCreateListingInput["temperatureRequirement"]>("CHILLED");
+  const [allergens, setAllergens] = useState("تخم‌مرغ، لبنیات، گلوتن");
+  const [storageInstructions, setStorageInstructions] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageBusy, setImageBusy] = useState(false);
+  const [categories, setCategories] = useState<
+    Array<{ slug: string; nameFa: string }>
+  >([]);
+  const errorRef = useRef<HTMLDivElement>(null);
+  const [safetyConfirmed, setSafetyConfirmed] = useState<boolean>(false);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const controller = new AbortController();
+    fetch("/api/categories", { signal: controller.signal })
+      .then((r) => r.json())
+      .then((r) => {
+        if (!r.success) throw new Error();
+        setCategories(r.data);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setErrorMessage(
+            "دریافت دسته‌بندی‌ها انجام نشد؛ فرم را دوباره باز کنید",
+          );
+      });
+    return () => controller.abort();
+  }, [isOpen]);
+  useEffect(() => {
+    if (errorMessage) errorRef.current?.focus();
+  }, [errorMessage]);
+
   if (!isOpen) return null;
 
-  const handleSelectTemplate = (template: typeof PRESET_TEMPLATES[0]) => {
+  const handleSelectTemplate = (template: (typeof PRESET_TEMPLATES)[0]) => {
     setSelectedTemplateId(template.id);
     setTitleFa(template.titleFa);
     setCategorySlug(template.categorySlug);
@@ -102,6 +208,9 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
     setDiscountedPrice(template.suggestedDiscounted);
     setQuantity(template.defaultQuantity);
     setTemperatureReq(template.temperature);
+    setAllergens(template.allergens.join("، "));
+    setSafetyConfirmed(false);
+    setErrorMessage(null);
   };
 
   const discountPercent =
@@ -114,21 +223,23 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
     setErrorMessage(null);
 
     if (!safetyConfirmed) {
-      setErrorMessage('لطفاً انطباق اقلام با استاندارد بهداشت و سلامت لقمه را تایید فرمایید');
+      setErrorMessage(
+        "لطفاً انطباق اقلام با استاندارد بهداشت و سلامت لقمه را تایید فرمایید",
+      );
       return;
     }
 
     if (discountedPrice >= originalPrice) {
-      setErrorMessage('قیمت فروش باید کمتر از قیمت اصلی منو باشد');
+      setErrorMessage("قیمت فروش باید کمتر از قیمت اصلی منو باشد");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/merchant/listings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/merchant/listings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           categorySlug,
           titleFa,
@@ -139,6 +250,12 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
           pickupStart,
           pickupEnd,
           temperatureRequirement: temperatureReq,
+          allergens: allergens
+            .split(/[,،]/)
+            .map((item) => item.trim())
+            .filter(Boolean),
+          storageInstructionsFa: storageInstructions || undefined,
+          imageUrl: imageUrl || undefined,
         }),
       });
 
@@ -147,45 +264,50 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
         onListingCreated();
         onClose();
       } else {
-        setErrorMessage(json.message || 'خطا در ثبت بسته');
+        setErrorMessage(json.message || "خطا در ثبت بسته");
       }
     } catch {
-      setErrorMessage('ارتباط با سرور برقرار نشد');
+      setErrorMessage("ارتباط با سرور برقرار نشد");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 border border-loqme-neutral-200 my-8">
+    <DialogSurface onClose={onClose} label="ثبت بسته فروشگاه">
+      <div className="bg-white max-w-2xl w-full p-6">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-loqme-neutral-200">
           <div className="flex items-center gap-2.5">
-            <span className="w-10 h-10 rounded-2xl bg-loqme-primary-100 flex items-center justify-center text-xl">
-              ⚡
+            <span className="w-10 h-10 rounded-lg bg-loqme-primary-100 flex items-center justify-center text-xl">
+              <RedesignIcons.Zap size={20} aria-hidden="true" />
             </span>
             <div>
               <h2 className="text-lg font-black text-loqme-neutral-900">
-                ثبت سریع بسته مازاد (زیر ۶۰ ثانیه)
+                ثبت بسته فروشگاه
               </h2>
-              <p className="text-xs text-loqme-neutral-500">
-                تعریف بسته شگفت‌انگیز روز با الگوهای آماده و انتشار آنی در بازار
-              </p>
             </div>
           </div>
           <button
+            aria-label="بستن"
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-400 hover:bg-loqme-neutral-100 text-lg transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-500 hover:bg-loqme-neutral-100 text-lg transition-colors"
           >
             ✕
           </button>
         </div>
 
         {errorMessage && (
-          <div className="mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center justify-between">
-            <span>❌ {errorMessage}</span>
-            <button onClick={() => setErrorMessage(null)}>✕</button>
+          <div
+            ref={errorRef}
+            tabIndex={-1}
+            role="alert"
+            className="mt-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center justify-between"
+          >
+            <span>{errorMessage}</span>
+            <button aria-label="بستن" onClick={() => setErrorMessage(null)}>
+              ✕
+            </button>
           </div>
         )}
 
@@ -193,9 +315,9 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
           {/* Step 1: Preset Templates Selection */}
           <div>
             <label className="block text-xs font-bold text-loqme-neutral-700 mb-2">
-              ۱. انتخاب الگوی آماده بسته روز (با یک کلیک):
+              نوع محتویات بسته
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {PRESET_TEMPLATES.map((tmpl) => {
                 const isSelected = selectedTemplateId === tmpl.id;
                 return (
@@ -203,18 +325,19 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                     key={tmpl.id}
                     type="button"
                     onClick={() => handleSelectTemplate(tmpl)}
-                    className={`p-3 rounded-2xl border text-right transition-all flex flex-col justify-between ${
+                    aria-pressed={isSelected}
+                    className={`p-3 rounded-lg border text-right transition-all flex flex-col justify-between ${
                       isSelected
-                        ? 'border-loqme-primary-600 bg-loqme-primary-50 ring-2 ring-loqme-primary-400/20'
-                        : 'border-loqme-neutral-200 bg-white hover:border-loqme-neutral-300'
+                        ? "border-loqme-primary-600 bg-loqme-primary-50 ring-2 ring-loqme-primary-400/20"
+                        : "border-loqme-neutral-200 bg-white hover:border-loqme-neutral-300"
                     }`}
                   >
-                    <div className="text-2xl mb-1">{tmpl.icon}</div>
+                    <tmpl.icon size={24} className="mb-2" aria-hidden="true" />
                     <div>
                       <span className="text-[10px] font-bold text-loqme-primary-700 bg-loqme-primary-100/60 px-1.5 py-0.5 rounded">
                         {tmpl.badge}
                       </span>
-                      <h4 className="font-black text-xs text-loqme-neutral-900 mt-1 line-clamp-1">
+                      <h4 className="font-black text-xs text-loqme-neutral-900 mt-1">
                         {tmpl.titleFa}
                       </h4>
                     </div>
@@ -225,6 +348,18 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
           </div>
 
           {/* Step 2: Title and Description */}
+          <Select
+            label="دسته‌بندی خوراکی"
+            value={categorySlug}
+            onChange={(e) => setCategorySlug(e.target.value)}
+            required
+          >
+            {categories.map((category) => (
+              <option key={category.slug} value={category.slug}>
+                {CATEGORY_LABELS[category.slug] || category.nameFa}
+              </option>
+            ))}
+          </Select>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Input
@@ -235,21 +370,57 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-loqme-neutral-700 mb-1">
+              <label
+                htmlFor="merchant-field-1"
+                className="block text-xs font-medium text-loqme-neutral-700 mb-1"
+              >
                 توضیحات محتویات بسته
               </label>
               <input
+                id="merchant-field-1"
                 type="text"
                 value={descriptionFa}
                 onChange={(e) => setDescriptionFa(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-loqme-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-loqme-primary-500"
+                className="w-full px-3 py-2 text-xs border border-loqme-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-loqme-primary-500"
                 required
               />
             </div>
           </div>
 
+          <ListingImagePicker
+            value={imageUrl}
+            onChange={setImageUrl}
+            onBusyChange={setImageBusy}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Select
+              label="دمای نگهداری"
+              value={temperatureReq}
+              onChange={(e) =>
+                setTemperatureReq(
+                  e.target
+                    .value as FastCreateListingInput["temperatureRequirement"],
+                )
+              }
+              options={[
+                { value: "ROOM_TEMP", label: "دمای محیط؛ مناسب اقلام خشک" },
+                { value: "CHILLED", label: "یخچالی؛ حفظ زنجیره سرد" },
+                { value: "FROZEN", label: "منجمد؛ بدون قطع زنجیره انجماد" },
+              ]}
+            />
+            <Input
+              label="مواد حساسیت‌زا"
+              value={allergens}
+              onChange={(e) => setAllergens(e.target.value)}
+            />
+          </div>
+          <Input
+            label="شرایط نگهداری و مصرف"
+            value={storageInstructions}
+            onChange={(e) => setStorageInstructions(e.target.value)}
+          />
           {/* Step 3: Prices, Discount & Quantity */}
-          <div className="p-4 rounded-2xl bg-loqme-neutral-50 border border-loqme-neutral-200 space-y-3">
+          <div className="p-4 rounded-lg bg-loqme-neutral-50 border border-loqme-neutral-200 space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-loqme-neutral-800">
                 ۲. تعیین قیمت و تعداد موجودی مازاد امروز:
@@ -263,32 +434,44 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[11px] text-loqme-neutral-600 mb-1">
+                <label
+                  htmlFor="merchant-field-2"
+                  className="block text-[11px] text-loqme-neutral-600 mb-1"
+                >
                   قیمت اصلی در منو (تومان):
                 </label>
                 <input
+                  id="merchant-field-2"
                   type="number"
                   value={originalPrice}
-                  onChange={(e) => setOriginalPrice(Number(toEnglishDigits(e.target.value)))}
+                  onChange={(e) =>
+                    setOriginalPrice(Number(toEnglishDigits(e.target.value)))
+                  }
                   step={1000}
-                  className="w-full px-3 py-2 text-sm font-mono font-bold border border-loqme-neutral-300 rounded-xl text-left focus:ring-2 focus:ring-loqme-primary-500"
+                  className="w-full px-3 py-2 text-sm font-mono font-bold border border-loqme-neutral-300 rounded-lg text-left focus:ring-2 focus:ring-loqme-primary-500"
                   required
                 />
-                <span className="text-[10px] text-loqme-neutral-400 mt-0.5 block">
+                <span className="text-[10px] text-loqme-neutral-500 mt-0.5 block">
                   {formatToman(originalPrice)}
                 </span>
               </div>
 
               <div>
-                <label className="block text-[11px] text-loqme-primary-700 font-bold mb-1">
+                <label
+                  htmlFor="merchant-field-3"
+                  className="block text-[11px] text-loqme-primary-700 font-bold mb-1"
+                >
                   قیمت فروش شگفت‌انگیز (تومان):
                 </label>
                 <input
+                  id="merchant-field-3"
                   type="number"
                   value={discountedPrice}
-                  onChange={(e) => setDiscountedPrice(Number(toEnglishDigits(e.target.value)))}
+                  onChange={(e) =>
+                    setDiscountedPrice(Number(toEnglishDigits(e.target.value)))
+                  }
                   step={1000}
-                  className="w-full px-3 py-2 text-sm font-mono font-black border-2 border-loqme-primary-500 rounded-xl text-left bg-white text-loqme-primary-800 focus:ring-2 focus:ring-loqme-primary-500"
+                  className="w-full px-3 py-2 text-sm font-mono font-black border-2 border-loqme-primary-500 rounded-lg text-left bg-white text-loqme-primary-800 focus:ring-2 focus:ring-loqme-primary-500"
                   required
                 />
                 <span className="text-[10px] text-loqme-primary-600 font-bold mt-0.5 block">
@@ -302,9 +485,10 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                 </label>
                 <div className="flex items-center gap-2">
                   <button
+                    aria-label="کاهش تعداد"
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="w-9 h-9 rounded-xl border border-loqme-neutral-300 bg-white font-black text-lg hover:bg-loqme-neutral-100"
+                    className="w-9 h-9 rounded-lg border border-loqme-neutral-300 bg-white font-black text-lg hover:bg-loqme-neutral-100"
                   >
                     -
                   </button>
@@ -312,9 +496,10 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                     {toPersianDigits(quantity)}
                   </span>
                   <button
+                    aria-label="افزایش تعداد"
                     type="button"
                     onClick={() => setQuantity((q) => Math.min(50, q + 1))}
-                    className="w-9 h-9 rounded-xl border border-loqme-neutral-300 bg-white font-black text-lg hover:bg-loqme-neutral-100"
+                    className="w-9 h-9 rounded-lg border border-loqme-neutral-300 bg-white font-black text-lg hover:bg-loqme-neutral-100"
                   >
                     +
                   </button>
@@ -326,35 +511,45 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
           {/* Step 4: Pickup Window Timing */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-loqme-neutral-700 mb-1">
+              <label
+                htmlFor="merchant-field-4"
+                className="block text-xs font-bold text-loqme-neutral-700 mb-1"
+              >
                 شروع بازه تحویل امروز:
               </label>
               <input
+                id="merchant-field-4"
                 type="text"
                 value={pickupStart}
-                onChange={(e) => setPickupStart(toEnglishDigits(e.target.value))}
+                onChange={(e) =>
+                  setPickupStart(toEnglishDigits(e.target.value))
+                }
                 placeholder="19:30"
-                className="w-full px-3 py-2 text-center font-mono text-sm font-bold border border-loqme-neutral-300 rounded-xl"
+                className="w-full px-3 py-2 text-center font-mono text-sm font-bold border border-loqme-neutral-300 rounded-lg"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-loqme-neutral-700 mb-1">
+              <label
+                htmlFor="merchant-field-5"
+                className="block text-xs font-bold text-loqme-neutral-700 mb-1"
+              >
                 پایان بازه تحویل امروز:
               </label>
               <input
+                id="merchant-field-5"
                 type="text"
                 value={pickupEnd}
                 onChange={(e) => setPickupEnd(toEnglishDigits(e.target.value))}
                 placeholder="21:30"
-                className="w-full px-3 py-2 text-center font-mono text-sm font-bold border border-loqme-neutral-300 rounded-xl"
+                className="w-full px-3 py-2 text-center font-mono text-sm font-bold border border-loqme-neutral-300 rounded-lg"
                 required
               />
             </div>
           </div>
 
           {/* Safety & Quality Declaration */}
-          <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+          <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900">
             <label className="flex items-start gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
@@ -363,22 +558,34 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                 className="mt-0.5 w-4 h-4 rounded text-loqme-primary-600 focus:ring-loqme-primary-500"
               />
               <span className="text-[11px] leading-relaxed font-medium">
-                <strong>تعهد سلامت و کیفیت لقمه:</strong> تایید می‌نمایم محتویات این بسته کاملاً تازه،
-                بهداشتی، تاریخ‌دار و مازاد مصرف روز بوده و به هیچ وجه شامل غذای دست‌خورده یا منقضی‌شده نمی‌باشد.
+                <strong>تعهد سلامت و کیفیت لقمه:</strong> تایید می‌نمایم محتویات
+                این بسته کاملاً تازه، بهداشتی، تاریخ‌دار و مازاد مصرف روز بوده و
+                به هیچ وجه شامل غذای دست‌خورده یا منقضی‌شده نمی‌باشد.
               </span>
             </label>
           </div>
 
           {/* Submit Actions */}
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-loqme-neutral-200">
-            <Button type="button" variant="ghost" size="md" onClick={onClose} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="md"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               انصراف
             </Button>
             <Button
               type="submit"
               variant="primary"
               size="md"
-              disabled={isSubmitting || !safetyConfirmed}
+              disabled={
+                isSubmitting ||
+                imageBusy ||
+                !safetyConfirmed ||
+                categories.length === 0
+              }
               className="gap-2 px-6 shadow-sm"
             >
               {isSubmitting ? (
@@ -388,7 +595,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                 </>
               ) : (
                 <>
-                  <span>🚀</span>
+                  <RedesignIcons.Send size={18} aria-hidden="true" />
                   <span>انتشار آنی در بازار لقمه</span>
                 </>
               )}
@@ -396,6 +603,6 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </DialogSurface>
   );
 };

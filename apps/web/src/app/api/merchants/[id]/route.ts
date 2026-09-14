@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
-import { ListingStatus, SafetyStatus } from '@prisma/client';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { extractSessionToken, verifySessionToken } from "@/lib/auth/session";
+import { ListingStatus, SafetyStatus } from "@prisma/client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const { id } = params;
@@ -20,7 +20,7 @@ export async function GET(
             city: true,
             neighborhood: true,
             hours: {
-              orderBy: { dayOfWeek: 'asc' },
+              orderBy: { dayOfWeek: "asc" },
             },
           },
         },
@@ -32,18 +32,19 @@ export async function GET(
           },
           include: {
             category: true,
+            images: { orderBy: { isPrimary: "desc" }, take: 1 },
             inventory: true,
             safety: true,
           },
-          orderBy: { pickupEnd: 'asc' },
+          orderBy: { pickupEnd: "asc" },
         },
       },
     });
 
     if (!merchant) {
       return NextResponse.json(
-        { success: false, message: 'فروشگاه مورد نظر یافت نشد' },
-        { status: 404 }
+        { success: false, message: "فروشگاه مورد نظر یافت نشد" },
+        { status: 404 },
       );
     }
 
@@ -74,30 +75,52 @@ export async function GET(
     const activeListings = merchant.listings
       .filter((listing) => {
         if (!listing.inventory) return false;
-        const available = listing.inventory.totalQuantity - (listing.inventory.reservedQuantity + listing.inventory.soldQuantity);
+        const available =
+          listing.inventory.totalQuantity -
+          (listing.inventory.reservedQuantity + listing.inventory.soldQuantity);
         return available > 0;
       })
       .map((listing) => {
         const originalPrice = Number(listing.originalPriceToman);
         const discountedPrice = Number(listing.discountedPriceToman);
-        const discountPercent = originalPrice > 0
-          ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
-          : 0;
+        const discountPercent =
+          originalPrice > 0
+            ? Math.round(
+                ((originalPrice - discountedPrice) / originalPrice) * 100,
+              )
+            : 0;
 
-        const startHours = listing.pickupStart.getHours().toString().padStart(2, '0');
-        const startMins = listing.pickupStart.getMinutes().toString().padStart(2, '0');
-        const endHours = listing.pickupEnd.getHours().toString().padStart(2, '0');
-        const endMins = listing.pickupEnd.getMinutes().toString().padStart(2, '0');
+        const startHours = listing.pickupStart
+          .getHours()
+          .toString()
+          .padStart(2, "0");
+        const startMins = listing.pickupStart
+          .getMinutes()
+          .toString()
+          .padStart(2, "0");
+        const endHours = listing.pickupEnd
+          .getHours()
+          .toString()
+          .padStart(2, "0");
+        const endMins = listing.pickupEnd
+          .getMinutes()
+          .toString()
+          .padStart(2, "0");
 
         return {
           id: listing.id,
+          imageUrl: listing.images[0]?.imageUrl || null,
+          safetyVerified:
+            listing.safety?.safetyStatus === SafetyStatus.APPROVED,
           titleFa: listing.titleFa,
           type: listing.type,
           originalPriceToman: originalPrice,
           discountedPriceToman: discountedPrice,
           discountPercent,
           remainingQuantity: listing.inventory
-            ? listing.inventory.totalQuantity - (listing.inventory.reservedQuantity + listing.inventory.soldQuantity)
+            ? listing.inventory.totalQuantity -
+              (listing.inventory.reservedQuantity +
+                listing.inventory.soldQuantity)
             : 0,
           pickupWindowFa: `${startHours}:${startMins} تا ${endHours}:${endMins}`,
           pickupEndIso: listing.pickupEnd.toISOString(),
@@ -132,10 +155,10 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error fetching merchant details:', error);
+    console.error("Error fetching merchant details:", error);
     return NextResponse.json(
-      { success: false, message: 'خطا در دریافت اطلاعات فروشگاه' },
-      { status: 500 }
+      { success: false, message: "خطا در دریافت اطلاعات فروشگاه" },
+      { status: 500 },
     );
   }
 }

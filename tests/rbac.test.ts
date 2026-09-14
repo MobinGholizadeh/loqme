@@ -13,7 +13,7 @@ describe('Role-Based Access Control (RBAC)', () => {
     }
   });
 
-  it('restricts /merchant routes to merchant staff, owners, and admins', () => {
+  it('restricts /merchant routes to merchant staff and owners, not admins', () => {
     const merchantPath = '/merchant/orders';
 
     // Unauthenticated
@@ -27,7 +27,7 @@ describe('Role-Based Access Control (RBAC)', () => {
     expect(canAccessPath('MERCHANT_OWNER', merchantPath)).toBe(true);
 
     // Admin
-    expect(canAccessPath('ADMIN', merchantPath)).toBe(true);
+    expect(canAccessPath('ADMIN', merchantPath)).toBe(false);
   });
 
   it('strictly restricts /admin routes to ADMIN role only', () => {

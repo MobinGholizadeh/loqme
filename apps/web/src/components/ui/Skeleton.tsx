@@ -1,34 +1,34 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { cn } from '@/lib/utils/cn';
+import React from "react";
+import { cn } from "@/lib/utils/cn";
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'rectangular' | 'circular' | 'rounded';
+  variant?: "rectangular" | "circular" | "rounded";
   width?: string | number;
   height?: string | number;
 }
 
 export const Skeleton: React.FC<SkeletonProps> = ({
   className,
-  variant = 'rounded',
+  variant = "rounded",
   width,
   height,
   style,
   ...props
 }) => {
   const variantStyles = {
-    rectangular: 'rounded-none',
-    circular: 'rounded-full',
-    rounded: 'rounded-xl',
+    rectangular: "rounded-none",
+    circular: "rounded-full",
+    rounded: "rounded-lg",
   };
 
   return (
     <div
-      className={cn('animate-shimmer', variantStyles[variant], className)}
+      className={cn("animate-shimmer", variantStyles[variant], className)}
       style={{
-        width: typeof width === 'number' ? `${width}px` : width,
-        height: typeof height === 'number' ? `${height}px` : height,
+        width: typeof width === "number" ? `${width}px` : width,
+        height: typeof height === "number" ? `${height}px` : height,
         ...style,
       }}
       {...props}
@@ -38,7 +38,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
 
 export const CardSkeleton: React.FC = () => {
   return (
-    <div className="bg-white rounded-2xl border border-loqme-neutral-200 p-4 space-y-3 shadow-card">
+    <div className="bg-white rounded-lg border border-loqme-neutral-200 p-4 space-y-3 shadow-card">
       <div className="flex items-start justify-between">
         <div className="space-y-1.5 flex-1">
           <Skeleton height={18} width="55%" />

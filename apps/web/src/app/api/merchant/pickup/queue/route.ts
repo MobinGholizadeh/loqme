@@ -34,9 +34,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error in GET /api/merchant/pickup/queue:', error);
+    const forbidden = error instanceof Error && error.message.includes('عدم دسترسی');
     return NextResponse.json(
-      { success: false, message: 'خطا در دریافت صف تحویل حضوری فروشگاه' },
-      { status: 500 }
+      { success: false, message: forbidden ? 'به صف تحویل این فروشگاه دسترسی ندارید' : 'خطا در دریافت صف تحویل حضوری فروشگاه' },
+      { status: forbidden ? 403 : 500 }
     );
   }
 }

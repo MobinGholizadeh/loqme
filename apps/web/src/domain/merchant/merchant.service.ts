@@ -186,6 +186,10 @@ export class MerchantService {
     merchantId?: string,
     minRole?: StaffRole
   ) {
+    const user = await prisma.user.findUnique({ where: { id: merchantUserId }, select: { role: true, isActive: true } });
+    if (!user?.isActive || !['MERCHANT_OWNER', 'MERCHANT_STAFF'].includes(user.role)) {
+      throw new Error('عدم دسترسی: این بخش مخصوص حساب فروشنده است؛ مدیریت فروشگاه‌ها از پنل مدیریت انجام می‌شود');
+    }
     // 1. If merchantId provided, verify user has access to it
     // If not provided, find the primary merchant for the user
     let targetMerchantId = merchantId;
@@ -209,7 +213,7 @@ export class MerchantService {
     }
 
     if (!targetMerchantId) {
-      throw new Error('فروشگاهی برای این حساب کاربری یافت نشد');
+      throw new Error('عدم دسترسی: فروشگاهی برای این حساب کاربری یافت نشد');
     }
 
     // 2. Load merchant with staff membership
@@ -756,4 +760,3 @@ export class MerchantService {
 }
 
 export const merchantService = new MerchantService();
-

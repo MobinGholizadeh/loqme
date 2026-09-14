@@ -1,29 +1,34 @@
-'use client';
+"use client";
+import * as RedesignIcons from "lucide-react";
 
-import React, { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
-import { FastListingModal } from '@/components/merchant/FastListingModal';
-import { formatToman, toPersianDigits } from '@/lib/utils/persian';
-import { MerchantDashboardDto } from '@loqme/types';
+import React, { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
+import { FastListingModal } from "@/components/merchant/FastListingModal";
+import { formatToman, toPersianDigits } from "@/lib/utils/persian";
+import { MerchantDashboardDto } from "@loqme/types";
 
 export default function MerchantDashboardPage() {
   const [stats, setStats] = useState<MerchantDashboardDto | null>(null);
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFastListingOpen, setIsFastListingOpen] = useState<boolean>(false);
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch('/api/merchant/dashboard');
+      const res = await fetch("/api/merchant/dashboard");
       const json = await res.json();
+      if (!res.ok || !json.success || !json.data)
+        throw new Error(json.message || "دریافت اطلاعات ممکن نشد");
+      setError("");
       if (json.success && json.data) {
         setStats(json.data);
       }
     } catch (err) {
-      console.error('Failed to fetch merchant dashboard stats:', err);
+      setError(err instanceof Error ? err.message : "دریافت اطلاعات ممکن نشد");
     } finally {
       setIsLoading(false);
     }
@@ -42,7 +47,9 @@ export default function MerchantDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black text-loqme-neutral-900">داشبورد فروشگاه</h1>
+            <h1 className="text-2xl font-black text-loqme-neutral-900">
+              داشبورد فروشگاه
+            </h1>
             {stats && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                 ● زنده
@@ -61,8 +68,10 @@ export default function MerchantDashboardPage() {
             className="gap-2 shadow-sm font-bold"
             onClick={() => setIsFastListingOpen(true)}
           >
-            <span>⚡</span>
-            <span>+ ثبت سریع بسته (زیر ۶۰ ثانیه)</span>
+            <span>
+              <RedesignIcons.Zap size={20} aria-hidden="true" />
+            </span>
+            <span>ثبت بسته</span>
           </Button>
 
           <Button
@@ -75,21 +84,36 @@ export default function MerchantDashboardPage() {
             }}
             title="بروزرسانی داده‌ها"
           >
-            <span>🔄</span>
+            <span>
+              <RedesignIcons.RefreshCw size={20} aria-hidden="true" />
+            </span>
           </Button>
         </div>
       </div>
 
+      {error && (
+        <div
+          role="alert"
+          className="p-4 border border-rose-200 text-rose-700 rounded-lg"
+        >
+          {error}
+        </div>
+      )}
       {isLoading && !stats ? (
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
-          <p className="text-xs text-loqme-neutral-500">در حال دریافت وضعیت فروشگاه...</p>
+          <p className="text-xs text-loqme-neutral-500">
+            در حال دریافت وضعیت فروشگاه...
+          </p>
         </div>
-      ) : (
+      ) : stats ? (
         <>
           {/* Active Pickup Window Alert */}
           {stats?.nextPickupWindow && (
-            <Card variant="elevated" className="bg-loqme-primary-50 border-2 border-loqme-primary-300 p-5 shadow-xs">
+            <Card
+              variant="elevated"
+              className="bg-loqme-primary-50 border-2 border-loqme-primary-300 p-5 shadow-xs"
+            >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -98,7 +122,11 @@ export default function MerchantDashboardPage() {
                     </Badge>
                     {stats.nextPickupWindow.startsInMinutes > 0 && (
                       <span className="text-xs font-bold text-loqme-primary-800 bg-white px-2 py-0.5 rounded-md border border-loqme-primary-200">
-                        شروع در {toPersianDigits(stats.nextPickupWindow.startsInMinutes)} دقیقه دیگر
+                        شروع در{" "}
+                        {toPersianDigits(
+                          stats.nextPickupWindow.startsInMinutes,
+                        )}{" "}
+                        دقیقه دیگر
                       </span>
                     )}
                   </div>
@@ -106,15 +134,16 @@ export default function MerchantDashboardPage() {
                     {stats.nextPickupWindow.labelFa}
                   </h3>
                   <p className="text-xs text-loqme-neutral-600">
-                    لطفاً بسته‌های رزرو شده را از قبل تفکیک کنید تا هنگام مراجعه مشتریان، تحویل با اسکن
-                    سریع QR یا کد ۴ رقمی بدون معطلی انجام شود.
+                    لطفاً بسته‌های رزرو شده را از قبل تفکیک کنید تا هنگام مراجعه
+                    مشتریان، تحویل با اسکن QR یا کد تحویل بدون معطلی انجام شود.
                   </p>
                 </div>
 
-                <Link href="/merchant/orders">
-                  <Button size="md" variant="primary" className="w-full sm:w-auto shadow-xs whitespace-nowrap">
-                    مشاهده صف تحویل ({toPersianDigits(stats.pendingPickupsCount)})
-                  </Button>
+                <Link
+                  className="action-link w-full sm:w-auto shadow-xs whitespace-nowrap"
+                  href="/merchant/orders"
+                >
+                  مشاهده صف تحویل ({toPersianDigits(stats.pendingPickupsCount)})
                 </Link>
               </div>
             </Card>
@@ -122,41 +151,71 @@ export default function MerchantDashboardPage() {
 
           {/* Primary KPI Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">بسته‌های فعال امروز</span>
+            <Card
+              variant="elevated"
+              className="p-4 bg-white border border-loqme-neutral-200"
+            >
+              <span className="text-xs text-loqme-neutral-500 font-medium">
+                بسته‌های فعال امروز
+              </span>
               <div className="text-2xl font-black text-loqme-primary-600 mt-2">
                 {toPersianDigits(stats?.activeListingsCount ?? 0)} عدد
               </div>
-              <span className="text-[11px] text-loqme-success-600 mt-1 block">
-                {toPersianDigits(stats?.reservedBagsCount ?? 0)} عدد رزرو شده توسط مشتریان
+              <span className="text-[11px] text-emerald-700 mt-1 block">
+                {toPersianDigits(stats?.reservedBagsCount ?? 0)} عدد رزرو شده
+                توسط مشتریان
               </span>
             </Card>
 
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">فروش قطعی امروز</span>
+            <Card
+              variant="elevated"
+              className="p-4 bg-white border border-loqme-neutral-200"
+            >
+              <span className="text-xs text-loqme-neutral-500 font-medium">
+                فروش قطعی امروز
+              </span>
               <div className="text-2xl font-black text-loqme-neutral-900 mt-2">
                 {formatToman(stats?.grossRevenueTodayToman ?? 0)}
               </div>
               <span className="text-[11px] text-loqme-neutral-500 mt-1 block">
-                {toPersianDigits(stats?.soldTodayCount ?? 0)} بسته تحویل شده / فروخته شده
+                {toPersianDigits(stats?.soldTodayCount ?? 0)} بسته تحویل شده /
+                فروخته شده
               </span>
             </Card>
 
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">تسویه خالص امروز (۹۰٪)</span>
+            <Card
+              variant="elevated"
+              className="p-4 bg-white border border-loqme-neutral-200"
+            >
+              <span className="text-xs text-loqme-neutral-500 font-medium">
+                تسویه خالص امروز
+              </span>
               <div className="text-2xl font-black text-emerald-700 mt-2">
                 {formatToman(stats?.netPayoutTodayToman ?? 0)}
               </div>
               <span className="text-[11px] text-loqme-neutral-500 mt-1 block">
-                پس از کسر کارمزد ۱۰٪ لقمه
+                پس از کسر کارمزد فروشگاه
               </span>
             </Card>
 
-            <Card variant="elevated" className="p-4 bg-white border border-loqme-neutral-200">
-              <span className="text-xs text-loqme-neutral-500 font-medium">امتیاز و رضایت مشتریان</span>
-              <div className="text-2xl font-black text-amber-500 mt-2 flex items-center gap-1.5">
-                <span>⭐</span>
-                <span>{toPersianDigits(stats?.ratingAverage?.toFixed(2) ?? '۵.۰۰')}</span>
+            <Card
+              variant="elevated"
+              className="p-4 bg-white border border-loqme-neutral-200"
+            >
+              <span className="text-xs text-loqme-neutral-500 font-medium">
+                امتیاز و رضایت مشتریان
+              </span>
+              <div className="text-2xl font-black text-amber-700 mt-2 flex items-center gap-1.5">
+                <span>
+                  <RedesignIcons.Star size={20} aria-hidden="true" />
+                </span>
+                <span>
+                  {toPersianDigits(
+                    stats?.ratingCount
+                      ? stats.ratingAverage.toFixed(2)
+                      : "ثبت نشده",
+                  )}
+                </span>
               </div>
               <span className="text-[11px] text-loqme-neutral-500 mt-1 block">
                 بر اساس {toPersianDigits(stats?.ratingCount ?? 0)} نظر ثبت شده
@@ -167,43 +226,60 @@ export default function MerchantDashboardPage() {
           {/* Quick Navigation Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             <Link href="/merchant/listings" className="group">
-              <Card variant="elevated" className="p-5 bg-white border border-loqme-neutral-200 group-hover:border-loqme-primary-400 transition-all">
-                <div className="text-2xl mb-2">📦</div>
+              <Card
+                variant="elevated"
+                className="p-5 bg-white border border-loqme-neutral-200 group-hover:border-loqme-primary-400 transition-all"
+              >
+                <div className="text-2xl mb-2">
+                  <RedesignIcons.Package size={20} aria-hidden="true" />
+                </div>
                 <h3 className="font-bold text-sm text-loqme-neutral-900 group-hover:text-loqme-primary-700">
                   مدیریت بسته‌های مازاد
                 </h3>
                 <p className="text-xs text-loqme-neutral-500 mt-1">
-                  توقف موقت (Pause)، افزودن یا کاهش موجودی، و مشاهده وضعیت لحظه‌ای بسته‌ها.
+                  توقف موقت (Pause)، افزودن یا کاهش موجودی، و مشاهده وضعیت
+                  لحظه‌ای بسته‌ها.
                 </p>
               </Card>
             </Link>
 
             <Link href="/merchant/orders" className="group">
-              <Card variant="elevated" className="p-5 bg-white border border-loqme-neutral-200 group-hover:border-loqme-primary-400 transition-all">
-                <div className="text-2xl mb-2">🛍️</div>
+              <Card
+                variant="elevated"
+                className="p-5 bg-white border border-loqme-neutral-200 group-hover:border-loqme-primary-400 transition-all"
+              >
+                <div className="text-2xl mb-2">
+                  <RedesignIcons.ShoppingBag size={20} aria-hidden="true" />
+                </div>
                 <h3 className="font-bold text-sm text-loqme-neutral-900 group-hover:text-loqme-primary-700">
                   صف تحویل حضوری و اسکن
                 </h3>
                 <p className="text-xs text-loqme-neutral-500 mt-1">
-                  اسکن بارکد QR خریدار با دوربین یا ثبت کد ۴ رقمی جهت تایید آنی سفارش.
+                  اسکن بارکد QR خریدار با دوربین یا ثبت کد ۴ رقمی جهت تایید آنی
+                  سفارش.
                 </p>
               </Card>
             </Link>
 
             <Link href="/merchant/finance" className="group">
-              <Card variant="elevated" className="p-5 bg-white border border-loqme-neutral-200 group-hover:border-loqme-primary-400 transition-all">
-                <div className="text-2xl mb-2">💰</div>
+              <Card
+                variant="elevated"
+                className="p-5 bg-white border border-loqme-neutral-200 group-hover:border-loqme-primary-400 transition-all"
+              >
+                <div className="text-2xl mb-2">
+                  <RedesignIcons.Wallet size={20} aria-hidden="true" />
+                </div>
                 <h3 className="font-bold text-sm text-loqme-neutral-900 group-hover:text-loqme-primary-700">
                   صورت‌حساب مالی و تسویه
                 </h3>
                 <p className="text-xs text-loqme-neutral-500 mt-1">
-                  ریز تراکنش‌های دفاتر کل، محاسبه دقیق ۱۰٪ کارمزد و مانده قابل تسویه حساب.
+                  مانده قابل تسویه و تراکنش‌های فروشگاه
                 </p>
               </Card>
             </Link>
           </div>
         </>
-      )}
+      ) : null}
 
       {/* Fast Listing Modal */}
       <FastListingModal

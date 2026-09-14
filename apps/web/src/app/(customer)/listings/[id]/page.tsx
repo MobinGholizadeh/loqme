@@ -1,23 +1,29 @@
-'use client';
+"use client";
+import { useFeedback } from "@/components/ui/useFeedback";
+import * as RedesignIcons from "lucide-react";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { ErrorState } from '@/components/ui/ErrorState';
-import { formatToman, toPersianDigits } from '@/lib/utils/persian';
-import { generateProductListingSchema } from '@/lib/seo/structured-data';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { formatToman, toPersianDigits } from "@/lib/utils/persian";
+import { generateProductListingSchema } from "@/lib/seo/structured-data";
+
+import { ListingImage } from "@/components/ui/ListingImage";
+import { Heart } from "lucide-react";
 
 interface ListingDetailData {
+  images?: { imageUrl: string }[];
   id: string;
   merchantId: string;
   titleFa: string;
   descriptionFa: string | null;
-  type: 'SURPRISE_BAG' | 'FLASH_DEAL';
+  type: "SURPRISE_BAG" | "FLASH_DEAL";
   status: string;
   originalPriceToman: number;
   discountedPriceToman: number;
@@ -65,6 +71,7 @@ interface ListingDetailData {
 }
 
 export default function ListingDetailPage() {
+  const { showFeedback, feedbackDialog } = useFeedback();
   const params = useParams();
   const router = useRouter();
   const listingId = params?.id as string;
@@ -80,9 +87,9 @@ export default function ListingDetailPage() {
     if (!data || isReserving) return;
     setIsReserving(true);
     try {
-      const res = await fetch('/api/reservations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ listingId: data.id, quantity: 1 }),
       });
 
@@ -96,11 +103,11 @@ export default function ListingDetailPage() {
       if (json.success && json.data) {
         router.push(`/checkout/${json.data.id}`);
       } else {
-        alert(json.message || 'خطا در رزرو بسته');
+        showFeedback(json.message || "خطا در رزرو بسته");
       }
     } catch (err) {
-      console.error('Reservation error:', err);
-      alert('ارتباط با سرور برقرار نشد');
+      console.error("Reservation error:", err);
+      showFeedback("ارتباط با سرور برقرار نشد");
     } finally {
       setIsReserving(false);
     }
@@ -119,11 +126,11 @@ export default function ListingDetailPage() {
           setData(json.data);
           setIsFavorited(json.data.merchant.isFavorited);
         } else {
-          setErrorMsg(json.message || 'خطا در بارگذاری مشخصات آگهی');
+          setErrorMsg(json.message || "خطا در بارگذاری مشخصات آگهی");
         }
       } catch (err) {
         console.error(err);
-        setErrorMsg('ارتباط با سرور برقرار نشد');
+        setErrorMsg("ارتباط با سرور برقرار نشد");
       } finally {
         setIsLoading(false);
       }
@@ -138,16 +145,18 @@ export default function ListingDetailPage() {
     setFavoriteLoading(true);
     try {
       const res = await fetch(`/api/merchants/${data.merchantId}/favorite`, {
-        method: 'POST',
+        method: "POST",
       });
       const json = await res.json();
       if (json.success) {
         setIsFavorited(json.isFavorited);
       } else if (res.status === 401) {
-        alert('برای ثبت فروشگاه در علاقه‌مندی‌ها، لطفاً ابتدا وارد حساب کاربری خود شوید.');
+        showFeedback(
+          "برای ثبت فروشگاه در علاقه‌مندی‌ها، لطفاً ابتدا وارد حساب کاربری خود شوید.",
+        );
       }
     } catch (err) {
-      console.error('Favorite toggle failed:', err);
+      console.error("Favorite toggle failed:", err);
     } finally {
       setFavoriteLoading(false);
     }
@@ -157,7 +166,7 @@ export default function ListingDetailPage() {
     return (
       <div className="space-y-6 max-w-3xl mx-auto py-4">
         <Skeleton height={20} width={120} />
-        <div className="bg-white rounded-2xl border border-loqme-neutral-200 p-6 space-y-4 shadow-card">
+        <div className="bg-white rounded-lg border border-loqme-neutral-200 p-6 space-y-4 shadow-card">
           <div className="flex justify-between items-start">
             <div className="space-y-2 flex-1">
               <Skeleton height={20} width={180} />
@@ -178,9 +187,16 @@ export default function ListingDetailPage() {
       <div className="py-12 max-w-md mx-auto">
         <ErrorState
           title="آگهی مورد نظر یافت نشد"
-          message={errorMsg || 'ممکن است این بسته حذف شده باشد یا آدرس اشتباه وارد شده باشد.'}
+          message={
+            errorMsg ||
+            "ممکن است این بسته حذف شده باشد یا آدرس اشتباه وارد شده باشد."
+          }
           secondaryAction={
-            <Button variant="primary" size="sm" onClick={() => router.push('/explore')}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => router.push("/explore")}
+            >
               بازگشت به صفحه کاوش
             </Button>
           }
@@ -191,9 +207,9 @@ export default function ListingDetailPage() {
 
   const startDate = new Date(data.pickupStart);
   const endDate = new Date(data.pickupEnd);
-  const timeWindowStr = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')} تا ${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+  const timeWindowStr = `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")} تا ${endDate.getHours().toString().padStart(2, "0")}:${endDate.getMinutes().toString().padStart(2, "0")}`;
 
-  const isSurpriseBag = data.type === 'SURPRISE_BAG';
+  const isSurpriseBag = data.type === "SURPRISE_BAG";
 
   const productSchema = generateProductListingSchema(
     {
@@ -205,19 +221,20 @@ export default function ListingDetailPage() {
       status: data.status,
       pickupEnd: data.pickupEnd,
     },
-    data.merchant
+    data.merchant,
   );
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto pb-16">
+    <div className="detail-page">
       {/* Schema.org Product Structured Data for SEO */}
+      {feedbackDialog}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
 
       {/* Breadcrumb / Back button */}
-      <div className="flex items-center justify-between text-xs text-loqme-neutral-500">
+      <div className="detail-breadcrumb flex items-center justify-between text-xs text-loqme-neutral-500">
         <button
           type="button"
           onClick={() => router.back()}
@@ -227,19 +244,30 @@ export default function ListingDetailPage() {
           <span>بازگشت</span>
         </button>
         <div className="flex items-center gap-1.5">
-          <span>{data.merchant.location?.cityNameFa || 'ارومیه'}</span>
+          <span>{data.merchant.location?.cityNameFa || "ارومیه"}</span>
           <span>•</span>
           <span>{data.category.nameFa}</span>
         </div>
       </div>
 
-      {/* Hero Card */}
-      <Card variant="elevated" className="overflow-hidden p-6 relative">
+      <div className="detail-photo">
+        <ListingImage
+          src={data.images?.[0]?.imageUrl}
+          alt={data.titleFa}
+          priority
+        />
+      </div>
+      <Card
+        variant="elevated"
+        className="detail-overview overflow-hidden relative"
+      >
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={isSurpriseBag ? 'brand' : 'neutral'} size="sm">
-                {isSurpriseBag ? '🎁 بسته شگفت‌انگیز (Surprise Bag)' : '⚡ تخفیف ویژه (Flash Deal)'}
+              <Badge variant={isSurpriseBag ? "brand" : "neutral"} size="sm">
+                {isSurpriseBag
+                  ? "🎁 بسته شگفت‌انگیز (Surprise Bag)"
+                  : "⚡ تخفیف ویژه (Flash Deal)"}
               </Badge>
               <Badge variant="success" size="sm">
                 ✓ تضمین سلامت و بهداشت
@@ -259,9 +287,11 @@ export default function ListingDetailPage() {
               </Link>
               <span>•</span>
               <span className="flex items-center gap-1">
-                <span className="text-amber-500">★</span>
-                <span className="font-bold">{toPersianDigits(data.merchant.ratingAverage.toFixed(1))}</span>
-                <span className="text-loqme-neutral-400">
+                <span className="text-amber-700">★</span>
+                <span className="font-bold">
+                  {toPersianDigits(data.merchant.ratingAverage.toFixed(1))}
+                </span>
+                <span className="text-loqme-neutral-500">
                   ({toPersianDigits(data.merchant.ratingCount)} نظر)
                 </span>
               </span>
@@ -273,29 +303,35 @@ export default function ListingDetailPage() {
             type="button"
             onClick={handleToggleFavorite}
             disabled={favoriteLoading}
-            className={`self-start p-3 rounded-2xl border transition-all flex items-center gap-1.5 text-xs font-bold ${
+            className={`self-start p-3 rounded-lg border transition-all flex items-center gap-1.5 text-xs font-bold ${
               isFavorited
-                ? 'bg-rose-50 text-rose-600 border-rose-200'
-                : 'bg-loqme-neutral-50 text-loqme-neutral-600 border-loqme-neutral-200 hover:bg-loqme-neutral-100'
+                ? "bg-rose-50 text-rose-600 border-rose-200"
+                : "bg-loqme-neutral-50 text-loqme-neutral-600 border-loqme-neutral-200 hover:bg-loqme-neutral-100"
             }`}
-            title={isFavorited ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
+            title={
+              isFavorited ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"
+            }
           >
-            <span>{isFavorited ? '❤️' : '🤍'}</span>
-            <span>{isFavorited ? 'علاقه‌مندی' : 'افزودن به محبوب‌ها'}</span>
+            <Heart
+              size={18}
+              fill={isFavorited ? "currentColor" : "none"}
+              aria-hidden="true"
+            />
+            <span>{isFavorited ? "علاقه‌مندی" : "افزودن به محبوب‌ها"}</span>
           </button>
         </div>
 
         {/* Description */}
         {data.descriptionFa && (
-          <div className="mt-4 p-4 rounded-2xl bg-loqme-neutral-50 border border-loqme-neutral-100 text-xs md:text-sm text-loqme-neutral-700 leading-relaxed">
+          <div className="mt-4 p-4 rounded-lg bg-loqme-neutral-50 border border-loqme-neutral-100 text-xs md:text-sm text-loqme-neutral-700 leading-relaxed">
             {data.descriptionFa}
           </div>
         )}
 
         {/* Pricing Breakdown Banner */}
-        <div className="mt-6 p-4 rounded-2xl bg-loqme-primary-50/60 border border-loqme-primary-100 flex flex-wrap items-center justify-between gap-4">
+        <div className="mt-6 p-4 rounded-lg bg-loqme-primary-50/60 border border-loqme-primary-100 flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="text-xs text-loqme-neutral-400 line-through">
+            <div className="text-xs text-loqme-neutral-500 line-through">
               ارزش واقعی: {formatToman(data.originalPriceToman)}
             </div>
             <div className="flex items-center gap-2">
@@ -309,7 +345,7 @@ export default function ListingDetailPage() {
           </div>
 
           <div className="text-right sm:text-left">
-            <div className="text-xs font-bold text-loqme-primary-700 bg-white px-3 py-1.5 rounded-xl border border-loqme-primary-200 shadow-xs inline-block">
+            <div className="text-xs font-bold text-loqme-primary-700 bg-white px-3 py-1.5 rounded-lg border border-loqme-primary-200 shadow-xs inline-block">
               💰 سود شما: {formatToman(data.savingsToman)}
             </div>
           </div>
@@ -317,20 +353,31 @@ export default function ListingDetailPage() {
 
         {/* Pickup Window and Inventory Bar */}
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="p-3 rounded-2xl bg-white border border-loqme-neutral-200 flex items-center gap-3">
-            <span className="text-2xl">⏰</span>
+          <div className="p-3 rounded-lg bg-white border border-loqme-neutral-200 flex items-center gap-3">
+            <span className="text-2xl">
+              <RedesignIcons.Clock3 size={20} aria-hidden="true" />
+            </span>
             <div>
-              <div className="text-[11px] text-loqme-neutral-500">زمان تحویل حضوری امروز</div>
-              <div className="font-bold text-xs text-loqme-neutral-800">{timeWindowStr}</div>
+              <div className="text-[11px] text-loqme-neutral-500">
+                زمان تحویل حضوری امروز
+              </div>
+              <div className="font-bold text-xs text-loqme-neutral-800">
+                {timeWindowStr}
+              </div>
             </div>
           </div>
 
-          <div className="p-3 rounded-2xl bg-white border border-loqme-neutral-200 flex items-center gap-3">
-            <span className="text-2xl">📦</span>
+          <div className="p-3 rounded-lg bg-white border border-loqme-neutral-200 flex items-center gap-3">
+            <span className="text-2xl">
+              <RedesignIcons.Package size={20} aria-hidden="true" />
+            </span>
             <div>
-              <div className="text-[11px] text-loqme-neutral-500">موجودی باقی‌مانده</div>
+              <div className="text-[11px] text-loqme-neutral-500">
+                موجودی باقی‌مانده
+              </div>
               <div className="font-bold text-xs text-loqme-primary-700">
-                تنها {toPersianDigits(data.inventory.availableQuantity)} بسته در انبار
+                {toPersianDigits(data.inventory.availableQuantity)} بسته در
+                انبار
               </div>
             </div>
           </div>
@@ -341,11 +388,16 @@ export default function ListingDetailPage() {
       {isSurpriseBag ? (
         <Card variant="outlined" className="p-5 space-y-3 bg-white">
           <div className="flex items-center gap-2 font-bold text-sm text-loqme-neutral-900">
-            <span>🎁</span>
+            <span>
+              <RedesignIcons.Gift size={20} aria-hidden="true" />
+            </span>
             <h3>بسته شگفت‌انگیز چیست؟</h3>
           </div>
           <p className="text-xs text-loqme-neutral-600 leading-relaxed">
-            این بسته شامل دستچینی از تازه‌ترین اقلام روز تولیدشده در این فروشگاه است که به پایان ساعت کاری نزدیک شده‌اند. محتویات دقیق بسته بر اساس موجودی روزانه متغیر است، اما ارزش محتوای آن تضمین‌شده و معادل حداقل {formatToman(data.originalPriceToman)} ارزش بازار خواهد بود.
+            این بسته شامل دستچینی از تازه‌ترین اقلام روز تولیدشده در این فروشگاه
+            است که به پایان ساعت کاری نزدیک شده‌اند. محتویات دقیق بسته بر اساس
+            موجودی روزانه متغیر است، اما ارزش محتوای آن تضمین‌شده و معادل حداقل{" "}
+            {formatToman(data.originalPriceToman)} ارزش بازار خواهد بود.
           </p>
         </Card>
       ) : null}
@@ -353,13 +405,17 @@ export default function ListingDetailPage() {
       {/* Food Safety & Dietary Clearance */}
       <Card variant="outlined" className="p-5 space-y-4 bg-white">
         <div className="flex items-center gap-2 font-bold text-sm text-emerald-800">
-          <span>🛡️</span>
+          <span>
+            <RedesignIcons.ShieldCheck size={20} aria-hidden="true" />
+          </span>
           <h3>اطلاعات سلامت و رژیم غذایی</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div>
-            <span className="font-bold text-loqme-neutral-700 block mb-1">ویژگی‌های تغذیه‌ای:</span>
+            <span className="font-bold text-loqme-neutral-700 block mb-1">
+              ویژگی‌های تغذیه‌ای:
+            </span>
             <div className="flex flex-wrap gap-1.5">
               {data.safety.dietaryTags.length > 0 ? (
                 data.safety.dietaryTags.map((tag) => (
@@ -368,13 +424,17 @@ export default function ListingDetailPage() {
                   </Badge>
                 ))
               ) : (
-                <span className="text-loqme-neutral-400">حلال و استاندارد عمومی</span>
+                <span className="text-loqme-neutral-500">
+                  اطلاعاتی ثبت نشده است.
+                </span>
               )}
             </div>
           </div>
 
           <div>
-            <span className="font-bold text-loqme-neutral-700 block mb-1">هشدار حساسیت‌زایی (آلرژن‌ها):</span>
+            <span className="font-bold text-loqme-neutral-700 block mb-1">
+              هشدار حساسیت‌زایی (آلرژن‌ها):
+            </span>
             <div className="flex flex-wrap gap-1.5">
               {data.safety.allergens.length > 0 ? (
                 data.safety.allergens.map((alg) => (
@@ -383,21 +443,29 @@ export default function ListingDetailPage() {
                   </Badge>
                 ))
               ) : (
-                <span className="text-loqme-neutral-400">فاقد آلرژن شناخته‌شده</span>
+                <span className="text-loqme-neutral-500">
+                  اطلاعاتی ثبت نشده؛ از فروشگاه بپرسید.
+                </span>
               )}
             </div>
           </div>
 
           {data.safety.storageInstructionsFa && (
             <div className="col-span-full">
-              <span className="font-bold text-loqme-neutral-700 block mb-1">دستورالعمل نگهداری:</span>
-              <p className="text-loqme-neutral-600">{data.safety.storageInstructionsFa}</p>
+              <span className="font-bold text-loqme-neutral-700 block mb-1">
+                دستورالعمل نگهداری:
+              </span>
+              <p className="text-loqme-neutral-600">
+                {data.safety.storageInstructionsFa}
+              </p>
             </div>
           )}
         </div>
 
-        <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 text-[11px] text-emerald-900 leading-relaxed">
-          <strong>تضمین اصالت سلامت لقمه:</strong> کلیه محصولات ثبت‌شده در لقمه دارای تاریخ مصرف معتبر، بهداشتی و مورد تایید استاندارد غذایی هستند. فروش هرگونه ماده غذایی تاریخ‌گذشته در لقمه اکیداً ممنوع است.
+        <div className="p-3 rounded-lg bg-emerald-50/70 border border-emerald-200 text-[11px] text-emerald-900 leading-relaxed">
+          <strong>تضمین اصالت سلامت لقمه:</strong> کلیه محصولات ثبت‌شده در لقمه
+          دارای تاریخ مصرف معتبر، بهداشتی و مورد تایید استاندارد غذایی هستند.
+          فروش هرگونه ماده غذایی تاریخ‌گذشته در لقمه اکیداً ممنوع است.
         </div>
       </Card>
 
@@ -406,7 +474,9 @@ export default function ListingDetailPage() {
         <Card variant="outlined" className="p-5 space-y-3 bg-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 font-bold text-sm text-loqme-neutral-900">
-              <span>📍</span>
+              <span>
+                <RedesignIcons.MapPin size={20} aria-hidden="true" />
+              </span>
               <h3>محل تحویل حضوری</h3>
             </div>
             <Link
@@ -418,20 +488,26 @@ export default function ListingDetailPage() {
           </div>
 
           <div className="text-xs text-loqme-neutral-600 space-y-1">
-            <p className="font-bold text-loqme-neutral-800">{data.merchant.businessNameFa}</p>
+            <p className="font-bold text-loqme-neutral-800">
+              {data.merchant.businessNameFa}
+            </p>
             <p>{data.merchant.location.addressFa}</p>
             {data.merchant.location.phone && (
-              <p className="text-loqme-neutral-500">شماره تماس: {data.merchant.location.phone}</p>
+              <p className="text-loqme-neutral-500">
+                شماره تماس: {data.merchant.location.phone}
+              </p>
             )}
           </div>
         </Card>
       )}
 
       {/* Bottom Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-loqme-neutral-200 p-4 shadow-float">
+      <div className="purchase-bar">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
           <div>
-            <div className="text-[11px] text-loqme-neutral-400">مبلغ نهایی پرداختی:</div>
+            <div className="text-[11px] text-loqme-neutral-500">
+              مبلغ نهایی پرداختی:
+            </div>
             <div className="font-black text-lg text-loqme-primary-700">
               {formatToman(data.discountedPriceToman)}
             </div>
@@ -445,7 +521,11 @@ export default function ListingDetailPage() {
             onClick={handleReserve}
             className="flex-1 max-w-xs"
           >
-            {data.isSoldOut ? 'تکمیل موجودی' : data.isExpired ? 'زمان تحویل سپری شده' : 'رزرو ۱۰ دقیقه‌ای بسته'}
+            {data.isSoldOut
+              ? "تکمیل موجودی"
+              : data.isExpired
+                ? "زمان تحویل سپری شده"
+                : "رزرو ۱۰ دقیقه‌ای بسته"}
           </Button>
         </div>
       </div>

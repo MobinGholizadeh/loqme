@@ -1,30 +1,32 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { CategoryDistributionDto } from '@loqme/types';
-import { toPersianDigits, formatToman } from '@loqme/validation';
+import React, { useState } from "react";
+import { CategoryDistributionDto } from "@loqme/types";
+import { toPersianDigits, formatToman } from "@loqme/validation";
 
 interface CategoryDonutChartProps {
   data: CategoryDistributionDto[];
 }
 
 const PALETTE = [
-  '#0D9488', // Teal 600
-  '#10B981', // Emerald 500
-  '#06B6D4', // Cyan 500
-  '#F59E0B', // Amber 500
-  '#6366F1', // Indigo 500
-  '#EC4899', // Pink 500
-  '#8B5CF6', // Purple 500
-  '#64748B', // Slate 500
+  "#0D9488", // Teal 600
+  "#10B981", // Emerald 500
+  "#06B6D4", // Cyan 500
+  "#F59E0B", // Amber 500
+  "#6366F1", // Indigo 500
+  "#EC4899", // Pink 500
+  "#8B5CF6", // Purple 500
+  "#64748B", // Slate 500
 ];
 
-export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ data }) => {
+export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({
+  data,
+}) => {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-loqme-neutral-400 text-sm">
+      <div className="h-64 flex items-center justify-center text-loqme-neutral-500 text-sm">
         داده‌ای برای دسته‌بندی‌ها ثبت نشده است
       </div>
     );
@@ -36,8 +38,11 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ data }) 
   const circumference = 2 * Math.PI * radius;
 
   // Filter categories with positive percentage or GMV
-  const activeCategories = data.filter((c) => c.percentage > 0 || c.soldBagsCount > 0);
-  const displayCategories = activeCategories.length > 0 ? activeCategories : data;
+  const activeCategories = data.filter(
+    (c) => c.percentage > 0 || c.soldBagsCount > 0,
+  );
+  const displayCategories =
+    activeCategories.length > 0 ? activeCategories : data;
 
   let cumulativeOffset = 0;
   const slices = displayCategories.map((cat, idx) => {
@@ -51,8 +56,16 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ data }) 
   return (
     <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-2">
       {/* SVG Donut */}
-      <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+      <div
+        className="relative flex-shrink-0"
+        style={{ width: size, height: size }}
+      >
+        <svg
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          className="-rotate-90"
+        >
           {/* Base background circle */}
           <circle
             cx={size / 2}
@@ -86,16 +99,18 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ data }) 
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
           {hoveredIdx !== null ? (
             <>
-              <span className="text-xs text-loqme-neutral-400 max-w-[90px] truncate">
+              <span className="text-xs text-loqme-neutral-500 max-w-[90px] truncate">
                 {slices[hoveredIdx]?.categoryNameFa}
               </span>
-              <span className="text-base font-bold text-teal-400">
+              <span className="text-base font-bold text-teal-700">
                 {toPersianDigits(slices[hoveredIdx]?.percentage || 0)}٪
               </span>
             </>
           ) : (
             <>
-              <span className="text-[11px] text-loqme-neutral-400">تنوع عرضه</span>
+              <span className="text-[11px] text-loqme-neutral-500">
+                تنوع عرضه
+              </span>
               <span className="text-base font-bold text-white">
                 {toPersianDigits(displayCategories.length)} دسته
               </span>
@@ -111,8 +126,8 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ data }) 
             key={s.categoryId}
             className={`flex items-center justify-between p-2 rounded-lg transition-colors cursor-pointer text-xs ${
               hoveredIdx === s.idx
-                ? 'bg-loqme-neutral-800 border border-teal-500/30'
-                : 'bg-loqme-neutral-900/40 hover:bg-loqme-neutral-900'
+                ? "bg-loqme-neutral-800 border border-teal-500/30"
+                : "bg-loqme-neutral-900/40 hover:bg-loqme-neutral-900"
             }`}
             onMouseEnter={() => setHoveredIdx(s.idx)}
             onMouseLeave={() => setHoveredIdx(null)}
@@ -122,11 +137,13 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ data }) 
                 className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: s.color }}
               />
-              <span className="text-loqme-neutral-200 font-medium">{s.categoryNameFa}</span>
+              <span className="text-loqme-neutral-200 font-medium">
+                {s.categoryNameFa}
+              </span>
             </div>
-            <div className="flex items-center gap-3 text-loqme-neutral-400">
+            <div className="flex items-center gap-3 text-loqme-neutral-500">
               <span>{toPersianDigits(s.soldBagsCount)} بسته</span>
-              <span className="font-semibold text-teal-400">
+              <span className="font-semibold text-teal-700">
                 {toPersianDigits(s.percentage)}٪
               </span>
             </div>

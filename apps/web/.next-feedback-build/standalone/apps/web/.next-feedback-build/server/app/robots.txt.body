@@ -1,0 +1,13 @@
+User-Agent: *
+Allow: /
+Allow: /explore
+Allow: /listings/
+Allow: /merchants/
+Disallow: /admin/
+Disallow: /merchant/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /orders/
+Disallow: /profile/
+
+Sitemap: https://loqme.shop/sitemap.xml

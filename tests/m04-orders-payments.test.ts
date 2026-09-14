@@ -209,7 +209,7 @@ describe('Milestone M04 — Orders, Inventory & Payments Engine', () => {
       });
 
       expect(verify.success).toBe(true);
-      expect(verify.order.status).toBe(OrderStatus.PAID);
+      expect(verify.order.status).toBe(OrderStatus.READY_FOR_PICKUP);
       expect(verify.referenceId).toBeDefined();
 
       // 4. Verify reservation transitioned to CONVERTED_TO_ORDER

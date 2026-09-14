@@ -1,16 +1,19 @@
-'use client';
+"use client";
+import { ListingCard } from "@/components/discovery/ListingCard";
+import { useFeedback } from "@/components/ui/useFeedback";
+import * as RedesignIcons from "lucide-react";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { ErrorState } from '@/components/ui/ErrorState';
-import { formatToman, toPersianDigits } from '@/lib/utils/persian';
-import { generateLocalBusinessSchema } from '@/lib/seo/structured-data';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { formatToman, toPersianDigits } from "@/lib/utils/persian";
+import { generateLocalBusinessSchema } from "@/lib/seo/structured-data";
 
 interface MerchantDetailData {
   id: string;
@@ -38,9 +41,11 @@ interface MerchantDetailData {
     }>;
   } | null;
   activeListings: Array<{
+    imageUrl?: string | null;
+    safetyVerified: boolean;
     id: string;
     titleFa: string;
-    type: 'SURPRISE_BAG' | 'FLASH_DEAL';
+    type: "SURPRISE_BAG" | "FLASH_DEAL";
     originalPriceToman: number;
     discountedPriceToman: number;
     discountPercent: number;
@@ -52,9 +57,18 @@ interface MerchantDetailData {
   }>;
 }
 
-const DAY_NAMES = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه', 'شنبه'];
+const DAY_NAMES = [
+  "یکشنبه",
+  "دوشنبه",
+  "سه‌شنبه",
+  "چهارشنبه",
+  "پنج‌شنبه",
+  "جمعه",
+  "شنبه",
+];
 
 export default function MerchantProfilePage() {
+  const { showFeedback, feedbackDialog } = useFeedback();
   const params = useParams();
   const router = useRouter();
   const merchantId = params?.id as string;
@@ -80,11 +94,11 @@ export default function MerchantProfilePage() {
           setData(json.data);
           setIsFavorited(json.data.isFavorited);
         } else {
-          setErrorMsg(json.message || 'خطا در دریافت اطلاعات فروشگاه');
+          setErrorMsg(json.message || "خطا در دریافت اطلاعات فروشگاه");
         }
       } catch (err) {
         console.error(err);
-        setErrorMsg('ارتباط با سرور برقرار نشد');
+        setErrorMsg("ارتباط با سرور برقرار نشد");
       } finally {
         setIsLoading(false);
       }
@@ -99,7 +113,7 @@ export default function MerchantProfilePage() {
           setReviews(json.items || []);
         }
       } catch (err) {
-        console.error('Failed to fetch reviews:', err);
+        console.error("Failed to fetch reviews:", err);
       } finally {
         setReviewsLoading(false);
       }
@@ -115,16 +129,18 @@ export default function MerchantProfilePage() {
     setFavoriteLoading(true);
     try {
       const res = await fetch(`/api/merchants/${merchantId}/favorite`, {
-        method: 'POST',
+        method: "POST",
       });
       const json = await res.json();
       if (json.success) {
         setIsFavorited(json.isFavorited);
       } else if (res.status === 401) {
-        alert('برای ثبت فروشگاه در علاقه‌مندی‌ها، لطفاً ابتدا وارد حساب کاربری خود شوید.');
+        showFeedback(
+          "برای ثبت فروشگاه در علاقه‌مندی‌ها، لطفاً ابتدا وارد حساب کاربری خود شوید.",
+        );
       }
     } catch (err) {
-      console.error('Favorite toggle failed:', err);
+      console.error("Favorite toggle failed:", err);
     } finally {
       setFavoriteLoading(false);
     }
@@ -134,7 +150,7 @@ export default function MerchantProfilePage() {
     return (
       <div className="space-y-6 max-w-3xl mx-auto py-4">
         <Skeleton height={20} width={100} />
-        <div className="bg-white rounded-2xl border border-loqme-neutral-200 p-6 space-y-3 shadow-card">
+        <div className="bg-white rounded-lg border border-loqme-neutral-200 p-6 space-y-3 shadow-card">
           <Skeleton height={22} width={160} />
           <Skeleton height={32} width={240} />
           <Skeleton height={18} width={180} />
@@ -148,9 +164,13 @@ export default function MerchantProfilePage() {
       <div className="py-12 max-w-md mx-auto">
         <ErrorState
           title="فروشگاه مورد نظر یافت نشد"
-          message={errorMsg || 'اطلاعات این فروشگاه در دسترس نیست.'}
+          message={errorMsg || "اطلاعات این فروشگاه در دسترس نیست."}
           secondaryAction={
-            <Button variant="primary" size="sm" onClick={() => router.push('/explore')}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => router.push("/explore")}
+            >
               بازگشت به کاوش
             </Button>
           }
@@ -179,8 +199,9 @@ export default function MerchantProfilePage() {
   });
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto pb-16">
+    <div className="store-page space-y-8 max-w-6xl mx-auto pb-16">
       {/* Schema.org LocalBusiness Structured Data for SEO */}
+      {feedbackDialog}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
@@ -197,7 +218,7 @@ export default function MerchantProfilePage() {
       </button>
 
       {/* Store Header Banner */}
-      <Card variant="elevated" className="overflow-hidden p-6">
+      <Card variant="elevated" className="store-overview overflow-hidden p-0">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -206,7 +227,8 @@ export default function MerchantProfilePage() {
               </Badge>
               {data.location?.neighborhoodNameFa && (
                 <Badge variant="neutral" size="sm">
-                  {data.location.cityNameFa} — {data.location.neighborhoodNameFa}
+                  {data.location.cityNameFa} —{" "}
+                  {data.location.neighborhoodNameFa}
                 </Badge>
               )}
             </div>
@@ -217,9 +239,9 @@ export default function MerchantProfilePage() {
 
             <div className="flex items-center gap-3 text-xs text-loqme-neutral-600 pt-1">
               <span className="flex items-center gap-1 font-bold">
-                <span className="text-amber-500">★</span>
+                <span className="text-amber-700">★</span>
                 <span>{toPersianDigits(data.ratingAverage.toFixed(1))}</span>
-                <span className="text-loqme-neutral-400 font-normal">
+                <span className="text-loqme-neutral-500 font-normal">
                   ({toPersianDigits(data.ratingCount)} نظر ثبت‌شده)
                 </span>
               </span>
@@ -227,15 +249,19 @@ export default function MerchantProfilePage() {
 
             {data.location?.addressFa && (
               <p className="text-xs text-loqme-neutral-600 flex items-start gap-1 pt-1">
-                <span>📍</span>
+                <span>
+                  <RedesignIcons.MapPin size={20} aria-hidden="true" />
+                </span>
                 <span>{data.location.addressFa}</span>
               </p>
             )}
 
             {data.location?.phone && (
               <p className="text-xs text-loqme-neutral-500 flex items-center gap-1">
-                <span>📞</span>
-                <span>تلفن تماس: {data.location.phone}</span>
+                <span>
+                  <RedesignIcons.Phone size={20} aria-hidden="true" />
+                </span>
+                <span>تلفن تماس: {toPersianDigits(data.location.phone)}</span>
               </p>
             )}
           </div>
@@ -245,14 +271,19 @@ export default function MerchantProfilePage() {
             type="button"
             onClick={handleToggleFavorite}
             disabled={favoriteLoading}
-            className={`self-start p-3 rounded-2xl border transition-all flex items-center gap-2 text-xs font-bold ${
+            className={`self-start p-3 rounded-lg border transition-all flex items-center gap-2 text-xs font-bold ${
               isFavorited
-                ? 'bg-rose-50 text-rose-600 border-rose-200'
-                : 'bg-loqme-neutral-50 text-loqme-neutral-600 border-loqme-neutral-200 hover:bg-loqme-neutral-100'
+                ? "bg-rose-50 text-rose-600 border-rose-200"
+                : "bg-loqme-neutral-50 text-loqme-neutral-600 border-loqme-neutral-200 hover:bg-loqme-neutral-100"
             }`}
           >
-            <span>{isFavorited ? '❤️' : '🤍'}</span>
-            <span>{isFavorited ? 'در علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}</span>
+            <RedesignIcons.Heart
+              size={18}
+              fill={isFavorited ? "currentColor" : "none"}
+            />
+            <span>
+              {isFavorited ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+            </span>
           </button>
         </div>
       </Card>
@@ -261,7 +292,9 @@ export default function MerchantProfilePage() {
       {data.location?.hours && data.location.hours.length > 0 && (
         <Card variant="outlined" className="p-5 space-y-3 bg-white">
           <div className="flex items-center gap-2 font-bold text-sm text-loqme-neutral-900">
-            <span>⏰</span>
+            <span>
+              <RedesignIcons.Clock3 size={20} aria-hidden="true" />
+            </span>
             <h3>ساعات کاری و بازه تحویل بسته‌های مازاد</h3>
           </div>
 
@@ -269,12 +302,15 @@ export default function MerchantProfilePage() {
             {data.location.hours.map((h) => (
               <div
                 key={h.dayOfWeek}
-                className="flex items-center justify-between p-2 rounded-xl bg-loqme-neutral-50 border border-loqme-neutral-100"
+                className="flex items-center justify-between p-2 rounded-lg bg-loqme-neutral-50 border border-loqme-neutral-100"
               >
-                <span className="font-bold text-loqme-neutral-800">{DAY_NAMES[h.dayOfWeek]}:</span>
+                <span className="font-bold text-loqme-neutral-800">
+                  {DAY_NAMES[h.dayOfWeek]}:
+                </span>
                 {h.isOpen ? (
                   <span className="text-loqme-neutral-600">
-                    {h.storeOpenTime} تا {h.storeCloseTime} (تحویل: {h.defaultPickupStart} تا {h.defaultPickupEnd})
+                    {h.storeOpenTime} تا {h.storeCloseTime} (تحویل:{" "}
+                    {h.defaultPickupStart} تا {h.defaultPickupEnd})
                   </span>
                 ) : (
                   <span className="text-rose-500 font-medium">تعطیل</span>
@@ -302,66 +338,41 @@ export default function MerchantProfilePage() {
         </div>
 
         {data.activeListings.length === 0 ? (
-          <Card variant="outlined" className="p-8 text-center space-y-3 bg-white">
+          <Card
+            variant="outlined"
+            className="p-8 text-center space-y-3 bg-white"
+          >
             <div className="text-3xl">🧺</div>
             <h3 className="font-bold text-sm text-loqme-neutral-800">
               در حال حاضر بسته‌ای برای این فروشگاه موجود نیست
             </h3>
             <p className="text-xs text-loqme-neutral-500 max-w-sm mx-auto leading-relaxed">
-              با افزودن این فروشگاه به علاقه‌مندی‌های خود، به محض ثبت بسته شگفت‌انگیز جدید، مطلع خواهید شد.
+              بسته‌های این فروشگاه را در زمان دیگری بررسی کنید.
             </p>
             <div className="pt-2">
-              <Button size="sm" variant="secondary" onClick={handleToggleFavorite}>
-                {isFavorited ? '❤️ در لیست علاقه‌مندی شماست' : '🤍 افزودن به علاقه‌مندی‌ها'}
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleToggleFavorite}
+              >
+                {isFavorited
+                  ? "❤️ در لیست علاقه‌مندی شماست"
+                  : "🤍 افزودن به علاقه‌مندی‌ها"}
               </Button>
             </div>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="listing-grid">
             {data.activeListings.map((listing) => (
-              <Card key={listing.id} variant="elevated" isInteractive className="p-4 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant={listing.type === 'SURPRISE_BAG' ? 'brand' : 'neutral'} size="sm">
-                      {listing.type === 'SURPRISE_BAG' ? '🎁 سورپرایز' : '⚡ تخفیف'}
-                    </Badge>
-                    <span className="text-xs font-bold text-loqme-primary-700">
-                      تنها {toPersianDigits(listing.remainingQuantity)} عدد
-                    </span>
-                  </div>
-
-                  <h3 className="font-bold text-sm text-loqme-neutral-900 mb-2">
-                    {listing.titleFa}
-                  </h3>
-
-                  <div className="bg-loqme-primary-50 text-loqme-primary-800 text-xs px-2.5 py-1 rounded-lg mb-3 flex items-center justify-between">
-                    <span>⏰ زمان تحویل:</span>
-                    <span className="font-bold">{listing.pickupWindowFa}</span>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-loqme-neutral-100 flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-loqme-neutral-400 line-through">
-                      {formatToman(listing.originalPriceToman)}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-black text-base text-loqme-primary-800">
-                        {formatToman(listing.discountedPriceToman)}
-                      </span>
-                      <Badge variant="brand" size="sm">
-                        {toPersianDigits(listing.discountPercent)}٪
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <Link href={`/listings/${listing.id}`}>
-                    <Button size="sm" variant="primary">
-                      مشاهده
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
+              <ListingCard
+                key={listing.id}
+                listing={{
+                  ...listing,
+                  merchantId: data.id,
+                  storeNameFa: data.businessNameFa,
+                  businessType: data.businessType,
+                }}
+              />
             ))}
           </div>
         )}
@@ -376,12 +387,17 @@ export default function MerchantProfilePage() {
               <span>نظرات و تجربیات خریداران تایید شده</span>
             </h2>
             <p className="text-xs text-loqme-neutral-500 mt-0.5">
-              تنها کاربرانی که بسته را شخصاً تحویل گرفته‌اند مجاز به ثبت نظر هستند
+              تنها کاربرانی که بسته را شخصاً تحویل گرفته‌اند مجاز به ثبت نظر
+              هستند
             </p>
           </div>
-          <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
-            <span className="text-amber-500 text-sm font-bold">★ {toPersianDigits(data.ratingAverage.toFixed(1))}</span>
-            <span className="text-[11px] text-amber-800">({toPersianDigits(data.ratingCount)} نظر)</span>
+          <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-lg">
+            <span className="text-amber-700 text-sm font-bold">
+              ★ {toPersianDigits(data.ratingAverage.toFixed(1))}
+            </span>
+            <span className="text-[11px] text-amber-800">
+              ({toPersianDigits(data.ratingCount)} نظر)
+            </span>
           </div>
         </div>
 
@@ -391,13 +407,17 @@ export default function MerchantProfilePage() {
             <Skeleton height={90} width="100%" />
           </div>
         ) : reviews.length === 0 ? (
-          <Card variant="outlined" className="p-6 text-center space-y-2 bg-white">
+          <Card
+            variant="outlined"
+            className="p-6 text-center space-y-2 bg-white"
+          >
             <div className="text-2xl">💬</div>
             <h3 className="font-bold text-xs text-loqme-neutral-800">
               هنوز نظری برای این فروشگاه ثبت نشده است
             </h3>
             <p className="text-[11px] text-loqme-neutral-500 max-w-sm mx-auto">
-              پس از خرید و تحویل حضوری بسته، نظر شما با نشان «خریدار تایید شده» در این بخش نمایش داده خواهد شد.
+              پس از خرید و تحویل حضوری بسته، نظر شما با نشان «خریدار تایید شده»
+              در این بخش نمایش داده خواهد شد.
             </p>
           </Card>
         ) : (
@@ -407,15 +427,21 @@ export default function MerchantProfilePage() {
                 rev.customer?.fullName ||
                 (rev.customer?.user?.mobile
                   ? `خریدار ${rev.customer.user.mobile.slice(0, 4)}***${rev.customer.user.mobile.slice(-3)}`
-                  : 'خریدار لقمه');
+                  : "خریدار لقمه");
               const itemTitle = rev.order?.items?.[0]?.listing?.titleFa;
 
               return (
-                <Card key={rev.id} variant="elevated" className="p-4 space-y-3 bg-white">
+                <Card
+                  key={rev.id}
+                  variant="elevated"
+                  className="p-4 space-y-3 bg-white"
+                >
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-loqme-neutral-900">{customerName}</span>
+                        <span className="font-bold text-xs text-loqme-neutral-900">
+                          {customerName}
+                        </span>
                         <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
                           <span>✓</span>
                           <span>خریدار تایید شده</span>
@@ -428,9 +454,19 @@ export default function MerchantProfilePage() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1 direction-ltr text-amber-400 text-sm" dir="ltr">
+                    <div
+                      className="flex items-center gap-1 direction-ltr text-amber-400 text-sm"
+                      dir="ltr"
+                    >
                       {[1, 2, 3, 4, 5].map((s) => (
-                        <span key={s} className={s <= rev.overallRating ? 'text-amber-400' : 'text-gray-200'}>
+                        <span
+                          key={s}
+                          className={
+                            s <= rev.overallRating
+                              ? "text-amber-400"
+                              : "text-gray-200"
+                          }
+                        >
                           ★
                         </span>
                       ))}
@@ -438,17 +474,19 @@ export default function MerchantProfilePage() {
                   </div>
 
                   {rev.commentFa && (
-                    <p className="text-xs text-loqme-neutral-700 leading-relaxed bg-gray-50/50 p-2.5 rounded-xl border border-gray-100">
+                    <p className="text-xs text-loqme-neutral-700 leading-relaxed bg-gray-50/50 p-2.5 rounded-lg border border-gray-100">
                       {rev.commentFa}
                     </p>
                   )}
 
                   {/* Merchant official reply */}
                   {rev.merchantReplyFa && (
-                    <div className="p-3 bg-teal-50/70 border border-teal-100 rounded-xl space-y-1 mr-4 border-r-2 border-r-teal-600">
+                    <div className="p-3 bg-teal-50/70 border border-teal-100 rounded-lg space-y-1 mr-4 border-r-2 border-r-teal-600">
                       <div className="flex items-center justify-between text-[11px] font-bold text-teal-900">
                         <span>پاسخ فروشگاه {data.businessNameFa}:</span>
-                        <span className="text-teal-600 font-normal">رسمی ✓</span>
+                        <span className="text-teal-600 font-normal">
+                          رسمی ✓
+                        </span>
                       </div>
                       <p className="text-xs text-teal-800 leading-relaxed">
                         {rev.merchantReplyFa}

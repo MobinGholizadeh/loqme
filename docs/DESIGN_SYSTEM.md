@@ -1,5 +1,13 @@
 # Design System & Token Architecture — Loqme (لقمه)
 
+## CP-10.8 Stitch Web Adaptation
+
+The current web redesign is documented in `STITCH_REDESIGN.md`. `TOKENS.colors.neutral[25]` is white, primary actions retain the existing Loqme `primary[600]` teal, and charcoal text uses `neutral[900]`. All primitives are exported as `--loqme-{family}-{shade}` variables from the platform-neutral package and applied at the root; semantic CSS aliases and Tailwind consume them. No browser APIs are introduced into shared packages.
+
+Repeated inventory items use 8px corners; page sections are unframed, and operational tables scroll within their own containers on narrow viewports. Native dialogs contain focus, support Escape and restore focus on close. Customer mobile tabs and fixed purchase controls each reserve content clearance. Respect reduced motion, including Leaflet recentering. Letter spacing is zero throughout.
+
+Never substitute reference businesses, impact claims or fixture photos for live data. `ListingImage` uses same-origin images or the explicitly configured HTTPS `NEXT_PUBLIC_INVENTORY_IMAGE_ORIGIN`; missing or disallowed images show a placeholder. Profile metrics and receipt status come from existing endpoints. Stitch's unsupported social sign-in, referrals and badges are omitted. Standalone web image optimization requires the declared `sharp` runtime dependency. Map tile failures retain a usable store list and explicit feedback on all viewports.
+
 > **AUTHORITATIVE DESIGN PRINCIPLE**:  
 > Loqme's visual identity is anchored in **White + Deep Teal / Dark Turquoise (سبز کله‌غازی)**.  
 > Pure white is the dominant visual canvas (70–85%), Deep Teal (`#0F766E`) is the primary action/accent color, and Dark Charcoal slate (`#0F172A`) governs typography.  

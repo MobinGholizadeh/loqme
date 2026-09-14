@@ -148,6 +148,12 @@
 
 ## 3. Future Native Mobile Roadmap (Planning Placeholders)
 
+### Post-M11 Web Checkpoint: CP-10.8 Stitch Redesign
+
+Follow-up CP-10.9 (authorized 2026-09-14, in progress): role-aware portals, publishing/category corrections, gallery and illustrative listing images, and all-region discovery with region labels. See M10 checkpoints for scope and validation status.
+
+Approved 2026-09-13. `codex/stitch-ui-redesign` adapts the 16 screens in Stitch project `4335349565403348576` across existing customer, merchant and admin workflows. Discovery-first homepage, shared tokens and controls, responsive layouts, URL-persisted discovery and consistent secondary states are implemented. Backend authority and existing integrations are preserved. No new migrations, deployment, merge or native-mobile scope; two previously pending migrations were applied locally with explicit user approval. Validation: 160 integration/unit tests, responsive browser coverage, clean lint/typechecks and production build. Evidence and release acceptance limits: `docs/STITCH_REDESIGN.md`.
+
 > [!NOTE]
 > The future Loqme mobile application will be built as a native client (`apps/mobile`) using **React Native / Expo (TypeScript)**.
 > It will consume shared contracts (`@loqme/types`, `@loqme/validation`, `@loqme/design-tokens`, `@loqme/api`) without duplicating authoritative business rules.

@@ -31,9 +31,9 @@ export function canAccessPath(role: UserRole | null | undefined, path: string): 
   }
 
   // If path is merchant portal
-  if (path.startsWith('/merchant')) {
+  if (path === '/merchant' || path.startsWith('/merchant/')) {
     if (!role) return false;
-    return role === 'MERCHANT_STAFF' || role === 'MERCHANT_OWNER' || role === 'ADMIN';
+    return role === 'MERCHANT_STAFF' || role === 'MERCHANT_OWNER';
   }
 
   // If path is admin console
@@ -348,6 +348,9 @@ export interface MarketplaceFilterParams {
 }
 
 export interface ListingSummaryDto {
+  cityNameFa?: string;
+  neighborhoodNameFa?: string;
+  imageUrl?: string | null;
   id: string;
   merchantId: string;
   storeNameFa: string;

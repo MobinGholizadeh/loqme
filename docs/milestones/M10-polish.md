@@ -117,6 +117,10 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
+- [ ] **CP-10.9 — Merchant feedback fixes (2026-09-14)**: User-authorized role-aware navigation and portal boundaries, canonical food categories/temperature validation, merchant gallery or illustrative catalog image selection, and all-region discovery with location labels. No impersonation, purchase-role policy change, migrations, deployment or merge. Validation pending.
+
+- [x] **CP-10.8 — Stitch Web Redesign (2026-09-13)**: Implemented on `codex/stitch-ui-redesign`: 16-reference adaptation across existing customer/merchant/admin workflows, discovery-first homepage, shared tokens, responsive layouts, native dialogs and truthful account/receipt states. 160/160 Vitest tests pass on isolated PostgreSQL; web/shared typechecks, lint and production build pass. Browser, screenshot and Lighthouse evidence plus device/provider acceptance limits are in `docs/STITCH_REDESIGN.md`. No merge or deployment; historical production sign-off is not a new release approval.
+
 - [x] **CP-10.1**: Configure PWA manifest, service worker, offline fallback, and install prompt.
 - [x] **CP-10.2**: Implement dynamic SEO metadata, Open Graph tags, and Persian sitemap (`/sitemap.xml`).
 - [x] **CP-10.3**: Implement JSON-LD Structured Data (`LocalBusiness`, `Product`, `Offer`).

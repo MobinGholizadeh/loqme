@@ -1,22 +1,28 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { DailyAnalyticsTrendPointDto } from '@loqme/types';
-import { toPersianDigits, formatToman } from '@loqme/validation';
+import React, { useState } from "react";
+import { DailyAnalyticsTrendPointDto } from "@loqme/types";
+import { toPersianDigits, formatToman } from "@loqme/validation";
 
 interface TrendChartProps {
   data: DailyAnalyticsTrendPointDto[];
   height?: number;
 }
 
-export const TrendChart: React.FC<TrendChartProps> = ({ data, height = 260 }) => {
-  const [hoveredPoint, setHoveredPoint] = useState<DailyAnalyticsTrendPointDto | null>(null);
-  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+export const TrendChart: React.FC<TrendChartProps> = ({
+  data,
+  height = 260,
+}) => {
+  const [hoveredPoint, setHoveredPoint] =
+    useState<DailyAnalyticsTrendPointDto | null>(null);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(
+    null,
+  );
 
   if (!data || data.length === 0) {
     return (
       <div
-        className="w-full flex items-center justify-center bg-loqme-neutral-900/50 rounded-xl border border-loqme-neutral-800 text-loqme-neutral-400 text-sm"
+        className="w-full flex items-center justify-center bg-loqme-neutral-900/50 rounded-lg border border-loqme-neutral-800 text-loqme-neutral-500 text-sm"
         style={{ height }}
       >
         داده‌ای برای ترسیم نمودار در این بازه زمانی یافت نشد
@@ -51,7 +57,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, height = 260 }) =>
       ? `M ${points[0].x - 20},${points[0].y} L ${points[0].x + 20},${points[0].y}`
       : points.reduce((acc, pt, idx) => {
           return idx === 0 ? `M ${pt.x},${pt.y}` : `${acc} L ${pt.x},${pt.y}`;
-        }, '');
+        }, "");
 
   // SVG Area path (closing to bottom)
   const firstPt = points[0];
@@ -139,7 +145,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, height = 260 }) =>
             <circle
               cx={pt.x}
               cy={pt.y}
-              r={hoveredPoint?.dateIso === pt.dateIso ? '6' : '4'}
+              r={hoveredPoint?.dateIso === pt.dateIso ? "6" : "4"}
               fill="#0F172A"
               stroke="#2DD4BF"
               strokeWidth="2.5"
@@ -163,7 +169,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, height = 260 }) =>
               textAnchor="middle"
               className="font-vazirmatn"
             >
-              {pt.dateFa.split('/').slice(1).join('/')}
+              {pt.dateFa.split("/").slice(1).join("/")}
             </text>
           );
         })}
@@ -172,31 +178,31 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, height = 260 }) =>
       {/* Floating Hover Tooltip */}
       {hoveredPoint && mousePos && (
         <div
-          className="absolute z-20 pointer-events-none bg-loqme-neutral-950/95 border border-teal-500/40 backdrop-blur-md rounded-xl p-3 shadow-2xl text-right text-xs"
+          className="absolute z-20 pointer-events-none bg-loqme-neutral-950/95 border border-teal-500/40 backdrop-blur-md rounded-lg p-3 shadow-2xl text-right text-xs"
           style={{
             left: `${(mousePos.x / width) * 100}%`,
             top: `${Math.max(10, mousePos.y - 80)}px`,
-            transform: 'translateX(-50%)',
-            minWidth: '150px',
+            transform: "translateX(-50%)",
+            minWidth: "150px",
           }}
         >
-          <div className="font-semibold text-teal-400 border-b border-loqme-neutral-800 pb-1 mb-1.5 flex justify-between items-center">
+          <div className="font-semibold text-teal-700 border-b border-loqme-neutral-800 pb-1 mb-1.5 flex justify-between items-center">
             <span>{hoveredPoint.dateFa}</span>
-            <span className="text-[10px] text-loqme-neutral-400">تاریخ</span>
+            <span className="text-[10px] text-loqme-neutral-500">تاریخ</span>
           </div>
           <div className="flex justify-between items-center text-white mb-1">
             <span className="font-bold text-sm text-emerald-400">
               {formatToman(hoveredPoint.gmvToman)} تومان
             </span>
-            <span className="text-loqme-neutral-400">حجم فروش:</span>
+            <span className="text-loqme-neutral-500">حجم فروش:</span>
           </div>
           <div className="flex justify-between items-center text-loqme-neutral-300">
             <span>{toPersianDigits(hoveredPoint.ordersCount)} سفارش</span>
-            <span className="text-loqme-neutral-400">تعداد:</span>
+            <span className="text-loqme-neutral-500">تعداد:</span>
           </div>
           <div className="flex justify-between items-center text-loqme-neutral-300">
             <span>{toPersianDigits(hoveredPoint.soldBags)} بسته</span>
-            <span className="text-loqme-neutral-400">بسته‌ها:</span>
+            <span className="text-loqme-neutral-500">بسته‌ها:</span>
           </div>
         </div>
       )}

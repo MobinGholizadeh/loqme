@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
-import { toPersianDigits, formatToman } from '@/lib/utils/persian';
+import React, { useState } from "react";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { toPersianDigits, formatToman } from "@/lib/utils/persian";
 
 export interface FilterState {
   radiusMeters: number;
@@ -21,28 +21,28 @@ interface FilterModalProps {
 }
 
 const RADIUS_OPTIONS = [
-  { label: '۵۰۰ متر', value: 500 },
-  { label: '۱ کیلومتر', value: 1000 },
-  { label: '۳ کیلومتر', value: 3000 },
-  { label: '۵ کیلومتر', value: 5000 },
-  { label: '۱۰ کیلومتر', value: 10000 },
-  { label: '۲۵ کیلومتر', value: 25000 },
+  { label: "۵۰۰ متر", value: 500 },
+  { label: "۱ کیلومتر", value: 1000 },
+  { label: "۳ کیلومتر", value: 3000 },
+  { label: "۵ کیلومتر", value: 5000 },
+  { label: "۱۰ کیلومتر", value: 10000 },
+  { label: "۲۵ کیلومتر", value: 25000 },
 ];
 
 const BUSINESS_TYPES = [
-  { label: 'همه کسب‌وکارها', value: '' },
-  { label: 'نانوایی و شیرینی', value: 'BAKERY' },
-  { label: 'کافه و نوشیدنی', value: 'CAFE' },
-  { label: 'رستوران و کترینگ', value: 'RESTAURANT' },
-  { label: 'سوپرمارکت و میوه', value: 'SUPERMARKET' },
-  { label: 'قنادی و دسر', value: 'CONFECTIONERY' },
+  { label: "همه کسب‌وکارها", value: "" },
+  { label: "نانوایی و شیرینی", value: "BAKERY" },
+  { label: "کافه و نوشیدنی", value: "CAFE" },
+  { label: "رستوران و کترینگ", value: "RESTAURANT" },
+  { label: "سوپرمارکت و میوه", value: "SUPERMARKET" },
+  { label: "قنادی و دسر", value: "CONFECTIONERY" },
 ];
 
 const DIETARY_OPTIONS = [
-  { label: 'گیاه‌خواری (Vegetarian)', value: 'گیاه‌خواری' },
-  { label: 'وگان (Vegan)', value: 'وگان' },
-  { label: 'بدون گلوتن (Gluten-Free)', value: 'بدون گلوتن' },
-  { label: 'کم‌شکر یا رژیمی', value: 'کم‌شکر' },
+  { label: "گیاه‌خواری (Vegetarian)", value: "گیاه‌خواری" },
+  { label: "وگان (Vegan)", value: "وگان" },
+  { label: "بدون گلوتن (Gluten-Free)", value: "بدون گلوتن" },
+  { label: "کم‌شکر یا رژیمی", value: "کم‌شکر" },
 ];
 
 export function FilterModal({
@@ -129,10 +129,10 @@ export function FilterModal({
                   key={opt.value}
                   type="button"
                   onClick={() => handleRadiusChange(opt.value)}
-                  className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
+                  className={`py-2 px-3 rounded-lg border text-xs font-semibold transition-all ${
                     active
-                      ? 'bg-loqme-primary-600 text-white border-loqme-primary-600 shadow-sm'
-                      : 'bg-white text-loqme-neutral-700 border-loqme-neutral-200 hover:bg-loqme-neutral-50'
+                      ? "bg-loqme-primary-600 text-white border-loqme-primary-600 shadow-sm"
+                      : "bg-white text-loqme-neutral-700 border-loqme-neutral-200 hover:bg-loqme-neutral-50"
                   }`}
                 >
                   {opt.label}
@@ -149,7 +149,7 @@ export function FilterModal({
           </label>
           <div className="flex flex-wrap gap-2">
             {BUSINESS_TYPES.map((bt) => {
-              const active = (localFilters.businessType || '') === bt.value;
+              const active = (localFilters.businessType || "") === bt.value;
               return (
                 <button
                   key={bt.value}
@@ -157,8 +157,8 @@ export function FilterModal({
                   onClick={() => handleBusinessTypeChange(bt.value)}
                   className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
                     active
-                      ? 'bg-loqme-primary-700 text-white border-loqme-primary-700'
-                      : 'bg-white text-loqme-neutral-600 border-loqme-neutral-200 hover:bg-loqme-neutral-50'
+                      ? "bg-loqme-primary-700 text-white border-loqme-primary-700"
+                      : "bg-white text-loqme-neutral-600 border-loqme-neutral-200 hover:bg-loqme-neutral-50"
                   }`}
                 >
                   {bt.label}
@@ -179,7 +179,7 @@ export function FilterModal({
               return (
                 <label
                   key={diet.value}
-                  className="flex items-center gap-2.5 cursor-pointer select-none p-2 rounded-xl hover:bg-loqme-neutral-50 transition-colors"
+                  className="flex items-center gap-2.5 cursor-pointer select-none p-2 rounded-lg hover:bg-loqme-neutral-50 transition-colors"
                 >
                   <input
                     type="checkbox"
@@ -187,7 +187,9 @@ export function FilterModal({
                     onChange={() => handleDietaryToggle(diet.value)}
                     className="w-4 h-4 rounded border-loqme-neutral-300 text-loqme-primary-600 focus:ring-loqme-primary-500"
                   />
-                  <span className="text-xs text-loqme-neutral-800">{diet.label}</span>
+                  <span className="text-xs text-loqme-neutral-800">
+                    {diet.label}
+                  </span>
                 </label>
               );
             })}

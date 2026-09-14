@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { listingImageStorage } from './image-storage';
 import {
   ListingType,
   ListingStatus,
@@ -94,6 +95,7 @@ export class ListingService {
    */
   async createListing(input: CreateListingInput) {
     const validated = CreateListingSchema.parse(input);
+    await listingImageStorage.authorize(validated.merchantId, validated.imageUrl);
 
     const pickupStartDate = new Date(validated.pickupStart);
     const pickupEndDate = new Date(validated.pickupEnd);
@@ -103,6 +105,7 @@ export class ListingService {
       const listing = await tx.listing.create({
         data: {
           merchantId: validated.merchantId,
+          images: validated.imageUrl ? { create: { imageUrl: validated.imageUrl, isPrimary: true } } : undefined,
           merchantLocationId: validated.merchantLocationId,
           categoryId: validated.categoryId,
           type: validated.type as ListingType,
@@ -356,4 +359,3 @@ export class ListingService {
 }
 
 export const listingService = new ListingService();
-

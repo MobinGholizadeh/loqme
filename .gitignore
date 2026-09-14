@@ -9,6 +9,11 @@ node_modules/
 
 # Next.js Build Output & Caches
 .next/
+.next-stitch/
+.next-redesign-build/
+test-results/
+playwright-report/
+.artifacts/
 out/
 build/
 dist/
@@ -44,3 +49,4 @@ Thumbs.db
 loqme_pgdata/
 *.sqlite
 *.sqlite-journal
+.data/

@@ -1,67 +1,70 @@
-import type { Metadata, Viewport } from 'next';
-import { Vazirmatn } from 'next/font/google';
-import './globals.css';
-import { PwaInstallPrompt } from '@/components/pwa/PwaInstallPrompt';
+import type { Metadata, Viewport } from "next";
+import { generateCssVariables } from "@loqme/design-tokens";
+import { Vazirmatn } from "next/font/google";
+import "./globals.css";
+import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
 
 const vazirmatn = Vazirmatn({
-  subsets: ['arabic', 'latin'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
-  display: 'swap',
-  variable: '--font-vazirmatn',
+  subsets: ["arabic", "latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+  variable: "--font-vazirmatn",
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://loqme.shop'),
+  metadataBase: new URL("https://loqme.shop"),
   title: {
-    default: 'لقمه | کشف هوشمند و نجات مازاد روزانه خوراکی‌ها',
-    template: '%s | لقمه',
+    default: "لقمه | کشف خوراکی‌های تازه محله",
+    template: "%s | لقمه",
   },
   description:
-    'سامانه لقمه (Loqme) — بازارچه محلی کشف و خرید بسته‌های شگفت‌انگیز و مازاد تازه نانوایی‌ها، قنادی‌ها و رستوران‌ها با ۵۰٪ تا ۷۰٪ تخفیف و تضمین سلامت در سراسر کشور.',
-  manifest: '/manifest.webmanifest',
+    "لقمه (Loqme)، بازارچه محلی بسته‌های تازه نانوایی‌ها، کافه‌ها و فروشگاه‌های ارومیه. پیشنهادهای نزدیک را با قیمت و زمان دریافت مشخص کشف و رزرو کنید.",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: '/logo.png', type: 'image/png' },
-      { url: '/favicon.ico' },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.png", type: "image/png", sizes: "512x512" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
   openGraph: {
-    type: 'website',
-    locale: 'fa_IR',
-    url: 'https://loqme.shop',
-    siteName: 'لقمه | Loqme',
-    title: 'لقمه | عرضه هوشمند مازاد تازه خوراکی‌ها با تخفیف شگفت‌انگیز',
+    type: "website",
+    locale: "fa_IR",
+    url: "https://loqme.shop",
+    siteName: "لقمه | Loqme",
+    title: "لقمه | کشف خوراکی‌های تازه محله",
     description:
-      'کشف بسته‌های تازه روزانه نانوایی‌ها، کافه‌ها و رستوران‌ها با تخفیف ۵۰٪ تا ۷۰٪ و ضمانت بهداشت و سلامت.',
+      "بسته‌های تازه فروشگاه‌های ارومیه را با قیمت کمتر و زمان دریافت حضوری مشخص کشف کنید.",
     images: [
       {
-        url: '/logo.png',
+        url: "/logo.png",
         width: 512,
         height: 512,
-        alt: 'نشان تجاری پلتفرم لقمه',
+        alt: "نشان تجاری پلتفرم لقمه",
       },
     ],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'لقمه | عرضه هوشمند مازاد خوراکی‌ها',
-    description: 'کشف بسته‌های شگفت‌انگیز خوراکی تازه با تخفیف‌های استثنایی و حفظ محیط زیست.',
-    images: ['/logo.png'],
+    card: "summary_large_image",
+    title: "لقمه | عرضه هوشمند مازاد خوراکی‌ها",
+    description:
+      "کشف و رزرو بسته‌های تازه فروشگاه‌های محله، با قیمت کمتر و دریافت حضوری در ارومیه.",
+    images: ["/logo.png"],
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
-    title: 'لقمه',
+    statusBarStyle: "default",
+    title: "لقمه",
   },
 };
 
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: '#135E66',
+  themeColor: "#135E66",
 };
 
 export default function RootLayout({
@@ -70,8 +73,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fa-IR" dir="rtl" className={vazirmatn.variable}>
-      <body className="font-sans antialiased bg-[#FAF7F5] text-stone-900 min-h-screen selection:bg-teal-100 selection:text-[#135E66]">
+    <html
+      lang="fa-IR"
+      dir="rtl"
+      className={vazirmatn.variable}
+      style={generateCssVariables() as React.CSSProperties}
+    >
+      <body className="font-sans antialiased min-h-screen">
         {children}
         <PwaInstallPrompt />
       </body>

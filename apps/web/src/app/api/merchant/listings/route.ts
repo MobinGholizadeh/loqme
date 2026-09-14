@@ -5,6 +5,7 @@ import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 import { FastCreateListingSchema } from '@loqme/validation';
 import { prisma } from '@/lib/prisma';
 import { ListingType } from '@prisma/client';
+import { ZodError } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
@@ -124,14 +125,8 @@ export async function POST(request: NextRequest) {
       if (cat) categoryId = cat.id;
     }
 
-    if (!categoryId) {
-      const defaultCategory = await prisma.category.findFirst({
-        orderBy: { nameFa: 'asc' },
-      });
-      if (!defaultCategory) {
-        throw new Error('دسته‌بندی فعالی در سامانه یافت نشد');
-      }
-      categoryId = defaultCategory.id;
+    if (!categoryId || !(await prisma.category.findUnique({ where: { id: categoryId } }))) {
+      throw new Error('دسته‌بندی انتخاب‌شده یافت نشد؛ یک دسته‌بندی معتبر انتخاب کنید');
     }
 
     // 2. Resolve pickup times
@@ -165,6 +160,7 @@ export async function POST(request: NextRequest) {
     const primaryLocation = merchant.locations[0];
 
     const newListing = await listingService.createListing({
+      imageUrl: validated.imageUrl,
       merchantId: merchant.id,
       merchantLocationId: primaryLocation?.id,
       categoryId,
@@ -179,8 +175,8 @@ export async function POST(request: NextRequest) {
       pickupEnd: endDate,
       allergens: validated.allergens,
       dietaryTags: validated.dietaryTags,
-      storageInstructionsFa: validated.storageInstructionsFa || 'در جای خشک و خنک نگهداری شود',
-      temperatureRequirement: (validated.temperatureRequirement as any) || 'ROOM_TEMP',
+      storageInstructionsFa: validated.storageInstructionsFa,
+      temperatureRequirement: validated.temperatureRequirement,
     });
 
     return NextResponse.json({
@@ -197,6 +193,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Error in POST /api/merchant/listings:', error);
+    if (error instanceof ZodError) {
+      return NextResponse.json({ success: false, message: 'اطلاعات بسته معتبر نیست؛ عنوان، قیمت، زمان تحویل و شرایط نگهداری را بررسی کنید', errors: error.flatten() }, { status: 400 });
+    }
     const status = error.message?.includes('عدم دسترسی') ? 403 : 400;
     return NextResponse.json(
       { success: false, message: error.message || 'خطا در ثبت و انتشار بسته' },
