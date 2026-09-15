@@ -118,6 +118,9 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
           radiusMeters: String(radius),
           limit: "40",
         });
+        if (neighborhood?.slug && neighborhood.slug !== "all") {
+          nearbyParams.set("neighborhoodSlug", neighborhood.slug);
+        }
         if (category !== "all") nearbyParams.set("categorySlug", category);
         if (maxPrice) nearbyParams.set("maxPriceToman", String(maxPrice));
         if (query) nearbyParams.set("q", query);
@@ -170,10 +173,15 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
     () =>
       listings.filter(
         (item) =>
+          (!neighborhood ||
+            neighborhood.slug === "all" ||
+            item.neighborhoodSlug === neighborhood.slug ||
+            item.neighborhoodNameFa === neighborhood.nameFa) &&
           (category === "all" || item.categorySlug === category) &&
+          (!business || item.businessType === business) &&
           (!maxPrice || item.discountedPriceToman <= maxPrice),
       ),
-    [listings, category, maxPrice],
+    [listings, neighborhood, category, business, maxPrice],
   );
   const pins = useMemo(() => {
     const stores = new Map<string, StoreMapPin>();

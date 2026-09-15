@@ -36,8 +36,8 @@ export const PwaInstallPrompt: React.FC = () => {
       return;
     }
 
-    // 3. Check if previously dismissed in this session
-    const isDismissed = sessionStorage.getItem("loqme_pwa_dismissed");
+    // 3. Check if previously dismissed
+    const isDismissed = localStorage.getItem("loqme_pwa_dismissed");
     if (isDismissed) {
       return;
     }
@@ -56,7 +56,9 @@ export const PwaInstallPrompt: React.FC = () => {
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowPrompt(true);
+      if (localStorage.getItem("loqme_pwa_dismissed") !== "true") {
+        setShowPrompt(true);
+      }
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
@@ -80,6 +82,7 @@ export const PwaInstallPrompt: React.FC = () => {
     const choiceResult = await deferredPrompt.userChoice;
     if (choiceResult.outcome === "accepted") {
       setShowPrompt(false);
+      localStorage.setItem("loqme_pwa_dismissed", "true");
     }
     setDeferredPrompt(null);
   };
@@ -87,7 +90,7 @@ export const PwaInstallPrompt: React.FC = () => {
   const handleDismiss = () => {
     setShowPrompt(false);
     setShowIosGuide(false);
-    sessionStorage.setItem("loqme_pwa_dismissed", "true");
+    localStorage.setItem("loqme_pwa_dismissed", "true");
   };
 
   if (/^\/(checkout|listings|orders|merchant|admin|login)(\/|$)/.test(pathname))

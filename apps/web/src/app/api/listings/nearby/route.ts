@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
       q,
       categorySlug,
       maxPriceToman,
+      neighborhoodSlug,
     } = validated.data;
 
     // 1. Find nearby merchant locations using PostGIS
@@ -80,6 +81,9 @@ export async function GET(request: NextRequest) {
         merchant: { verificationStatus: "APPROVED", businessType },
         categoryId: categoryId || undefined,
         category: categorySlug ? { slug: categorySlug } : undefined,
+        location: neighborhoodSlug
+          ? { neighborhood: { slug: neighborhoodSlug } }
+          : undefined,
         discountedPriceToman: maxPriceToman
           ? { lte: BigInt(Math.floor(maxPriceToman)) }
           : undefined,
@@ -171,6 +175,7 @@ export async function GET(request: NextRequest) {
           id: listing.id,
           cityNameFa: location?.city.nameFa,
           neighborhoodNameFa: location?.neighborhood?.nameFa,
+          neighborhoodSlug: location?.neighborhood?.slug,
           imageUrl: listing.images[0]?.imageUrl || null,
           merchantId: listing.merchantId,
           storeNameFa: listing.merchant.businessNameFa,

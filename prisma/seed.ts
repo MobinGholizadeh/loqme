@@ -483,6 +483,7 @@ async function main() {
     const start = new Date(baseDate);
     start.setHours(startHour, startMin, 0, 0);
     const end = new Date(baseDate);
+    end.setDate(end.getDate() + 30);
     end.setHours(endHour, endMin, 0, 0);
     return { start, end };
   };
@@ -624,38 +625,74 @@ async function main() {
       storage: 'حتماً در یخچال نگهداری شود',
     },
 
-    // --- 10-11: رستوران سنتی دیاکو ارومیه (استادان) ---
+    // --- 10-13: رستوران سنتی و کترینگ دیاکو ارومیه (استادان) ---
     {
       merchantKey: 'diako_urmia',
       categoryKey: 'restaurant',
       type: ListingType.SURPRISE_BAG,
-      title: 'بسته شگفت‌انگیز غذای اصیل آذربایجان و برنج زعفرانی',
-      desc: 'غذای اضافه باکیفیت و دست‌نخورده مطبخ دیاکو شامل چلو جوجه یا کوبیده با برنج محلی ایرانی.',
-      origPrice: 310000,
-      discPrice: 135000,
-      qty: 4,
+      title: 'بسته شگفت‌انگیز چلوکباب کوبیده زعفرانی و جوجه مخصوص',
+      desc: 'شامل دو سیخ کباب کوبیده سنتی گوسفندی و یک سیخ جوجه‌کباب زعفرانی همراه با دیس چلو کره ایرانی، گوجه کبابی تازه و مخلفات اصیل مطبخ دیاکو.',
+      origPrice: 360000,
+      discPrice: 155000,
+      qty: 6,
       date: today,
-      window: makeWindow(today, 21, 0, 22, 30),
-      allergens: [],
+      window: makeWindow(today, 19, 0, 22, 30),
+      imageUrl: '/images/listings/chelo-kabab.jpg',
+      allergens: ['DAIRY'],
       dietary: ['HALAL'],
       temp: TemperatureRequirement.ROOM_TEMP,
-      storage: 'گرم کردن کامل قبل از میل کردن',
+      storage: 'نگهداری در یخچال و گرم کردن کامل قبل از مصرف',
     },
     {
       merchantKey: 'diako_urmia',
       categoryKey: 'restaurant',
       type: ListingType.FLASH_DEAL,
-      title: 'پیش‌غذا و کوفته سنتی آذربایجان با مخلفات',
-      desc: 'کوفته معروف ارومیه/تبریز همراه با دلمه برگ مو تازه و ماست موسیر سنتی.',
-      origPrice: 220000,
-      discPrice: 99000,
+      title: 'خوراک زرشک‌پلو با ران مرغ مجلسی و ته‌دیگ زعفرانی',
+      desc: 'خوراک مرغ زعفرانی با سس غلیظ و پلو طارم ایرانی همراه با زرشک اعلا، خلال پسته و ته‌دیگ طلایی ترد پخت ظهر رستوران دیاکو.',
+      origPrice: 290000,
+      discPrice: 128000,
       qty: 5,
-      date: tomorrow,
-      window: makeWindow(tomorrow, 20, 0, 22, 0),
-      allergens: ['EGGS'],
+      date: today,
+      window: makeWindow(today, 18, 30, 21, 30),
+      imageUrl: '/images/listings/zereshk-polo.jpg',
+      allergens: ['NUTS'],
       dietary: ['HALAL'],
       temp: TemperatureRequirement.ROOM_TEMP,
-      storage: 'نگهداری در یخچال',
+      storage: 'نگهداری در یخچال و گرم کردن کامل قبل از مصرف',
+    },
+    {
+      merchantKey: 'diako_urmia',
+      categoryKey: 'restaurant',
+      type: ListingType.SURPRISE_BAG,
+      title: 'بسته شگفت‌انگیز خورش قورمه‌سبزی جاافتاده با پلو زعفرانی',
+      desc: 'بسته سورپرایز روز دیاکو شامل یک پرس خورش قورمه‌سبزی جاافتاده با گوشت تازه گوسفندی و لوبیا قرمز همراه با کته زعفرانی معطر و ته‌دیگ ترد.',
+      origPrice: 310000,
+      discPrice: 135000,
+      qty: 4,
+      date: today,
+      window: makeWindow(today, 19, 30, 22, 0),
+      imageUrl: '/images/listings/ghormeh-sabzi.jpg',
+      allergens: [],
+      dietary: ['HALAL'],
+      temp: TemperatureRequirement.ROOM_TEMP,
+      storage: 'گرم کردن کامل تا دمای داغ قبل از سرو',
+    },
+    {
+      merchantKey: 'diako_urmia',
+      categoryKey: 'restaurant',
+      type: ListingType.FLASH_DEAL,
+      title: 'سینی مزه و پیش‌غذای سنتی ارومیه (کشک بادمجان، میرزاقاسمی و بورانی)',
+      desc: 'سینی لذیذ پیش‌غذاهای اصیل شامل کشک بادمجان با پیازداغ و نعناداغ، میرزاقاسمی ذغالی و ماست چکیده محلی همراه با نان بربری داغ.',
+      origPrice: 240000,
+      discPrice: 98000,
+      qty: 8,
+      date: today,
+      window: makeWindow(today, 18, 0, 21, 0),
+      imageUrl: '/images/listings/persian-appetizers.jpg',
+      allergens: ['DAIRY', 'NUTS'],
+      dietary: ['VEGETARIAN', 'HALAL'],
+      temp: TemperatureRequirement.CHILLED,
+      storage: 'در یخچال در ظرف دربسته نگهداری شود',
     },
 
     // --- 12-13: هایپرمارکت پارسیان بهداری ---
@@ -888,6 +925,17 @@ async function main() {
           status: ListingStatus.PUBLISHED,
         },
       });
+      if ((item as any).imageUrl) {
+        await prisma.listingImage.deleteMany({ where: { listingId: existingListing.id } });
+        await prisma.listingImage.create({
+          data: {
+            listingId: existingListing.id,
+            imageUrl: (item as any).imageUrl,
+            displayOrder: 0,
+            isPrimary: true,
+          },
+        });
+      }
     } else {
       await prisma.listing.create({
         data: {
@@ -920,6 +968,17 @@ async function main() {
               temperatureRequirement: item.temp,
             },
           },
+          ...((item as any).imageUrl
+            ? {
+                images: {
+                  create: {
+                    imageUrl: (item as any).imageUrl,
+                    displayOrder: 0,
+                    isPrimary: true,
+                  },
+                },
+              }
+            : {}),
         },
       });
     }

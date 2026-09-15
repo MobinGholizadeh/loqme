@@ -66,7 +66,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-vazirmatn)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['IranYekanDigits', 'var(--font-vazirmatn)', 'Vazirmatn', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       keyframes: {
         fadeSlideIn: {

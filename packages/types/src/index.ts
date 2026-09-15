@@ -362,6 +362,7 @@ export interface MarketplaceFilterParams {
 export interface ListingSummaryDto {
   cityNameFa?: string;
   neighborhoodNameFa?: string;
+  neighborhoodSlug?: string;
   imageUrl?: string | null;
   id: string;
   merchantId: string;

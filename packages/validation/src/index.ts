@@ -232,6 +232,7 @@ export const MarketplaceFilterSchema = z.object({
   radiusKm: z.coerce.number().min(0.1).max(25).optional(),
   cityId: z.string().optional(),
   neighborhoodId: z.string().optional(),
+  neighborhoodSlug: z.string().optional(),
   categoryId: z.string().optional(),
   businessType: z.enum(['BAKERY', 'CAFE', 'RESTAURANT', 'SUPERMARKET', 'DELI', 'PRODUCE']).optional(),
   minDiscountPercent: z.coerce.number().min(0).max(100).optional(),
