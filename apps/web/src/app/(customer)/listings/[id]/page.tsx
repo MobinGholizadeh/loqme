@@ -267,7 +267,7 @@ export default function ListingDetailPage() {
               <Badge variant={isSurpriseBag ? "brand" : "neutral"} size="sm">
                 {isSurpriseBag
                   ? "🎁 بسته شگفت‌انگیز (Surprise Bag)"
-                  : "⚡ تخفیف ویژه (Flash Deal)"}
+                  : "تخفیف ویژه (Flash Deal)"}
               </Badge>
               <Badge variant="success" size="sm">
                 ✓ تضمین سلامت و بهداشت
@@ -346,7 +346,7 @@ export default function ListingDetailPage() {
 
           <div className="text-right sm:text-left">
             <div className="text-xs font-bold text-loqme-primary-700 bg-white px-3 py-1.5 rounded-lg border border-loqme-primary-200 shadow-xs inline-block">
-              💰 سود شما: {formatToman(data.savingsToman)}
+              سود شما: {formatToman(data.savingsToman)}
             </div>
           </div>
         </div>

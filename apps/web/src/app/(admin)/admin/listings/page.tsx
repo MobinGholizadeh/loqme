@@ -8,7 +8,21 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Modal } from "@/components/ui/Modal";
 import { formatToman, toPersianDigits } from "@/lib/utils/persian";
+import {
+  getListingStatusLabel,
+  getSafetyStatusLabel,
+} from "@/lib/utils/persian-labels";
+import {
+  RotateCw,
+  Eye,
+  Tag,
+  Store,
+  ShieldCheck,
+  Clock,
+  Layers,
+} from "lucide-react";
 import { AdminListingItemDto, AdminCategoryDto } from "@loqme/types";
 
 export default function AdminListingsPage() {
@@ -22,6 +36,8 @@ export default function AdminListingsPage() {
   const [isLoadingListings, setIsLoadingListings] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [selectedListing, setSelectedListing] =
+    useState<AdminListingItemDto | null>(null);
 
   // Categories State
   const [categories, setCategories] = useState<AdminCategoryDto[]>([]);
@@ -165,7 +181,10 @@ export default function AdminListingsPage() {
               else fetchCategories();
             }}
           >
-            🔄 بروزرسانی
+            <span className="inline-flex items-center gap-1.5">
+              <RotateCw size={15} />
+              بروزرسانی
+            </span>
           </Button>
         </div>
       </div>
@@ -178,9 +197,7 @@ export default function AdminListingsPage() {
               : "bg-rose-500/20 border border-rose-500/40 text-rose-700"
           }`}
         >
-          <span>
-            {message.type === "success" ? "✓ " : "❌ "} {message.text}
-          </span>
+          <span>{message.text}</span>
           <button aria-label="بستن" onClick={() => setMessage(null)}>
             ✕
           </button>
@@ -268,53 +285,131 @@ export default function AdminListingsPage() {
             />
           ) : (
             <div className="rounded-lg bg-white border border-loqme-neutral-200 overflow-hidden shadow-card">
-              <table className="w-full text-right text-xs">
-                <thead className="bg-white text-loqme-neutral-500 border-b border-loqme-neutral-200">
-                  <tr>
-                    <th className="p-4">عنوان بسته</th>
-                    <th className="p-4">فروشگاه عرضه کننده</th>
-                    <th className="p-4">دسته‌بندی</th>
-                    <th className="p-4">قیمت فروش</th>
-                    <th className="p-4">تعداد</th>
-                    <th className="p-4">وضعیت بازار</th>
-                    <th className="p-4">وضعیت ایمنی</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-loqme-neutral-700/60 text-loqme-neutral-700">
-                  {listings.map((l) => (
-                    <tr key={l.id} className="hover:bg-loqme-neutral-100">
-                      <td className="p-4 font-bold text-loqme-neutral-900 text-sm">
-                        {l.titleFa}
-                      </td>
-                      <td className="p-4 text-loqme-primary-700 font-medium">
-                        {l.merchantNameFa}
-                      </td>
-                      <td className="p-4 text-loqme-neutral-500">
-                        {l.categoryNameFa || "عمومی"}
-                      </td>
-                      <td className="p-4 font-bold text-emerald-700">
-                        {formatToman(l.discountedPriceToman)}
-                        <del className="block text-[10px] text-loqme-neutral-500 font-normal">
-                          {formatToman(l.originalPriceToman)}
-                        </del>
-                      </td>
-                      <td className="p-4 font-mono font-bold text-loqme-neutral-900">
-                        {toPersianDigits(l.quantity)} عدد
-                      </td>
-                      <td className="p-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-loqme-neutral-100 text-loqme-neutral-700">
-                          {l.status}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="success" size="sm">
-                          {l.safetyStatus}
-                        </Badge>
-                      </td>
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-right text-xs responsive-data-table">
+                  <thead className="bg-loqme-neutral-50 text-loqme-neutral-600 border-b border-loqme-neutral-200">
+                    <tr>
+                      <th className="p-4">عنوان بسته</th>
+                      <th className="p-4">فروشگاه عرضه کننده</th>
+                      <th className="p-4">دسته‌بندی</th>
+                      <th className="p-4">قیمت فروش</th>
+                      <th className="p-4">تعداد</th>
+                      <th className="p-4">وضعیت بازار</th>
+                      <th className="p-4">وضعیت ایمنی</th>
+                      <th className="p-4 text-left">عملیات</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-loqme-neutral-200 text-loqme-neutral-700">
+                    {listings.map((l) => {
+                      const st = getListingStatusLabel(l.status);
+                      const sf = getSafetyStatusLabel(l.safetyStatus);
+                      return (
+                        <tr
+                          key={l.id}
+                          className="hover:bg-loqme-primary-50/30 transition-colors"
+                        >
+                          <td className="p-4 font-bold text-loqme-neutral-900 text-sm">
+                            {l.titleFa}
+                          </td>
+                          <td className="p-4 text-loqme-primary-700 font-medium">
+                            {l.merchantNameFa}
+                          </td>
+                          <td className="p-4 text-loqme-neutral-500">
+                            {l.categoryNameFa || "عمومی"}
+                          </td>
+                          <td className="p-4 font-bold text-emerald-700">
+                            {formatToman(l.discountedPriceToman)}
+                            <del className="block text-[10px] text-loqme-neutral-500 font-normal">
+                              {formatToman(l.originalPriceToman)}
+                            </del>
+                          </td>
+                          <td className="p-4 font-mono font-bold text-loqme-neutral-900">
+                            {toPersianDigits(l.quantity)} عدد
+                          </td>
+                          <td className="p-4">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${st.className}`}
+                            >
+                              {st.labelFa}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <Badge variant={sf.badgeVariant} size="sm">
+                              {sf.labelFa}
+                            </Badge>
+                          </td>
+                          <td className="p-4 text-left">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedListing(l)}
+                              className="px-2.5 py-1 text-xs font-bold text-loqme-primary-700 bg-loqme-primary-50 hover:bg-loqme-primary-100 rounded-md transition-colors inline-flex items-center gap-1"
+                            >
+                              <Eye size={13} />
+                              جزئیات
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card Layout */}
+              <div className="md:hidden divide-y divide-loqme-neutral-200">
+                {listings.map((l) => {
+                  const st = getListingStatusLabel(l.status);
+                  const sf = getSafetyStatusLabel(l.safetyStatus);
+                  return (
+                    <div key={l.id} className="p-4 space-y-3 bg-white">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-bold text-sm text-loqme-neutral-900">
+                            {l.titleFa}
+                          </h4>
+                          <span className="text-xs text-loqme-primary-700 font-medium block mt-0.5">
+                            {l.merchantNameFa}
+                          </span>
+                        </div>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${st.className}`}
+                        >
+                          {st.labelFa}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-loqme-neutral-100">
+                        <span className="text-loqme-neutral-500">
+                          دسته‌بندی: {l.categoryNameFa || "عمومی"}
+                        </span>
+                        <div className="text-left font-bold text-emerald-700">
+                          {formatToman(l.discountedPriceToman)}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge variant={sf.badgeVariant} size="sm">
+                          {sf.labelFa}
+                        </Badge>
+                        <span className="text-xs font-mono text-loqme-neutral-600">
+                          {toPersianDigits(l.quantity)} عدد موجود
+                        </span>
+                      </div>
+
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full justify-center text-xs"
+                        onClick={() => setSelectedListing(l)}
+                        leftIcon={<Eye size={14} />}
+                      >
+                        مشاهده جزئیات کامل
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

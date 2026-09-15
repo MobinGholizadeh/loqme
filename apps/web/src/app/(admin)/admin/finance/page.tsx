@@ -123,7 +123,7 @@ export default function AdminFinancePage() {
               fetchReport();
             }}
           >
-            🔄 محاسبه مجدد
+            محاسبه مجدد
           </Button>
         </div>
       </div>
@@ -196,13 +196,12 @@ export default function AdminFinancePage() {
 
             {!report?.merchants || report.merchants.length === 0 ? (
               <EmptyState
-                icon="💰"
                 title="تراکنشی برای تسویه موجود نیست"
                 description="با ثبت و تکمیل سفارش‌ها، تراز مالی هر فروشگاه در این بخش محاسبه می‌گردد."
               />
             ) : (
               <div className="rounded-lg bg-white border border-loqme-neutral-200 overflow-hidden shadow-card">
-                <table className="w-full text-right text-xs">
+                <table className="w-full text-right text-xs responsive-data-table">
                   <thead className="bg-white text-loqme-neutral-500 border-b border-loqme-neutral-200">
                     <tr>
                       <th className="p-4">نام فروشگاه</th>

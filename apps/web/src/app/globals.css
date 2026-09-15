@@ -1,10 +1,74 @@
 @import "leaflet/dist/leaflet.css";
+
+@font-face {
+  font-family: 'IranYekanDigits';
+  src: url('/fonts/iranyekanweblight.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+06F0-06F9, U+0660-0669, U+0030-0039, U+066B, U+066C, U+002C, U+066A, U+0025;
+}
+
+@font-face {
+  font-family: 'IranYekanDigits';
+  src: url('/fonts/iranyekanwebregular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+06F0-06F9, U+0660-0669, U+0030-0039, U+066B, U+066C, U+002C, U+066A, U+0025;
+}
+
+@font-face {
+  font-family: 'IranYekanDigits';
+  src: url('/fonts/iranyekanwebregular.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+06F0-06F9, U+0660-0669, U+0030-0039, U+066B, U+066C, U+002C, U+066A, U+0025;
+}
+
+@font-face {
+  font-family: 'IranYekanDigits';
+  src: url('/fonts/iranyekanwebbold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+06F0-06F9, U+0660-0669, U+0030-0039, U+066B, U+066C, U+002C, U+066A, U+0025;
+}
+
+@font-face {
+  font-family: 'IranYekanDigits';
+  src: url('/fonts/iranyekanwebbold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+06F0-06F9, U+0660-0669, U+0030-0039, U+066B, U+066C, U+002C, U+066A, U+0025;
+}
+
+@font-face {
+  font-family: 'IranYekanDigits';
+  src: url('/fonts/iranyekanwebbold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+06F0-06F9, U+0660-0669, U+0030-0039, U+066B, U+066C, U+002C, U+066A, U+0025;
+}
+
+@font-face {
+  font-family: 'IranYekanDigits';
+  src: url('/fonts/iranyekanwebbold.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+06F0-06F9, U+0660-0669, U+0030-0039, U+066B, U+066C, U+002C, U+066A, U+0025;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-family-base: var(--font-vazirmatn), "Vazirmatn", sans-serif;
+  --font-family-base: "IranYekanDigits", var(--font-vazirmatn), "Vazirmatn", sans-serif;
   --color-bg-canvas: var(--loqme-neutral-0);
   --color-bg-surface: var(--loqme-neutral-0);
   --color-bg-muted: var(--loqme-neutral-50);
@@ -696,6 +760,39 @@ img {
   margin: auto;
   padding: 32px;
 }
+@media (max-width: 767px) {
+  .portal-main table.responsive-data-table {
+    min-width: 0;
+    display: block;
+  }
+  .portal-main table.responsive-data-table thead {
+    display: none;
+  }
+  .portal-main table.responsive-data-table tbody,
+  .portal-main table.responsive-data-table tr,
+  .portal-main table.responsive-data-table td {
+    display: block;
+    width: 100%;
+  }
+  .portal-main table.responsive-data-table tr {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .portal-main table.responsive-data-table td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 12px;
+    min-height: 0;
+  }
+  .portal-main table.responsive-data-table td::before {
+    content: attr(data-label);
+    color: var(--color-text-muted);
+    font-size: 11px;
+    flex: 0 0 35%;
+  }
+}
 .portal-menu-button {
   display: none;
 }
@@ -1150,6 +1247,9 @@ img {
 }
 .heartbeat {
   animation: heartbeat 1.8s ease-in-out infinite;
+}
+.loading-state {
+  min-height: max(260px, calc(100svh - 160px));
 }
 .no-scrollbar {
   scrollbar-width: none;

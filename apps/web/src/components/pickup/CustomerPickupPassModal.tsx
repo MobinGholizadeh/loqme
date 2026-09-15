@@ -260,7 +260,7 @@ export const CustomerPickupPassModal: React.FC<
                     className="p-2.5 rounded-lg border border-loqme-neutral-200 bg-white text-xs text-loqme-neutral-600 hover:text-loqme-primary-700 hover:border-loqme-primary-300 transition-colors"
                     title="کپی کد"
                   >
-                    {copiedOtp ? "✓ کپی شد" : "📋 کپی"}
+                    {copiedOtp ? "کپی شد" : "کپی کد"}
                   </button>
                 </div>
                 <p className="text-[11px] text-loqme-neutral-500">

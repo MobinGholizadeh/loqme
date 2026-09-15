@@ -334,7 +334,7 @@ export default function MerchantOrdersPage() {
               <span className="w-7 h-7 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 text-sm">
                 ✓
               </span>
-              <h3>تحویل با موفقیت ثبت شد! نوش جان خریدار.</h3>
+              <h3>تحویل با موفقیت ثبت شد!</h3>
             </div>
             <button
               onClick={() => setLastVerified(null)}
@@ -393,7 +393,6 @@ export default function MerchantOrdersPage() {
         className="p-5 bg-white border border-loqme-neutral-200 space-y-3"
       >
         <h3 className="font-bold text-xs text-loqme-neutral-900 flex items-center gap-2">
-          <span>🔢</span>
           <span>ثبت دستی کد ۴ رقمی تحویل حضوری مشتری:</span>
         </h3>
 
@@ -443,7 +442,7 @@ export default function MerchantOrdersPage() {
             onClick={() => setIsScannerOpen(true)}
             className="w-full sm:w-auto"
           >
-            📷 دوربین
+            دوربین
           </Button>
         </form>
       </Card>
@@ -503,7 +502,6 @@ export default function MerchantOrdersPage() {
           </div>
         ) : filteredQueue.length === 0 ? (
           <EmptyState
-            icon="🛍️"
             title="سفارشی در این وضعیت موجود نیست"
             description="سفارش‌های جدید ثبت‌شده توسط مشتریان بلافاصله در این بخش نمایان می‌شوند."
           />
@@ -526,9 +524,12 @@ export default function MerchantOrdersPage() {
                       <span className="font-bold text-sm text-loqme-neutral-900">
                         {item.customerNameFa}
                       </span>
-                      <span className="text-[11px] text-loqme-neutral-500 font-mono">
-                        ({item.customerMobileMasked})
-                      </span>
+                      <bdi
+                        dir="ltr"
+                        className="text-[11px] text-loqme-neutral-500 font-mono inline-block"
+                      >
+                        ({toPersianDigits(item.customerMobileMasked)})
+                      </bdi>
                       <span className="font-mono text-xs font-bold text-loqme-primary-800 bg-loqme-primary-50 px-2 py-0.5 rounded-md border border-loqme-primary-200">
                         {item.orderNumber}
                       </span>
@@ -549,7 +550,7 @@ export default function MerchantOrdersPage() {
                       </span>
                       {item.isPastPickupEnd && isReady && (
                         <span className="text-rose-600 font-bold">
-                          ⚠️ بازه تحویل گذشته است
+                          بازه تحویل گذشته است
                         </span>
                       )}
                       {item.verifiedAt && (

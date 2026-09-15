@@ -115,9 +115,7 @@ export default function AdminSettingsPage() {
               : "bg-rose-500/20 border border-rose-500/40 text-rose-700"
           }`}
         >
-          <span>
-            {message.type === "success" ? "✓ " : "❌ "} {message.text}
-          </span>
+          <span>{message.text}</span>
           <button aria-label="بستن" onClick={() => setMessage(null)}>
             ✕
           </button>
@@ -161,7 +159,7 @@ export default function AdminSettingsPage() {
 
             {maintenanceMode && (
               <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-700 text-xs">
-                ⚠️ هشدار: حالت تعمیر هم‌اکنون فعال است. کلیه تراکنش‌های جدید در
+                هشدار: حالت تعمیر هم‌اکنون فعال است. کلیه تراکنش‌های جدید در
                 بازار موقتاً متوقف خواهند بود.
               </div>
             )}

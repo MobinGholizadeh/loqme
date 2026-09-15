@@ -186,7 +186,7 @@ export default function MerchantStaffPage() {
 
       {errorMessage && (
         <div className="p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center justify-between">
-          <span>❌ {errorMessage}</span>
+          <span>{errorMessage}</span>
           <button aria-label="بستن" onClick={() => setErrorMessage(null)}>
             ✕
           </button>
@@ -203,7 +203,6 @@ export default function MerchantStaffPage() {
         </div>
       ) : staffList.length === 0 ? (
         <EmptyState
-          icon="👥"
           title="همکاری در این فروشگاه ثبت نشده است"
           description="با دعوت همکاران، امکان اسکن سریع بارکدهای تحویل حضوری بدون نیاز به اشتراک‌گذاری رمز اصلی فراهم می‌شود."
         />

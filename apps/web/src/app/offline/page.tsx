@@ -35,7 +35,7 @@ export default function OfflinePage() {
             onClick={handleRetry}
             className="w-full bg-loqme-primary-600 hover:bg-[#0e484e] text-white rounded-full py-3 text-sm font-medium shadow-sm transition-all"
           >
-            🔄 تلاش مجدد
+            تلاش مجدد
           </Button>
 
           <Link

@@ -148,7 +148,6 @@ export default function OrdersPage() {
 
       {orders.length === 0 ? (
         <EmptyState
-          icon="🛍️"
           title="هنوز سفارشی ثبت نکرده‌اید"
           description="با خرید بسته‌های شگفت‌انگیز محله خود، در صرفه‌جویی اقتصادی و جلوگیری از هدررفت خوراکی‌های تازه سهیم شوید."
           action={
@@ -257,7 +256,7 @@ export default function OrdersPage() {
                       className="text-gray-500 hover:text-rose-700 hover:bg-rose-50 text-xs"
                       title="گزارش مغایرت، فاسد بودن یا مشکل بسته"
                     >
-                      🛡️ ثبت گزارش
+                      ثبت گزارش
                     </Button>
                   )}
 

@@ -108,7 +108,7 @@ export default function AdminMerchantsPage() {
       case "APPROVED":
         return (
           <Badge variant="success" size="sm">
-            ✓ تایید شده (APPROVED)
+            تایید شده
           </Badge>
         );
       case "PENDING":
@@ -164,7 +164,7 @@ export default function AdminMerchantsPage() {
             fetchMerchants();
           }}
         >
-          🔄 بروزرسانی لیست
+          بروزرسانی لیست
         </Button>
       </div>
 
@@ -176,9 +176,7 @@ export default function AdminMerchantsPage() {
               : "bg-rose-500/20 border border-rose-500/40 text-rose-700"
           }`}
         >
-          <span>
-            {message.type === "success" ? "✓ " : "❌ "} {message.text}
-          </span>
+          <span>{message.text}</span>
           <button aria-label="بستن" onClick={() => setMessage(null)}>
             ✕
           </button>
@@ -232,13 +230,12 @@ export default function AdminMerchantsPage() {
         </div>
       ) : merchants.length === 0 ? (
         <EmptyState
-          icon="🛡️"
           title="فروشگاهی در این وضعیت یافت نشد"
           description="با تغییر فیلترها یا عبارت جستجو، فروشگاه‌های دیگر را بررسی فرمایید."
         />
       ) : (
         <div className="rounded-lg bg-white border border-loqme-neutral-200 overflow-hidden shadow-card">
-          <table className="w-full text-right text-xs">
+          <table className="w-full text-right text-xs responsive-data-table">
             <thead className="bg-white text-loqme-neutral-500 border-b border-loqme-neutral-200">
               <tr>
                 <th className="p-4">نام فروشگاه</th>
@@ -253,17 +250,17 @@ export default function AdminMerchantsPage() {
             <tbody className="divide-y divide-loqme-neutral-700/60 text-loqme-neutral-700">
               {merchants.map((m) => (
                 <tr key={m.id} className="hover:bg-loqme-neutral-100">
-                  <td className="p-4">
+                  <td data-label="فروشگاه" className="p-4">
                     <span className="font-bold text-loqme-neutral-900 text-sm block">
                       {m.businessNameFa}
                     </span>
                     <span className="text-[11px] text-loqme-neutral-500">
-                      امتیاز: ⭐ {toPersianDigits(m.ratingAverage.toFixed(1))} (
+                      امتیاز: {toPersianDigits(m.ratingAverage.toFixed(1))} (
                       {toPersianDigits(m.ratingCount)} نظر)
                     </span>
                   </td>
 
-                  <td className="p-4">
+                  <td data-label="صنف و شهر" className="p-4">
                     <span className="font-medium text-loqme-neutral-900">
                       {m.businessType}
                     </span>
@@ -272,7 +269,7 @@ export default function AdminMerchantsPage() {
                     </span>
                   </td>
 
-                  <td className="p-4">
+                  <td data-label="مالک و تماس" className="p-4">
                     <span className="text-loqme-neutral-900 block">
                       {m.ownerFullName || "مالک فروشگاه"}
                     </span>
@@ -281,22 +278,35 @@ export default function AdminMerchantsPage() {
                     </span>
                   </td>
 
-                  <td className="p-4 font-mono text-loqme-neutral-700">
+                  <td
+                    data-label="پروانه کسب"
+                    className="p-4 font-mono text-loqme-neutral-700"
+                  >
                     {m.licenseNumber
                       ? toPersianDigits(m.licenseNumber)
                       : "ثبت نشده"}
                   </td>
 
-                  <td className="p-4 font-bold text-loqme-neutral-900">
+                  <td
+                    data-label="کارمزد"
+                    className="p-4 font-bold text-loqme-neutral-900"
+                  >
                     {toPersianDigits(m.commissionPercent)}٪
                   </td>
 
-                  <td className="p-4">
+                  <td data-label="وضعیت احراز" className="p-4">
                     {getStatusBadge(m.verificationStatus)}
                   </td>
 
-                  <td className="p-4 text-left">
-                    <Link href={`/admin/merchants/${m.id}/settings`} className="action-link mb-2" aria-label={`تنظیمات ${m.businessNameFa}`}><Settings size={16} />تنظیمات</Link>
+                  <td data-label="عملیات" className="p-4 text-left">
+                    <Link
+                      href={`/admin/merchants/${m.id}/settings`}
+                      className="action-link mb-2"
+                      aria-label={`تنظیمات ${m.businessNameFa}`}
+                    >
+                      <Settings size={16} />
+                      تنظیمات
+                    </Link>
                     <Button
                       size="sm"
                       variant="outline"

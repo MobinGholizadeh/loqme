@@ -237,7 +237,7 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
               className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
               title="تغییر دوربین"
             >
-              🔄 چرخش دوربین
+              چرخش دوربین
             </button>
 
             {onFallbackToManual && (

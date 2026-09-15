@@ -187,7 +187,6 @@ export default function MerchantFinancePage() {
 
             {!finance?.transactions || finance.transactions.length === 0 ? (
               <EmptyState
-                icon="💰"
                 title="تراکنشی یافت نشد"
                 description="پس از پرداخت سفارش‌ها توسط مشتریان، اسناد بستانکاری فروشگاه در این بخش ثبت می‌گردند."
               />

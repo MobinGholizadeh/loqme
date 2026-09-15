@@ -46,7 +46,7 @@ export default function ErrorBoundary({
             onClick={() => reset()}
             className="w-full bg-loqme-primary-600 hover:bg-[#0e484e] text-white rounded-full py-2.5 text-sm font-medium shadow-sm transition-all"
           >
-            🔄 تلاش مجدد
+            تلاش مجدد
           </Button>
 
           <Link

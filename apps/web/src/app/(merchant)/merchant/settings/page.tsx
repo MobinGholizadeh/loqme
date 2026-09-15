@@ -167,9 +167,7 @@ export default function MerchantSettingsPage() {
               : "bg-rose-50 border border-rose-200 text-rose-700"
           }`}
         >
-          <span>
-            {message.type === "success" ? "✓ " : "❌ "} {message.text}
-          </span>
+          <span>{message.text}</span>
           <button aria-label="بستن" onClick={() => setMessage(null)}>
             ✕
           </button>
@@ -349,7 +347,7 @@ export default function MerchantSettingsPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs">
+              <table className="w-full text-right text-xs responsive-data-table">
                 <thead>
                   <tr className="border-b border-loqme-neutral-200 text-loqme-neutral-600 font-bold">
                     <th className="py-2.5 px-2">روز هفته</th>

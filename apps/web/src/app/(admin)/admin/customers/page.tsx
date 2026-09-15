@@ -116,7 +116,7 @@ export default function AdminCustomersPage() {
             fetchCustomers();
           }}
         >
-          🔄 بروزرسانی لیست
+          بروزرسانی لیست
         </Button>
       </div>
 
@@ -128,9 +128,7 @@ export default function AdminCustomersPage() {
               : "bg-rose-500/20 border border-rose-500/40 text-rose-700"
           }`}
         >
-          <span>
-            {message.type === "success" ? "✓ " : "❌ "} {message.text}
-          </span>
+          <span>{message.text}</span>
           <button aria-label="بستن" onClick={() => setMessage(null)}>
             ✕
           </button>
@@ -166,13 +164,12 @@ export default function AdminCustomersPage() {
         </div>
       ) : customers.length === 0 ? (
         <EmptyState
-          icon="👥"
           title="کاربری با این مشخصات یافت نشد"
           description="با تغییر عبارت جستجو می‌توانید سایر خریداران را پیدا کنید."
         />
       ) : (
         <div className="rounded-lg bg-white border border-loqme-neutral-200 overflow-hidden shadow-card">
-          <table className="w-full text-right text-xs">
+          <table className="w-full text-right text-xs responsive-data-table">
             <thead className="bg-white text-loqme-neutral-500 border-b border-loqme-neutral-200">
               <tr>
                 <th className="p-4">نام خریدار</th>

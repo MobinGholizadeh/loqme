@@ -10,6 +10,8 @@
 
 ### Completed: CP-10.10 Merchant Account Administration (2026-09-14)
 
+Follow-up UI fixes (2026-09-15): fixed the security-audit page response mapping (`items`), centered loading states in the available viewport, converted portal tables to compact mobile card rows where applicable, and removed user-facing emoji decoration in favor of text and existing icon controls. Audit route accessibility regression passes on the optimized preview at mobile and desktop widths. ESLint and the production build pass after these changes.
+
 Implemented per-store admin settings with linked owner identity/phone/status management, independently confirmed owner replacement, scoped order pagination and staff summaries. Account changes require an audit reason and commit atomically with the audit record; stale ownership, cross-store accounts and admin-account assignment are rejected. Persistent root session UI removes the logged-out flash. Authentication remains phone/OTP; no plaintext password display, impersonation or new migrations.
 
 Final validation: **192/192 Vitest tests in 20 suites** on fresh disposable `loqme_account_test_final_20260914`; **33/33 browser tests** with route matrices at 360/390/768/1440/1920px; four account tests rerun after screenshot focus restoration. Lint has no warnings/errors, explicit web/four shared package TypeScript checks pass, and production `.next-account-build` succeeds. Live isolated API checks confirm all five merchant sections, 15 role boundaries, six category publications, WebP upload serving, all-region labels, inactive-session rejection, old-owner access removal, new-owner access and three atomic audit records. No main database reseeding or account reassignment was performed.

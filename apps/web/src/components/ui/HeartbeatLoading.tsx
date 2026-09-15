@@ -3,7 +3,7 @@ export function HeartbeatLoading() {
   return (
     <div
       role="status"
-      className="min-h-[260px] flex flex-col items-center justify-center gap-5"
+      className="loading-state min-h-[260px] flex flex-col items-center justify-center gap-5"
     >
       <div className="heartbeat">
         <LoqmeLogo size={56} variant="icon" />

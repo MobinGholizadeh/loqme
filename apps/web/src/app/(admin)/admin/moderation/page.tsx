@@ -372,7 +372,7 @@ export default function AdminModerationPage() {
                     )}
                     {item.status === "RESOLVED_WARNING" && (
                       <Badge variant="warning" size="sm">
-                        ⚠️ صدور اخطار به فروشگاه
+                        صدور اخطار به فروشگاه
                       </Badge>
                     )}
                   </div>

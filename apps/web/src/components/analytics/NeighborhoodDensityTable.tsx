@@ -103,10 +103,10 @@ export const NeighborhoodDensityTable: React.FC<
                     </div>
                     <span className="text-[10px] text-loqme-neutral-500">
                       {n.unmetDemandScore > 75
-                        ? "🔥 تقاضای بالا (جذب فروشنده)"
+                        ? "تقاضای بالا (جذب فروشنده)"
                         : n.unmetDemandScore > 40
-                          ? "⚡ نیازمند تقویت عرضه"
-                          : "✅ عرضه متناسب"}
+                          ? "نیازمند تقویت عرضه"
+                          : "عرضه متناسب"}
                     </span>
                   </div>
                 </td>
