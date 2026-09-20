@@ -30,6 +30,12 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum MerchantApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum StaffRole {
   OWNER
   MANAGER
@@ -143,6 +149,8 @@ model User {
   verifiedPickups  PickupVerification[] @relation("VerifiedPickups")
   resolvedComplaints Complaint[]   @relation("ResolvedComplaints")
   auditLogs        AuditLog[]
+  merchantApplication MerchantApplication? @relation("ApplicationApplicant")
+  reviewedApplications MerchantApplication[] @relation("ApplicationReviewer")
 
   @@index([mobile])
 }
@@ -185,6 +193,9 @@ model Merchant {
   reviews            Review[]
   complaints         Complaint[]
 
+  application        MerchantApplication?
+  mapirPlaceId       String?            @unique
+
   @@index([ownerUserId])
 }
 
@@ -201,6 +212,38 @@ model MerchantStaff {
   verifiedPickups PickupVerification[] @relation("StaffVerifiedPickups")
 
   @@unique([merchantId, userId])
+}
+
+model MerchantApplication {
+  id             String @id @default(uuid())
+  applicantId    String @unique
+  ownerName      String
+  businessNameFa String
+  businessType   BusinessType
+  cityId         String
+  addressFa      String
+  latitude       Float
+  longitude      Float
+  phone          String?
+  licenseNumber  String?
+  mapirPlaceId   String?
+  hours          Json
+  status         MerchantApplicationStatus @default(PENDING)
+  revision       Int @default(1)
+  reviewReason   String?
+  reviewedById   String?
+  reviewedAt     DateTime?
+  merchantId     String? @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  applicant User @relation("ApplicationApplicant", fields: [applicantId], references: [id], onDelete: Restrict)
+  reviewer User? @relation("ApplicationReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  city City @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  merchant Merchant? @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+
+  @@index([status, createdAt])
+  @@index([mapirPlaceId])
 }
 
 model Province {
@@ -221,6 +264,8 @@ model City {
   province          Province           @relation(fields: [provinceId], references: [id], onDelete: Cascade)
   neighborhoods     Neighborhood[]
   merchantLocations MerchantLocation[]
+
+  applications      MerchantApplication[]
 
   @@unique([provinceId, slug])
 }
@@ -272,8 +317,8 @@ model MerchantHours {
   isOpen             Boolean          @default(true)
   storeOpenTime      String           // e.g. "08:00"
   storeCloseTime     String           // e.g. "22:00"
-  defaultPickupStart String           // e.g. "20:00"
-  defaultPickupEnd   String           // e.g. "22:00"
+  defaultPickupStart String?          // Unset until the merchant configures pickup
+  defaultPickupEnd   String?
 
   location           MerchantLocation @relation(fields: [merchantLocationId], references: [id], onDelete: Cascade)
 

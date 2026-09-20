@@ -112,8 +112,8 @@ export default function MerchantSettingsPage() {
             isOpen: h.isOpen,
             storeOpenTime: toEnglishDigits(h.storeOpenTime),
             storeCloseTime: toEnglishDigits(h.storeCloseTime),
-            defaultPickupStart: toEnglishDigits(h.defaultPickupStart),
-            defaultPickupEnd: toEnglishDigits(h.defaultPickupEnd),
+            defaultPickupStart: h.defaultPickupStart ? toEnglishDigits(h.defaultPickupStart) : null,
+            defaultPickupEnd: h.defaultPickupEnd ? toEnglishDigits(h.defaultPickupEnd) : null,
           })),
         }),
       });
@@ -429,7 +429,8 @@ export default function MerchantSettingsPage() {
                       <td className="py-3 px-2">
                         <input
                           type="text"
-                          value={day.defaultPickupStart}
+                          value={day.defaultPickupStart || ''}
+                          hint={!day.defaultPickupStart ? 'بازه تحویل هنوز تنظیم نشده است' : undefined}
                           onChange={(e) =>
                             handleHourChange(
                               idx,
@@ -445,7 +446,7 @@ export default function MerchantSettingsPage() {
                       <td className="py-3 px-2">
                         <input
                           type="text"
-                          value={day.defaultPickupEnd}
+                          value={day.defaultPickupEnd || ''}
                           onChange={(e) =>
                             handleHourChange(
                               idx,

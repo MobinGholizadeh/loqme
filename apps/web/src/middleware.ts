@@ -33,8 +33,8 @@ export async function middleware(request: NextRequest) {
 
     // If not authenticated at all, redirect to login with return URL
     if (!userRole) {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
+      const loginUrl = new URL(pathname === '/merchant' || pathname.startsWith('/merchant/') ? '/business/login' : '/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname + request.nextUrl.search);
       return NextResponse.redirect(loginUrl);
     }
 

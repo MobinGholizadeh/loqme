@@ -36,8 +36,8 @@ interface MerchantDetailData {
       isOpen: boolean;
       storeOpenTime: string;
       storeCloseTime: string;
-      defaultPickupStart: string;
-      defaultPickupEnd: string;
+      defaultPickupStart: string | null;
+      defaultPickupEnd: string | null;
     }>;
   } | null;
   activeListings: Array<{
@@ -309,8 +309,8 @@ export default function MerchantProfilePage() {
                 </span>
                 {h.isOpen ? (
                   <span className="text-loqme-neutral-600">
-                    {h.storeOpenTime} تا {h.storeCloseTime} (تحویل:{" "}
-                    {h.defaultPickupStart} تا {h.defaultPickupEnd})
+                    {h.storeOpenTime} تا {h.storeCloseTime}{' '}
+                    {h.defaultPickupStart && h.defaultPickupEnd ? `(تحویل: ${h.defaultPickupStart} تا ${h.defaultPickupEnd})` : '(بازه تحویل هنوز تنظیم نشده)'}
                   </span>
                 ) : (
                   <span className="text-rose-500 font-medium">تعطیل</span>

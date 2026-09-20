@@ -6,15 +6,22 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toPersianDigits, isValidIranianMobile } from "@/lib/utils/persian";
+import { safeLoginRedirect } from '@loqme/validation';
 
 interface OtpLoginFormProps {
   onSuccess?: () => void;
   redirectPath?: string;
+  audience?: 'customer' | 'business';
+  embedded?: boolean;
+  preventRedirect?: boolean;
 }
 
 export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   onSuccess,
   redirectPath,
+  audience = 'customer',
+  embedded = false,
+  preventRedirect = false,
 }) => {
   const router = useRouter();
   const session = useSession();
@@ -28,11 +35,11 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   const [countdown, setCountdown] = useState(120);
 
   // Target destination after login
-  const targetRedirect =
+  const targetRedirect = safeLoginRedirect(
     redirectPath ||
     searchParams.get("redirect") ||
     searchParams.get("returnUrl") ||
-    null;
+    null);
 
   // Countdown timer for OTP expiry
   useEffect(() => {
@@ -111,9 +118,12 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
       if (onSuccess) {
         onSuccess();
       }
+      if (preventRedirect) return;
 
       // Smart redirect
-      if (targetRedirect) {
+      if (audience === 'business') {
+        router.push(data.user?.role === 'MERCHANT_OWNER' || data.user?.role === 'MERCHANT_STAFF' ? (targetRedirect?.startsWith('/merchant') ? targetRedirect : '/merchant') : data.user?.role === 'ADMIN' ? '/admin' : '/business/status');
+      } else if (targetRedirect) {
         router.push(targetRedirect);
       } else if (
         data.user?.role === "MERCHANT_OWNER" ||
@@ -137,18 +147,19 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
     value
       .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
       .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+  const Heading = embedded ? 'h2' : 'h1';
   return (
     <div className="space-y-7">
       <div className="space-y-3">
         <span className="text-xs font-bold text-loqme-primary-700">
           به لقمه خوش آمدید
         </span>
-        <h1 className="text-3xl font-extrabold">
-          {step === "PHONE" ? "ورود یا ثبت‌نام" : "کد تایید را وارد کنید"}
-        </h1>
+        <Heading className={embedded ? 'text-xl font-bold' : 'text-3xl font-extrabold'}>
+          {step === "PHONE" ? (audience === 'business' ? 'ورود به حساب کسب‌وکار' : 'ورود یا ثبت‌نام') : "کد تایید را وارد کنید"}
+        </Heading>
         <p className="text-sm text-loqme-neutral-600">
           {step === "PHONE"
-            ? "با شماره موبایل وارد شوید و لقمه بعدی‌تان را کشف کنید."
+            ? (audience === 'business' ? 'با شماره موبایل مالک یا همکار فروشگاه وارد شوید.' : "با شماره موبایل وارد شوید و لقمه بعدی‌تان را کشف کنید.")
             : `کد ۵ رقمی به ${toPersianDigits(mobile)} ارسال شد.`}
         </p>
       </div>
@@ -204,6 +215,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
           <div className="flex flex-wrap justify-between gap-3">
             <Button
               variant="ghost"
+              type="button"
               onClick={() => {
                 setStep("PHONE");
                 setCode("");
@@ -214,6 +226,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
             </Button>
             <Button
               variant="ghost"
+              type="button"
               disabled={countdown > 0 || isLoading}
               onClick={() => handleRequestOtp()}
             >

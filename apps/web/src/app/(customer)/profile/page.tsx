@@ -96,6 +96,7 @@ export default function ProfilePage() {
                   method: "POST",
                 });
                 if (!response.ok) throw new Error();
+                sessionStorage.removeItem('loqme-business-draft-v1');
                 window.location.assign("/");
               } catch {
                 setError(true);

@@ -3,6 +3,8 @@
  * Platform-neutral, universal types consumed by Web, Mobile, and Backend
  */
 
+export * from './business';
+
 // ==========================================
 // 1. Roles & Permissions (RBAC)
 // ==========================================
@@ -230,8 +232,8 @@ export interface MerchantHoursEntity {
   isOpen: boolean;
   storeOpenTime: string;
   storeCloseTime: string;
-  defaultPickupStart: string;
-  defaultPickupEnd: string;
+  defaultPickupStart: string | null;
+  defaultPickupEnd: string | null;
 }
 
 export interface MerchantLocationEntity {
@@ -874,8 +876,8 @@ export interface OperatingHoursDayDto {
   isOpen: boolean;
   storeOpenTime: string;
   storeCloseTime: string;
-  defaultPickupStart: string;
-  defaultPickupEnd: string;
+  defaultPickupStart: string | null;
+  defaultPickupEnd: string | null;
 }
 
 export interface MerchantStoreSettingsDto {
@@ -912,8 +914,8 @@ export interface UpdateStoreSettingsDto {
     isOpen: boolean;
     storeOpenTime: string;
     storeCloseTime: string;
-    defaultPickupStart: string;
-    defaultPickupEnd: string;
+    defaultPickupStart: string | null;
+    defaultPickupEnd: string | null;
   }>;
 }
 

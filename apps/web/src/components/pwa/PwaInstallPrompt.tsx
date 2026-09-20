@@ -93,7 +93,7 @@ export const PwaInstallPrompt: React.FC = () => {
     localStorage.setItem("loqme_pwa_dismissed", "true");
   };
 
-  if (/^\/(checkout|listings|orders|merchant|admin|login)(\/|$)/.test(pathname))
+  if (/^\/(checkout|listings|orders|merchant|admin|login|business)(\/|$)/.test(pathname))
     return null;
   return (
     <>

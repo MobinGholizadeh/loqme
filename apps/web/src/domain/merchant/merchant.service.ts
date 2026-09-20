@@ -359,7 +359,7 @@ export class MerchantService {
     } else if (merchant.locations[0]?.hours?.length) {
       const dayOfWeek = (now.getDay() + 1) % 7; // Convert JS 0=Sun..6=Sat to 0=Sat..6=Fri
       const todayHour = merchant.locations[0].hours.find((h) => h.dayOfWeek === dayOfWeek);
-      if (todayHour && todayHour.isOpen) {
+      if (todayHour && todayHour.isOpen && todayHour.defaultPickupStart && todayHour.defaultPickupEnd) {
         nextPickupWindow = {
           start: todayHour.defaultPickupStart,
           end: todayHour.defaultPickupEnd,
@@ -424,8 +424,8 @@ export class MerchantService {
         isOpen: i !== 6, // Default Friday closed or open
         storeOpenTime: '08:00',
         storeCloseTime: '22:00',
-        defaultPickupStart: '20:00',
-        defaultPickupEnd: '21:30',
+        defaultPickupStart: null,
+        defaultPickupEnd: null,
       };
     });
 
@@ -471,8 +471,8 @@ export class MerchantService {
         isOpen: boolean;
         storeOpenTime: string;
         storeCloseTime: string;
-        defaultPickupStart: string;
-        defaultPickupEnd: string;
+        defaultPickupStart: string | null;
+        defaultPickupEnd: string | null;
       }>;
     },
     merchantId?: string

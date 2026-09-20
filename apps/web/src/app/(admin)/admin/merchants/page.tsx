@@ -12,8 +12,10 @@ import { toPersianDigits, toEnglishDigits } from "@/lib/utils/persian";
 import { AdminMerchantItemDto } from "@loqme/types";
 import Link from "next/link";
 import { Settings } from "lucide-react";
+import { AdminApplications } from '@/components/business/AdminApplications';
 
 export default function AdminMerchantsPage() {
+  const [view, setView] = useState<'merchants' | 'applications'>('merchants');
   const [loadError, setLoadError] = useState("");
   const [merchants, setMerchants] = useState<AdminMerchantItemDto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -132,6 +134,8 @@ export default function AdminMerchantsPage() {
     }
   };
 
+  const tabs = <div className="flex flex-wrap gap-2 mb-6" role="group" aria-label="نمای فروشگاه‌ها"><Button variant={view === 'merchants' ? 'primary' : 'outline'} aria-pressed={view === 'merchants'} onClick={() => setView('merchants')}>فروشگاه‌ها</Button><Button variant={view === 'applications' ? 'primary' : 'outline'} aria-pressed={view === 'applications'} onClick={() => setView('applications')}>درخواست‌های عضویت</Button></div>;
+  if (view === 'applications') return <div className="max-w-6xl mx-auto pb-16"><h1 className="text-2xl font-black mb-5">مدیریت کسب‌وکارها</h1>{tabs}<AdminApplications /></div>;
   if (loadError)
     return (
       <ErrorState
@@ -143,6 +147,7 @@ export default function AdminMerchantsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
+      {tabs}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import type { UserRole } from "@loqme/types";
+import { clearBusinessDraft } from '@/lib/business/draft';
 
 type SessionUser = {
   id?: string;
@@ -38,6 +39,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     revision.current++;
   }, []);
   const setUser = useCallback((user: SessionUser | null) => {
+    if (!user) clearBusinessDraft();
     revision.current++;
     setState({ user, status: user ? "authenticated" : "anonymous" });
   }, []);
@@ -48,9 +50,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       if (!response.ok) throw new Error("Session unavailable");
       const result = await response.json();
       if (revision.current === current)
-        setState({
-          user: result.authenticated ? result.user : null,
-          status: result.authenticated ? "authenticated" : "anonymous",
+        setState(previous => {
+          if (!result.authenticated && previous.status === 'authenticated') clearBusinessDraft();
+          return { user: result.authenticated ? result.user : null, status: result.authenticated ? 'authenticated' : 'anonymous' };
         });
     } catch {
       // A network failure must not erase a known session or imply logout.

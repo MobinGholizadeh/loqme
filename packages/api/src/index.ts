@@ -7,6 +7,8 @@ import {
   RequestOtpResult,
   VerifyOtpResult,
   SessionPayload,
+  ApiResponse, BusinessCityDto, BusinessPlaceDto, MerchantApplicationDto, MerchantApplicationInput,
+  AdminMerchantApplicationDto, ReviewMerchantApplicationInput,
 } from '@loqme/types';
 import {
   RequestOtpInput,
@@ -79,6 +81,15 @@ export function createApiClient(config: ApiClientConfig = {}) {
   };
 
   return {
+    business: {
+      cities: () => request<ApiResponse<BusinessCityDto[]>>('/api/business/cities'),
+      searchPlaces: (q: string, cityId: string, signal?: AbortSignal) => request<ApiResponse<BusinessPlaceDto[]>>(`/api/business/places/search?${new URLSearchParams({ q, cityId })}`, { signal }),
+      reversePlace: (latitude: number, longitude: number, signal?: AbortSignal) => request<ApiResponse<{ address: string; city: string; province: string }>>(`/api/business/places/reverse?${new URLSearchParams({ latitude: String(latitude), longitude: String(longitude) })}`, { signal }),
+      application: () => request<ApiResponse<MerchantApplicationDto | null>>('/api/business/application', { cache: 'no-store' }),
+      submit: (data: MerchantApplicationInput) => request<ApiResponse<MerchantApplicationDto>>('/api/business/application', { method: 'POST', body: JSON.stringify(data) }),
+      applications: (page = 1) => request<ApiResponse<{ items: AdminMerchantApplicationDto[]; total: number; page: number; pageSize: number }>>(`/api/admin/merchant-applications?page=${page}`, { cache: 'no-store' }),
+      review: (id: string, data: ReviewMerchantApplicationInput) => request<ApiResponse<MerchantApplicationDto>>(`/api/admin/merchant-applications/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    },
     auth: {
       requestOtp: (input: RequestOtpInput): Promise<RequestOtpResult> => {
         return request<RequestOtpResult>('/api/auth/request-otp', {

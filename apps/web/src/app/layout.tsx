@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { generateCssVariables } from "@loqme/design-tokens";
 import { Vazirmatn } from "next/font/google";
 import "./globals.css";
+import '@/components/business/business.css';
 import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 
