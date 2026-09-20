@@ -1,6 +1,6 @@
 import { Page } from "@playwright/test";
 import { SignJWT } from "jose";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 import QRCode from "qrcode";
 
@@ -132,7 +132,14 @@ export const order = {
 };
 
 export async function installFixtures(page: Page, role = "CUSTOMER") {
-  const env = parseEnv(readFileSync("apps/web/.env", "utf8"));
+  const envPath = existsSync("apps/web/.env")
+    ? "apps/web/.env"
+    : existsSync(".env")
+      ? ".env"
+      : null;
+  const env: Record<string, string> = envPath
+    ? (parseEnv(readFileSync(envPath, "utf8")) as Record<string, string>)
+    : {};
   const secret =
     process.env.SESSION_SECRET ||
     env.SESSION_SECRET ||

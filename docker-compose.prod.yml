@@ -41,6 +41,7 @@ services:
       SMS_PROVIDER: ${SMS_PROVIDER:-kavenegar}
       KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY}
       ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID}
+      NEXT_PUBLIC_MAP_API_KEY: ${NEXT_PUBLIC_MAP_API_KEY:-}
     ports:
       - "127.0.0.1:3000:3000"
     volumes:

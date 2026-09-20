@@ -8,6 +8,14 @@
 
 ## 1. Project Health & Current State
 
+### Completed: Map.ir Persian Tile Provider Integration (2026-09-20)
+
+Integrated Iranian local map provider **Map.ir** for marketplace discovery map tiles (`MarketplaceMap.tsx`), configured with `NEXT_PUBLIC_MAP_API_KEY`.
+- Tile endpoint configured to Map.ir EPSG:3857 PNG tiles (`https://map.ir/shiveh/xyz/1.0.0/Shiveh:Shiveh@EPSG:3857@png/{z}/{x}/{y}.png?x-api-key=...`) with proper attribution and maxZoom 20.
+- Next.js CSP updated in `apps/web/next.config.mjs` to whitelist `https://map.ir` and `https://*.map.ir` for `img-src` and `connect-src`.
+- Configured environment variables in `.env`, `.env.example`, `apps/web/src/core/config.ts`, `docker-compose.yml`, and `docker-compose.prod.yml`.
+- Updated browser test suite (`secondary-flows.spec.ts`) to handle Map.ir tile network conditions; verified 5/5 Playwright tests pass and Next.js production build succeeds.
+
 ### Completed: CP-10.10 Merchant Account Administration (2026-09-14)
 
 Follow-up UI fixes (2026-09-15): fixed the security-audit page response mapping (`items`), centered loading states in the available viewport, converted portal tables to compact mobile card rows where applicable, and removed user-facing emoji decoration in favor of text and existing icon controls. Audit route accessibility regression passes on the optimized preview at mobile and desktop widths. ESLint and the production build pass after these changes.

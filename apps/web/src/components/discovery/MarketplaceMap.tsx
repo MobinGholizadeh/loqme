@@ -53,17 +53,53 @@ export function MarketplaceMap({
       zoomControl: false,
     });
 
-    // Add CartoDB Positron / OSM clean tiles
-    const tiles = L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-      {
-        attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
-        subdomains: "abcd",
-        maxZoom: 19,
-      },
-    ).addTo(map);
-    tiles.on("tileerror", () => setTileError(true));
-    tiles.on("tileload", () => setTileError(false));
+    // Add Map.ir Persian tiles (EPSG:3857)
+    const mapApiKey = process.env.NEXT_PUBLIC_MAP_API_KEY || "";
+    
+    // Diagnostic logging
+    if (mapApiKey) {
+      console.log(
+        "[Map.ir] NEXT_PUBLIC_MAP_API_KEY detected successfully (length: " +
+          mapApiKey.length +
+          ", preview: " +
+          mapApiKey.substring(0, 12) +
+          "..." +
+          mapApiKey.substring(mapApiKey.length - 8) +
+          ")",
+      );
+    } else {
+      console.warn(
+        "[Map.ir] NEXT_PUBLIC_MAP_API_KEY is NOT set or empty! Tiles will be requested without an API key parameter.",
+      );
+    }
+
+    const tileUrl = mapApiKey
+      ? `https://map.ir/shiveh/xyz/1.0.0/Shiveh:Shiveh@EPSG:3857@png/{z}/{x}/{y}.png?x-api-key=${mapApiKey}`
+      : "https://map.ir/shiveh/xyz/1.0.0/Shiveh:Shiveh@EPSG:3857@png/{z}/{x}/{y}.png";
+
+    console.log(
+      "[Map.ir] Initializing TileLayer with URL template:",
+      tileUrl.replace(mapApiKey, mapApiKey ? "[REDACTED_KEY]" : ""),
+    );
+
+    const tiles = L.tileLayer(tileUrl, {
+      attribution:
+        '&copy; <a href="https://map.ir" target="_blank" rel="noopener noreferrer">Map.ir</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+      maxZoom: 20,
+    }).addTo(map);
+
+    tiles.on("tileerror", (errorEvent: any) => {
+      console.error("[Map.ir] Tile load failed:", {
+        tileUrl: errorEvent?.tile?.src,
+        coords: errorEvent?.coords,
+        error: errorEvent?.error,
+      });
+      setTileError(true);
+    });
+
+    tiles.on("tileload", () => {
+      setTileError(false);
+    });
 
     // Zoom control at top right (suited for RTL)
     L.control.zoom({ position: "topright" }).addTo(map);

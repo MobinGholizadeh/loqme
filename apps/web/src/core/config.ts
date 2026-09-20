@@ -13,6 +13,7 @@ export const envSchema = z
     ZARINPAL_MERCHANT_ID: z.string().optional(),
     SENTRY_DSN: z.string().url().optional(),
     STRICT_PROD_CHECK: z.string().optional(),
+    NEXT_PUBLIC_MAP_API_KEY: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -51,6 +52,7 @@ export function validateEnv(rawEnv: Record<string, any> = process.env): EnvConfi
     ZARINPAL_MERCHANT_ID: rawEnv.ZARINPAL_MERCHANT_ID,
     SENTRY_DSN: rawEnv.SENTRY_DSN,
     STRICT_PROD_CHECK: rawEnv.STRICT_PROD_CHECK,
+    NEXT_PUBLIC_MAP_API_KEY: rawEnv.NEXT_PUBLIC_MAP_API_KEY,
   });
 
   if (!result.success) {
