@@ -20,7 +20,7 @@ The homepage card and footer button «لقمه چطور کار می‌کند؟»
 - Production Next.js build passed. Web and shared package typechecks and zero-warning ESLint checked with the repository's installed versions (Node 24, Next 16, React 19, Prisma 7).
 - **64/64 Playwright tests passed** on the optimized preview, including 13 new CP-10.12 tests, review submission, map overlap/fallback, unavailable checkout and focus refresh, playback, keyboard/focus restoration and reduced motion. Merchant and explainer screenshots were inspected at 360/390/768/1440px; their axe checks report zero WCAG A/AA violations.
 - Deployment YAML parses and its remote shell script passes Alpine `sh -n`. A containerized command-failure simulation passed backup failure, migration failure, readiness rollback and successful release paths. Production Compose configuration validates with disposable placeholder credentials.
-- Local Docker build encountered Alpine package-repository TLS verification failures. TLS checks were not bypassed. GitHub's container build is the remaining container validation authority for this release.
+- Local Docker build encountered Alpine package-repository TLS verification failures. TLS checks were not bypassed. GitHub subsequently built and published the production image successfully, and the deployed container passed database readiness.
 
 ## Deployment and recovery
 
@@ -32,4 +32,8 @@ Live SMS, dedicated server Map.ir credentials, real-device onboarding acceptance
 
 ## Release status
 
-Implementation and local acceptance are complete. Commit, GitHub deployment and public health evidence will be recorded after release.
+Released commit [`32c557e`](https://github.com/MobinGholizadeh/loqme/commit/32c557e66efd341a8e992b888634db074acc5cb9) to `master`. [GitHub deployment run 35655051067, attempt 2](https://github.com/MobinGholizadeh/loqme/actions/runs/35655051067) passed both image build/publish and remote deployment. Attempt 1 failed before compilation because Docker Hub timed out downloading BuildKit; retry succeeded.
+
+Server logs confirm the backup checksum passed, `20260921010000_review_dimensions` applied successfully before replacement, and database readiness passed at 2026-09-21 21:12:36 UTC (2026-09-22 Tehran). Deployed image digest: `sha256:e093f324be84562bf9afc55162846bb01f1db7f0ee8eea63cacce073f2df5fa0`.
+
+Public `https://loqme.shop/`, `/api/health/live`, `/api/health/ready`, discovery, search and sitemap returned HTTP 200. A real production browser opened the guide and verified play, pause, next scene and close. Public discovery had zero current offers and the sitemap exposed no approved merchant profiles, so live merchant/rating and unavailable-card checks could not exercise real records; those cases passed disposable-database and browser acceptance. No production records were fabricated or reseeded.

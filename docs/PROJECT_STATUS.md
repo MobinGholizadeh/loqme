@@ -8,11 +8,13 @@
 
 ## 1. Project Health & Current State
 
-### Active: CP-10.12 Merchant ratings, availability, map controls and explainer (2026-09-22)
+### Completed: CP-10.12 Merchant ratings, availability, map controls and explainer (2026-09-22)
 
 Implemented verified customer review dimensions and independent server aggregates, visible unavailable offers with authoritative reservation eligibility, safe stock reconciliation, isolated map controls and the lazy-loaded Persian 30-second purchasing guide. The user authorized pushing `master` and verifying deployment. Release workflow now backs up and verifies the database, migrates before replacing the app, preserves the previous image and checks readiness. See [CP10_12_MARKETPLACE.md](CP10_12_MARKETPLACE.md) for contracts, recovery caveats and release evidence.
 
-Fresh disposable database acceptance: **230/230 tests in 25 suites**. Production build, web/shared typechecks and lint pass. **64/64 browser tests** pass; merchant/explainer layouts were visually inspected at 360/390/768/1440px with zero axe violations. Local Docker build was blocked by Alpine repository TLS verification; the GitHub container build remains to be verified. Existing CP-10.11 live SMS/Map.ir/device gates remain open. No production reseeding or fabricated reviews.
+Fresh disposable database acceptance: **230/230 tests in 25 suites**. Production build, web/shared typechecks and lint pass. **64/64 browser tests** pass; merchant/explainer layouts were visually inspected at 360/390/768/1440px with zero axe violations. Local Docker build was blocked by Alpine repository TLS verification; GitHub container build and remote deployment succeeded on retry. Commit `32c557e` is deployed to `loqme.shop`; server logs confirm verified backup, review migration and readiness. Live homepage/health/search/discovery return 200 and explainer interactions pass. Public discovery has zero offers and no merchant sitemap entries, limiting live record-specific checks. Existing CP-10.11 live SMS/Map.ir/device gates remain open. No production reseeding or fabricated reviews.
+
+Earlier checkpoint entries below retain their original acceptance snapshots; the current release evidence above supersedes their deployment state, but does not close provider/device gates.
 
 ### Active: CP-10.11 Authentication & Business Onboarding (2026-09-21)
 
@@ -53,7 +55,7 @@ Baseline: web TypeScript passed, lint had six warnings, and unavailable PostgreS
 | Metric | Status |
 | :--- | :--- |
 | **Current Milestone** | **CP-10.12 — Merchant ratings, availability, map controls and explainer** |
-| **Milestone Status** | Local release validation; CP-10.11 provider/device gates remain open |
+| **Milestone Status** | CP-10.12 deployed and verified; CP-10.11 provider/device gates remain open |
 | **Overall Completion** | Historical roadmap complete; CP-10.12 release evidence tracked separately |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running, Dockerized) |
 | **Last Updated** | 2026-09-22 (CP-10.12) |
