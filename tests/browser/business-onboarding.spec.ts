@@ -30,8 +30,8 @@ async function chooseManual(page: Page) {
 
 test('guest navbar exposes both entry points including at 360px', async ({ page }) => {
   await setup(page); await page.setViewportSize({ width: 360, height: 800 }); await page.goto('/');
-  const customer = page.getByRole('link', { name: 'ثبت نام /ورود مشتری', exact: true });
-  const business = page.getByRole('link', { name: 'ثبت نام /ورود کسب و کار', exact: true });
+  const customer = page.getByRole('link', { name: 'ثبت نام / ورود مشتری', exact: true });
+  const business = page.getByRole('link', { name: 'ثبت نام / ورود کسب و کار', exact: true });
   await expect(customer).toBeVisible(); await expect(customer).toHaveAttribute('href', '/login');
   await expect(business).toBeVisible(); await expect(business).toHaveAttribute('href', '/business');
   await business.click(); await expect(page.getByRole('heading', { level: 1 })).toHaveText('کسب‌وکارتان را پیدا کنید');
@@ -167,7 +167,7 @@ test('late search responses cannot replace a newer query', async ({ page }) => {
   await page.route('**/api/business/places/search?**', async r => {
     const old = new URL(r.request().url()).searchParams.get('q') === 'قدیمی';
     if (old) { oldRequested = true; await gate; }
-    await r.fulfill({ json: { success: true, data: [{ ...place, name: old ? 'نتیجه قدیمی' : 'نتیجه جدید' }] } }).catch(() => {});
+    await r.fulfill({ json: { success: true, data: [{ ...place, name: old ? 'نتیجه قدیمی' : 'نتیجه جدید' }] } }).catch(() => { });
   });
   await page.goto('/business'); await page.getByLabel('نام کسب‌وکار', { exact: true }).fill('قدیمی');
   await expect.poll(() => oldRequested).toBe(true);
