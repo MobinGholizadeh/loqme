@@ -94,8 +94,11 @@ test("completed-order review is accessible and submits existing ratings", async 
     .getByLabel("توضیحات و بازخورد شما (اختیاری)")
     .fill("بسته تازه و مطابق توضیحات بود.");
   await page
-    .getByRole("button", { name: "امتیاز کلی تجربه خرید: ۴ ستاره" })
+    .getByRole("radio", { name: "امتیاز کلی تجربه خرید: ۴ ستاره" })
     .click();
+  for (const label of ["تجربه دریافت بسته", "کیفیت خوراکی", "تنوع محتویات", "مقدار خوراکی"]) {
+    await page.getByRole("radio", { name: `${label}: ۵ ستاره` }).check();
+  }
   const audit = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
     .analyze();
@@ -108,7 +111,9 @@ test("completed-order review is accessible and submits existing ratings", async 
     orderId: order.id,
     overallRating: 4,
     qualityRating: 5,
-    valueRating: 5,
+    collectionRating: 5,
+    varietyRating: 5,
+    quantityRating: 5,
   });
   await expect(page.getByText("با تشکر از ثبت نظر شما!")).toBeVisible();
 });

@@ -1444,3 +1444,81 @@ img {
     scroll-behavior: auto !important;
   }
 }
+
+/* CP-10.12: review evidence, retained offers, and the Loqme walkthrough. */
+.review-panel { width: min(100%, 560px); padding: 24px; background: var(--color-bg-surface); border-radius: 12px; }
+.review-rating-row { padding: 12px 0; min-width: 0; }
+.review-rating-row legend { float: right; padding-top: 12px; }
+.review-rating-row > div { justify-content: flex-start; clear: both; }
+.rating-choice { position: relative; width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer; color: var(--color-primary); border-radius: 6px; }
+.rating-choice input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.rating-choice:focus-within { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.merchant-ratings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.merchant-rating { padding: 18px; border: 1px solid var(--color-border-subtle); border-radius: 8px; }
+.merchant-rating h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+.merchant-rating strong { font-size: 25px; }
+.rating-meter { height: 5px; background: var(--color-bg-muted); margin: 12px 0; border-radius: 4px; overflow: hidden; }
+.rating-meter span { display: block; height: 100%; background: var(--color-primary); }
+.listing-unavailable .listing-stock { background: var(--loqme-neutral-800); color: white; }
+.listing-unavailable .listing-cover img { filter: saturate(.55); }
+.listing-availability-note { color: var(--color-text-secondary); font-size: 12px; }
+.how-it-works-card { width: 100%; padding: 18px 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; text-align: right; background: var(--color-primary-soft); border: 1px solid var(--loqme-primary-100); border-radius: 10px; color: var(--color-text-primary); }
+.how-it-works-card > span:nth-child(2) { flex: 1; }
+.how-it-works-card small { display: block; margin-top: 5px; color: var(--color-text-secondary); font-size: 12px; }
+.how-play { display: grid; place-items: center; color: var(--color-primary); }
+.how-it-works-card .how-play { width: 48px; height: 48px; background: white; border-radius: 50%; flex-shrink: 0; }
+.how-it-works-link { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; min-height: 44px; }
+.explainer-panel { width: min(100%, 760px); background: var(--color-bg-surface); border-radius: 12px; overflow: hidden; }
+.explainer-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
+.explainer-header h2 { font-weight: 800; font-size: 19px; margin-top: 4px; }
+.eyebrow { font-size: 11px; color: var(--color-primary); font-weight: 700; }
+.explainer-art { min-height: 280px; height: 34vh; max-height: 340px; position: relative; display: grid; place-items: center; background: var(--color-primary-soft); overflow: hidden; isolation: isolate; color: var(--color-primary); }
+.explainer-orbit { position: absolute; width: 290px; height: 290px; border: 1px solid var(--loqme-primary-100); border-radius: 50%; z-index: -1; }
+.orbit-two { width: 430px; height: 430px; }
+.explainer-phone { width: 230px; padding: 18px; border-radius: 22px; border: 5px solid var(--loqme-primary-800); background: white; position: relative; box-shadow: 0 16px 30px rgb(15 118 110 / .12); font-size: 12px; }
+.phone-search, .phone-offer, .illustration-row { display: flex; align-items: center; gap: 8px; }
+.phone-search { padding: 10px; background: var(--color-bg-muted); border-radius: 8px; }
+.illustration-map { height: 110px; margin: 12px 0; border-radius: 8px; background: repeating-linear-gradient(25deg, var(--color-primary-soft) 0 28px, white 28px 33px); display: flex; justify-content: space-around; align-items: center; }
+.phone-offer small { display: block; margin-top: 5px; color: var(--color-text-secondary); font-size: 10px; }
+.illustration-bag { position: relative; padding: 20px; display: grid; place-items: center; }
+.illustration-row { margin: 16px 0; font-size: 10px; }
+.illustration-pay { background: var(--color-primary); color: white; border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.illustration-check { display: grid; place-items: center; width: 43px; height: 43px; border: 4px solid white; border-radius: 50%; background: var(--color-primary); color: white; position: absolute; left: -15px; bottom: 24px; }
+.illustration-collection { position: relative; display: flex; align-items: flex-end; gap: 20px; }
+.illustration-store { width: 180px; height: 185px; background: white; border: 2px solid var(--loqme-primary-200); border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.store-awning { height: 34px; width: 100%; background: repeating-linear-gradient(90deg, var(--color-primary) 0 22px, var(--loqme-primary-100) 22px 44px); border-radius: 6px; }
+.illustration-pass { padding: 18px; background: white; border: 2px solid var(--color-primary); border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; }
+.illustration-pass small { color: var(--color-text-secondary); }
+.illustration-enjoy { display: flex; flex-direction: column; align-items: center; gap: 15px; text-align: center; font-size: 13px; }
+.illustration-stars { display: flex; gap: 10px; }
+.explainer-caption { padding: 20px 24px 12px; min-height: 130px; }
+.explainer-caption h3 { font-size: 22px; font-weight: 800; margin: 6px 0 10px; }
+.explainer-caption p { color: var(--color-text-secondary); font-size: 14px; line-height: 1.9; }
+.explainer-controls { padding: 8px 24px 20px; }
+.explainer-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.explainer-steps button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border-radius: 6px; font-size: 11px; color: var(--color-text-secondary); }
+.explainer-steps button[aria-current] { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700; }
+.explainer-steps button span { font-weight: 800; }
+.explainer-controls input[type=range] { width: 100%; height: 30px; accent-color: var(--color-primary); direction: ltr; cursor: pointer; }
+.explainer-playback { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.explainer-playback button:disabled { opacity: .4; cursor: default; }
+.scene-enter { animation: explainer-enter .65s ease both; }
+.animated-pin { animation: explainer-bob 2s ease-in-out infinite; }
+.explainer-panel[data-playing=false] .scene-enter { animation: none; }
+.explainer-panel[data-playing=false] .animated-pin { animation-play-state: paused; }
+@keyframes explainer-enter { from { transform: translateY(8px) scale(.98); } to { transform: none; } }
+@keyframes explainer-bob { 50% { transform: translateY(-8px); } }
+@media (max-width: 640px) {
+  .merchant-ratings { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .merchant-rating { padding: 14px; }
+  .review-panel { padding: 18px; }
+  .explainer-header, .explainer-caption { padding: 16px; }
+  .explainer-controls { padding: 0 12px 16px; }
+  .explainer-caption h3 { font-size: 19px; }
+  .explainer-art { min-height: 280px; height: 30vh; }
+  .illustration-collection { gap: 10px; transform: scale(.88); }
+  .explainer-steps button { flex-direction: column; padding: 6px 0; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene-enter, .animated-pin { animation: none; }
+}

@@ -1,4 +1,5 @@
 "use client";
+import { HowItWorksButton } from "@/components/how-it-works/HowItWorksButton";
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -112,6 +113,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
             <p>کشف خوراکی‌های تازه، خرید هوشمندانه از محله.</p>
           </div>
           <nav aria-label="پیوندهای پایین صفحه">
+            <HowItWorksButton />
             <Link href="/explore">کاوش بسته‌ها</Link>
             <Link href="/orders">پیگیری سفارش</Link>
             {portal && <Link href={portal.href}>{portal.label}</Link>}

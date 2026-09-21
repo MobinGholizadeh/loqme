@@ -1,4 +1,5 @@
 "use client";
+import { HowItWorksButton } from "@/components/how-it-works/HowItWorksButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -66,6 +67,11 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    const refresh = () => setRetry(value => value + 1);
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, []);
   const [nextOffset, setNextOffset] = useState<number | null>(null);
   const [pageLimit, setPageLimit] = useState(0);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -187,8 +193,10 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
     const stores = new Map<string, StoreMapPin>();
     for (const item of filtered) {
       if (item.latitude == null || item.longitude == null) continue;
+      const available = item.canReserve ?? item.remainingQuantity > 0;
       const store = stores.get(item.merchantId);
       if (store) {
+        if (!available) continue;
         store.activeListingCount++;
         store.minPriceToman = Math.min(
           store.minPriceToman ?? Infinity,
@@ -203,8 +211,8 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
           latitude: item.latitude,
           longitude: item.longitude,
           addressFa: item.addressFa || "",
-          activeListingCount: 1,
-          minPriceToman: item.discountedPriceToman,
+          activeListingCount: available ? 1 : 0,
+          minPriceToman: available ? item.discountedPriceToman : undefined,
           ratingAverage: 0,
         });
     }
@@ -216,6 +224,7 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
     Number(Boolean(maxPrice));
   return (
     <div className="discovery-view">
+      {home && <HowItWorksButton card />}
       <div className="discovery-heading">
         <div>
           <h1>{home ? "لقمه‌های تازه، نزدیک شما" : "کشف طعم‌های محله"}</h1>
@@ -355,8 +364,7 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
                   <h3>{pin.businessNameFa}</h3>
                   <p>{pin.addressFa}</p>
                   <p>
-                    {toPersianDigits(pin.activeListingCount)} بسته · از{" "}
-                    {formatToman(pin.minPriceToman || 0)}
+                    {pin.activeListingCount ? `${toPersianDigits(pin.activeListingCount)} پیشنهاد موجود · از ${formatToman(pin.minPriceToman || 0)}` : "ناموجود"}
                   </p>
                 </Link>
               ))

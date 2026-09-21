@@ -361,7 +361,11 @@ export interface MarketplaceFilterParams {
   searchQuery?: string;
 }
 
+export type ListingAvailability = 'AVAILABLE' | 'RESERVED' | 'SOLD_OUT' | 'EXPIRED' | 'UNAVAILABLE';
+
 export interface ListingSummaryDto {
+  availability?: ListingAvailability;
+  canReserve?: boolean;
   cityNameFa?: string;
   neighborhoodNameFa?: string;
   neighborhoodSlug?: string;
@@ -670,8 +674,11 @@ export interface ReviewEntity {
   customerId: string;
   merchantId: string;
   overallRating: number;
-  qualityRating: number;
-  valueRating: number;
+  qualityRating: number | null;
+  valueRating: number | null;
+  collectionRating: number | null;
+  varietyRating: number | null;
+  quantityRating: number | null;
   ratingScore?: number;
   foodQualityScore?: number;
   valueScore?: number;
@@ -718,6 +725,9 @@ export interface CreateReviewInputDto {
   overallRating?: number;
   qualityRating?: number;
   valueRating?: number;
+  collectionRating?: number;
+  varietyRating?: number;
+  quantityRating?: number;
   ratingScore?: number;
   foodQualityScore?: number;
   valueScore?: number;
@@ -730,13 +740,29 @@ export interface ReviewSummaryDto {
   orderNumber: string;
   customerNameFa: string;
   overallRating: number;
-  qualityRating: number;
-  valueRating: number;
+  qualityRating: number | null;
+  valueRating: number | null;
+  collectionRating: number | null;
+  varietyRating: number | null;
+  quantityRating: number | null;
   commentFa?: string | null;
   merchantReplyFa?: string | null;
   merchantReplyAt?: string | null;
   createdAt: string;
   verifiedBuyer: boolean;
+}
+
+export interface RatingStatisticDto {
+  average: number | null;
+  count: number;
+}
+
+export interface MerchantRatingSummaryDto {
+  overallRating: RatingStatisticDto;
+  collectionRating: RatingStatisticDto;
+  qualityRating: RatingStatisticDto;
+  varietyRating: RatingStatisticDto;
+  quantityRating: RatingStatisticDto;
 }
 
 export interface MerchantReplyReviewDto {

@@ -98,6 +98,8 @@ export default function ProfilePage() {
                 });
                 if (!response.ok) throw new Error();
                 clearBusinessDraft();
+                // A full navigation clears authenticated client/provider state after logout.
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                 window.location.assign("/");
               } catch {
                 setError(true);

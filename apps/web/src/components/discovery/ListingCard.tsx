@@ -10,8 +10,9 @@ export function ListingCard({
   listing: ListingSummaryDto;
   priority?: boolean;
 }) {
+  const unavailable = listing.canReserve === false || listing.remainingQuantity <= 0;
   return (
-    <Link href={`/listings/${listing.id}`} className="listing-card">
+    <Link href={`/listings/${listing.id}`} className={`listing-card ${unavailable ? "listing-unavailable" : ""}`}>
       <div className="listing-cover">
         <ListingImage
           src={listing.imageUrl}
@@ -24,7 +25,7 @@ export function ListingCard({
           </span>
         )}
         <span className="listing-stock">
-          {toPersianDigits(listing.remainingQuantity)} بسته موجود
+          {unavailable ? "ناموجود" : `${toPersianDigits(listing.remainingQuantity)} بسته موجود`}
         </span>
       </div>
       <div className="listing-card-body">
@@ -39,6 +40,8 @@ export function ListingCard({
           )}
         </div>
         <h3>{listing.titleFa}</h3>
+        {unavailable && <p className="listing-availability-note">{listing.availability === "RESERVED"
+          ? "همه بسته‌ها فعلاً در حال رزرو هستند" : "موجودی این بسته به پایان رسیده است"}</p>}
         <div className="listing-pickup">
           <MapPin size={15} className="shrink-0" aria-hidden="true" />
           <span>

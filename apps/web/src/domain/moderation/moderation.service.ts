@@ -1,3 +1,5 @@
+import { CreateReviewSchema } from '@loqme/validation';
+import { MerchantRatingSummaryDto } from '@loqme/types';
 import { prisma } from '@/lib/prisma';
 import { auditService } from './audit.service';
 import { paymentService } from '@/domain/payment/payment.service';
@@ -45,31 +47,34 @@ export class ModerationService {
       throw new Error('شما قبلاً برای این سفارش نظر ثبت کرده‌اید');
     }
 
-    const review = await prisma.review.create({
-      data: {
-        orderId,
-        customerId,
-        merchantId: order.merchantId,
-        overallRating: input.overallRating ?? input.ratingScore ?? 5,
-        qualityRating: input.qualityRating ?? input.foodQualityScore ?? 5,
-        valueRating: input.valueRating ?? input.valueScore ?? 5,
-        commentFa: input.commentFa?.trim() || null,
-      },
-    });
-
-    // Recalculate merchant ratings
-    const stats = await prisma.review.aggregate({
-      where: { merchantId: order.merchantId },
-      _avg: { overallRating: true },
-      _count: { id: true },
-    });
-
-    await prisma.merchant.update({
-      where: { id: order.merchantId },
-      data: {
-        ratingAverage: Number(stats._avg.overallRating?.toFixed(1) || 5.0),
-        ratingCount: stats._count.id,
-      },
+    const validated = CreateReviewSchema.parse({ ...input, orderId });
+    const review = await prisma.$transaction(async (tx) => {
+      // Serialize review writers per merchant before inserting or aggregating.
+      await tx.$queryRaw`SELECT id FROM "Merchant" WHERE id = ${order.merchantId} FOR UPDATE`;
+      const created = await tx.review.create({
+        data: {
+          orderId, customerId, merchantId: order.merchantId,
+          overallRating: validated.overallRating,
+          qualityRating: validated.qualityRating ?? null,
+          valueRating: validated.valueRating ?? null,
+          collectionRating: validated.collectionRating ?? null,
+          varietyRating: validated.varietyRating ?? null,
+          quantityRating: validated.quantityRating ?? null,
+          commentFa: validated.commentFa?.trim() || null,
+        },
+      });
+      const stats = await tx.review.aggregate({
+        where: { merchantId: order.merchantId },
+        _avg: { overallRating: true }, _count: { id: true },
+      });
+      await tx.merchant.update({
+        where: { id: order.merchantId },
+        data: {
+          ratingAverage: Number((stats._avg.overallRating ?? 0).toFixed(1)),
+          ratingCount: stats._count.id,
+        },
+      });
+      return created;
     });
 
     await auditService.logAction({
@@ -85,6 +90,25 @@ export class ModerationService {
     });
 
     return review;
+  }
+
+  async getMerchantRatings(merchantId: string): Promise<MerchantRatingSummaryDto> {
+    const fields = {
+      overallRating: true, collectionRating: true, qualityRating: true,
+      varietyRating: true, quantityRating: true,
+    } as const;
+    const stats = await prisma.review.aggregate({
+      where: { merchantId }, _avg: fields, _count: fields,
+    });
+    const score = (key: keyof typeof fields) => ({
+      average: stats._avg[key] == null ? null : Number(stats._avg[key]!.toFixed(1)),
+      count: stats._count[key],
+    });
+    return {
+      overallRating: score('overallRating'), collectionRating: score('collectionRating'),
+      qualityRating: score('qualityRating'), varietyRating: score('varietyRating'),
+      quantityRating: score('quantityRating'),
+    };
   }
 
   /**
@@ -141,7 +165,7 @@ export class ModerationService {
    * Retrieves verified reviews for a merchant.
    */
   async listMerchantReviews(merchantId: string, limit = 20, offset = 0) {
-    const [items, total] = await Promise.all([
+    const [items, total, ratings] = await Promise.all([
       prisma.review.findMany({
         where: { merchantId },
         orderBy: { createdAt: 'desc' },
@@ -177,11 +201,13 @@ export class ModerationService {
         },
       }),
       prisma.review.count({ where: { merchantId } }),
+      this.getMerchantRatings(merchantId),
     ]);
 
     return {
       items,
       total,
+      ratings,
       limit,
       offset,
     };

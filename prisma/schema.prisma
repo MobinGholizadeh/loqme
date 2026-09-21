@@ -637,8 +637,11 @@ model Review {
   customerId      String
   merchantId      String
   overallRating   Int       // 1-5
-  qualityRating   Int       // 1-5
-  valueRating     Int       // 1-5
+  qualityRating   Int?      // 1-5; omitted legacy scores remain unknown
+  valueRating     Int?      // Historical value-for-money scores
+  collectionRating Int?
+  varietyRating    Int?
+  quantityRating   Int?
   commentFa       String?
   merchantReplyFa String?
   merchantReplyAt DateTime?

@@ -1,3 +1,5 @@
+import { reservationService } from "@/domain/reservation/reservation.service";
+import { listingAvailability, publicListingWhere } from "@/domain/listing/availability";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ListingSearchQuerySchema } from "@loqme/validation";
@@ -25,11 +27,12 @@ export async function GET(request: NextRequest) {
     }
 
     const { q, cityId, categoryId, limit } = validated.data;
+    await reservationService.sweepExpiredReservations();
     const now = new Date();
 
     const listings = await prisma.listing.findMany({
       where: {
-        status: ListingStatus.PUBLISHED,
+        ...publicListingWhere(),
         safety: { safetyStatus: SafetyStatus.APPROVED },
         pickupEnd: { gt: now },
         categoryId: categoryId || undefined,
@@ -59,13 +62,6 @@ export async function GET(request: NextRequest) {
     });
 
     const results: ListingSummaryDto[] = listings
-      .filter((listing) => {
-        if (!listing.inventory) return false;
-        const available =
-          listing.inventory.totalQuantity -
-          (listing.inventory.reservedQuantity + listing.inventory.soldQuantity);
-        return available > 0;
-      })
       .map((listing) => {
         const primaryLoc = listing.merchant.locations[0];
         const originalPrice = Number(listing.originalPriceToman);
@@ -100,6 +96,7 @@ export async function GET(request: NextRequest) {
           .padStart(2, "0");
 
         return {
+          ...listingAvailability(listing),
           id: listing.id,
           imageUrl: listing.images[0]?.imageUrl || null,
           merchantId: listing.merchantId,
@@ -112,7 +109,7 @@ export async function GET(request: NextRequest) {
           originalPriceToman: originalPrice,
           discountedPriceToman: discountedPrice,
           discountPercent,
-          remainingQuantity,
+
           pickupWindowFa: `${startHours}:${startMins} تا ${endHours}:${endMins}`,
           pickupEndIso: listing.pickupEnd.toISOString(),
           safetyVerified:

@@ -18,6 +18,8 @@ import { ListingImage } from "@/components/ui/ListingImage";
 import { Heart } from "lucide-react";
 
 interface ListingDetailData {
+  canReserve?: boolean;
+  availability?: string;
   images?: { imageUrl: string }[];
   id: string;
   merchantId: string;
@@ -83,8 +85,21 @@ export default function ListingDetailPage() {
   const [favoriteLoading, setFavoriteLoading] = useState<boolean>(false);
   const [isReserving, setIsReserving] = useState<boolean>(false);
 
+  async function refreshAvailability() {
+    try {
+      const response = await fetch(`/api/listings/${listingId}`, { cache: "no-store" });
+      const result = await response.json();
+      if (response.ok && result.success) setData(result.data);
+    } catch { /* Keep existing detail; reservation remains server-authoritative. */ }
+  }
+  useEffect(() => {
+    if (!listingId) return;
+    window.addEventListener("focus", refreshAvailability);
+    return () => window.removeEventListener("focus", refreshAvailability);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listingId]);
   const handleReserve = async () => {
-    if (!data || isReserving) return;
+    if (!data || isReserving || data.canReserve === false) return;
     setIsReserving(true);
     try {
       const res = await fetch("/api/reservations", {
@@ -103,6 +118,7 @@ export default function ListingDetailPage() {
       if (json.success && json.data) {
         router.push(`/checkout/${json.data.id}`);
       } else {
+        await refreshAvailability();
         showFeedback(json.message || "خطا در رزرو بسته");
       }
     } catch (err) {
@@ -228,6 +244,9 @@ export default function ListingDetailPage() {
     <div className="detail-page">
       {/* Schema.org Product Structured Data for SEO */}
       {feedbackDialog}
+      {data.canReserve === false && <p role="status" className="rounded-lg bg-loqme-neutral-100 p-4 text-sm">
+        ناموجود · {data.availability === "RESERVED" ? "همه بسته‌ها فعلاً در حال رزرو هستند؛ ممکن است دوباره موجود شوند." : data.isExpired ? "زمان دریافت این بسته پایان یافته است." : "این بسته اکنون قابل رزرو نیست."}
+      </p>}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
@@ -516,12 +535,12 @@ export default function ListingDetailPage() {
           <Button
             size="lg"
             variant="primary"
-            disabled={data.isSoldOut || data.isExpired}
+            disabled={data.canReserve === false || data.isSoldOut || data.isExpired}
             isLoading={isReserving}
             onClick={handleReserve}
             className="flex-1 max-w-xs"
           >
-            {data.isSoldOut
+            {data.canReserve === false || data.isSoldOut
               ? "تکمیل موجودی"
               : data.isExpired
                 ? "زمان تحویل سپری شده"

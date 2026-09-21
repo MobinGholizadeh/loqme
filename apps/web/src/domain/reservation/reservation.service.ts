@@ -28,10 +28,11 @@ export class ReservationService {
   }): Promise<CreateReservationResult> {
     const { customerId, listingId, quantity = 1 } = params;
 
-    if (quantity <= 0 || quantity > 5) {
+    if (!Number.isInteger(quantity) || quantity <= 0 || quantity > 5) {
       return { success: false, message: 'تعداد بسته انتخابی باید بین ۱ تا ۵ عدد باشد' };
     }
 
+    await this.sweepExpiredReservations(listingId);
     const now = new Date();
 
     // 1. Verify listing is published, food safety approved, and pickup window not expired
@@ -148,13 +149,7 @@ export class ReservationService {
 
     // Check if pending reservation has expired
     if (reservation.status === ReservationStatus.PENDING && reservation.expiresAt <= now) {
-      await prisma.$transaction([
-        prisma.reservation.update({
-          where: { id: reservation.id },
-          data: { status: ReservationStatus.EXPIRED },
-        }),
-      ]);
-      await inventoryService.atomicRelease(reservation.listingId, reservation.quantity);
+      await this.releasePending(reservation.id, ReservationStatus.EXPIRED);
       reservation.status = ReservationStatus.EXPIRED;
     }
 
@@ -174,26 +169,39 @@ export class ReservationService {
    * Sweeps and auto-releases all expired pending reservations.
    * Called by periodic cron or on-demand before checkout queries.
    */
-  async sweepExpiredReservations(): Promise<number> {
+  async sweepExpiredReservations(listingId?: string): Promise<number> {
     const now = new Date();
 
     const expiredList = await prisma.reservation.findMany({
       where: {
+        listingId,
         status: ReservationStatus.PENDING,
         expiresAt: { lte: now },
       },
       take: 50,
     });
 
+    let released = 0;
     for (const res of expiredList) {
-      await prisma.reservation.update({
-        where: { id: res.id },
-        data: { status: ReservationStatus.EXPIRED },
-      });
-      await inventoryService.atomicRelease(res.listingId, res.quantity);
+      if (await this.releasePending(res.id, ReservationStatus.EXPIRED)) released++;
     }
+    return released;
+  }
 
-    return expiredList.length;
+  private async releasePending(id: string, status: 'EXPIRED' | 'RELEASED') {
+    return prisma.$transaction(async (tx) => {
+      const reservation = await tx.reservation.findUnique({ where: { id } });
+      if (!reservation) return false;
+      const claimed = await tx.reservation.updateMany({
+        where: { id, status: ReservationStatus.PENDING,
+          ...(status === 'EXPIRED' ? { expiresAt: { lte: new Date() } } : {}) },
+        data: { status },
+      });
+      if (!claimed.count) return false;
+      const result = await inventoryService.atomicRelease(reservation.listingId, reservation.quantity, tx);
+      if (!result.success) throw new Error('موجودی رزرو با سفارش مطابقت ندارد');
+      return true;
+    });
   }
 
   /**
@@ -212,12 +220,8 @@ export class ReservationService {
       return { success: false, message: 'این رزرو قابل لغو نمی‌باشد' };
     }
 
-    await prisma.reservation.update({
-      where: { id },
-      data: { status: ReservationStatus.RELEASED },
-    });
-
-    await inventoryService.atomicRelease(reservation.listingId, reservation.quantity);
+    const released = await this.releasePending(id, ReservationStatus.RELEASED);
+    if (!released) return { success: false, message: 'این رزرو قابل لغو نمی‌باشد' };
 
     return { success: true, message: 'رزرو با موفقیت لغو شد' };
   }

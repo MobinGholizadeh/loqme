@@ -155,7 +155,7 @@ test("merchant pickup verification and staff invitation", async ({ page }) => {
     }),
   );
   await page.goto("/merchant/orders");
-  await page.getByLabel("کد ۴ رقمی تحویل:").fill("۱۲۳۴");
+  await page.getByRole("textbox", { name: "کد ۴ رقمی تحویل:", exact: true }).fill("۱۲۳۴");
   const verify = page.waitForRequest((req) =>
     req.url().endsWith("/api/pickup/verify"),
   );

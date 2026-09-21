@@ -1,3 +1,5 @@
+import { reservationService } from "@/domain/reservation/reservation.service";
+import { listingAvailability, publicListingWhere } from "@/domain/listing/availability";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { merchantService } from "@/domain/merchant/merchant.service";
@@ -72,11 +74,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    await reservationService.sweepExpiredReservations();
     const now = new Date();
 
     // 2. Fetch active listings for nearby merchants
     const listings = await prisma.listing.findMany({
       where: {
+        ...publicListingWhere(),
         merchantId: scope === "all" ? undefined : { in: merchantIds },
         merchant: { verificationStatus: "APPROVED", businessType },
         categoryId: categoryId || undefined,
@@ -98,7 +102,6 @@ export async function GET(request: NextRequest) {
               },
             ]
           : undefined,
-        status: ListingStatus.PUBLISHED,
         safety: {
           safetyStatus: SafetyStatus.APPROVED,
         },
@@ -130,13 +133,6 @@ export async function GET(request: NextRequest) {
     // 3. Transform and format
     const results: ListingSummaryDto[] = listings
       .slice(0, limit)
-      .filter((listing) => {
-        if (!listing.inventory) return false;
-        const available =
-          listing.inventory.totalQuantity -
-          (listing.inventory.reservedQuantity + listing.inventory.soldQuantity);
-        return available > 0;
-      })
       .map((listing) => {
         const locInfo = distanceByMerchantId.get(listing.merchantId);
         const location = listing.location || listing.merchant.locations[0];
@@ -172,6 +168,7 @@ export async function GET(request: NextRequest) {
           .padStart(2, "0");
 
         return {
+          ...listingAvailability(listing),
           id: listing.id,
           cityNameFa: location?.city.nameFa,
           neighborhoodNameFa: location?.neighborhood?.nameFa,
@@ -187,7 +184,7 @@ export async function GET(request: NextRequest) {
           originalPriceToman: originalPrice,
           discountedPriceToman: discountedPrice,
           discountPercent,
-          remainingQuantity,
+
           pickupWindowFa: `${startHours}:${startMins} تا ${endHours}:${endMins}`,
           pickupEndIso: listing.pickupEnd.toISOString(),
           distanceMeters: locInfo?.distanceMeters,

@@ -1,3 +1,4 @@
+import { publicListingWhere } from './availability';
 import { prisma } from '@/lib/prisma';
 import { listingImageStorage } from './image-storage';
 import {
@@ -186,7 +187,7 @@ export class ListingService {
 
     return await prisma.listing.findMany({
       where: {
-        status: ListingStatus.PUBLISHED,
+        ...publicListingWhere(now),
         safety: {
           safetyStatus: SafetyStatus.APPROVED,
         },
@@ -295,7 +296,7 @@ export class ListingService {
   ) {
     const listing = await prisma.listing.findUnique({
       where: { id: listingId },
-      include: { inventory: true },
+      include: { inventory: true, safety: true },
     });
 
     if (!listing) {
@@ -329,7 +330,7 @@ export class ListingService {
     return await prisma.$transaction(async (tx) => {
       // 1. Update Inventory
       const updatedInventory = await tx.listingInventory.update({
-        where: { id: currentInventory.id },
+        where: { id: currentInventory.id, version: currentInventory.version },
         data: {
           totalQuantity: newTotal,
           version: { increment: 1 },
@@ -338,14 +339,22 @@ export class ListingService {
 
       // 2. Adjust listing status if sold out or if stock added back
       let newListingStatus = options.status || listing.status;
-      if (newTotal <= currentInventory.soldQuantity) {
+      const mayChangeAvailability = [ListingStatus.PUBLISHED, ListingStatus.SOLD_OUT].includes(newListingStatus as "PUBLISHED" | "SOLD_OUT") &&
+        listing.safety?.safetyStatus === SafetyStatus.APPROVED && listing.pickupEnd > new Date();
+      if (mayChangeAvailability && newTotal <= currentInventory.soldQuantity) {
         newListingStatus = ListingStatus.SOLD_OUT;
-      } else if (listing.status === ListingStatus.SOLD_OUT && newTotal > currentInventory.soldQuantity) {
+      } else if (mayChangeAvailability && newListingStatus === ListingStatus.SOLD_OUT && newTotal > currentInventory.soldQuantity) {
         newListingStatus = ListingStatus.PUBLISHED;
       }
 
       const updatedListing = await tx.listing.update({
-        where: { id: listingId },
+        // Fail and roll back if inventory changed or another operator paused the offer.
+        where: { id: listingId, status: listing.status,
+          ...(newListingStatus === ListingStatus.PUBLISHED && newListingStatus !== listing.status ? {
+            safety: { safetyStatus: SafetyStatus.APPROVED },
+            merchant: { verificationStatus: 'APPROVED' }, pickupEnd: { gt: new Date() },
+          } : {}),
+        },
         data: { status: newListingStatus },
         include: { inventory: true, safety: true, category: true },
       });

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { ListingStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 export interface InventoryStatus {
   totalQuantity: number;
@@ -44,7 +44,7 @@ export class InventoryService {
    * Atomically reserves stock using database-level locking conditions to prevent overselling
    */
   async atomicReserve(listingId: string, quantity: number): Promise<{ success: boolean; message?: string }> {
-    if (quantity <= 0) {
+    if (!Number.isInteger(quantity) || quantity <= 0) {
       return { success: false, message: 'تعداد درخواستی باید بزرگتر از صفر باشد' };
     }
 
@@ -55,7 +55,13 @@ export class InventoryService {
           "version" = "version" + 1,
           "updatedAt" = NOW()
       WHERE "listingId" = ${listingId}
-        AND ("totalQuantity" - ("reservedQuantity" + "soldQuantity")) >= ${quantity};
+        AND ("totalQuantity" - ("reservedQuantity" + "soldQuantity")) >= ${quantity}
+        AND EXISTS (SELECT 1 FROM "Listing" l
+          JOIN "ListingSafety" s ON s."listingId" = l.id
+          JOIN "Merchant" m ON m.id = l."merchantId"
+          WHERE l.id = ${listingId} AND l.status = 'PUBLISHED'
+            AND l."pickupEnd" > NOW() AND s."safetyStatus" = 'APPROVED'
+            AND m."verificationStatus" = 'APPROVED');
     `;
 
     if (count === 0) {
@@ -68,43 +74,49 @@ export class InventoryService {
   /**
    * Atomically releases an expired or cancelled reservation back into available inventory
    */
-  async atomicRelease(listingId: string, quantity: number): Promise<{ success: boolean }> {
-    if (quantity <= 0) return { success: true };
-
-    await prisma.$executeRaw`
-      UPDATE "ListingInventory"
-      SET "reservedQuantity" = GREATEST("reservedQuantity" - ${quantity}, 0),
-          "version" = "version" + 1,
-          "updatedAt" = NOW()
-      WHERE "listingId" = ${listingId};
-    `;
-
-    return { success: true };
+  async atomicRelease(listingId: string, quantity: number, tx?: Prisma.TransactionClient): Promise<{ success: boolean }> {
+    if (!Number.isInteger(quantity) || quantity <= 0) return { success: false };
+    const release = async (db: Prisma.TransactionClient) => {
+      const count = await db.$executeRaw`
+        UPDATE "ListingInventory"
+        SET "reservedQuantity" = "reservedQuantity" - ${quantity},
+            "version" = "version" + 1, "updatedAt" = NOW()
+        WHERE "listingId" = ${listingId} AND "reservedQuantity" >= ${quantity};
+      `;
+      await this.reconcileStatus(db, listingId);
+      return { success: count > 0 };
+    };
+    return tx ? release(tx) : prisma.$transaction(release);
   }
 
-  /**
-   * Atomically converts a reservation into a confirmed sale upon successful payment
-   */
-  async atomicConfirmSold(listingId: string, quantity: number): Promise<{ success: boolean }> {
-    const count = await prisma.$executeRaw`
-      UPDATE "ListingInventory"
-      SET "reservedQuantity" = GREATEST("reservedQuantity" - ${quantity}, 0),
-          "soldQuantity" = "soldQuantity" + ${quantity},
-          "version" = "version" + 1,
-          "updatedAt" = NOW()
-      WHERE "listingId" = ${listingId};
+  private async reconcileStatus(tx: Prisma.TransactionClient, listingId: string) {
+    // Holds do not mean sales. Never reopen an operational/safety pause.
+    await tx.$executeRaw`
+      UPDATE "Listing" l SET status = CASE
+        WHEN i."soldQuantity" >= i."totalQuantity" THEN 'SOLD_OUT'::"ListingStatus"
+        ELSE 'PUBLISHED'::"ListingStatus" END, "updatedAt" = NOW()
+      FROM "ListingInventory" i, "ListingSafety" s, "Merchant" m
+      WHERE l.id = ${listingId} AND i."listingId" = l.id AND s."listingId" = l.id
+        AND m.id = l."merchantId" AND m."verificationStatus" = 'APPROVED'
+        AND l.status IN ('PUBLISHED', 'SOLD_OUT')
+        AND l."pickupEnd" > NOW() AND s."safetyStatus" = 'APPROVED';
     `;
+  }
 
-    // Check if item is now sold out and update listing status
-    const updated = await this.getInventory(listingId);
-    if (updated && updated.isSoldOut) {
-      await prisma.listing.update({
-        where: { id: listingId },
-        data: { status: ListingStatus.SOLD_OUT },
-      });
-    }
-
-    return { success: count > 0 };
+  /** Convert only an actual held quantity, preserving concurrent inventory bounds. */
+  async atomicConfirmSold(listingId: string, quantity: number): Promise<{ success: boolean }> {
+    if (!Number.isInteger(quantity) || quantity <= 0) return { success: false };
+    return prisma.$transaction(async (tx) => {
+      const count = await tx.$executeRaw`
+        UPDATE "ListingInventory"
+        SET "reservedQuantity" = "reservedQuantity" - ${quantity},
+            "soldQuantity" = "soldQuantity" + ${quantity},
+            "version" = "version" + 1, "updatedAt" = NOW()
+        WHERE "listingId" = ${listingId} AND "reservedQuantity" >= ${quantity};
+      `;
+      await this.reconcileStatus(tx, listingId);
+      return { success: count > 0 };
+    });
   }
 }
 

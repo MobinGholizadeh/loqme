@@ -1,5 +1,7 @@
 "use client";
 import { ListingCard } from "@/components/discovery/ListingCard";
+import type { MerchantRatingSummaryDto, ListingAvailability } from "@loqme/types";
+import { MerchantRatings } from "@/components/reviews/MerchantRatings";
 import { useFeedback } from "@/components/ui/useFeedback";
 import * as RedesignIcons from "lucide-react";
 
@@ -16,6 +18,7 @@ import { formatToman, toPersianDigits } from "@/lib/utils/persian";
 import { generateLocalBusinessSchema } from "@/lib/seo/structured-data";
 
 interface MerchantDetailData {
+  ratings?: MerchantRatingSummaryDto;
   id: string;
   businessNameFa: string;
   businessType: string;
@@ -41,6 +44,8 @@ interface MerchantDetailData {
     }>;
   } | null;
   activeListings: Array<{
+    availability?: ListingAvailability;
+    canReserve?: boolean;
     imageUrl?: string | null;
     safetyVerified: boolean;
     id: string;
@@ -121,6 +126,9 @@ export default function MerchantProfilePage() {
 
     fetchMerchant();
     fetchReviews();
+    const refresh = () => { fetchMerchant(); fetchReviews(); };
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
   }, [merchantId]);
 
   const handleToggleFavorite = async () => {
@@ -240,7 +248,7 @@ export default function MerchantProfilePage() {
             <div className="flex items-center gap-3 text-xs text-loqme-neutral-600 pt-1">
               <span className="flex items-center gap-1 font-bold">
                 <span className="text-amber-700">★</span>
-                <span>{toPersianDigits(data.ratingAverage.toFixed(1))}</span>
+                <span>{data.ratingCount ? toPersianDigits(data.ratingAverage.toFixed(1)) : "بدون امتیاز"}</span>
                 <span className="text-loqme-neutral-500 font-normal">
                   ({toPersianDigits(data.ratingCount)} نظر ثبت‌شده)
                 </span>
@@ -288,6 +296,8 @@ export default function MerchantProfilePage() {
         </div>
       </Card>
 
+      <MerchantRatings ratings={data.ratings} />
+
       {/* Operating Hours & Surplus Schedule */}
       {data.location?.hours && data.location.hours.length > 0 && (
         <Card variant="outlined" className="p-5 space-y-3 bg-white">
@@ -326,14 +336,14 @@ export default function MerchantProfilePage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-loqme-neutral-900">
-              بسته‌های فعال و آماده تحویل
+              بسته‌های این فروشگاه
             </h2>
             <p className="text-xs text-loqme-neutral-500 mt-0.5">
               اقلام مازاد باکیفیت و تازه امروز این فروشگاه
             </p>
           </div>
           <Badge variant="brand" size="sm">
-            {toPersianDigits(data.activeListings.length)} موجود
+            {toPersianDigits(data.activeListings.filter(item => item.canReserve ?? item.remainingQuantity > 0).length)} موجود
           </Badge>
         </div>
 
@@ -393,7 +403,7 @@ export default function MerchantProfilePage() {
           </div>
           <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-lg">
             <span className="text-amber-700 text-sm font-bold">
-              ★ {toPersianDigits(data.ratingAverage.toFixed(1))}
+              ★ {data.ratingCount ? toPersianDigits(data.ratingAverage.toFixed(1)) : "بدون امتیاز"}
             </span>
             <span className="text-[11px] text-amber-800">
               ({toPersianDigits(data.ratingCount)} نظر)

@@ -77,7 +77,8 @@ graph TD
 * **PickupVerification**: Physical handoff handshake.
   * Fields: `id`, `orderId` (FK, Unique), `qrCodeHash` (Cryptographic dynamic token), `otpCode` (4-digit numerical string), `isVerified` (Boolean), `verifiedAt` (Timestamp), `verifiedByStaffId` (FK -> MerchantStaff, Nullable), `attemptCount` (Int), `createdAt`.
 * **Review**: Customer feedback loop.
-  * Fields: `id`, `orderId` (FK, Unique), `customerId` (FK), `merchantId` (FK), `ratingScore` (Int 1-5), `foodQualityScore` (Int 1-5), `valueScore` (Int 1-5), `commentFa`, `isPublic` (Boolean), `merchantReplyFa`, `createdAt`.
+  * Fields: `id`, `orderId` (FK, Unique), `customerId` (FK), `merchantId` (FK), `overallRating` (required Int 1-5), `collectionRating`, `qualityRating`, `varietyRating`, `quantityRating` (nullable Int 1-5), historical `valueRating` (nullable Int 1-5), `commentFa`, `merchantReplyFa`, `merchantReplyAt`, `createdAt`.
+  * CP-10.12: no invented defaults/backfills; each merchant rating dimension averages all non-null review scores with its own response count. Legacy input aliases remain compatible. See [review and inventory contracts](CP10_12_MARKETPLACE.md).
 * **Complaint**: Dispute and safety alert.
   * Fields: `id`, `orderId` (FK), `customerId` (FK), `category` (EXPIRED_FOOD, SPOILED_FOOD, STORE_CLOSED, VALUE_DEFICIT, WRONG_ITEMS), `descriptionFa`, `evidenceImageUrls` (Array), `status` (OPEN, INVESTIGATING, RESOLVED_REFUND, DISMISSED), `adminNotesFa`, `resolvedAt`.
 * **Favorite**: Saved local stores.

@@ -1,3 +1,5 @@
+import { reservationService } from "@/domain/reservation/reservation.service";
+import { listingAvailability } from "@/domain/listing/availability";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -9,6 +11,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await reservationService.sweepExpiredReservations();
     const { id } = await params;
 
     const listing = await prisma.listing.findUnique({
@@ -79,6 +82,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: {
+        ...listingAvailability(listing),
         id: listing.id,
         merchantId: listing.merchantId,
         titleFa: listing.titleFa,

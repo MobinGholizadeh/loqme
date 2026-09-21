@@ -1,3 +1,4 @@
+vi.mock("@/domain/reservation/reservation.service", () => ({ reservationService: { sweepExpiredReservations: vi.fn().mockResolvedValue(0) } }));
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import { readFileSync } from "node:fs";
@@ -30,6 +31,7 @@ describe("Stitch redesign contracts", () => {
       mocks.findMany.mockResolvedValue([
         {
           id: "listing",
+          status: "PUBLISHED",
           merchantId: "merchant",
           titleFa: "نان تازه",
           type: "SURPRISE_BAG",
@@ -40,6 +42,7 @@ describe("Stitch redesign contracts", () => {
           images,
           merchant: {
             businessNameFa: "فروشگاه",
+            verificationStatus: "APPROVED",
             businessType: "BAKERY",
             locations: [],
           },

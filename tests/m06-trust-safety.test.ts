@@ -176,6 +176,8 @@ describe('Milestone M06 — Trust, Safety, Verification & Moderation', () => {
     });
 
     it('successfully submits verified review and recalculates merchant average rating', async () => {
+      vi.spyOn(prisma, '$transaction').mockImplementation(async (callback: any) => callback(prisma));
+      vi.spyOn(prisma, '$queryRaw').mockResolvedValueOnce([{ id: 'merchant-10' }]);
       vi.spyOn(prisma.order, 'findUnique').mockResolvedValueOnce({
         id: 'order-valid-1',
         customerId: 'customer-1',

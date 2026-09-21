@@ -298,6 +298,9 @@ export const CreateReviewSchema = z
     foodQualityScore: z.coerce.number().int().min(1, 'کیفیت غذا باید بین ۱ تا ۵ باشد').max(5, 'کیفیت غذا باید بین ۱ تا ۵ باشد').optional(),
     valueRating: z.coerce.number().int().min(1, 'ارزش خرید باید بین ۱ تا ۵ باشد').max(5, 'ارزش خرید باید بین ۱ تا ۵ باشد').optional(),
     valueScore: z.coerce.number().int().min(1, 'ارزش خرید باید بین ۱ تا ۵ باشد').max(5, 'ارزش خرید باید بین ۱ تا ۵ باشد').optional(),
+    collectionRating: z.number().int().min(1).max(5).optional(),
+    varietyRating: z.number().int().min(1).max(5).optional(),
+    quantityRating: z.number().int().min(1).max(5).optional(),
     commentFa: z.string().max(1000, 'متن نظر نمی‌تواند بیش از ۱۰۰۰ حرف باشد').optional(),
   })
   .refine(
@@ -308,9 +311,12 @@ export const CreateReviewSchema = z
   )
   .transform((data) => ({
     orderId: data.orderId,
-    overallRating: data.overallRating ?? data.ratingScore ?? 5,
-    qualityRating: data.qualityRating ?? data.foodQualityScore ?? 5,
-    valueRating: data.valueRating ?? data.valueScore ?? 5,
+    overallRating: (data.overallRating ?? data.ratingScore)!,
+    qualityRating: data.qualityRating ?? data.foodQualityScore,
+    valueRating: data.valueRating ?? data.valueScore,
+    collectionRating: data.collectionRating,
+    varietyRating: data.varietyRating,
+    quantityRating: data.quantityRating,
     commentFa: data.commentFa,
   }));
 

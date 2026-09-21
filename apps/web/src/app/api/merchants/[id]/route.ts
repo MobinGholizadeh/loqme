@@ -1,3 +1,6 @@
+import { reservationService } from "@/domain/reservation/reservation.service";
+import { moderationService } from "@/domain/moderation/moderation.service";
+import { listingAvailability, publicListingWhere } from "@/domain/listing/availability";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { extractSessionToken, verifySessionToken } from "@/lib/auth/session";
@@ -10,6 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await reservationService.sweepExpiredReservations();
     const { id } = await params;
 
     const merchant = await prisma.merchant.findUnique({
@@ -26,7 +30,7 @@ export async function GET(
         },
         listings: {
           where: {
-            status: ListingStatus.PUBLISHED,
+            ...publicListingWhere(),
             safety: { safetyStatus: SafetyStatus.APPROVED },
             pickupEnd: { gt: new Date() },
           },
@@ -41,7 +45,7 @@ export async function GET(
       },
     });
 
-    if (!merchant) {
+    if (!merchant || merchant.verificationStatus !== "APPROVED") {
       return NextResponse.json(
         { success: false, message: "فروشگاه مورد نظر یافت نشد" },
         { status: 404 },
@@ -71,15 +75,9 @@ export async function GET(
     }
 
     const primaryLocation = merchant.locations[0];
+    const ratings = await moderationService.getMerchantRatings(merchant.id);
 
     const activeListings = merchant.listings
-      .filter((listing) => {
-        if (!listing.inventory) return false;
-        const available =
-          listing.inventory.totalQuantity -
-          (listing.inventory.reservedQuantity + listing.inventory.soldQuantity);
-        return available > 0;
-      })
       .map((listing) => {
         const originalPrice = Number(listing.originalPriceToman);
         const discountedPrice = Number(listing.discountedPriceToman);
@@ -108,6 +106,7 @@ export async function GET(
           .padStart(2, "0");
 
         return {
+          ...listingAvailability(listing),
           id: listing.id,
           imageUrl: listing.images[0]?.imageUrl || null,
           safetyVerified:
@@ -117,11 +116,6 @@ export async function GET(
           originalPriceToman: originalPrice,
           discountedPriceToman: discountedPrice,
           discountPercent,
-          remainingQuantity: listing.inventory
-            ? listing.inventory.totalQuantity -
-              (listing.inventory.reservedQuantity +
-                listing.inventory.soldQuantity)
-            : 0,
           pickupWindowFa: `${startHours}:${startMins} تا ${endHours}:${endMins}`,
           pickupEndIso: listing.pickupEnd.toISOString(),
           categoryNameFa: listing.category.nameFa,
@@ -135,8 +129,9 @@ export async function GET(
         id: merchant.id,
         businessNameFa: merchant.businessNameFa,
         businessType: merchant.businessType,
-        ratingAverage: merchant.ratingAverage,
-        ratingCount: merchant.ratingCount,
+        ratingAverage: ratings.overallRating.average ?? 0,
+        ratings,
+        ratingCount: ratings.overallRating.count,
         verificationStatus: merchant.verificationStatus,
         isFavorited,
         location: primaryLocation

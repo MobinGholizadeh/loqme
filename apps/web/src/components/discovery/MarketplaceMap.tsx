@@ -221,7 +221,7 @@ export function MarketplaceMap({
 
   return (
     <div
-      className={`relative w-full h-[480px] md:h-[580px] rounded-lg overflow-hidden shadow-card border border-loqme-neutral-200 ${className}`}
+      className={`relative isolate z-0 w-full h-[480px] md:h-[580px] rounded-lg overflow-hidden shadow-card border border-loqme-neutral-200 ${className}`}
     >
       {/* Map Canvas Container */}
       <div ref={mapContainerRef} className="w-full h-full z-0" />
@@ -232,6 +232,7 @@ export function MarketplaceMap({
           type="button"
           className="icon-button bg-white border border-loqme-neutral-200"
           title="بازگشت به محله انتخاب‌شده"
+          aria-label="بازگشت به محله انتخاب‌شده"
           onClick={() => handleRecenter(center, zoom)}
         >
           <RedesignIcons.RotateCcw size={18} />
@@ -241,7 +242,8 @@ export function MarketplaceMap({
           type="button"
           onClick={handleLocateMe}
           title="نمایش موقعیت من روی نقشه"
-          className="w-10 h-10 bg-white/95 backdrop-blur-md rounded-lg shadow-dropdown border border-loqme-neutral-200 text-loqme-neutral-700 hover:text-loqme-primary-600 flex items-center justify-center transition-colors self-start"
+          aria-label="نمایش موقعیت من روی نقشه"
+          className="w-11 h-11 bg-white/95 backdrop-blur-md rounded-lg shadow-dropdown border border-loqme-neutral-200 text-loqme-neutral-700 hover:text-loqme-primary-600 flex items-center justify-center transition-colors self-start"
         >
           <RedesignIcons.LocateFixed size={20} aria-hidden="true" />
         </button>
@@ -298,7 +300,7 @@ export function MarketplaceMap({
               <div className="text-xs">
                 <span className="text-loqme-neutral-500">موجودی فعال: </span>
                 <span className="font-bold text-loqme-primary-700">
-                  {toPersianDigits(activePin.activeListingCount)} بسته
+                  {activePin.activeListingCount ? `${toPersianDigits(activePin.activeListingCount)} پیشنهاد موجود` : "ناموجود"}
                 </span>
                 {activePin.minPriceToman && (
                   <span className="text-loqme-neutral-500 mr-2">

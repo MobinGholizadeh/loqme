@@ -8,6 +8,12 @@
 
 ## 1. Project Health & Current State
 
+### Active: CP-10.12 Merchant ratings, availability, map controls and explainer (2026-09-22)
+
+Implemented verified customer review dimensions and independent server aggregates, visible unavailable offers with authoritative reservation eligibility, safe stock reconciliation, isolated map controls and the lazy-loaded Persian 30-second purchasing guide. The user authorized pushing `master` and verifying deployment. Release workflow now backs up and verifies the database, migrates before replacing the app, preserves the previous image and checks readiness. See [CP10_12_MARKETPLACE.md](CP10_12_MARKETPLACE.md) for contracts, recovery caveats and release evidence.
+
+Fresh disposable database acceptance: **230/230 tests in 25 suites**. Production build, web/shared typechecks and lint pass. **64/64 browser tests** pass; merchant/explainer layouts were visually inspected at 360/390/768/1440px with zero axe violations. Local Docker build was blocked by Alpine repository TLS verification; the GitHub container build remains to be verified. Existing CP-10.11 live SMS/Map.ir/device gates remain open. No production reseeding or fabricated reviews.
+
 ### Active: CP-10.11 Authentication & Business Onboarding (2026-09-21)
 
 User-pushed Stage 1 is `ea129ac`. Stage 2 continues full-screen customer/business SMS authentication, five-step store registration, Map.ir adapter/manual fallback, application status and atomic admin approval. Stage 2 fixes OTP replay/attempt enforcement, keyboard pin editing, restored rejected drafts, closed-day/null pickup validation, bounded request/provider bodies and mobile banner stretching.
@@ -46,20 +52,20 @@ Baseline: web TypeScript passed, lint had six warnings, and unavailable PostgreS
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **CP-10.11 — Authentication & Business Onboarding** |
-| **Milestone Status** | Stage 2 local acceptance; live provider/device gates remain; historical M00–M11 sign-offs retained below |
-| **Overall Completion** | Historical roadmap complete; new checkpoint tracked independently (not deployed) |
+| **Current Milestone** | **CP-10.12 — Merchant ratings, availability, map controls and explainer** |
+| **Milestone Status** | Local release validation; CP-10.11 provider/device gates remain open |
+| **Overall Completion** | Historical roadmap complete; CP-10.12 release evidence tracked separately |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running, Dockerized) |
-| **Last Updated** | 2026-09-21 (CP-10.11 continuation) |
+| **Last Updated** | 2026-09-22 (CP-10.12) |
 
 ---
 
 ## 2. Technology Stack & Operational Environment
 
-* **Runtime**: Node.js `v20.17.0` (Active on Windows host)
-* **Package Manager**: `npm` `11.10.0` (via `npm.cmd` / `npx.cmd`) with npm workspaces (`apps/*`, `packages/*`)
+* **Runtime**: Node.js `v24.16.0` (validation on Windows host); Node 24 Alpine production image
+* **Package Manager**: `npm` `11.17.0` with npm workspaces (`apps/*`, `packages/*`)
 * **Monorepo Architecture**:
-  * `apps/web`: Next.js 14.2.23 (App Router), React 18, TypeScript 5, Leaflet 1.9
+  * `apps/web`: Next.js 16.3.5 (App Router), React 19, TypeScript 5, Leaflet 1.9
   * `apps/mobile`: [Future] React Native / Expo Client
   * `packages/types`: `@loqme/types` (Domain contracts, RBAC, API wrappers, Marketplace, Orders, Payments, Financial Transactions, Moderation, Reviews, Complaints, AuditLogs, Merchant Portal DTOs)
   * `packages/validation`: `@loqme/validation` (Zod schemas, Iranian mobile, Checkout, Reviews, Complaints, Fast Listings, Staff, Store Settings)
@@ -67,7 +73,7 @@ Baseline: web TypeScript passed, lint had six warnings, and unavailable PostgreS
   * `packages/api`: `@loqme/api` (Universal fetch-based API client, Bearer & Cookie auth)
   * `packages/config`: `@loqme/config` (Shared tsconfig presets)
 * **Database**: PostgreSQL 15 with PostGIS 3.4 (Active via Docker container `loqme-postgres` on port 5432)
-* **ORM & Migrations**: Prisma ORM `v5.22.0` with migrations:
+* **ORM & Migrations**: Prisma ORM `v7.10.0` with migrations (complete source: `prisma/migrations`):
   * `0001_init_auth_users`
   * `20260906201522_core_domain_entities`
   * `20260907000300_add_favorites_table`

@@ -117,6 +117,8 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
+- [ ] **CP-10.12 — Merchant ratings, availability, map controls and explainer (2026-09-22)**: Implementation and local acceptance complete; deployment verification in progress. User-approved scope includes nullable review dimensions, server aggregation and serialized totals, retained unavailable offers, reservation/restocking concurrency fixes, map stacking, and a lazy accessible four-scene guide. Fresh disposable database: 230/230 tests in 25 suites; 64/64 browser tests, four-width visual/axe checks, production build, web/shared types and lint pass. Deployment now verifies backup and runs migrations before replacement, preserves the prior image and verifies readiness. Full evidence and recovery caveats: [CP10_12_MARKETPLACE.md](../CP10_12_MARKETPLACE.md). Existing onboarding provider/device gates are unchanged.
+
 - [ ] **CP-10.11 — Full-screen authentication and business onboarding (2026-09-21)**: Implementation and local acceptance complete; live provider/device acceptance remains open. User-approved follow-on scope explicitly includes application persistence and admin approval despite the historical M10 migration exclusion. Stage 1 `ea129ac`; Stage 2 evidence in [AUTH_ONBOARDING.md](../AUTH_ONBOARDING.md). Customer/business SMS entry, Map.ir/manual first-store registration, editable location/hours, expiring drafts, pending/rejected/approved status, transactional audited approval and nullable pickup defaults. No main DB migration or deployment.
   - [x] Application/UI/schema/API implementation and OTP single-use hardening.
   - [x] Fresh disposable PostgreSQL acceptance: 218/218 tests; web/shared types, lint and final optimized build.

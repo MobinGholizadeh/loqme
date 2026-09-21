@@ -13,10 +13,16 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
 jobs:
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     permissions:
       contents: read
       packages: write
@@ -46,6 +52,7 @@ jobs:
             type=ref,event=branch
 
       - name: Build and Push Docker Image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -82,40 +89,56 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
-          envs: GITHUB_ACTOR,GITHUB_TOKEN
+          command_timeout: 15m
           script: |
-            set -e
-            echo "🚀 Starting Loqme Production Deployment..."
-
-            # Authenticate Docker daemon to GitHub Container Registry on server
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-
-            # Navigate to production deployment directory
-            DEPLOY_DIR="/opt/loqme"
-            if [ ! -d "$DEPLOY_DIR" ]; then
-              echo "Creating deployment directory: $DEPLOY_DIR"
-              sudo mkdir -p "$DEPLOY_DIR"
-              sudo chown -R $USER:$USER "$DEPLOY_DIR"
-            fi
-            cd "$DEPLOY_DIR"
-
-            # Pull latest production container image
-            echo "📥 Pulling latest application image..."
+            set -eu
+            umask 077
+            cd /opt/loqme
+            test -f docker-compose.prod.yml
+            printf '%s' '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
+            REPOSITORY=$(printf '%s' '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
+            export LOQME_IMAGE="ghcr.io/$REPOSITORY@${{ needs.build-and-push.outputs.digest }}"
             docker compose -f docker-compose.prod.yml pull app
 
-            # Zero-downtime rolling restart of production services
-            echo "🔄 Starting production services..."
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            # Keep the exact previous image available for application rollback.
+            PREVIOUS_CONTAINER=$(docker compose -f docker-compose.prod.yml ps -q app)
+            PREVIOUS_IMAGE=""
+            if [ -n "$PREVIOUS_CONTAINER" ]; then
+              PREVIOUS_IMAGE=$(docker inspect --format '{{.Image}}' "$PREVIOUS_CONTAINER")
+              docker tag "$PREVIOUS_IMAGE" "loqme-rollback:${{ github.sha }}"
+            fi
 
-            # Apply Prisma database migrations inside the running container
-            echo "📦 Running Prisma database migrations..."
-            docker compose -f docker-compose.prod.yml exec -T app ./node_modules/.bin/prisma migrate deploy
+            # Backup and validate before migration; errors leave the running app intact.
+            mkdir -p backups
+            BACKUP="backups/pre-${{ github.sha }}-$(date +%Y%m%d%H%M%S).dump"
+            docker compose -f docker-compose.prod.yml exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$BACKUP"
+            test -s "$BACKUP"
+            docker compose -f docker-compose.prod.yml exec -T postgres pg_restore --list < "$BACKUP" > /dev/null
+            sha256sum "$BACKUP" > "$BACKUP.sha256"
+            sha256sum -c "$BACKUP.sha256"
+            docker compose -f docker-compose.prod.yml run --rm --no-deps app ./node_modules/.bin/prisma migrate deploy
 
-            # Prune dangling/unused images to preserve disk space
-            echo "🧹 Pruning unused container images..."
-            docker image prune -af --filter "until=72h"
-
-            # Check container health status
-            echo "✅ Checking running container status..."
-            docker compose -f docker-compose.prod.yml ps
-            echo "🎉 Deployment successfully completed!"
+            rollback() {
+              if [ -n "$PREVIOUS_IMAGE" ]; then
+                export LOQME_IMAGE="$PREVIOUS_IMAGE"
+                docker compose -f docker-compose.prod.yml up -d --no-deps app
+                echo "Previous app image restored; compatible migration retained."
+              fi
+            }
+            if ! docker compose -f docker-compose.prod.yml up -d --no-deps app; then
+              rollback
+              exit 1
+            fi
+            READY=0
+            for attempt in $(seq 1 30); do
+              if docker compose -f docker-compose.prod.yml exec -T app curl --fail --silent http://localhost:3000/api/health/ready; then
+                READY=1
+                break
+              fi
+              sleep 4
+            done
+            if [ "$READY" != 1 ]; then
+              rollback
+              exit 1
+            fi
+            echo "Deployment verified: $LOQME_IMAGE"

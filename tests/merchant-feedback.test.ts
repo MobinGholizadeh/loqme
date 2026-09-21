@@ -1,3 +1,4 @@
+vi.mock("@/domain/reservation/reservation.service", () => ({ reservationService: { sweepExpiredReservations: vi.fn().mockResolvedValue(0) } }));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import sharp from "sharp";
