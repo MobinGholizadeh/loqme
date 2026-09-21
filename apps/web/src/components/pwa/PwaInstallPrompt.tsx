@@ -22,9 +22,27 @@ export const PwaInstallPrompt: React.FC = () => {
   useEffect(() => {
     // 1. Register Service Worker in browser
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch((err) => {
-        console.warn("ServiceWorker registration failed:", err);
-      });
+      if (process.env.NODE_ENV === "production") {
+        navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch((err) => {
+          console.warn("ServiceWorker registration failed:", err);
+        });
+      } else {
+        // Old development workers can serve stale CSS under stable Turbopack URLs.
+        // Remove only Loqme's worker/cache, then release its control of this page.
+        void (async () => {
+          const workerUrl = new URL("/sw.js", window.location.origin).href;
+          const wasControlled = navigator.serviceWorker.controller?.scriptURL === workerUrl;
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.filter(registration =>
+            [registration.active, registration.waiting, registration.installing]
+              .some(worker => worker?.scriptURL === workerUrl)
+          ).map(registration => registration.unregister()));
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.filter(name => name.startsWith("loqme-cache-"))
+            .map(name => caches.delete(name)));
+          if (wasControlled) window.location.reload();
+        })().catch(err => console.warn("Development cache cleanup failed:", err));
+      }
     }
 
     // 2. Check if already installed in standalone mode

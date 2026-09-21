@@ -37,3 +37,12 @@ Released commit [`32c557e`](https://github.com/MobinGholizadeh/loqme/commit/32c5
 Server logs confirm the backup checksum passed, `20260921010000_review_dimensions` applied successfully before replacement, and database readiness passed at 2026-09-21 21:12:36 UTC (2026-09-22 Tehran). Deployed image digest: `sha256:e093f324be84562bf9afc55162846bb01f1db7f0ee8eea63cacce073f2df5fa0`.
 
 Public `https://loqme.shop/`, `/api/health/live`, `/api/health/ready`, discovery, search and sitemap returned HTTP 200. A real production browser opened the guide and verified play, pause, next scene and close. Public discovery had zero current offers and the sitemap exposed no approved merchant profiles, so live merchant/rating and unavailable-card checks could not exercise real records; those cases passed disposable-database and browser acceptance. No production records were fabricated or reseeded.
+
+
+## Follow-up: first-load CSS and playback crash (2026-09-22)
+
+The local development worker could serve old CSS under a stable Turbopack URL. PWA registration is now production-only; development removes only Loqme registrations/caches and reloads a previously controlled page once to release it. Production worker v4 fetches styles network-first with an offline fallback and retires only older Loqme caches.
+
+Playback now initializes its clock from the first animation-frame timestamp rather than mixing that timestamp with `performance.now()`. A frame can start before the effect runs; subtracting those clocks previously made elapsed time negative and indexed scene -1. Elapsed time and scene bounds now remain nonnegative.
+
+Validation: 16/16 focused production-browser tests passed (including stale stylesheet recovery and early-frame regression), plus the early-frame test against the actual development server. A browser with a preinstalled local worker recovered automatically and retained an unrelated cache. Production build, web/shared typechecks and lint pass. Existing database acceptance remains unchanged; this follow-up contains no schema or backend changes. Release verification is pending push/deployment.

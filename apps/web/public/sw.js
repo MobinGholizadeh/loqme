@@ -1,5 +1,5 @@
 // Loqme (لقمه) Service Worker — Version 1.0.0
-const CACHE_NAME = 'loqme-cache-v3';
+const CACHE_NAME = 'loqme-cache-v4';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
@@ -36,7 +36,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
+          if (cache.startsWith('loqme-cache-') && cache !== CACHE_NAME) {
             return caches.delete(cache);
           }
         })
@@ -78,9 +78,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static images, fonts & assets: Cache First with network fallback
+  // Styles can retain their URL during development or deployment transitions.
+  // Prefer fresh CSS online while preserving styled offline navigation.
+  if (request.destination === 'style') {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const response = await fetch(request);
+        if (response.ok) await cache.put(request, response.clone());
+        return response;
+      } catch (error) {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        throw error;
+      }
+    })());
+    return;
+  }
+
+  // Static images, fonts & scripts: Cache First with network fallback
   if (
-    request.destination === 'style' ||
     request.destination === 'script' ||
     request.destination === 'image' ||
     request.destination === 'font'

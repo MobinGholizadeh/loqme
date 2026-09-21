@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, MapPin, ShoppingBag, Check, QrCode, Star, Play, Pause, RotateCcw, X, ArrowRight, ArrowLeft, CreditCard, Clock3 } from "lucide-react";
 import { DialogSurface } from "@/components/ui/DialogSurface";
 import { toPersianDigits } from "@/lib/utils/persian";
@@ -42,8 +42,7 @@ export default function LoqmeExplainer({ onClose }: { onClose: () => void }) {
   const [elapsed, setElapsed] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(true);
-  const timeRef = useRef(0);
-  const scene = Math.min(3, Math.floor(elapsed / SCENE_MS));
+  const scene = Math.max(0, Math.min(scenes.length - 1, Math.floor(elapsed / SCENE_MS)));
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => { setReducedMotion(preference.matches); if (preference.matches) setPlaying(false); };
@@ -55,11 +54,12 @@ export default function LoqmeExplainer({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (!playing || reducedMotion) return;
     let frame: number;
-    timeRef.current = performance.now();
+    // Use one clock: a frame's timestamp can precede performance.now() at setup.
+    let previousFrame: number | null = null;
     const advance = (now: number) => {
-      const delta = now - timeRef.current;
-      timeRef.current = now;
-      setElapsed(current => Math.min(DURATION, current + delta));
+      const delta = previousFrame === null ? 0 : Math.max(0, now - previousFrame);
+      previousFrame = now;
+      setElapsed(current => Math.max(0, Math.min(DURATION, current + delta)));
       frame = requestAnimationFrame(advance);
     };
     frame = requestAnimationFrame(advance);

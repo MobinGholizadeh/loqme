@@ -6,6 +6,27 @@ const ratings = {
   overallRating: { average: 4.2, count: 12 }, collectionRating: { average: 4.5, count: 10 },
   qualityRating: { average: 4.2, count: 12 }, varietyRating: { average: null, count: 0 }, quantityRating: { average: 4.8, count: 9 },
 };
+
+test('playback accepts an initial frame timestamp earlier than effect setup', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await installFixtures(page); await page.goto('/');
+  await page.locator('.how-it-works-card').click();
+  await page.getByRole('dialog').waitFor();
+  await page.evaluate(() => {
+    const nativeFrame = window.requestAnimationFrame.bind(window);
+    // A busy frame can already have started before the playback effect runs.
+    window.requestAnimationFrame = callback => nativeFrame(time => callback(time - 250));
+  });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.getByRole('button', { name: 'پخش راهنما', exact: true }).click();
+    await page.waitForTimeout(300);
+    await expect(page.getByRole('heading', { name: 'یک طعم تازه کشف کن' })).toBeVisible();
+    await page.getByRole('button', { name: 'توقف', exact: true }).click();
+  }
+  expect(errors).toEqual([]);
+  await expect(page.locator('#explainer-progress')).not.toHaveValue(/^-|NaN/);
+});
 for (const width of [360,390,768,1440]) {
   test(`merchant ratings and unavailable cards at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 900 }); await installFixtures(page);

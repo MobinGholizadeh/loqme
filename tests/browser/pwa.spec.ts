@@ -2,6 +2,30 @@ import { test, expect } from "@playwright/test";
 
 test.use({ serviceWorkers: "allow" });
 
+test("cached old CSS cannot remove the explainer layout on first navigation", async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+  await page.reload();
+  await page.locator('.how-it-works-card').waitFor();
+  await page.evaluate(async () => {
+    const keys = (await caches.keys()).filter(key => key.startsWith('loqme-cache-'));
+    const styles = [...document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')];
+    for (const key of keys) {
+      const cache = await caches.open(key);
+      for (const style of styles) {
+        await cache.put(style.href, new Response('body { --stale-css: 1; }', {
+          headers: { 'Content-Type': 'text/css' },
+        }));
+      }
+    }
+  });
+  await page.reload();
+  await expect(page.locator('.how-it-works-card')).toHaveCSS('display', 'flex');
+  await page.locator('.how-it-works-card').click();
+  await expect(page.locator('.explainer-art')).toHaveCSS('display', 'grid');
+  await expect(page.locator('.explainer-phone')).toHaveCSS('border-top-width', '5px');
+});
+
 test("service worker installs, excludes private responses and serves offline navigation", async ({
   page,
   context,
