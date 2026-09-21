@@ -1,0 +1,84 @@
+name: Build Android TWA APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type (debug or release)'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+
+env:
+  ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: "node24"
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java Development Kit (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | sdkmanager --licenses || true
+
+      - name: Set up Gradle 8.5
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
+
+      - name: Grant Execute Permission to gradlew
+        run: chmod +x ./android/gradlew
+
+      - name: Assemble Debug APK
+        if: "${{ github.event_name != 'workflow_dispatch' || github.event.inputs.build_type == 'debug' }}"
+        run: |
+          cd android
+          gradle assembleDebug --stacktrace || ./gradlew assembleDebug --stacktrace
+
+      - name: Assemble Release APK
+        if: "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.build_type == 'release' }}"
+        run: |
+          cd android
+          gradle assembleRelease --stacktrace || ./gradlew assembleRelease --stacktrace
+
+      - name: Locate Generated APK
+        id: find_apk
+        run: |
+          APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          echo "Found APK at: $APK_PATH"
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: loqme-android-twa-apk
+          path: ${{ steps.find_apk.outputs.apk_path }}
+          retention-days: 14
+
+      - name: Publish Release Asset to GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find_apk.outputs.apk_path }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

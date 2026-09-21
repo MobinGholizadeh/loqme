@@ -1,0 +1,34 @@
+{
+  "name": "لقمه | عرضه هوشمند مازاد روزانه غذا",
+  "short_name": "لقمه",
+  "description": "کشف و خرید بسته‌های غذایی تازه و سالم با تخفیف جذاب از فروشگاه‌های محلی ارومیه و شهرهای ایران",
+  "start_url": "/",
+  "id": "ir.loqme.app",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFFFF",
+  "theme_color": "#135E66",
+  "dir": "rtl",
+  "lang": "fa-IR",
+  "scope": "/",
+  "categories": ["food", "shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

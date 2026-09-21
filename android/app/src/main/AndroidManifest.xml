@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.LauncherActivity">
+
+        <!-- Digital Asset Links configuration for Chrome URL delegation -->
+        <meta-data
+            android:name="asset_statements"
+            android:value="${assetStatements}" />
+
+        <activity
+            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- URL Verification Intent Filter for TWA Domain Routing -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="${hostName}" />
+            </intent-filter>
+
+            <!-- TWA Configuration Meta-data -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.DEFAULT_URL"
+                android:value="${defaultUrl}" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
+                android:resource="@color/colorPrimary" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
+                android:resource="@color/colorPrimary" />
+
+        </activity>
+
+    </application>
+
+</manifest>

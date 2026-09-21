@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ir.loqme.app",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:02:52:54:1E:E0:49:E2:40:DE:52:4F:08:F5:42:F8:86:1B:11:42:5B:3A:56:A6:EA:24:C8:82:E3",
+        "A1:B2:C3:D4:E5:F6:01:23:45:67:89:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34"
+      ]
+    }
+  }
+]

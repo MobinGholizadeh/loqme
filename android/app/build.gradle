@@ -1,0 +1,48 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace "ir.loqme.app"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "ir.loqme.app"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Placeholders used in AndroidManifest.xml for TWA LauncherActivity
+        manifestPlaceholders = [
+            hostName: "loqme.ir",
+            defaultUrl: "https://loqme.ir",
+            appName: "لقمه",
+            assetStatements: '[{ "relation": ["delegate_permission/common.handle_all_urls"], "target": {"namespace": "android_app", "package_name": "ir.loqme.app", "sha256_cert_fingerprints": ["14:6D:E9:7D:02:52:54:1E:E0:49:E2:40:DE:52:4F:08:F5:42:F8:86:1B:11:42:5B:3A:56:A6:EA:24:C8:82:E3"]} }]'
+        ]
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            debuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+    implementation 'androidx.browser:browser:1.8.0'
+    implementation 'androidx.core:core:1.13.1'
+}

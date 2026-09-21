@@ -1,13 +1,48 @@
-version: '3.8'
-
 services:
+  app:
+    image: ${LOQME_IMAGE:-ghcr.io/mobingholizadeh/loqme:latest}
+    container_name: loqme-app-prod
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-loqme_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-loqme}?schema=public
+      REDIS_URL: redis://redis:6379
+      SESSION_SECRET: ${SESSION_SECRET}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://loqme.ir}
+      LISTING_IMAGE_STORAGE_DIR: /app/.data/listing-images
+      SMS_PROVIDER: ${SMS_PROVIDER:-kavenegar}
+      KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY:-}
+      FARAZSMS_API_KEY: ${FARAZSMS_API_KEY:-}
+      ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID:-}
+      NEXT_PUBLIC_MAP_API_KEY: ${NEXT_PUBLIC_MAP_API_KEY:-}
+      MAPIR_API_KEY: ${MAPIR_API_KEY:-}
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - loqme_prod_listing_images:/app/.data/listing-images
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - loqme_prod_net
+
   postgres:
-    image: postgis/postgis:15-3.4-alpine
+    image: postgis/postgis:16-3.4-alpine
     container_name: loqme-postgres-prod
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-loqme_admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-loqme_secure_db_pass_2026}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password required}
       POSTGRES_DB: ${POSTGRES_DB:-loqme}
     ports:
       - "127.0.0.1:5432:5432"
@@ -20,48 +55,38 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - loqme-network
+      - loqme_prod_net
 
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: loqme-web-prod
+  redis:
+    image: redis:7-alpine
+    container_name: loqme-redis-prod
     restart: always
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      LISTING_IMAGE_STORAGE_DIR: /app/.data/listing-images
-      DATABASE_URL: postgresql://${POSTGRES_USER:-loqme_admin}:${POSTGRES_PASSWORD:-loqme_secure_db_pass_2026}@postgres:5432/${POSTGRES_DB:-loqme}?schema=public
-      SESSION_SECRET: ${SESSION_SECRET}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://loqme.shop}
-      SMS_PROVIDER: ${SMS_PROVIDER:-kavenegar}
-      KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY}
-      ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID}
-      NEXT_PUBLIC_MAP_API_KEY: ${NEXT_PUBLIC_MAP_API_KEY:-}
-      MAPIR_API_KEY: ${MAPIR_API_KEY:-}
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:6379:6379"
     volumes:
-      - loqme_prod_listing_images:/app/.data/listing-images
+      - loqme_prod_redis_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health/ready"]
-      interval: 20s
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 15s
+      start_period: 5s
     networks:
-      - loqme-network
+      - loqme_prod_net
 
 networks:
-  loqme-network:
+  loqme_prod_net:
+    name: loqme_prod_net
     driver: bridge
 
 volumes:
-  loqme_prod_listing_images:
-    driver: local
   loqme_prod_pgdata:
+    name: loqme_prod_pgdata
+    driver: local
+  loqme_prod_redis_data:
+    name: loqme_prod_redis_data
+    driver: local
+  loqme_prod_listing_images:
+    name: loqme_prod_listing_images
     driver: local
