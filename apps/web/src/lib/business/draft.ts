@@ -16,7 +16,7 @@ const DraftSchema = BusinessDetailsSchema.extend({
 export function readBusinessDraft(): { draft: BusinessDraft; step: number } | null {
   try {
     const raw = JSON.parse(sessionStorage.getItem(BUSINESS_DRAFT_KEY) || 'null');
-    if (!raw || raw.version !== 1 || raw.expiresAt <= Date.now()) { clearBusinessDraft(); return null; }
+    if (!raw || raw.version !== 1 || !Number.isFinite(raw.expiresAt) || raw.expiresAt <= Date.now() || raw.expiresAt > Date.now() + 24 * 60 * 60 * 1000) { clearBusinessDraft(); return null; }
     const draft = DraftSchema.parse(raw.draft);
     return { draft, step: Number.isInteger(raw.step) ? Math.max(0, Math.min(4, raw.step)) : 0 };
   } catch { clearBusinessDraft(); return null; }

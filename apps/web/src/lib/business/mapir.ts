@@ -1,5 +1,6 @@
 import type { BusinessPlaceDto } from '@loqme/types';
 import { BusinessError } from '@/domain/business/application.service';
+import { readBoundedBody } from './bounded-body';
 
 const record = (value: unknown): Record<string, unknown> => value && typeof value === 'object' ? value as Record<string, unknown> : {};
 const text = (value: unknown) => typeof value === 'string' ? value.trim() : '';
@@ -27,8 +28,7 @@ async function mapirRequest(path: string, body?: unknown) {
       body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(8000), cache: 'no-store',
     });
     if (!response.ok) throw new Error('Provider unavailable');
-    const result = await response.text();
-    if (result.length > 500000) throw new Error('Provider response too large');
+    const result = await readBoundedBody(response.body, 500000);
     return JSON.parse(result) as unknown;
   } catch { throw new BusinessError(503, 'ارتباط با نقشه برقرار نشد؛ دوباره تلاش کنید یا اطلاعات را دستی وارد کنید'); }
 }

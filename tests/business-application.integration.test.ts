@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { getApplication, listApplications, reviewApplication, submitApplication } from '@/domain/business/application.service';
 import { createSessionToken } from '@/lib/auth/session';
+import { authService } from '@/domain/auth/auth.service';
+import { hashOtp } from '@/lib/auth/crypto';
 import { NextRequest } from 'next/server';
 import { GET, POST } from '@/app/api/business/application/route';
 import type { MerchantApplicationInput } from '@loqme/types';
@@ -22,6 +24,7 @@ describe.skipIf(!isolated)('business application real PostgreSQL transactions', 
   const decision = (revision = 1) => ({ decision: 'APPROVED' as const, reasonFa: 'مالکیت و مدارک بررسی شد', expectedRevision: revision });
   beforeAll(async () => { cityId = (await prisma.city.findFirstOrThrow({ where: { slug: 'urmia' } })).id; admin = await user('ADMIN'); });
   afterAll(async () => {
+    await prisma.otpCode.deleteMany({ where: { mobile: { startsWith: `test-${run}-` } } });
     const createdStores = await prisma.merchant.findMany({ where: { ownerUserId: { in: users } }, select: { id: true } }); stores.push(...createdStores.map(s => s.id));
     await prisma.auditLog.deleteMany({ where: { actorId: { in: users } } });
     await prisma.merchantApplication.deleteMany({ where: { applicantId: { in: users } } });
@@ -74,6 +77,24 @@ describe.skipIf(!isolated)('business application real PostgreSQL transactions', 
     const list = await listApplications(admin); expect(list.items.find(a => a.id === second.id)?.duplicates[0].exact).toBe(true);
     await expect(reviewApplication(admin, second.id, decision())).rejects.toThrow('مشابه');
     expect((await prisma.merchant.findUniqueOrThrow({ where: { mapirPlaceId: value.mapirPlaceId } })).ownerUserId).toBe(firstUser);
+  });
+  it('allows only one approval for concurrent name/location claims by different applicants', async () => {
+    const value = input(); const first = await submit(await user(), value); const second = await submit(await user(), value);
+    const results = await Promise.allSettled([reviewApplication(admin, first.id, decision()), reviewApplication(admin, second.id, decision())]);
+    expect(results.filter(r => r.status === 'fulfilled')).toHaveLength(1);
+    expect(await prisma.merchant.count({ where: { businessNameFa: value.businessNameFa } })).toBe(1);
+  });
+  it('atomically consumes OTP once and rejects expired and exhausted codes against PostgreSQL', async () => {
+    const id = await user(); const { mobile } = await prisma.user.findUniqueOrThrow({ where: { id } });
+    const codeHash = await hashOtp('12345');
+    const otp = await prisma.otpCode.create({ data: { mobile, codeHash, expiresAt: new Date(Date.now() + 60000) } });
+    const results = await Promise.all(Array.from({ length: 5 }, () => authService.verifyOtp(mobile, '12345')));
+    expect(results.filter(r => r.success)).toHaveLength(1);
+    await prisma.otpCode.update({ where: { id: otp.id }, data: { isUsed: false, expiresAt: new Date(Date.now() - 1000) } });
+    expect((await authService.verifyOtp(mobile, '12345')).success).toBe(false);
+    await prisma.otpCode.update({ where: { id: otp.id }, data: { attempts: 0, expiresAt: new Date(Date.now() + 60000) } });
+    for (let i = 0; i < 5; i++) expect((await authService.verifyOtp(mobile, '00000')).success).toBe(false);
+    expect((await authService.verifyOtp(mobile, '12345')).success).toBe(false);
   });
   it('requires authentication and scopes application reads to the verified user', async () => {
     expect((await GET(new NextRequest('http://localhost/api/business/application'))).status).toBe(401);

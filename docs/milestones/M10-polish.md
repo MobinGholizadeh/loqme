@@ -117,6 +117,13 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
+- [ ] **CP-10.11 — Full-screen authentication and business onboarding (2026-09-21)**: Implementation and local acceptance complete; live provider/device acceptance remains open. User-approved follow-on scope explicitly includes application persistence and admin approval despite the historical M10 migration exclusion. Stage 1 `ea129ac`; Stage 2 evidence in [AUTH_ONBOARDING.md](../AUTH_ONBOARDING.md). Customer/business SMS entry, Map.ir/manual first-store registration, editable location/hours, expiring drafts, pending/rejected/approved status, transactional audited approval and nullable pickup defaults. No main DB migration or deployment.
+  - [x] Application/UI/schema/API implementation and OTP single-use hardening.
+  - [x] Fresh disposable PostgreSQL acceptance: 218/218 tests; web/shared types, lint and final optimized build.
+  - [x] Six-width visual inspection and entry-page axe/keyboard/reduced-motion checks.
+  - [x] Final optimized-preview browser acceptance: 51/51 tests, including 18 onboarding and 33 existing regression tests.
+  - [ ] Dedicated server Map.ir key/API-level live smoke and real-device/live-SMS acceptance. No deployment authorization is implied.
+
 - [x] **CP-10.9 — Merchant feedback fixes (2026-09-14)**: Role-aware navigation and tenant authorization, canonical food categories/temperature, gallery/catalog images, all-region feed and location labels. 180 Vitest and 29 browser tests pass; live isolated API smoke, lint, web/shared types and production build pass. No main DB reseed, migration, deployment or merge.
 - [x] **CP-10.10 — Merchant account administration (2026-09-14)**: Per-store linked owner identity/phone/active status, confirmed independent owner replacement, scoped order pagination and staff summaries; atomic audit logging and current-user authorization. Persistent root session state eliminates the false login button. Dialog focus restored after save. Retains OTP authentication; no plaintext passwords, impersonation or migrations. 192/192 Vitest in 20 suites, 33/33 browser tests (plus four account reruns), live isolated merchant/account API smoke, lint, explicit web/shared types and production build pass. Compose files validate with persistent image volumes; Docker image build is not verified because Docker Hub token retrieval timed out. User authorized `master` delivery and Docker push; no deployment.
 

@@ -8,6 +8,14 @@
 
 ## 1. Project Health & Current State
 
+### Active: CP-10.11 Authentication & Business Onboarding (2026-09-21)
+
+User-pushed Stage 1 is `ea129ac`. Stage 2 continues full-screen customer/business SMS authentication, five-step store registration, Map.ir adapter/manual fallback, application status and atomic admin approval. Stage 2 fixes OTP replay/attempt enforcement, keyboard pin editing, restored rejected drafts, closed-day/null pickup validation, bounded request/provider bodies and mobile banner stretching.
+
+Current evidence: **218/218 tests in 24 suites** passed on fresh `loqme_onboarding_test_acceptance_20260921` using serial suites, and **51/51 browser tests** passed on the optimized preview (18 onboarding tests plus 33 existing regressions). Web/shared types, lint and the final production build pass. All six requested viewport screenshots were manually inspected; entry screens and the application-review dialog have zero axe violations. Actual local APIs return 503/manual fallback without the dedicated Map.ir key, 400 for an unsupported city, and 401 for unauthenticated applicant/admin reads, all with no-store headers. See [AUTH_ONBOARDING.md](AUTH_ONBOARDING.md) for contracts, scope and evidence, and [AI_HANDOFF.md](AI_HANDOFF.md) for continuation instructions.
+
+This checkpoint is not deployed. Primary DB and environment files are unchanged. Dedicated `MAPIR_API_KEY`, live SMS and real-device keyboard acceptance remain operational gates. Historical production-ready claims below apply to the previous release only.
+
 ### Completed: Map.ir Persian Tile Provider Integration (2026-09-20)
 
 Integrated Iranian local map provider **Map.ir** for marketplace discovery map tiles (`MarketplaceMap.tsx`), configured with `NEXT_PUBLIC_MAP_API_KEY`.
@@ -38,11 +46,11 @@ Baseline: web TypeScript passed, lint had six warnings, and unavailable PostgreS
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **Production Ready** |
-| **Milestone Status** | `Platform Production Ready` (All 12 Milestones M00 through M11 Completed & Verified) |
-| **Overall Completion** | `100%` (M00 100%, M01 100%, Post-M01 Refactor 100%, M02 100%, M03 100%, M04 100%, M04-UI 100%, M05 100%, M06 100%, M07 100%, M08 100%, M09 100%, M10 100%, M11 100%) |
+| **Current Milestone** | **CP-10.11 — Authentication & Business Onboarding** |
+| **Milestone Status** | Stage 2 local acceptance; live provider/device gates remain; historical M00–M11 sign-offs retained below |
+| **Overall Completion** | Historical roadmap complete; new checkpoint tracked independently (not deployed) |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running, Dockerized) |
-| **Last Updated** | 2026-09-10 (M11 Production Readiness Completed: Security Audit, Payment Resilience, Structured Logging & Redactor, Health Checks, Standalone Dockerfile, Production Docker Compose, Caddy/Nginx, Database Backup Drill & Legal Sign-off) |
+| **Last Updated** | 2026-09-21 (CP-10.11 continuation) |
 
 ---
 

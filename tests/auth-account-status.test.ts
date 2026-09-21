@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ otp: vi.fn(), issue: vi.fn() }));
-vi.mock("@/lib/prisma", () => ({ prisma: { otpCode: { findFirst: mocks.otp, update: vi.fn() } } }));
+vi.mock("@/lib/prisma", () => ({ prisma: { otpCode: { findFirst: mocks.otp, updateMany: vi.fn().mockResolvedValue({ count: 1 }) } } }));
 vi.mock("@/lib/auth/session", () => ({ createSessionToken: mocks.issue }));
 vi.mock("@/domain/user/user.service", () => ({ userService: { findOrCreateCustomer: vi.fn().mockResolvedValue({ id: "disabled", mobile: "09129999971", role: "MERCHANT_OWNER", isActive: false }) } }));
 import { authService } from "@/domain/auth/auth.service";

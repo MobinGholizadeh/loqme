@@ -91,6 +91,10 @@ To guarantee zero overselling under high concurrency (e.g. 50 customers attempti
 
 ## 8. Rate Limiting & Abuse Prevention
 
+CP-10.11 implementation note (2026-09-21): the actual login routes are `/api/auth/request-otp` and `/api/auth/verify-otp`. Login codes expire after 120 seconds and now allow at most five verification attempts per latest code, enforced by atomic PostgreSQL conditional updates. Consumption is single-use under concurrency. Database failure fails closed; production user lookup cannot return offline demo identities. The existing send limit is per-process 3 requests/10 minutes; the older 15-minute login lockout statement below is a policy target, not implemented behavior. Live SMS and distributed throttling remain launch gates.
+
+Business APIs recheck active users and admin roles against the DB. Ownership and commission are server-derived, strict DTOs reject forged state, and approval plus audit is atomic. Map.ir credentials remain in server headers; stream limits and 8-second timeouts bound provider requests. Business pages/API responses bypass caches and indexing. See [AUTH_ONBOARDING.md](AUTH_ONBOARDING.md) for exact limits and scope.
+
 * **Global API Rate Limit**: 100 requests per minute per IP for general browsing.
 * **Sensitive Endpoints**:
   * `/api/auth/otp/send`: Max 3 requests / 10 mins.

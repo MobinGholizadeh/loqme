@@ -1,5 +1,5 @@
 /* Full-bleed auth composition: physical image-left placement, RTL content. */
-.auth-split { min-height: 100dvh; background: var(--color-bg-surface); display: grid; grid-template-columns: minmax(0, 1fr); }
+.auth-split { min-height: 100dvh; background: var(--color-bg-surface); display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 230px minmax(0, 1fr); }
 .auth-split-photo { position: relative; min-height: 230px; overflow: hidden; color: white; background: var(--loqme-primary-900); }
 .auth-split-photo > img { object-position: 50% 45%; }
 .auth-split-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(4 47 46 / .58), transparent 50%, rgb(4 47 46 / .8)); }
@@ -47,7 +47,7 @@
 .business-application-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid var(--color-border-subtle); border-radius: 8px; padding: 20px; }
 .header-actions .business-entry-link { background: white; color: var(--loqme-primary-700); border: 1px solid var(--loqme-primary-700); }
 @media (min-width: 1024px) {
-  .auth-split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); direction: ltr; align-items: start; }
+  .auth-split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto; direction: ltr; align-items: start; }
   .auth-split-photo { direction: rtl; position: sticky; top: 0; height: 100dvh; }
   .auth-split-panel { direction: rtl; min-height: 100dvh; padding: 24px 40px; }
   .auth-split-logo { inset-block-start: 40px; inset-inline-start: 40px; }

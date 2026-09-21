@@ -7,6 +7,7 @@ import { HeartbeatLoading } from "@/components/ui/HeartbeatLoading";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatToman, toPersianDigits } from "@/lib/utils/persian";
+import { clearBusinessDraft } from '@/lib/business/draft';
 export default function ProfilePage() {
   const [user, setUser] = useState<{
     fullName?: string;
@@ -96,7 +97,7 @@ export default function ProfilePage() {
                   method: "POST",
                 });
                 if (!response.ok) throw new Error();
-                sessionStorage.removeItem('loqme-business-draft-v1');
+                clearBusinessDraft();
                 window.location.assign("/");
               } catch {
                 setError(true);

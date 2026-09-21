@@ -472,11 +472,12 @@ export type CreateStaffInput = z.infer<typeof CreateStaffSchema>;
 export const OperatingHoursDaySchema = z.object({
   dayOfWeek: z.number().int().min(0).max(6),
   isOpen: z.boolean(),
-  storeOpenTime: z.string().regex(/^\d{2}:\d{2}$/, 'فرمت زمان باید HH:mm باشد'),
-  storeCloseTime: z.string().regex(/^\d{2}:\d{2}$/, 'فرمت زمان باید HH:mm باشد'),
+  storeOpenTime: z.union([z.literal(''), z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'فرمت زمان باید HH:mm باشد')]),
+  storeCloseTime: z.union([z.literal(''), z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'فرمت زمان باید HH:mm باشد')]),
   defaultPickupStart: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'فرمت زمان باید HH:mm باشد').nullable(),
   defaultPickupEnd: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'فرمت زمان باید HH:mm باشد').nullable(),
-}).refine(day => (day.defaultPickupStart === null && day.defaultPickupEnd === null) || (!!day.defaultPickupStart && !!day.defaultPickupEnd && day.defaultPickupEnd > day.defaultPickupStart), { message: 'شروع و پایان بازه تحویل را با هم و به ترتیب وارد کنید', path: ['defaultPickupEnd'] });
+}).refine(day => !day.isOpen || (!!day.storeOpenTime && !!day.storeCloseTime && day.storeCloseTime > day.storeOpenTime), { message: 'ساعت پایان باید بعد از ساعت شروع باشد', path: ['storeCloseTime'] })
+  .refine(day => (day.defaultPickupStart === null && day.defaultPickupEnd === null) || (!!day.defaultPickupStart && !!day.defaultPickupEnd && day.defaultPickupEnd > day.defaultPickupStart), { message: 'شروع و پایان بازه تحویل را با هم و به ترتیب وارد کنید', path: ['defaultPickupEnd'] });
 
 export const UpdateStoreSettingsSchema = z.object({
   businessNameFa: z.string().trim().min(2, 'نام فروشگاه حداقل باید ۲ کاراکتر باشد').max(100).optional(),

@@ -61,6 +61,7 @@ export class UserService {
         createdAt: user.createdAt,
       };
     } catch (error) {
+      if (process.env.NODE_ENV === 'production') throw error;
       console.warn('⚠️ DB query failed, checking in-memory user cache:', error);
       return inMemoryUsers.get(mobile) ?? null;
     }
@@ -95,7 +96,8 @@ export class UserService {
         fullName: newUser.customer?.fullName ?? null,
         createdAt: newUser.createdAt,
       };
-    } catch {
+    } catch (error) {
+      if (process.env.NODE_ENV === 'production') throw error;
       // Fallback for offline dev
       let user = inMemoryUsers.get(mobile);
       if (!user) {

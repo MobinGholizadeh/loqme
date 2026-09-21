@@ -44,6 +44,15 @@ describe('business onboarding contracts', () => {
     expect(fetcher.mock.calls[0][0]).not.toContain('private-secret');
     expect(fetcher.mock.calls[0][1].headers['x-api-key']).toBe('private-secret');
   });
+  it('retains manual entry on missing keys, timeouts, or oversized responses', async () => {
+    vi.stubEnv('MAPIR_API_KEY', '');
+    await expect(searchMapir('کافه', 'ارومیه')).rejects.toThrow('دستی');
+    vi.stubEnv('MAPIR_API_KEY', 'test-only');
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new DOMException('Timeout', 'TimeoutError')));
+    await expect(searchMapir('کافه', 'ارومیه')).rejects.toThrow('دستی');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('x'.repeat(500001))));
+    await expect(searchMapir('کافه', 'ارومیه')).rejects.toThrow('دستی');
+  });
   it('rate-limits bursts and permits a later retry', () => {
     const now = Date.now(); for (let i = 0; i < 30; i++) limitMapir('test-client', now);
     expect(() => limitMapir('test-client', now)).toThrow('دقیقه');

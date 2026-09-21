@@ -33,7 +33,9 @@ export function BusinessRegistration() {
   const [suggestedAddress, setSuggestedAddress] = useState('');
   const heading = useRef<HTMLHeadingElement>(null); const summary = useRef<HTMLDivElement>(null);
   const locationRevision = useRef(0);
-  const patch = useCallback((values: Partial<BusinessDraft>) => setDraft(d => ({ ...d, ...values })), []);
+  const draftRestored = useRef(false);
+  const draftEdited = useRef(false);
+  const patch = useCallback((values: Partial<BusinessDraft>) => { draftEdited.current = true; setDraft(d => ({ ...d, ...values })); }, []);
   const loadCities = useCallback(async () => {
     setCityError('');
     try { const response = await apiClient.business.cities(); const items = response.data || []; setCities(items);
@@ -45,7 +47,7 @@ export function BusinessRegistration() {
       });
     } catch { setCityError('دریافت شهرها ممکن نشد. دوباره تلاش کنید.'); }
   }, []);
-  useEffect(() => { const saved = readBusinessDraft(); if (saved) { setDraft(saved.draft); setStep(saved.step); } setReady(true); void loadCities(); }, [loadCities]);
+  useEffect(() => { const saved = readBusinessDraft(); if (saved) { draftRestored.current = true; setDraft(saved.draft); setStep(saved.step); } setReady(true); void loadCities(); }, [loadCities]);
   useEffect(() => { if (ready) saveBusinessDraft(draft, step); }, [draft, step, ready]);
   useEffect(() => { if (ready) heading.current?.focus(); }, [step, ready]);
   useEffect(() => { if (Object.keys(errors).length || message) summary.current?.focus(); }, [errors, message]);
@@ -56,14 +58,13 @@ export function BusinessRegistration() {
       if (cancelled) return;
       const app = result.data;
       if (app && app.status !== 'REJECTED') { clearBusinessDraft(); router.replace('/business/status'); }
-      else if (app && step === 0) {
+      else if (app && !draftRestored.current && !draftEdited.current) {
         const { ownerName: name, businessNameFa, businessType, cityId, addressFa, latitude, longitude, phone, licenseNumber, mapirPlaceId, hours } = app;
         setDraft({ businessNameFa, businessType, cityId, addressFa, latitude, longitude, phone, licenseNumber, mapirPlaceId, hours, locationConfirmed: true }); setOwnerName(name);
       }
     }).catch(() => { /* Final submission remains guarded by the server. */ });
     return () => { cancelled = true; };
     // Fetch once per authenticated identity; never overwrite edited fields after OTP verification.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.status, session.user?.mobile, router]);
   useEffect(() => {
     setResults([]); setSearchError('');
@@ -133,7 +134,7 @@ export function BusinessRegistration() {
     {step === 1 && <fieldset id="business-businessType" tabIndex={-1} className="business-types" aria-describedby={errors.businessType ? 'business-type-error' : undefined}><legend className="sr-only">نوع کسب‌وکار</legend>{Object.entries(BUSINESS_TYPES_FA).map(([key, label]) => { const Icon = icons[key as BusinessType]; return <label key={key} className="business-type" data-selected={draft.businessType === key}><input type="radio" name="businessType" value={key} checked={draft.businessType === key} onChange={() => patch({ businessType: key as BusinessType })} /><Icon size={22} aria-hidden="true" /><span>{label}</span><Check size={18} className={draft.businessType === key ? '' : 'invisible'} aria-hidden="true" /></label>; })}{errors.businessType && <p id="business-type-error" className="text-sm text-red-700">{errors.businessType}</p>}</fieldset>}
     {step === 2 && <div className="space-y-5">
       <LocationMap latitude={draft.latitude} longitude={draft.longitude} editable onChange={changeLocation} />
-      <details className="business-coordinate-editor" open={!draft.locationConfirmed}><summary>ویرایش مختصات با صفحه‌کلید</summary><div className="grid grid-cols-2 gap-3 py-3"><Input id="business-latitude" label="عرض جغرافیایی" type="number" min={24} max={40} step="0.00001" dir="ltr" value={draft.latitude} onChange={e => changeLocation(Number(e.target.value), draft.longitude)} error={errors.latitude} /><Input id="business-longitude" label="طول جغرافیایی" type="number" min={44} max={64} step="0.00001" dir="ltr" value={draft.longitude} onChange={e => changeLocation(draft.latitude, Number(e.target.value))} error={errors.longitude} /></div></details>
+      <div className="business-coordinate-editor"><p className="text-sm font-medium">ویرایش مختصات با صفحه‌کلید</p><div className="grid grid-cols-2 gap-3 py-3"><Input id="business-latitude" label="عرض جغرافیایی" type="number" min={24} max={40} step="0.00001" dir="ltr" value={draft.latitude} onChange={e => changeLocation(Number(e.target.value), draft.longitude)} error={errors.latitude} /><Input id="business-longitude" label="طول جغرافیایی" type="number" min={44} max={64} step="0.00001" dir="ltr" value={draft.longitude} onChange={e => changeLocation(draft.latitude, Number(e.target.value))} error={errors.longitude} /></div></div>
       <Button variant="ghost" size="sm" isLoading={reverseBusy} onClick={suggestAddress}>پیشنهاد آدرس از روی نقشه</Button>
       {suggestedAddress && <div className="business-info"><p>{suggestedAddress}</p><Button variant="ghost" onClick={() => { patch({ addressFa: suggestedAddress }); setSuggestedAddress(''); }}>استفاده از این آدرس</Button></div>}
       <Input id="business-businessNameFa" label="نام فروشگاه" value={draft.businessNameFa} onChange={e => patch({ businessNameFa: e.target.value })} error={errors.businessNameFa} maxLength={100} />

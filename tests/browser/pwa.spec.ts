@@ -14,6 +14,7 @@ test("service worker installs, excludes private responses and serves offline nav
   await page.evaluate(async () => {
     await fetch("/api/auth/session");
     await fetch("/api/orders");
+    await fetch("/business/status");
   });
   const cacheUrls = await page.evaluate(async () => {
     const keys = await caches.keys();
@@ -25,7 +26,7 @@ test("service worker installs, excludes private responses and serves offline nav
   expect(cacheUrls).toContain("/offline");
   expect(
     cacheUrls.some((path) =>
-      /^\/(api|orders|profile|login|checkout|admin|merchant)(\/|$)/.test(path),
+      /^\/(api|orders|profile|login|checkout|admin|merchant|business)(\/|$)/.test(path),
     ),
   ).toBe(false);
   await context.setOffline(true);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 import { BusinessError, requireActiveAccount } from '@/domain/business/application.service';
+import { readBoundedBody } from './bounded-body';
 
 export const businessJson = (data: unknown, status = 200) => NextResponse.json({ success: true, data }, { status, headers: { 'Cache-Control': 'private, no-store' } });
 export async function businessUser(request: NextRequest) {
@@ -16,8 +17,9 @@ export function sameOrigin(request: NextRequest) {
 }
 export async function readBusinessBody(request: NextRequest) {
   sameOrigin(request);
-  const text = await request.text();
-  if (text.length > 16000) throw new BusinessError(413, 'حجم درخواست بیش از حد مجاز است');
+  let text: string;
+  try { text = await readBoundedBody(request.body, 32000); }
+  catch (error) { if (error instanceof RangeError) throw new BusinessError(413, 'حجم درخواست بیش از حد مجاز است'); throw error; }
   try { return JSON.parse(text); } catch { throw new BusinessError(400, 'اطلاعات ارسالی نامعتبر است'); }
 }
 export function businessFailure(error: unknown) {

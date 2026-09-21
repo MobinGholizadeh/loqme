@@ -66,7 +66,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
           <div className="header-actions">
-            {(status === 'anonymous' || (authenticated && role === 'CUSTOMER')) && <Link href="/business" className="action-link business-entry-link">ثبت نام/ورود کسب و کار</Link>}
+            {(status === 'anonymous' || (authenticated && role === 'CUSTOMER')) && <Link href="/business" className="action-link business-entry-link">ثبت نام /ورود کسب و کار</Link>}
             {portal && (
               <Link href={portal.href} className="merchant-link">
                 {portal.label} <ArrowUpLeft size={16} />
@@ -96,7 +96,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
                 className="action-link"
               >
                 <UserRound size={18} />
-                {authenticated ? "حساب من" : "ثبت نام/ورود مشتری"}
+                {authenticated ? "حساب من" : "ثبت نام /ورود مشتری"}
               </Link>
             )}
           </div>

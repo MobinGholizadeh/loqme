@@ -99,6 +99,12 @@ graph TD
 
 ## 3. Key Relational Constraints & Invariants
 
+### CP-10.11 application extension (2026-09-21)
+
+`MerchantApplication` is a separate review record, not a public `Merchant`: unique `applicantId`, owner name, business name/type, configured `cityId`, address and coordinates, optional phone/license/Map.ir identifier, seven-day JSON hours, `PENDING | REJECTED | APPROVED`, revision, review reason/reviewer/time, and a unique nullable resulting `merchantId`. Rejection can be corrected by the same applicant, incrementing revision. Approval is an atomic transaction creating merchant, location, hours and owner membership, changing the account role, and writing an audit. Client-supplied ownership/status/commission fields are rejected.
+
+`Merchant.mapirPlaceId` is nullable/unique. Name/location heuristics additionally block likely duplicate stores without transferring existing ownership. `MerchantHours.defaultPickupStart` and `defaultPickupEnd` are nullable; newly approved stores have no configured pickup window. Migration `20260920010000_merchant_applications` is validated on disposable PostgreSQL only. See [AUTH_ONBOARDING.md](AUTH_ONBOARDING.md).
+
 1. **Anti-Overselling Invariant**:  
    `reservedQuantity + soldQuantity <= totalQuantity` at all times. Enforced via database check constraints and atomic transactions.
 2. **Order Pickup Integrity**:  

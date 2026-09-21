@@ -9,27 +9,15 @@ const OTP_EXPIRY_SECONDS = 120; // 2 minutes
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_REQUESTS_PER_WINDOW = 3;
 
-interface MemoryOtpRecord {
-  mobile: string;
-  codeHash: string;
-  expiresAt: Date;
-  isUsed: boolean;
-  attempts: number;
-}
-
-// Global development caches to survive fast refresh and multiple route handlers
+// Request throttles survive development fast refresh. OTP authority stays in PostgreSQL.
 const globalForAuth = globalThis as unknown as {
-  __loqme_otp_store?: Map<string, MemoryOtpRecord>;
   __loqme_timestamps?: Map<string, number[]>;
 };
 
-const inMemoryOtpStore =
-  globalForAuth.__loqme_otp_store ?? new Map<string, MemoryOtpRecord>();
 const inMemoryRequestTimestamps =
   globalForAuth.__loqme_timestamps ?? new Map<string, number[]>();
 
 if (process.env.NODE_ENV !== 'production') {
-  globalForAuth.__loqme_otp_store = inMemoryOtpStore;
   globalForAuth.__loqme_timestamps = inMemoryRequestTimestamps;
 }
 
@@ -74,34 +62,8 @@ export class AuthService {
     const codeHash = await hashOtp(code);
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_SECONDS * 1000);
 
-    // 2. Persist OTP in DB (with in-memory fallback)
-    try {
-      await prisma.otpCode.create({
-        data: {
-          mobile,
-          codeHash,
-          expiresAt,
-        },
-      });
-    } catch {
-      // Fallback for offline dev
-      inMemoryOtpStore.set(mobile, {
-        mobile,
-        codeHash,
-        expiresAt,
-        isUsed: false,
-        attempts: 0,
-      });
-    }
-
-    // Always keep latest active OTP in memory for dev lookup / tests
-    inMemoryOtpStore.set(mobile, {
-      mobile,
-      codeHash,
-      expiresAt,
-      isUsed: false,
-      attempts: 0,
-    });
+    // Fail closed when persistence is unavailable; never issue a memory-only credential.
+    await prisma.otpCode.create({ data: { mobile, codeHash, expiresAt } });
 
     // 3. Dispatch SMS via notification abstraction
     const notificationService = getNotificationService();
@@ -122,40 +84,18 @@ export class AuthService {
     const inputHash = await hashOtp(code);
     let isValid = false;
 
-    // 1. Check DB first
-    try {
-      const dbRecord = await prisma.otpCode.findFirst({
-        where: {
-          mobile,
-          isUsed: false,
-          expiresAt: { gt: new Date() },
-        },
-        orderBy: { createdAt: 'desc' },
+    // Read the latest issued code, including consumed/expired codes so older codes
+    // cannot become valid again. Conditional consumption allows exactly one winner.
+    const dbRecord = await prisma.otpCode.findFirst({
+      where: { mobile }, orderBy: { createdAt: 'desc' },
+    });
+    if (dbRecord) {
+      const matches = dbRecord.codeHash === inputHash;
+      const consumed = await prisma.otpCode.updateMany({
+        where: { id: dbRecord.id, isUsed: false, attempts: { lt: 5 }, expiresAt: { gt: new Date() } },
+        data: { attempts: { increment: 1 }, ...(matches ? { isUsed: true } : {}) },
       });
-
-      if (dbRecord && dbRecord.codeHash === inputHash) {
-        isValid = true;
-        await prisma.otpCode.update({
-          where: { id: dbRecord.id },
-          data: { isUsed: true },
-        });
-      }
-    } catch {
-      // Fallback to in-memory check
-    }
-
-    // Fallback to in-memory check if not verified in DB
-    if (!isValid) {
-      const memRecord = inMemoryOtpStore.get(mobile);
-      if (
-        memRecord &&
-        !memRecord.isUsed &&
-        memRecord.expiresAt > new Date() &&
-        memRecord.codeHash === inputHash
-      ) {
-        isValid = true;
-        memRecord.isUsed = true;
-      }
+      isValid = matches && consumed.count === 1;
     }
 
     if (!isValid) {

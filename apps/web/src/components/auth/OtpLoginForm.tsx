@@ -122,7 +122,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
 
       // Smart redirect
       if (audience === 'business') {
-        router.push(data.user?.role === 'MERCHANT_OWNER' || data.user?.role === 'MERCHANT_STAFF' ? (targetRedirect?.startsWith('/merchant') ? targetRedirect : '/merchant') : data.user?.role === 'ADMIN' ? '/admin' : '/business/status');
+        router.push(data.user?.role === 'MERCHANT_OWNER' || data.user?.role === 'MERCHANT_STAFF' ? (targetRedirect && /^\/merchant(?:\/|\?|$)/.test(targetRedirect) ? targetRedirect : '/merchant') : data.user?.role === 'ADMIN' ? '/admin' : '/business/status');
       } else if (targetRedirect) {
         router.push(targetRedirect);
       } else if (

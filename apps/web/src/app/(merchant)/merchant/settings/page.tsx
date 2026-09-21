@@ -335,6 +335,7 @@ export default function MerchantSettingsPage() {
                   بسته‌های روز به صورت پیش‌فرض در بازه تعیین‌شده در این جدول به
                   خریداران عرضه خواهند شد.
                 </p>
+                {hours.some(day => day.isOpen && (!day.defaultPickupStart || !day.defaultPickupEnd)) && <p className="text-sm text-loqme-primary-700 mt-2">بازه تحویل بعضی روزها هنوز تنظیم نشده است؛ ساعت شروع و پایان تحویل را با هم وارد کنید.</p>}
               </div>
 
               <button
@@ -430,7 +431,7 @@ export default function MerchantSettingsPage() {
                         <input
                           type="text"
                           value={day.defaultPickupStart || ''}
-                          hint={!day.defaultPickupStart ? 'بازه تحویل هنوز تنظیم نشده است' : undefined}
+                          title={!day.defaultPickupStart ? 'بازه تحویل هنوز تنظیم نشده است' : undefined}
                           onChange={(e) =>
                             handleHourChange(
                               idx,

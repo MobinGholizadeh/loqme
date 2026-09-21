@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { BusinessPlaceDto } from '@loqme/types';
+const noPlaces: BusinessPlaceDto[] = [];
 
-export default function StoreLocationMap({ latitude, longitude, editable = false, places = [], onChange, onSelect }: {
+export default function StoreLocationMap({ latitude, longitude, editable = false, places = noPlaces, onChange, onSelect }: {
   latitude: number; longitude: number; editable?: boolean; places?: BusinessPlaceDto[];
   onChange?: (latitude: number, longitude: number) => void; onSelect?: (place: BusinessPlaceDto) => void;
 }) {
