@@ -9,9 +9,10 @@ export const dynamic = 'force-dynamic';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const token = extractSessionToken(request);
     if (!token) {
       return NextResponse.json(
@@ -43,7 +44,7 @@ export async function PATCH(
     if (validated.status && validated.deltaQuantity === undefined && validated.totalQuantity === undefined) {
       const updated = await listingService.toggleListingStatus(
         merchant.id,
-        params.id,
+        id,
         validated.status as ListingStatus
       );
       return NextResponse.json({
@@ -57,7 +58,7 @@ export async function PATCH(
     }
 
     // Case 2: Stock Adjustment
-    const updated = await listingService.adjustListingStock(merchant.id, params.id, {
+    const updated = await listingService.adjustListingStock(merchant.id, id, {
       deltaQuantity: validated.deltaQuantity,
       totalQuantity: validated.totalQuantity,
       status: validated.status as ListingStatus,
@@ -86,9 +87,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const token = extractSessionToken(request);
     if (!token) {
       return NextResponse.json(
@@ -116,7 +118,7 @@ export async function DELETE(
     // Archive / expire listing
     const updated = await listingService.toggleListingStatus(
       merchant.id,
-      params.id,
+      id,
       ListingStatus.EXPIRED
     );
 

@@ -134,6 +134,21 @@ describe('Milestone M05 — Pickup Verification Engine', () => {
       testListingId = listing!.id;
       testMerchantId = listing!.merchantId;
 
+      // Ensure the test listing has an active pickup window and available inventory
+      await prisma.listing.update({
+        where: { id: testListingId },
+        data: {
+          pickupStart: new Date(Date.now() - 3600 * 1000),
+          pickupEnd: new Date(Date.now() + 86400 * 1000),
+        },
+      });
+
+      await prisma.listingInventory.upsert({
+        where: { listingId: testListingId },
+        update: { totalQuantity: 100, reservedQuantity: 0, soldQuantity: 0 },
+        create: { listingId: testListingId, totalQuantity: 100, reservedQuantity: 0, soldQuantity: 0 },
+      });
+
       // Ensure the merchant owner owns this merchant or is assigned
       await prisma.merchant.update({
         where: { id: testMerchantId },
@@ -363,7 +378,7 @@ describe('Milestone M05 — Pickup Verification Engine', () => {
 
       const pastOrder = await prisma.order.create({
         data: {
-          orderNumber: 'LQ-TEST-NOSHOW',
+          orderNumber: `LQ-TEST-NOSHOW-${Date.now()}`,
           customerId: testCustomerId,
           merchantId: testMerchantId,
           status: OrderStatus.READY_FOR_PICKUP,

@@ -6,10 +6,10 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const merchantId = params.id;
+    const { id: merchantId } = await params;
 
     // 1. Authenticate user
     const token = extractSessionToken(request);

@@ -6,9 +6,10 @@ export const dynamic = 'force-dynamic';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const token = extractSessionToken(request);
     if (!token) {
       return NextResponse.json(
@@ -30,7 +31,7 @@ export async function DELETE(
 
     const result = await merchantService.removeStaffMember(
       session.userId,
-      params.id,
+      id,
       merchantId
     );
 

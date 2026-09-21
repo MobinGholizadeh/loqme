@@ -2,6 +2,8 @@ import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
 import { VerificationStatus, ListingStatus } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://loqme.shop';
 
@@ -59,6 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [...staticRoutes, ...merchantRoutes, ...listingRoutes];
   } catch (error) {
     console.error('Error generating dynamic sitemap from database:', error);
+    // Graceful fallback to static routes if database is temporarily unavailable
     return staticRoutes;
   }
 }

@@ -29,12 +29,13 @@ function failure(error: unknown) {
 }
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const auth = await requireAdminSession(request);
   if ("errorResponse" in auth) return auth.errorResponse;
   try {
-    const id = z.string().uuid().parse(params.id);
+    const { id: paramId } = await params;
+    const id = z.string().uuid().parse(paramId);
     const page = z.coerce
       .number()
       .int()
@@ -54,15 +55,16 @@ export async function GET(
 }
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const auth = await requireAdminSession(request);
   if ("errorResponse" in auth) return auth.errorResponse;
   try {
+    const { id: paramId } = await params;
     return NextResponse.json(
       await updateMerchantAccount(
         auth.session.userId,
-        z.string().uuid().parse(params.id),
+        z.string().uuid().parse(paramId),
         AdminMerchantAccountSchema.parse(await request.json()),
       ),
       { headers },

@@ -9,8 +9,13 @@ import {
   SafetyStatus,
   TemperatureRequirement,
 } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+const connectionString =
+  process.env.DATABASE_URL ||
+  'postgresql://postgres:postgres@localhost:5432/loqme?schema=public';
+const adapter = new PrismaPg({ connectionString });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Seeding Loqme database (Phase 1: Urmia Launch, Phase 2: Tehran Expansion)...');

@@ -8,9 +8,10 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const token = extractSessionToken(request);
     if (!token) {
       return NextResponse.json(
@@ -43,7 +44,7 @@ export async function POST(
 
     const resolved = await moderationService.resolveComplaint(
       payload.userId,
-      params.id,
+      id,
       parseResult.data
     );
 

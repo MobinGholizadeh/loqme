@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { SignJWT } from "jose";
 
 async function main() {
@@ -13,7 +14,8 @@ async function main() {
   const env = parseEnv(readFileSync("apps/web/.env", "utf8"));
   const secret = process.env.SESSION_SECRET || env.SESSION_SECRET;
   assert(secret);
-  const prisma = new PrismaClient();
+  const adapter = new PrismaPg({ connectionString: database.toString() });
+  const prisma = new PrismaClient({ adapter });
   try {
     const tokens: Record<string, string> = {};
     const mobiles = { ADMIN: "09123333333", CUSTOMER: "09121111111", MERCHANT_OWNER: "09122222222" };

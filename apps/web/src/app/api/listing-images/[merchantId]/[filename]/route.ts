@@ -3,12 +3,13 @@ import { listingImageStorage } from "@/domain/listing/image-storage";
 export const dynamic = "force-dynamic";
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { merchantId: string; filename: string } },
+  { params }: { params: Promise<{ merchantId: string; filename: string }> },
 ) {
   try {
+    const { merchantId, filename } = await params;
     const image = await listingImageStorage.read(
-      params.merchantId,
-      params.filename,
+      merchantId,
+      filename,
     );
     return new NextResponse(new Uint8Array(image), {
       headers: {

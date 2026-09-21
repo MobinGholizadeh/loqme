@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { SignJWT } from "jose";
 
 async function main() {
+  const databaseUrl = process.env.DATABASE_URL || "";
   assert(
-    new URL(process.env.DATABASE_URL || "").pathname.startsWith(
+    new URL(databaseUrl).pathname.startsWith(
       "/loqme_account_test_",
     ),
     "Disposable account test DB required",
@@ -17,7 +19,8 @@ async function main() {
     process.env.SESSION_SECRET ||
     parseEnv(readFileSync("apps/web/.env", "utf8")).SESSION_SECRET;
   assert(secret);
-  const prisma = new PrismaClient();
+  const adapter = new PrismaPg({ connectionString: databaseUrl });
+  const prisma = new PrismaClient({ adapter });
   const token = (user: { id: string; mobile: string; role: string }) =>
     new SignJWT({ userId: user.id, mobile: user.mobile, role: user.role })
       .setProtectedHeader({ alg: "HS256" })

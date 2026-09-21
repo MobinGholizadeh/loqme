@@ -7,9 +7,10 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const token = extractSessionToken(request);
     if (!token) {
       return NextResponse.json(
@@ -33,8 +34,8 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-          message: 'متن پاسخ نامعتبر است',
-          errors: parseResult.error.flatten().fieldErrors,
+          message: 'داده‌های ورودی نامعتبر است',
+          errors: parseResult.error.flatten(),
         },
         { status: 400 }
       );
@@ -42,7 +43,7 @@ export async function POST(
 
     const updated = await moderationService.replyToReview(
       payload.userId,
-      params.id,
+      id,
       parseResult.data.replyFa
     );
 

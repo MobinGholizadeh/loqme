@@ -7,18 +7,19 @@ export const dynamic = 'force-dynamic';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdminSession(request);
   if ('errorResponse' in auth) return auth.errorResponse;
 
   try {
+    const { id } = await params;
     const body = await request.json();
     const validated = AdminUpdateMerchantSchema.parse(body);
 
     const result = await adminService.updateMerchant(
       auth.session.userId,
-      params.id,
+      id,
       validated
     );
 
