@@ -269,7 +269,7 @@ cd /opt/loqme
 # 1. Pull the application container image
 docker compose -f docker-compose.prod.yml pull
 
-# 2. Start PostgreSQL, Redis, Dozzle, and App in background
+# 2. Start PostgreSQL, Redis, and App in background
 docker compose -f docker-compose.prod.yml up -d
 
 # 3. Check health status of all services
@@ -279,7 +279,7 @@ docker compose -f docker-compose.prod.yml ps
 ### 8.1 Execute Database Migrations
 Run Prisma migrations inside the running Next.js container:
 ```bash
-docker compose -f docker-compose.prod.yml exec -T app npx prisma migrate deploy
+docker compose -f docker-compose.prod.yml exec -T app ./node_modules/.bin/prisma migrate deploy
 ```
 
 ### 8.2 (Optional) Seed Initial Administrative Data

@@ -77,6 +77,14 @@ COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
+# Copy Prisma schema, migrations, config, and CLI packages for production migrations
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/dotenv ./node_modules/dotenv
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
+
 # Switch to non-root user
 USER nextjs
 
