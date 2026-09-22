@@ -8,11 +8,11 @@
 
 ## 1. Project Health & Current State
 
-### Active: CP-10.13 Navigation, rating rows, Persian tags and onboarding cities (2026-09-22)
+### Completed: CP-10.13 Navigation, rating rows, Persian tags and onboarding cities (2026-09-22)
 
 User-requested follow-up implements a full-width centered-logo header with scroll blur, horizontal review rows on merchant/listing pages, Persian dietary/allergen labels and an idempotent Urmia reference-data migration for the empty production city list. The local shop HTTP 500 was reproduced and repaired after backup and verified migration-history reconciliation. Real local listing/merchant APIs now return 200 with rating aggregates. No production demo data is seeded. See [CP10_13_PRESENTATION.md](CP10_13_PRESENTATION.md).
 
-232/232 tests in 26 suites pass on a fresh disposable database; build, lint, shared/web types and five-width browser/axe checks pass. All 71 browser cases are validated (70 full-run passes plus the corrected mobile-label assertion rerun). Deployment verification is pending. User explicitly authorized pushing these changes. Existing operational gates remain open.
+232/232 tests in 26 suites pass on a fresh disposable database; build, lint, shared/web types and five-width browser/axe checks pass. All 71 browser cases are validated (70 full-run passes plus the corrected mobile-label assertion rerun). Implementation `4a2b9d6` and validation follow-up `adbf39b` are on `master`; [run 35708693920](https://github.com/MobinGholizadeh/loqme/actions/runs/35708693920) passed image build and remote deployment. Live header/scroll blur, Urmia selection and manual business entry, health, and explainer playback pass with no observed runtime errors. User explicitly authorized pushing these changes. Existing operational gates remain open.
 
 ### Completed: CP-10.12 Merchant ratings, availability, map controls and explainer (2026-09-22)
 
@@ -63,8 +63,8 @@ Baseline: web TypeScript passed, lint had six warnings, and unavailable PostgreS
 | Metric | Status |
 | :--- | :--- |
 | **Current Milestone** | **CP-10.13 — Navigation, rating rows, localization and onboarding cities** |
-| **Milestone Status** | Release validation; CP-10.11 provider/device gates remain open |
-| **Overall Completion** | Historical roadmap complete; CP-10.12 release evidence tracked separately |
+| **Milestone Status** | CP-10.13 deployed and verified; CP-10.11 provider/device gates remain open |
+| **Overall Completion** | Historical roadmap complete; CP-10.13 release evidence tracked separately |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running, Dockerized) |
 | **Last Updated** | 2026-09-22 (CP-10.12) |
 
