@@ -21,7 +21,7 @@ Actual local listing and merchant endpoints now return HTTP 200 with all five ag
 - Fresh disposable `loqme_onboarding_test_cp1013_final`: all nine migrations applied. Before fixture seeding: one city, zero merchants and zero reviews. Reapplying the city SQL inserted nothing and left one Urmia row.
 - **232/232 tests in 26 suites** passed after isolated fixture seeding.
 - Five new browser checks pass on the development server at 360/390/768/1440/1920px, covering centered/full-width header, scroll blur, translated tags, real rating layout and zero axe WCAG A/AA violations. Screenshots visually inspected.
-- Production build, lint and web/shared typechecks pass. Full production-browser regression and deployment verification are in progress.
+- Production build, lint and web/shared typechecks pass. Production-browser acceptance covers 71 cases: 70 passed the full run; the one old mobile-label assertion was updated for the intentional compact labels and passed its targeted rerun. Deployment verification is pending.
 - CP-10.12 animation/cache follow-up `b40ff1f` deployed successfully in run 35658162949 after a registry timeout retry. Its early-frame and stale-CSS regressions remain part of browser acceptance.
 
 Live SMS, dedicated Map.ir credentials, real-device acceptance and previous commercial gates remain open.

@@ -12,7 +12,7 @@
 
 User-requested follow-up implements a full-width centered-logo header with scroll blur, horizontal review rows on merchant/listing pages, Persian dietary/allergen labels and an idempotent Urmia reference-data migration for the empty production city list. The local shop HTTP 500 was reproduced and repaired after backup and verified migration-history reconciliation. Real local listing/merchant APIs now return 200 with rating aggregates. No production demo data is seeded. See [CP10_13_PRESENTATION.md](CP10_13_PRESENTATION.md).
 
-232/232 tests in 26 suites pass on a fresh disposable database; build, lint, shared/web types and five-width browser/axe checks pass. Full browser regression and release verification are in progress. User explicitly authorized pushing these changes. Existing operational gates remain open.
+232/232 tests in 26 suites pass on a fresh disposable database; build, lint, shared/web types and five-width browser/axe checks pass. All 71 browser cases are validated (70 full-run passes plus the corrected mobile-label assertion rerun). Deployment verification is pending. User explicitly authorized pushing these changes. Existing operational gates remain open.
 
 ### Completed: CP-10.12 Merchant ratings, availability, map controls and explainer (2026-09-22)
 
