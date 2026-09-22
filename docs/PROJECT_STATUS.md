@@ -8,6 +8,12 @@
 
 ## 1. Project Health & Current State
 
+### Active: CP-10.14 Mobile discovery, pickup details and quieter guidance (2026-09-22)
+
+User-authorized follow-up adds a teal footer with a large scrolling Loqme signature, removes the homepage explainer card, introduces dismissible customer-login guidance, simplifies authenticated mobile navigation and displays a phone-verification entry for guests. Listing details add circular back/share/favorite controls, merchant-declared packaging and pickup instructions; unrated stores retain empty rating bars with 0.0 visual values. Monthly signed sessions remain 30 days; OTP verification is required before session creation, so there is no fabricated unverified-account state. Packaging uses existing listing attributes, without migration or production reseeding. See [CP10_14_MOBILE.md](CP10_14_MOBILE.md).
+
+237/237 tests in 27 suites pass on fresh disposable PostgreSQL. Production build, lint and web/shared types pass. 79/79 browser tests pass on the optimized preview, including responsive layouts, axe accessibility, login guidance, reduced motion, session refresh, packaging edits and explainer/PWA regressions. Visuals inspected at 360/390/768/1440px. Push/deployment verification is in progress. Existing provider/device gates remain open.
+
 ### Completed: CP-10.13 Navigation, rating rows, Persian tags and onboarding cities (2026-09-22)
 
 User-requested follow-up implements a full-width centered-logo header with scroll blur, horizontal review rows on merchant/listing pages, Persian dietary/allergen labels and an idempotent Urmia reference-data migration for the empty production city list. The local shop HTTP 500 was reproduced and repaired after backup and verified migration-history reconciliation. Real local listing/merchant APIs now return 200 with rating aggregates. No production demo data is seeded. See [CP10_13_PRESENTATION.md](CP10_13_PRESENTATION.md).

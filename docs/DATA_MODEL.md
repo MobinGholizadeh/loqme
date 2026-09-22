@@ -116,3 +116,8 @@ CP-10.13 persists the Urmia launch city and West Azerbaijan province via an idem
    A customer cannot hold multiple active pending reservations for the same listing simultaneously.
 4. **Safety Lockout**:  
    A Listing with `ListingSafety.safetyStatus IN ('REJECTED', 'UNSAFE', 'EXPIRED')` cannot be reserved, ordered, or published.
+
+
+## CP-10.14 pickup attributes (2026-09-22)
+
+ListingAttributes reserves key `pickupDetails` for merchant-declared container/carrier-bag booleans (nullable when unspecified) and Persian pickup notes. Validated creation/editing and public/merchant responses share the contract documented in [CP10_14_MOBILE.md](CP10_14_MOBILE.md). Edits lock the parent listing and replace only this key, leaving inventory and safety intact. No migration or historical defaults are required.

@@ -121,7 +121,15 @@ export const CreateSurpriseBagSchema = z.object({
 
 export type CreateSurpriseBagInput = z.input<typeof CreateSurpriseBagSchema>;
 
+export const PickupDetailsSchema = z.object({
+  containerProvided: z.boolean().nullable().default(null),
+  carrierBagProvided: z.boolean().nullable().default(null),
+  instructionsFa: z.string().trim().max(500).default(''),
+}).strict();
+export type PickupDetailsInput = z.infer<typeof PickupDetailsSchema>;
+
 export const CreateListingSchema = z.object({
+  pickupDetails: PickupDetailsSchema.optional(),
   imageUrl: z.string().max(500).optional(),
   merchantId: z.string().uuid('شناسه فروشگاه نامعتبر است'),
   merchantLocationId: z.string().uuid('شناسه شعبه نامعتبر است').optional(),
@@ -418,6 +426,7 @@ export type UpdateListingSafetyInput = z.infer<typeof UpdateListingSafetySchema>
 
 export const FastCreateListingSchema = z
   .object({
+    pickupDetails: PickupDetailsSchema.optional(),
     imageUrl: z.string().max(500).optional(),
     categoryId: z.string().optional(),
     categorySlug: z.string().optional(),

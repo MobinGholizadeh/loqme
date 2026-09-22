@@ -11,7 +11,7 @@ test('playback accepts an initial frame timestamp earlier than effect setup', as
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await installFixtures(page); await page.goto('/');
-  await page.locator('.how-it-works-card').click();
+  await page.locator('.market-footer .how-it-works-link').click();
   await page.getByRole('dialog').waitFor();
   await page.evaluate(() => {
     const nativeFrame = window.requestAnimationFrame.bind(window);
@@ -35,7 +35,7 @@ for (const width of [360,390,768,1440]) {
     } } }));
     await page.goto('/merchants/ui-store');
     await expect(page.getByRole('region', { name: 'امتیازهای خریداران' })).toBeVisible();
-    await expect(page.getByText('هنوز امتیازی ثبت نشده', { exact: true })).toBeVisible();
+    await expect(page.locator('.merchant-rating-score strong').nth(2)).toHaveText('۰.۰');
     await expect(page.locator('.listing-stock').first()).toHaveText('ناموجود');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect((await new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
@@ -43,7 +43,7 @@ for (const width of [360,390,768,1440]) {
   });
   test(`explainer controls and layout at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 900 }); await installFixtures(page); await page.goto('/');
-    const opener = page.locator('.how-it-works-card'); await opener.click();
+    const opener = page.locator('.market-footer .how-it-works-link'); await opener.click();
     const dialog = page.getByRole('dialog', { name: 'لقمه چطور کار می‌کند؟' });
     await expect(dialog).toBeVisible();
     await expect(page.locator('.explainer-panel')).toHaveAttribute('data-playing','false');
@@ -73,7 +73,7 @@ test('unavailable detail blocks checkout and refreshes after focus', async ({ pa
 });
 test('reduced motion uses static manually navigable scenes', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' }); await installFixtures(page); await page.goto('/');
-  await page.locator('.how-it-works-card').click();
+  await page.locator('.market-footer .how-it-works-link').click();
   await expect(page.getByText('نمایش بدون حرکت')).toBeVisible();
   await expect(page.getByRole('button', { name: 'پخش راهنما' })).toHaveCount(0);
   await page.getByRole('button', { name: 'مرحله بعد' }).click();
@@ -111,12 +111,12 @@ test('reservation race refreshes the detail without removing the offer', async (
   await expect(page.getByRole('button', { name: /ناموجود|تکمیل|پایان/ }).last()).toBeDisabled();
 });
 test('explainer plays all scenes, stops at the end and resets on reopen', async ({ page }) => {
-  await installFixtures(page); await page.goto('/'); await page.locator('.how-it-works-card').click();
+  await installFixtures(page); await page.goto('/'); await page.locator('.market-footer .how-it-works-link').click();
   await page.clock.install(); await page.getByRole('button', { name: 'پخش راهنما' }).click();
   await page.clock.runFor(8000); await expect(page.getByRole('heading', { name: 'انتخاب کن، رزرو کن' })).toBeVisible();
   await page.clock.runFor(8000); await expect(page.getByRole('heading', { name: 'سر وقت، حضوری دریافت کن' })).toBeVisible();
   await page.clock.runFor(15000); await expect(page.getByRole('heading', { name: 'لذت ببر و تجربه‌ات را بگو' })).toBeVisible();
   await expect(page.locator('.explainer-panel')).toHaveAttribute('data-playing','false');
-  await page.keyboard.press('Escape'); await page.locator('.how-it-works-card').click();
+  await page.keyboard.press('Escape'); await page.locator('.market-footer .how-it-works-link').click();
   await expect(page.getByRole('heading', { name: 'یک طعم تازه کشف کن' })).toBeVisible();
 });

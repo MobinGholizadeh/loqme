@@ -30,9 +30,9 @@ async function chooseManual(page: Page) {
 
 test('guest navbar exposes both entry points including at 360px', async ({ page }) => {
   await setup(page); await page.setViewportSize({ width: 360, height: 800 }); await page.goto('/');
-  const customer = page.getByRole('link', { name: 'ورود', exact: true });
+  const customer = page.getByRole('link', { name: 'ورود و تأیید شماره همراه', exact: true });
   const business = page.getByRole('link', { name: 'کسب‌وکار', exact: true });
-  await expect(customer).toBeVisible(); await expect(customer).toHaveAttribute('href', '/login');
+  await expect(customer).toBeVisible(); await expect(customer).toHaveAttribute('href', /^\/login/);
   await expect(business).toBeVisible(); await expect(business).toHaveAttribute('href', '/business');
   await business.click(); await expect(page.getByRole('heading', { level: 1 })).toHaveText('کسب‌وکارتان را پیدا کنید');
 });

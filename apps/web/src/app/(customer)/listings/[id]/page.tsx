@@ -18,9 +18,10 @@ import { ListingImage } from "@/components/ui/ListingImage";
 import { Heart } from "lucide-react";
 import { foodLabelFa } from "@/lib/utils/food-labels";
 import { MerchantRatings } from "@/components/reviews/MerchantRatings";
-import type { MerchantRatingSummaryDto } from "@loqme/types";
+import type { MerchantRatingSummaryDto, PickupDetailsDto } from "@loqme/types";
 
 interface ListingDetailData {
+  pickupDetails?: PickupDetailsDto;
   canReserve?: boolean;
   availability?: string;
   images?: { imageUrl: string }[];
@@ -227,7 +228,9 @@ export default function ListingDetailPage() {
 
   const startDate = new Date(data.pickupStart);
   const endDate = new Date(data.pickupEnd);
-  const timeWindowStr = `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")} تا ${endDate.getHours().toString().padStart(2, "0")}:${endDate.getMinutes().toString().padStart(2, "0")}`;
+  const timeOptions = { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tehran' } as const;
+  const timeWindowStr = `${startDate.toLocaleTimeString('fa-IR', timeOptions)} تا ${endDate.toLocaleTimeString('fa-IR', timeOptions)}`;
+  const pickupDay = startDate.toLocaleDateString('fa-IR', { timeZone: 'Asia/Tehran' });
 
   const isSurpriseBag = data.type === "SURPRISE_BAG";
 
@@ -256,29 +259,19 @@ export default function ListingDetailPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
 
-      {/* Breadcrumb / Back button */}
-      <div className="detail-breadcrumb flex items-center justify-between text-xs text-loqme-neutral-500">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="flex items-center gap-1 hover:text-loqme-primary-700 font-bold transition-colors"
-        >
-          <span>←</span>
-          <span>بازگشت</span>
-        </button>
-        <div className="flex items-center gap-1.5">
-          <span>{data.merchant.location?.cityNameFa || "ارومیه"}</span>
-          <span>•</span>
-          <span>{data.category.nameFa}</span>
-        </div>
-      </div>
-
       <div className="detail-photo">
-        <ListingImage
-          src={data.images?.[0]?.imageUrl}
-          alt={data.titleFa}
-          priority
-        />
+        <ListingImage src={data.images?.[0]?.imageUrl} alt={data.titleFa} priority />
+        <div className="detail-photo-actions">
+          <Link href="/explore" className="detail-round-button" aria-label="بازگشت به کاوش"><RedesignIcons.ArrowRight size={22}/></Link>
+          <Link className="detail-photo-shop" href={`/merchants/${data.merchant.id}`}>{data.merchant.businessNameFa}</Link>
+          <button type="button" className="detail-round-button" aria-label="اشتراک‌گذاری بسته" onClick={async () => {
+            try {
+              if (navigator.share) await navigator.share({ title: data.titleFa, url: window.location.href });
+              else { await navigator.clipboard.writeText(window.location.href); showFeedback('پیوند بسته کپی شد'); }
+            } catch (error) { if (!(error instanceof Error && error.name === 'AbortError')) showFeedback('اشتراک‌گذاری ممکن نشد؛ پیوند صفحه را از نوار آدرس کپی کنید.'); }
+          }}><RedesignIcons.Share2 size={20}/></button>
+          <button type="button" className="detail-round-button" onClick={handleToggleFavorite} disabled={favoriteLoading} aria-pressed={isFavorited} aria-label={isFavorited ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}><Heart size={22} fill={isFavorited ? "currentColor" : "none"}/></button>
+        </div>
       </div>
       <Card
         variant="elevated"
@@ -289,8 +282,8 @@ export default function ListingDetailPage() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={isSurpriseBag ? "brand" : "neutral"} size="sm">
                 {isSurpriseBag
-                  ? "🎁 بسته شگفت‌انگیز (Surprise Bag)"
-                  : "تخفیف ویژه (Flash Deal)"}
+                  ? "بسته شگفت‌انگیز"
+                  : "تخفیف ویژه"}
               </Badge>
               <Badge variant="success" size="sm">
                 ✓ تضمین سلامت و بهداشت
@@ -321,27 +314,6 @@ export default function ListingDetailPage() {
             </div>
           </div>
 
-          {/* Favorite Toggle Button */}
-          <button
-            type="button"
-            onClick={handleToggleFavorite}
-            disabled={favoriteLoading}
-            className={`self-start p-3 rounded-lg border transition-all flex items-center gap-1.5 text-xs font-bold ${
-              isFavorited
-                ? "bg-rose-50 text-rose-600 border-rose-200"
-                : "bg-loqme-neutral-50 text-loqme-neutral-600 border-loqme-neutral-200 hover:bg-loqme-neutral-100"
-            }`}
-            title={
-              isFavorited ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"
-            }
-          >
-            <Heart
-              size={18}
-              fill={isFavorited ? "currentColor" : "none"}
-              aria-hidden="true"
-            />
-            <span>{isFavorited ? "علاقه‌مندی" : "افزودن به محبوب‌ها"}</span>
-          </button>
         </div>
 
         {/* Description */}
@@ -382,7 +354,7 @@ export default function ListingDetailPage() {
             </span>
             <div>
               <div className="text-[11px] text-loqme-neutral-500">
-                زمان تحویل حضوری امروز
+                زمان دریافت حضوری · {pickupDay}
               </div>
               <div className="font-bold text-xs text-loqme-neutral-800">
                 {timeWindowStr}
@@ -399,8 +371,7 @@ export default function ListingDetailPage() {
                 موجودی باقی‌مانده
               </div>
               <div className="font-bold text-xs text-loqme-primary-700">
-                {toPersianDigits(data.inventory.availableQuantity)} بسته در
-                انبار
+                {toPersianDigits(data.inventory.availableQuantity)} بسته باقی مانده
               </div>
             </div>
           </div>
@@ -425,6 +396,17 @@ export default function ListingDetailPage() {
           </p>
         </Card>
       ) : null}
+
+      <Card variant="outlined" className="pickup-information">
+        <section><h2>راهنمای دریافت</h2><p>در بازه دریافت به فروشگاه مراجعه کنید و کد QR یا رمز تحویل سفارش را به مسئول فروشگاه نشان دهید.</p>
+        {data.pickupDetails?.instructionsFa && <p>{data.pickupDetails.instructionsFa}</p>}</section>
+        <section><h2>بسته‌بندی</h2><div className="packaging-options">
+          {([{ key: 'containerProvided', label: 'ظرف غذا', Icon: RedesignIcons.Package }, { key: 'carrierBagProvided', label: 'کیسه حمل', Icon: RedesignIcons.ShoppingBag }] as const).map(({ key, label, Icon }) => {
+            const provided = data.pickupDetails?.[key];
+            return <div key={key} className="packaging-option" data-provided={provided == null ? 'unknown' : String(provided)}><Icon size={36} aria-hidden="true"/><h3>{label}</h3><p>{provided === true ? 'ارائه می‌شود' : provided === false ? 'ارائه نمی‌شود' : 'مشخص نشده'}</p></div>;
+          })}
+        </div><p className="packaging-advice"><RedesignIcons.Info size={18} aria-hidden="true"/>پیشنهاد می‌کنیم کیسه خودتان را همراه بیاورید.</p></section>
+      </Card>
 
       {/* Food Safety & Dietary Clearance */}
       <Card variant="outlined" className="p-5 space-y-4 bg-white">
@@ -543,10 +525,10 @@ export default function ListingDetailPage() {
             disabled={data.canReserve === false || data.isSoldOut || data.isExpired}
             isLoading={isReserving}
             onClick={handleReserve}
-            className="flex-1 max-w-xs"
+            className="flex-1 max-w-xs rounded-full"
           >
             {data.canReserve === false || data.isSoldOut
-              ? "تکمیل موجودی"
+              ? "ناموجود"
               : data.isExpired
                 ? "زمان تحویل سپری شده"
                 : "رزرو ۱۰ دقیقه‌ای بسته"}

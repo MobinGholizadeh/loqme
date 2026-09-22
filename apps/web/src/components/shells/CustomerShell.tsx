@@ -1,5 +1,5 @@
 "use client";
-import { HowItWorksButton } from "@/components/how-it-works/HowItWorksButton";
+import { MarketFooter } from "./MarketFooter";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -52,7 +52,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
     },
   ];
   return (
-    <div className="customer-shell">
+    <div className="customer-shell" data-session={status}>
       <a href="#main-content" className="skip-link">
         رفتن به محتوای اصلی
       </a>
@@ -112,24 +112,13 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
+      {status === "anonymous" && <Link className="mobile-verification-notice" href={`/login?redirect=${encodeURIComponent(pathname)}`}>
+        <UserRound size={20} aria-hidden="true"/><span>ورود و تأیید شماره همراه</span><ArrowUpLeft size={18} aria-hidden="true"/>
+      </Link>}
       <main id="main-content" className="customer-main" tabIndex={-1}>
         {children}
       </main>
-      <footer className="market-footer">
-        <div className="market-footer-inner">
-          <div>
-            <LoqmeLogo size="md" variant="horizontal" />
-            <p>کشف خوراکی‌های تازه، خرید هوشمندانه از محله.</p>
-          </div>
-          <nav aria-label="پیوندهای پایین صفحه">
-            <HowItWorksButton />
-            <Link href="/explore">کاوش بسته‌ها</Link>
-            <Link href="/orders">پیگیری سفارش</Link>
-            {portal && <Link href={portal.href}>{portal.label}</Link>}
-          </nav>
-          <span>لقمه · loqme.shop</span>
-        </div>
-      </footer>
+      <MarketFooter portal={portal} />
       <nav aria-label="منوی موبایل" className="mobile-tabs">
         {items.map((item) => (
           <Link

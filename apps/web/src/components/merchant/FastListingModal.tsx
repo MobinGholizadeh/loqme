@@ -1,4 +1,5 @@
 "use client";
+import { PickupDetailsFields, emptyPickupDetails } from "./PickupDetailsFields";
 import { DialogSurface } from "@/components/ui/DialogSurface";
 import * as RedesignIcons from "lucide-react";
 
@@ -154,6 +155,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
   onClose,
   onListingCreated,
 }) => {
+  const [pickupDetails, setPickupDetails] = useState(emptyPickupDetails);
   const [selectedTemplateId, setSelectedTemplateId] =
     useState<string>("pastry-sweets");
   const [titleFa, setTitleFa] = useState<string>("بسته شیرینی تر و کیک عصرانه");
@@ -277,6 +279,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          pickupDetails,
           categorySlug,
           titleFa,
           descriptionFa,
@@ -441,6 +444,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
             </div>
           </div>
 
+          <PickupDetailsFields value={pickupDetails} onChange={setPickupDetails}/>
           <ListingImagePicker
             value={imageUrl}
             onChange={setImageUrl}

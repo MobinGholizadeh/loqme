@@ -1,4 +1,6 @@
 "use client";
+import { PickupDetailsEditor } from "@/components/merchant/PickupDetailsEditor";
+import type { PickupDetailsInput } from "@loqme/validation";
 import { ErrorState } from "@/components/ui/ErrorState";
 import * as RedesignIcons from "lucide-react";
 
@@ -12,6 +14,7 @@ import { FastListingModal } from "@/components/merchant/FastListingModal";
 import { formatToman, toPersianDigits } from "@/lib/utils/persian";
 
 interface MerchantListingItem {
+  pickupDetails?: PickupDetailsInput;
   id: string;
   titleFa: string;
   descriptionFa: string;
@@ -32,6 +35,7 @@ interface MerchantListingItem {
 }
 
 export default function MerchantListingsPage() {
+  const [editingPickup, setEditingPickup] = useState<MerchantListingItem | null>(null);
   const [loadError, setLoadError] = useState("");
   const [listings, setListings] = useState<MerchantListingItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -409,12 +413,14 @@ export default function MerchantListingsPage() {
                     </Button>
                   </div>
                 </div>
+                <Button variant="ghost" size="sm" onClick={() => setEditingPickup(item)}>بسته‌بندی و راهنمای دریافت</Button>
               </Card>
             );
           })}
         </div>
       )}
 
+      {editingPickup && <PickupDetailsEditor listing={editingPickup} onClose={() => setEditingPickup(null)} onSaved={fetchListings}/>}
       {/* Fast Listing Modal */}
       <FastListingModal
         isOpen={isFastModalOpen}

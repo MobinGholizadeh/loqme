@@ -1,5 +1,4 @@
 "use client";
-import { HowItWorksButton } from "@/components/how-it-works/HowItWorksButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -224,7 +223,6 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
     Number(Boolean(maxPrice));
   return (
     <div className="discovery-view">
-      {home && <HowItWorksButton card />}
       <div className="discovery-heading">
         <div>
           <h1>{home ? "لقمه‌های تازه، نزدیک شما" : "کشف طعم‌های محله"}</h1>

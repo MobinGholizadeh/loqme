@@ -1,3 +1,4 @@
+import { readPickupDetails } from '@/domain/listing/pickup-details';
 import { reservationService } from "@/domain/reservation/reservation.service";
 import { listingAvailability } from "@/domain/listing/availability";
 import { moderationService } from "@/domain/moderation/moderation.service";
@@ -29,6 +30,7 @@ export async function GET(
             },
           },
         },
+        attributes: true,
         category: true,
         inventory: true,
         safety: true,
@@ -86,6 +88,7 @@ export async function GET(
       data: {
         ...listingAvailability(listing),
         id: listing.id,
+        pickupDetails: readPickupDetails(listing.attributes),
         merchantId: listing.merchantId,
         titleFa: listing.titleFa,
         descriptionFa: listing.descriptionFa,

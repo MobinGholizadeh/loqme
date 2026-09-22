@@ -106,6 +106,7 @@ export class ListingService {
       const listing = await tx.listing.create({
         data: {
           merchantId: validated.merchantId,
+          attributes: validated.pickupDetails ? { create: { key: 'pickupDetails', valueJson: validated.pickupDetails } } : undefined,
           images: validated.imageUrl ? { create: { imageUrl: validated.imageUrl, isPrimary: true } } : undefined,
           merchantLocationId: validated.merchantLocationId,
           categoryId: validated.categoryId,
@@ -248,6 +249,7 @@ export class ListingService {
     return await prisma.listing.findMany({
       where: { merchantId },
       include: {
+        attributes: true,
         category: true,
         inventory: true,
         safety: true,

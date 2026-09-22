@@ -6,7 +6,7 @@ test("cached old CSS cannot remove the explainer layout on first navigation", as
   await page.goto('/');
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   await page.reload();
-  await page.locator('.how-it-works-card').waitFor();
+  await page.locator('.market-footer .how-it-works-link').waitFor();
   await page.evaluate(async () => {
     const keys = (await caches.keys()).filter(key => key.startsWith('loqme-cache-'));
     const styles = [...document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')];
@@ -20,8 +20,8 @@ test("cached old CSS cannot remove the explainer layout on first navigation", as
     }
   });
   await page.reload();
-  await expect(page.locator('.how-it-works-card')).toHaveCSS('display', 'flex');
-  await page.locator('.how-it-works-card').click();
+  await expect(page.locator('.market-footer .how-it-works-link')).toHaveCSS('display', 'flex');
+  await page.locator('.market-footer .how-it-works-link').click();
   await expect(page.locator('.explainer-art')).toHaveCSS('display', 'grid');
   await expect(page.locator('.explainer-phone')).toHaveCSS('border-top-width', '5px');
 });

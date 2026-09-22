@@ -1,3 +1,4 @@
+import { readPickupDetails } from '@/domain/listing/pickup-details';
 import { NextRequest, NextResponse } from "next/server";
 import { listingService } from "@/domain/listing/listing.service";
 import { merchantService } from "@/domain/merchant/merchant.service";
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
     // Format BigInt values for JSON response
     const formattedListings = listings.map((l) => ({
       id: l.id,
+      pickupDetails: readPickupDetails(l.attributes),
       merchantId: l.merchantId,
       merchantLocationId: l.merchantLocationId,
       categoryId: l.categoryId,
@@ -183,6 +185,7 @@ export async function POST(request: NextRequest) {
     const primaryLocation = merchant.locations[0];
 
     const newListing = await listingService.createListing({
+      pickupDetails: validated.pickupDetails,
       imageUrl: validated.imageUrl,
       merchantId: merchant.id,
       merchantLocationId: primaryLocation?.id,

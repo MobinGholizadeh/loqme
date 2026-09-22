@@ -1156,3 +1156,10 @@ export interface MarketplaceAnalyticsReportDto {
   cohorts: CustomerCohortAnalyticsDto;
 }
 
+
+/** Null means the merchant has not declared this packaging option. */
+export interface PickupDetailsDto {
+  containerProvided: boolean | null;
+  carrierBagProvided: boolean | null;
+  instructionsFa: string;
+}

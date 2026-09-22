@@ -1,3 +1,4 @@
+import { GuideNotice } from "@/components/how-it-works/GuideNotice";
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpLeft } from 'lucide-react';
@@ -17,7 +18,7 @@ export function AuthLayout({ children, business = false }: { children: React.Rea
         <Link href="/" className="auth-text-link"><ArrowRight size={18} aria-hidden="true" />بازگشت به خانه</Link>
         <Link href={business ? '/login' : '/business'} className="auth-text-link">{business ? 'ورود مشتری' : 'ورود کسب‌وکار'}<ArrowUpLeft size={16} aria-hidden="true" /></Link>
       </nav>
-      <div className="auth-split-content">{children}</div>
+      <div className="auth-split-content">{!business && <GuideNotice/>}{children}</div>
       <p className="auth-split-footnote">لقمه  کشف هوشمندانه خوراکی‌های محلی</p>
     </main>
   </div>;

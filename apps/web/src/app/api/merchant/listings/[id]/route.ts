@@ -1,3 +1,4 @@
+import { updatePickupDetails } from '@/domain/listing/pickup-details';
 import { NextRequest, NextResponse } from 'next/server';
 import { listingService } from '@/domain/listing/listing.service';
 import { merchantService } from '@/domain/merchant/merchant.service';
@@ -38,6 +39,11 @@ export async function PATCH(
       merchantId
     );
 
+    if (body.pickupDetails !== undefined) {
+      if (body.status !== undefined || body.deltaQuantity !== undefined || body.totalQuantity !== undefined) throw new Error('راهنمای دریافت را جداگانه ذخیره کنید');
+      const pickupDetails = await updatePickupDetails(merchant.id, id, body.pickupDetails);
+      return NextResponse.json({ success: true, data: { id, pickupDetails } });
+    }
     const validated = UpdateListingStockSchema.parse(body);
 
     // Case 1: Status toggle (e.g. PUBLISHED <-> PAUSED)
