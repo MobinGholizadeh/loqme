@@ -231,7 +231,7 @@ Baseline: web TypeScript passed, lint had six warnings, and unavailable PostgreS
 - [x] **CP-08.4 — Global Listing & Category Manager**: Built `/admin/listings` providing cross-merchant listing search, category filtering, price and stock inspection, food safety status pills, and category hierarchy manager (`/api/admin/categories`) with modal for creating new categories (slug, Persian title, icon URL) with duplicate slug conflict detection.
 - [x] **CP-08.5 — Dispute Resolution & Refund Console**: Connected centralized moderation workflow at `/admin/moderation` with customer complaint triage, photo evidence lightbox, safety classification override modal, and 1-click gateway refund triggering double-entry ledger reversals (`/api/admin/complaints/[id]/resolve`).
 - [x] **CP-08.6 — Commission Rule Engine & Settlement Exporter**: Built `/admin/finance` calculating aggregate platform GMV, platform commission cuts, customer refunds deducted, and net payable balances per merchant. Added 1-click Paya bank transfer CSV exporter (`لوقمه_تسویه_پایا_...csv`) generating formatted Sheba (شبا) transfer rows for Iranian banking portals (`/api/admin/finance/settlements`).
-- [x] **CP-08.7 — Audit Log Viewer & System Configuration**: Built `/admin/settings` providing platform maintenance mode toggle, emergency announcement banner editor, and active SMS provider switcher (`MOCK`, `KAVENEGAR`, `FARAZSMS`). Built `/admin/audit` rendering immutable event stream with actor, role, action, target entity, timestamp, and JSON diff viewer (`/api/admin/audit`, `/api/admin/settings`).
+- [x] **CP-08.7 — Audit Log Viewer & System Configuration**: Built `/admin/settings` providing platform maintenance mode toggle, emergency announcement banner editor, and active SMS provider switcher (`MOCK`, `SMS_IR`). Built `/admin/audit` rendering immutable event stream with actor, role, action, target entity, timestamp, and JSON diff viewer (`/api/admin/audit`, `/api/admin/settings`).
 - [x] **CP-08.8 — Admin Security & Verification Suite**: Authored 21 tests in `tests/m08-admin.test.ts` (21/21 passing) verifying Zod validation, strict RBAC gatekeeper (`requireAdminSession` returning 401 for unauthenticated and 403 for `CUSTOMER`/`MERCHANT_OWNER`/`MERCHANT_STAFF`), merchant verification state transitions, automatic listing pausing on suspension, customer deactivation, settlement mathematical accuracy, and tamper-proof audit logging.
 
 ---
@@ -318,7 +318,7 @@ Baseline: web TypeScript passed, lint had six warnings, and unavailable PostgreS
 
 ## 7. Pending Decisions
 
-1. **Primary SMS Provider**: Select between Kavenegar and FarazSMS for production OTP dispatch (`INotificationService`).
+1. **Primary SMS Provider**: Configured **SMS.ir** REST API v1 (`SmsIrNotificationService`) for production OTP and notification dispatch, with zero-credit `ConsoleMockNotificationService` for localhost/testing.
 2. **Map Provider**: Confirm Leaflet tile provider (Neshan Map API vs OpenStreetMap).
 3. **EAS Build Credentials**: Apple Developer Account and Google Play Console accounts for production mobile releases.
 

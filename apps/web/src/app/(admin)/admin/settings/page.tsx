@@ -22,7 +22,7 @@ export default function AdminSettingsPage() {
   const [maintenanceMode, setMaintenanceMode] = useState<boolean>(false);
   const [announcementBannerFa, setAnnouncementBannerFa] = useState<string>("");
   const [activeSmsProvider, setActiveSmsProvider] = useState<
-    "MOCK" | "KAVENEGAR" | "FARAZSMS"
+    "MOCK" | "SMS_IR"
   >("MOCK");
 
   const fetchSettings = useCallback(async () => {
@@ -193,22 +193,17 @@ export default function AdminSettingsPage() {
               </span>
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 {
                   id: "MOCK",
                   name: "کنسول شبیه‌ساز (Mock / Dev)",
-                  desc: "چاپ کد در لاگ ترمینال سرور",
+                  desc: "چاپ کد در لاگ ترمینال سرور بدون هزینه",
                 },
                 {
-                  id: "KAVENEGAR",
-                  name: "کاوه نگار (Kavenegar)",
-                  desc: "وب‌سرویس پیامک اعتباری",
-                },
-                {
-                  id: "FARAZSMS",
-                  name: "فراز اس‌ام‌اس (FarazSMS)",
-                  desc: "خطوط خدماتی با عبور از بلک‌لیست",
+                  id: "SMS_IR",
+                  name: "سامانه پیامک SMS.ir",
+                  desc: "ارسال سریع اعتباری و خدماتی با وب‌سرویس REST",
                 },
               ].map((p) => (
                 <button

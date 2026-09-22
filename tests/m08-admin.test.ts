@@ -98,7 +98,7 @@ describe('Milestone M08 — Admin Operations & Marketplace Governance', () => {
       const validSettings = {
         maintenanceMode: true,
         announcementBannerFa: 'سامانه در حال بروزرسانی سرورهای پرداخت می‌باشد.',
-        activeSmsProvider: 'KAVENEGAR' as const,
+        activeSmsProvider: 'SMS_IR' as const,
       };
 
       const result = UpdateSystemSettingsSchema.safeParse(validSettings);
@@ -487,16 +487,16 @@ describe('Milestone M08 — Admin Operations & Marketplace Governance', () => {
       const updated = await adminService.updateSystemSettings('admin-user-1', {
         maintenanceMode: true,
         announcementBannerFa: 'سامانه موقتاً برای ارتقاء پایگاه داده متوقف است.',
-        activeSmsProvider: 'FARAZSMS',
+        activeSmsProvider: 'SMS_IR',
       });
 
       expect(updated.maintenanceMode).toBe(true);
       expect(updated.announcementBannerFa).toBe('سامانه موقتاً برای ارتقاء پایگاه داده متوقف است.');
-      expect(updated.activeSmsProvider).toBe('FARAZSMS');
+      expect(updated.activeSmsProvider).toBe('SMS_IR');
 
       const current = adminService.getSystemSettings();
       expect(current.maintenanceMode).toBe(true);
-      expect(current.activeSmsProvider).toBe('FARAZSMS');
+      expect(current.activeSmsProvider).toBe('SMS_IR');
 
       expect(auditService.logAction).toHaveBeenCalledWith(
         expect.objectContaining({

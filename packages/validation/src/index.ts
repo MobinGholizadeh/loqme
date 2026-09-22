@@ -544,7 +544,7 @@ export type CreateCategoryInput = z.infer<typeof CreateCategorySchema>;
 export const UpdateSystemSettingsSchema = z.object({
   maintenanceMode: z.boolean().optional(),
   announcementBannerFa: z.string().trim().max(500).optional(),
-  activeSmsProvider: z.enum(['MOCK', 'KAVENEGAR', 'FARAZSMS']).optional(),
+  activeSmsProvider: z.enum(['MOCK', 'SMS_IR']).optional(),
 });
 
 export type UpdateSystemSettingsInput = z.infer<typeof UpdateSystemSettingsSchema>;

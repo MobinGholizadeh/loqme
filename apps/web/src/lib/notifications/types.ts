@@ -1,6 +1,7 @@
 /**
  * Notification & SMS provider abstraction
  * Implements architectural directive from ARCHITECTURE.md Section 3.2
+ * Supported providers: ConsoleMockNotificationService (dev/test), SmsIrNotificationService (production)
  */
 export interface INotificationService {
   /**

@@ -1085,7 +1085,7 @@ export interface AdminSettlementReportDto {
 export interface SystemSettingsDto {
   maintenanceMode: boolean;
   announcementBannerFa: string;
-  activeSmsProvider: 'MOCK' | 'KAVENEGAR' | 'FARAZSMS';
+  activeSmsProvider: 'MOCK' | 'SMS_IR';
 }
 
 // =============================================================================

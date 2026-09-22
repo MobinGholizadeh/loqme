@@ -204,10 +204,12 @@ NEXT_PUBLIC_APP_URL=https://loqme.ir
 # Image Storage inside container
 LISTING_IMAGE_STORAGE_DIR=/app/.data/listing-images
 
-# SMS Provider Integration (kavenegar | farazsms)
-SMS_PROVIDER=kavenegar
-KAVENEGAR_API_KEY=your_kavenegar_production_api_key_here
-FARAZSMS_API_KEY=
+# SMS Provider Integration (console | smsir)
+SMS_PROVIDER=smsir
+SMSIR_API_KEY=your_smsir_production_api_key_here
+SMSIR_LINE_NUMBER=30002108039036
+SMSIR_TEMPLATE_ID=your_template_id_here
+SMSIR_CODE_PARAM_NAME=Code
 
 # Iranian Payment Gateway Integration (Zarinpal / Saman)
 ZARINPAL_MERCHANT_ID=your_zarinpal_merchant_uuid

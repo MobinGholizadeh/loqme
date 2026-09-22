@@ -95,6 +95,14 @@ jobs:
             umask 077
             cd /opt/loqme
             test -f docker-compose.prod.yml
+
+            # Ensure production server .env has SMS.ir credentials configured
+            if [ -f .env ]; then
+              grep -q "SMSIR_API_KEY" .env && sed -i 's/^SMSIR_API_KEY=.*/SMSIR_API_KEY="iMDgFRvzeLJ5B0QMrXG93KDP6T8k6rlmZsn6Qc7y2ftIjFvS"/' .env || echo 'SMSIR_API_KEY="iMDgFRvzeLJ5B0QMrXG93KDP6T8k6rlmZsn6Qc7y2ftIjFvS"' >> .env
+              grep -q "SMSIR_LINE_NUMBER" .env || echo 'SMSIR_LINE_NUMBER="30002108039036"' >> .env
+              grep -q "SMS_PROVIDER" .env && sed -i 's/^SMS_PROVIDER=.*/SMS_PROVIDER="smsir"/' .env || echo 'SMS_PROVIDER="smsir"' >> .env
+            fi
+
             printf '%s' '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
             REPOSITORY=$(printf '%s' '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
             export LOQME_IMAGE="ghcr.io/$REPOSITORY@${{ needs.build-and-push.outputs.digest }}"

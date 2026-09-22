@@ -33,7 +33,7 @@
 +-----------------------------+        +--------------------------------------------+
 |   REPOSITORY & DATA ACCESS  |        |          INTEGRATION ADAPTERS              |
 |   Prisma / Drizzle ORM      |        |  - Payment: Saman, Zarinpal, MockGateway   |
-|   PostgreSQL + PostGIS      |        |  - SMS: Kavenegar, FarazSMS, ConsoleMock   |
+|   PostgreSQL + PostGIS      |        |  - SMS: SMS.ir, ConsoleMock                |
 |   (Geospatial & ACID Locks) |        |  - Maps: Neshan, Cedarmaps, Leaflet        |
 +-----------------------------+        |  - Storage: ArvanCloud / Liara S3, Local   |
                                        +--------------------------------------------+
@@ -110,7 +110,7 @@ export interface INotificationService {
   sendPickupReminder(mobile: string, orderNumber: string, remainingMinutes: number): Promise<boolean>;
 }
 ```
-* Adapters: `ConsoleMockNotificationService` (dev), `KavenegarSmsAdapter`, `FarazSmsAdapter`.
+* Adapters: `ConsoleMockNotificationService` (dev), `SmsIrNotificationService` (production).
 
 ### 3.3 Map & Geocoding Abstraction (`IMapService`)
 * Map rendering: OpenStreetMap tiles or Iranian map provider (Neshan / Cedarmaps) via Leaflet.
