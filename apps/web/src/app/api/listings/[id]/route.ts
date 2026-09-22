@@ -1,5 +1,6 @@
 import { reservationService } from "@/domain/reservation/reservation.service";
 import { listingAvailability } from "@/domain/listing/availability";
+import { moderationService } from "@/domain/moderation/moderation.service";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -78,6 +79,7 @@ export async function GET(
       : 0;
 
     const primaryLocation = listing.merchant.locations[0];
+    const ratings = await moderationService.getMerchantRatings(listing.merchantId);
 
     return NextResponse.json({
       success: true,
@@ -118,8 +120,9 @@ export async function GET(
           id: listing.merchant.id,
           businessNameFa: listing.merchant.businessNameFa,
           businessType: listing.merchant.businessType,
-          ratingAverage: listing.merchant.ratingAverage,
-          ratingCount: listing.merchant.ratingCount,
+          ratingAverage: ratings.overallRating.average ?? 0,
+          ratingCount: ratings.overallRating.count,
+          ratings,
           isFavorited,
           location: primaryLocation
             ? {

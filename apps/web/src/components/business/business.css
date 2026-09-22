@@ -54,13 +54,3 @@
   .auth-split-caption { inset-inline: 40px; inset-block-end: 48px; }
   .auth-split-caption > span:first-child { display: block; margin-block-end: 8px; }
 }
-@media (max-width: 1100px) {
-  .market-header-inner { flex-wrap: wrap; }
-  .header-actions { flex-wrap: wrap; }
-}
-@media (max-width: 639px) {
-  .market-header-inner { row-gap: 10px; }
-  .market-header .header-actions { width: 100%; display: flex; gap: 8px; }
-  .market-header .header-actions .action-link { flex: 1; justify-content: center; min-height: 44px; padding-inline: 8px; font-size: 11px; white-space: nowrap; }
-  .market-header .header-actions .action-link > svg { display: none; }
-}

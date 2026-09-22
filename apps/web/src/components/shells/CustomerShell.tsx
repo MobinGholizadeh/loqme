@@ -1,6 +1,6 @@
 "use client";
 import { HowItWorksButton } from "@/components/how-it-works/HowItWorksButton";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -14,6 +14,13 @@ import { LoqmeLogo } from "@/components/ui/LoqmeLogo";
 import { useSession } from "@/components/auth/SessionProvider";
 export function CustomerShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 12);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
   const { user, status, refresh } = useSession();
   const authenticated = status === "authenticated";
   const role = user?.role;
@@ -49,10 +56,11 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
       <a href="#main-content" className="skip-link">
         رفتن به محتوای اصلی
       </a>
-      <header className="market-header">
+      <header className="market-header" data-scrolled={scrolled}>
         <div className="market-header-inner">
-          <Link href="/" className="brand-link">
-            <LoqmeLogo size="md" variant="horizontal" />
+          <Link href="/" className="brand-link" aria-label="لقمه، صفحه اصلی">
+            <LoqmeLogo size={38} variant="icon" />
+            <span className="header-brand-name" lang="en">Loqme</span>
           </Link>
           <nav aria-label="منوی اصلی" className="desktop-nav">
             {items.slice(0, 3).map((item) => (
@@ -67,7 +75,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
           <div className="header-actions">
-            {(status === 'anonymous' || (authenticated && role === 'CUSTOMER')) && <Link href="/business" className="action-link business-entry-link">ثبت نام / ورود کسب و کار</Link>}
+            {(status === 'anonymous' || (authenticated && role === 'CUSTOMER')) && <Link href="/business" className="action-link business-entry-link"><span className="header-label-full">ثبت نام / ورود کسب و کار</span><span className="header-label-compact">کسب‌وکار</span></Link>}
             {portal && (
               <Link href={portal.href} className="merchant-link">
                 {portal.label} <ArrowUpLeft size={16} />
@@ -97,7 +105,8 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
                 className="action-link"
               >
                 <UserRound size={18} />
-                {authenticated ? "حساب من" : "ثبت نام / ورود مشتری"}
+                <span className="header-label-full">{authenticated ? "حساب من" : "ثبت نام / ورود مشتری"}</span>
+                <span className="header-label-compact">{authenticated ? "حساب من" : "ورود"}</span>
               </Link>
             )}
           </div>

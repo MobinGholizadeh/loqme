@@ -8,9 +8,15 @@
 
 ## 1. Project Health & Current State
 
+### Active: CP-10.13 Navigation, rating rows, Persian tags and onboarding cities (2026-09-22)
+
+User-requested follow-up implements a full-width centered-logo header with scroll blur, horizontal review rows on merchant/listing pages, Persian dietary/allergen labels and an idempotent Urmia reference-data migration for the empty production city list. The local shop HTTP 500 was reproduced and repaired after backup and verified migration-history reconciliation. Real local listing/merchant APIs now return 200 with rating aggregates. No production demo data is seeded. See [CP10_13_PRESENTATION.md](CP10_13_PRESENTATION.md).
+
+232/232 tests in 26 suites pass on a fresh disposable database; build, lint, shared/web types and five-width browser/axe checks pass. Full browser regression and release verification are in progress. User explicitly authorized pushing these changes. Existing operational gates remain open.
+
 ### Completed: CP-10.12 Merchant ratings, availability, map controls and explainer (2026-09-22)
 
-Follow-up validation (2026-09-22): corrected first-frame timing that could index scene -1, and prevented stale development-worker CSS. Production styles now refresh online while remaining cached for offline use. 16/16 relevant browser tests, actual development-worker recovery, build, lint and web/shared types pass; follow-up deployment is pending. See the follow-up section in [CP10_12_MARKETPLACE.md](CP10_12_MARKETPLACE.md).
+Follow-up validation (2026-09-22): corrected first-frame timing that could index scene -1, and prevented stale development-worker CSS. Production styles now refresh online while remaining cached for offline use. 16/16 relevant browser tests, actual development-worker recovery, build, lint and web/shared types pass; follow-up `b40ff1f` deployed successfully after a registry timeout retry. See the follow-up section in [CP10_12_MARKETPLACE.md](CP10_12_MARKETPLACE.md).
 
 Implemented verified customer review dimensions and independent server aggregates, visible unavailable offers with authoritative reservation eligibility, safe stock reconciliation, isolated map controls and the lazy-loaded Persian 30-second purchasing guide. The user authorized pushing `master` and verifying deployment. Release workflow now backs up and verifies the database, migrates before replacing the app, preserves the previous image and checks readiness. See [CP10_12_MARKETPLACE.md](CP10_12_MARKETPLACE.md) for contracts, recovery caveats and release evidence.
 
@@ -56,8 +62,8 @@ Baseline: web TypeScript passed, lint had six warnings, and unavailable PostgreS
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **CP-10.12 — Merchant ratings, availability, map controls and explainer** |
-| **Milestone Status** | CP-10.12 deployed and verified; CP-10.11 provider/device gates remain open |
+| **Current Milestone** | **CP-10.13 — Navigation, rating rows, localization and onboarding cities** |
+| **Milestone Status** | Release validation; CP-10.11 provider/device gates remain open |
 | **Overall Completion** | Historical roadmap complete; CP-10.12 release evidence tracked separately |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running, Dockerized) |
 | **Last Updated** | 2026-09-22 (CP-10.12) |

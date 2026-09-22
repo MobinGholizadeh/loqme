@@ -16,6 +16,9 @@ import { generateProductListingSchema } from "@/lib/seo/structured-data";
 
 import { ListingImage } from "@/components/ui/ListingImage";
 import { Heart } from "lucide-react";
+import { foodLabelFa } from "@/lib/utils/food-labels";
+import { MerchantRatings } from "@/components/reviews/MerchantRatings";
+import type { MerchantRatingSummaryDto } from "@loqme/types";
 
 interface ListingDetailData {
   canReserve?: boolean;
@@ -53,6 +56,7 @@ interface ListingDetailData {
     iconUrl: string | null;
   };
   merchant: {
+    ratings?: MerchantRatingSummaryDto;
     id: string;
     businessNameFa: string;
     businessType: string;
@@ -401,6 +405,7 @@ export default function ListingDetailPage() {
             </div>
           </div>
         </div>
+        <div className="mt-8"><MerchantRatings ratings={data.merchant.ratings} /></div>
       </Card>
 
       {/* Surprise Bag Logic / What's inside */}
@@ -439,7 +444,7 @@ export default function ListingDetailPage() {
               {data.safety.dietaryTags.length > 0 ? (
                 data.safety.dietaryTags.map((tag) => (
                   <Badge key={tag} variant="success" size="sm">
-                    {tag}
+                    {foodLabelFa(tag, 'dietary')}
                   </Badge>
                 ))
               ) : (
@@ -458,7 +463,7 @@ export default function ListingDetailPage() {
               {data.safety.allergens.length > 0 ? (
                 data.safety.allergens.map((alg) => (
                   <Badge key={alg} variant="warning" size="sm">
-                    {alg}
+                    {foodLabelFa(alg, 'allergen')}
                   </Badge>
                 ))
               ) : (

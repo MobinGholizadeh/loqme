@@ -44,6 +44,8 @@ graph TD
   * Fields: `id`, `merchantLocationId` (FK), `dayOfWeek` (0-6, Sat-Fri), `isOpen` (Boolean), `storeOpenTime` (Time), `storeCloseTime` (Time), `defaultPickupStart` (Time), `defaultPickupEnd` (Time).
 
 ### 2.3 Catalog, Listings & Inventory
+CP-10.13 persists the Urmia launch city and West Azerbaijan province via an idempotent reference-data migration, preserving existing IDs. These operational records are independent of demo merchant/listing seed data; onboarding on a fresh deployment must not require demo seeding.
+
 * **Category**: Food categories.
   * Fields: `id`, `slug`, `nameFa` (e.g. نان و شیرینی, نوشیدنی و کافه), `iconUrl`, `parentId` (Self FK, Nullable).
 * **Listing**: The core surplus offering.

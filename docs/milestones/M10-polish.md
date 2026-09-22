@@ -117,7 +117,9 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
-CP-10.12 follow-up (2026-09-22): fixed negative first-frame timing and stale development CSS caching. 16/16 focused browser tests, local worker recovery, build, lint and web/shared typechecks pass. Follow-up release verification is pending.
+- [ ] **CP-10.13 — Navigation, rating rows, localization and onboarding cities (2026-09-22)**: User-authorized follow-up includes full-width centered branding/glass header, horizontal merchant/listing review rows, Persian food tags, local schema repair and production launch-city reference data. 232/232 tests pass on fresh PostgreSQL; build/lint/types and five-width browser/axe checks pass. Full regression/release verification pending. See [CP10_13_PRESENTATION.md](../CP10_13_PRESENTATION.md).
+
+CP-10.12 follow-up (2026-09-22): fixed negative first-frame timing and stale development CSS caching. 16/16 focused browser tests, local worker recovery, build, lint and web/shared typechecks pass. Follow-up `b40ff1f` deployed successfully in run 35658162949.
 
 - [x] **CP-10.12 — Merchant ratings, availability, map controls and explainer (2026-09-22)**: Implemented, validated, pushed to `master` as `32c557e` and deployed successfully in GitHub run 35655051067 (retry after Docker Hub timeout). Public health and guide interactions pass; public data has no current offers or merchant sitemap entries. User-approved scope includes nullable review dimensions, server aggregation and serialized totals, retained unavailable offers, reservation/restocking concurrency fixes, map stacking, and a lazy accessible four-scene guide. Fresh disposable database: 230/230 tests in 25 suites; 64/64 browser tests, four-width visual/axe checks, production build, web/shared types and lint pass. Deployment now verifies backup and runs migrations before replacement, preserves the prior image and verifies readiness. Full evidence and recovery caveats: [CP10_12_MARKETPLACE.md](../CP10_12_MARKETPLACE.md). Existing onboarding provider/device gates are unchanged.
 

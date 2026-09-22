@@ -129,6 +129,7 @@
 * **Status**: `Pending`
 
 ### M10 — UX, SEO, PWA & Performance
+* **CP-10.13 follow-on (2026-09-22)**: Full-width centered navigation, horizontal ratings, Persian food tags, local merchant-schema repair and production Urmia reference data. Explicit user scope authorizes the non-destructive city migration and push. See [CP10_13_PRESENTATION.md](CP10_13_PRESENTATION.md).
 * **CP-10.12 follow-on (2026-09-22)**: Customer review dimensions, retained unavailable inventory, isolated map controls, and an accessible animated purchasing guide. User-authorized scope includes review migration, inventory concurrency fixes and safe deployment ordering. Evidence and release status: [CP10_12_MARKETPLACE.md](CP10_12_MARKETPLACE.md). CP-10.11 provider/device gates remain open.
 * **Objective**: Elevate the platform to consumer-grade visual elegance, mobile PWA responsiveness, comprehensive Persian SEO, and sub-second load times.
 * **Dependencies**: M09.
