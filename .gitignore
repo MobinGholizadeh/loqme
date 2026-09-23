@@ -23,6 +23,8 @@ dist/
 # Environment Variables & Secrets
 .env
 .env*.local
+.env.production
+.env*.production
 *.pem
 
 # Debug Logs

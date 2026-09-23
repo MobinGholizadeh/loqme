@@ -183,6 +183,22 @@ sudo chown -R $USER:$USER /opt/loqme
 cd /opt/loqme
 ```
 
+### Option A: Automatic Synchronization with Doppler (Recommended)
+
+Generate a **Service Token** for the `prd` environment in [Doppler](https://dashboard.doppler.com):
+1. Go to project `loqme` -> `prd` config -> **Access** tab -> **Service Tokens**.
+2. Generate a token named `loqme-production-deploy`.
+3. Add it as a GitHub Secret `DOPPLER_TOKEN` (used automatically during CI/CD deploy), or download directly on the server:
+
+```bash
+# Download production secrets directly from Doppler
+curl -sSf -H "Authorization: Bearer <YOUR_DOPPLER_SERVICE_TOKEN>" \
+  "https://api.doppler.com/v3/configs/config/secrets/download?format=env" > /opt/loqme/.env
+chmod 600 /opt/loqme/.env
+```
+
+### Option B: Manual Environment Configuration
+
 Create `/opt/loqme/.env.production` (or `.env`):
 ```bash
 cat << 'EOF' > /opt/loqme/.env
@@ -229,6 +245,28 @@ Also copy `docker-compose.prod.yml` to `/opt/loqme/docker-compose.prod.yml`.
 
 ---
 
+## 6.1 Multi-Computer Secret Synchronization with Doppler
+
+To keep environment variables synchronized across your computers without manual file copying:
+
+1. **Install Doppler CLI on the second computer**:
+   - Windows: `winget install Doppler.doppler`
+   - macOS: `brew install dopplerhq/cli/doppler`
+   - Linux: `(curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh || wget -t 3 -qO- https://cli.doppler.com/install.sh) | sudo sh`
+
+2. **Authenticate & Pull**:
+   ```bash
+   doppler login
+   npm run env:pull
+   ```
+   This automatically reads `doppler.yaml` and downloads your development secrets directly into `.env`.
+
+3. **Updating Secrets**:
+   - To update development secrets from your local `.env`: `npm run env:push`
+   - To pull production secrets for review: `npm run env:pull:prod`
+   - To update production secrets: `npm run env:push:prod`
+   - Or edit directly in the [Doppler Dashboard](https://dashboard.doppler.com/workplace/projects/loqme).
+
 ## 7. SSH Deployment Key & GitHub Actions Secrets
 
 To enable automated zero-touch CI/CD from GitHub Actions:
@@ -258,6 +296,7 @@ Go to your GitHub repository: **Settings** → **Secrets and variables** → **A
 | `SERVER_USER` | `root` or `ubuntu` | SSH user |
 | `SERVER_SSH_KEY` | Contents of `~/.ssh/loqme_deploy` | Private SSH key |
 | `SERVER_PORT` | `22` | SSH Port (default `22`) |
+| `DOPPLER_TOKEN` | Service Token (`dp.st.prd...`) | *(Recommended)* Doppler `prd` Service Token for automated environment sync |
 
 ---
 
