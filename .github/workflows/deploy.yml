@@ -60,6 +60,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL || 'https://loqme.ir' }}
+            NEXT_PUBLIC_MAP_API_KEY=${{ secrets.NEXT_PUBLIC_MAP_API_KEY || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImM1ODI4YTAyOTA1ZDNiZTAzNDYzZTNkZmM2Mzc2YTZlMTE3NzhmYTdhZDA0OGJkNzdkZGYxNDM0ZmNiMGEzODE5MWQ3ZWEyODU2Y2QxMzE3In0.eyJhdWQiOiI0NDEyNiIsImp0aSI6ImM1ODI4YTAyOTA1ZDNiZTAzNDYzZTNkZmM2Mzc2YTZlMTE3NzhmYTdhZDA0OGJkNzdkZGYxNDM0ZmNiMGEzODE5MWQ3ZWEyODU2Y2QxMzE3IiwiaWF0IjoxNzg5OTAxNTE4LCJuYmYiOjE3ODk5MDE1MTgsImV4cCI6MTc5MjU4MzUxOCwic3ViIjoiIiwic2NvcGVzIjpbImJhc2ljIl19.APYeDV1QsWu12ZwzIGt9fr1UN17O3JwcdhiZUMxO3kPyzBiQzI_1TxIpJnZuA5xqu67PCwXVMVfh2hrY1fxB0PduU_mdX6nu3SXw0_b2eqxQrwFWPy5_jBcPZCl6F4ehzREbT7zOh8Y1udevz405P9bSyijZyRP8cB1M2neigbdIvLbsvOSVXCh3GR3pIqljG4JVktraRzm3fHjm28HCSLd_B2Gus5qS0YiFPYgHoIo8I1RW0PQaFx55KqIYWr18mAnAOYf2AXI6JLGiJ--ItVlqkuOxn0IB8q3Bm2nTozdSYTRIO9VeiKgCQ1bl0CVkpC2vxV9jTJ42LQ18MDAOaA' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -96,11 +99,12 @@ jobs:
             cd /opt/loqme
             test -f docker-compose.prod.yml
 
-            # Ensure production server .env has SMS.ir credentials configured
+            # Ensure production server .env has SMS.ir and Map.ir credentials configured
             if [ -f .env ]; then
               grep -q "SMSIR_API_KEY" .env && sed -i 's/^SMSIR_API_KEY=.*/SMSIR_API_KEY="iMDgFRvzeLJ5B0QMrXG93KDP6T8k6rlmZsn6Qc7y2ftIjFvS"/' .env || echo 'SMSIR_API_KEY="iMDgFRvzeLJ5B0QMrXG93KDP6T8k6rlmZsn6Qc7y2ftIjFvS"' >> .env
               grep -q "SMSIR_LINE_NUMBER" .env || echo 'SMSIR_LINE_NUMBER="30002108039036"' >> .env
               grep -q "SMS_PROVIDER" .env && sed -i 's/^SMS_PROVIDER=.*/SMS_PROVIDER="smsir"/' .env || echo 'SMS_PROVIDER="smsir"' >> .env
+              grep -q "NEXT_PUBLIC_MAP_API_KEY" .env && sed -i 's/^NEXT_PUBLIC_MAP_API_KEY=.*/NEXT_PUBLIC_MAP_API_KEY="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImM1ODI4YTAyOTA1ZDNiZTAzNDYzZTNkZmM2Mzc2YTZlMTE3NzhmYTdhZDA0OGJkNzdkZGYxNDM0ZmNiMGEzODE5MWQ3ZWEyODU2Y2QxMzE3In0.eyJhdWQiOiI0NDEyNiIsImp0aSI6ImM1ODI4YTAyOTA1ZDNiZTAzNDYzZTNkZmM2Mzc2YTZlMTE3NzhmYTdhZDA0OGJkNzdkZGYxNDM0ZmNiMGEzODE5MWQ3ZWEyODU2Y2QxMzE3IiwiaWF0IjoxNzg5OTAxNTE4LCJuYmYiOjE3ODk5MDE1MTgsImV4cCI6MTc5MjU4MzUxOCwic3ViIjoiIiwic2NvcGVzIjpbImJhc2ljIl19.APYeDV1QsWu12ZwzIGt9fr1UN17O3JwcdhiZUMxO3kPyzBiQzI_1TxIpJnZuA5xqu67PCwXVMVfh2hrY1fxB0PduU_mdX6nu3SXw0_b2eqxQrwFWPy5_jBcPZCl6F4ehzREbT7zOh8Y1udevz405P9bSyijZyRP8cB1M2neigbdIvLbsvOSVXCh3GR3pIqljG4JVktraRzm3fHjm28HCSLd_B2Gus5qS0YiFPYgHoIo8I1RW0PQaFx55KqIYWr18mAnAOYf2AXI6JLGiJ--ItVlqkuOxn0IB8q3Bm2nTozdSYTRIO9VeiKgCQ1bl0CVkpC2vxV9jTJ42LQ18MDAOaA"/' .env || echo 'NEXT_PUBLIC_MAP_API_KEY="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImM1ODI4YTAyOTA1ZDNiZTAzNDYzZTNkZmM2Mzc2YTZlMTE3NzhmYTdhZDA0OGJkNzdkZGYxNDM0ZmNiMGEzODE5MWQ3ZWEyODU2Y2QxMzE3In0.eyJhdWQiOiI0NDEyNiIsImp0aSI6ImM1ODI4YTAyOTA1ZDNiZTAzNDYzZTNkZmM2Mzc2YTZlMTE3NzhmYTdhZDA0OGJkNzdkZGYxNDM0ZmNiMGEzODE5MWQ3ZWEyODU2Y2QxMzE3IiwiaWF0IjoxNzg5OTAxNTE4LCJuYmYiOjE3ODk5MDE1MTgsImV4cCI6MTc5MjU4MzUxOCwic3ViIjoiIiwic2NvcGVzIjpbImJhc2ljIl19.APYeDV1QsWu12ZwzIGt9fr1UN17O3JwcdhiZUMxO3kPyzBiQzI_1TxIpJnZuA5xqu67PCwXVMVfh2hrY1fxB0PduU_mdX6nu3SXw0_b2eqxQrwFWPy5_jBcPZCl6F4ehzREbT7zOh8Y1udevz405P9bSyijZyRP8cB1M2neigbdIvLbsvOSVXCh3GR3pIqljG4JVktraRzm3fHjm28HCSLd_B2Gus5qS0YiFPYgHoIo8I1RW0PQaFx55KqIYWr18mAnAOYf2AXI6JLGiJ--ItVlqkuOxn0IB8q3Bm2nTozdSYTRIO9VeiKgCQ1bl0CVkpC2vxV9jTJ42LQ18MDAOaA"' >> .env
             fi
 
             printf '%s' '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin

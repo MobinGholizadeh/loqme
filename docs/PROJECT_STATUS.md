@@ -44,6 +44,7 @@ Integrated Iranian local map provider **Map.ir** for marketplace discovery map t
 - Tile endpoint configured to Map.ir EPSG:3857 PNG tiles (`https://map.ir/shiveh/xyz/1.0.0/Shiveh:Shiveh@EPSG:3857@png/{z}/{x}/{y}.png?x-api-key=...`) with proper attribution and maxZoom 20.
 - Next.js CSP updated in `apps/web/next.config.mjs` to whitelist `https://map.ir` and `https://*.map.ir` for `img-src` and `connect-src`.
 - Configured environment variables in `.env`, `.env.example`, `apps/web/src/core/config.ts`, `docker-compose.yml`, and `docker-compose.prod.yml`.
+- Wired `NEXT_PUBLIC_MAP_API_KEY` and `NEXT_PUBLIC_APP_URL` into multi-stage `Dockerfile` (builder & runner args/envs), compose manifests, and `.github/workflows/deploy.yml` CI/CD build-args and remote SSH server `.env` synchronization to ensure client JavaScript bundles bake the Map.ir key in production.
 - Updated browser test suite (`secondary-flows.spec.ts`) to handle Map.ir tile network conditions; verified 5/5 Playwright tests pass and Next.js production build succeeds.
 
 ### Completed: CP-10.10 Merchant Account Administration (2026-09-14)
