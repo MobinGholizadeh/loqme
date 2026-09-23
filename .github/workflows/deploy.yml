@@ -118,7 +118,7 @@ jobs:
             cleanup_environment() {
               RESULT=$?
               if [ "$RESULT" -ne 0 ]; then restore_environment; fi
-              if [ -n "$DOPPLER_ENV" ]; then rm -f "$DOPPLER_ENV"; fi
+              if [ -n "$DOPPLER_ENV" ]; then rm -f "$DOPPLER_ENV" "$DOPPLER_ENV.merged"; fi
               if [ -n "$PREVIOUS_ENV" ]; then rm -f "$PREVIOUS_ENV"; fi
             }
             trap cleanup_environment EXIT
@@ -131,6 +131,21 @@ jobs:
                 -H "Authorization: Bearer $DOPPLER_TOKEN" \
                 "https://api.doppler.com/v3/configs/config/secrets/download?format=env" > "$DOPPLER_ENV"
               test -s "$DOPPLER_ENV"
+              # Existing PostgreSQL volumes retain their initialized credentials.
+              # Keep database configuration server-owned; an app deploy is not a DB password rotation.
+              if [ -f .env ]; then
+                awk '
+                  FILENAME == ARGV[1] {
+                    if ($0 ~ /^(POSTGRES_USER|POSTGRES_PASSWORD|POSTGRES_DB|DATABASE_URL)=/) {
+                      key=$0; sub(/=.*/, "", key); database[key]=$0
+                    }
+                    next
+                  }
+                  $0 !~ /^(POSTGRES_USER|POSTGRES_PASSWORD|POSTGRES_DB|DATABASE_URL)=/ { print }
+                  END { for (key in database) print database[key] }
+                ' .env "$DOPPLER_ENV" > "$DOPPLER_ENV.merged"
+                mv "$DOPPLER_ENV.merged" "$DOPPLER_ENV"
+              fi
               docker compose --env-file "$DOPPLER_ENV" -f docker-compose.prod.yml config --quiet
               chmod 600 "$DOPPLER_ENV"
               if [ -f .env ]; then
