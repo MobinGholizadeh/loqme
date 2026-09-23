@@ -426,3 +426,10 @@ curl "https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.sit
    - Upload the downloadable APK artifact.
    - Publish the `.apk` release asset on GitHub Releases.
 3. Download the APK and install it on Android devices.
+
+
+### Deployment follow-up — 2026-09-23
+
+Doppler is optional: when configured, GitHub fetches masked environment variables for build steps and explicitly forwards the service token to SSH. GitHub step conditions use a job environment variable rather than the unsupported secrets context. Remote download is staged and Compose-validated before replacing `.env`; a failed download leaves the previous file intact. Without Doppler, the existing server `.env` is preserved. Public map keys are build arguments from configuration; private SMS keys must come from runtime configuration. No credential defaults belong in tracked examples, Dockerfiles or Compose files. Rotate the previously committed SMS.ir key and update its value in Doppler/server configuration; removing it from the current files does not remove it from Git history.
+
+References: [GitHub secret conditions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets), [Doppler fetch action inputs](https://github.com/DopplerHQ/secrets-fetch-action/blob/v1.3.0/action.yml).

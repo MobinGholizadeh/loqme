@@ -117,7 +117,7 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
-- [ ] **CP-10.14 — Mobile discovery, pickup information and quiet guidance (2026-09-22)**: User-authorized scope implemented; 237 tests pass on disposable PostgreSQL, build/lint/types pass. 79/79 browser tests and responsive visual/axe checks pass. Release verification in progress. See [CP10_14_MOBILE.md](../CP10_14_MOBILE.md).
+- [x] **CP-10.14 — Mobile discovery, pickup information and quiet guidance (2026-09-22)**: User-authorized scope implemented; 237 tests pass on disposable PostgreSQL, build/lint/types pass. 79/79 browser tests and responsive visual/axe checks pass. UI commit 002a00a deployed in run 35749616079; public UI and readiness passed 2026-09-23. Newer Doppler workflow repair is being verified. See [CP10_14_MOBILE.md](../CP10_14_MOBILE.md).
 
 - [x] **CP-10.13 — Navigation, rating rows, localization and onboarding cities (2026-09-22)**: User-authorized follow-up includes full-width centered branding/glass header, horizontal merchant/listing review rows, Persian food tags, local schema repair and production launch-city reference data. 232/232 tests pass on fresh PostgreSQL; build/lint/types and five-width browser/axe checks pass. 71 browser cases validated (70 full-run plus corrected mobile-label rerun); deployed as `adbf39b` in run 35708693920; public header, city onboarding, readiness and guide checks pass. See [CP10_13_PRESENTATION.md](../CP10_13_PRESENTATION.md).
 

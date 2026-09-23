@@ -8,11 +8,11 @@
 
 ## 1. Project Health & Current State
 
-### Active: CP-10.14 Mobile discovery, pickup details and quieter guidance (2026-09-22)
+### Completed: CP-10.14 Mobile discovery, pickup details and quieter guidance (2026-09-22)
 
 User-authorized follow-up adds a teal footer with a large scrolling Loqme signature, removes the homepage explainer card, introduces dismissible customer-login guidance, simplifies authenticated mobile navigation and displays a phone-verification entry for guests. Listing details add circular back/share/favorite controls, merchant-declared packaging and pickup instructions; unrated stores retain empty rating bars with 0.0 visual values. Monthly signed sessions remain 30 days; OTP verification is required before session creation, so there is no fabricated unverified-account state. Packaging uses existing listing attributes, without migration or production reseeding. See [CP10_14_MOBILE.md](CP10_14_MOBILE.md).
 
-237/237 tests in 27 suites pass on fresh disposable PostgreSQL. Production build, lint and web/shared types pass. 79/79 browser tests pass on the optimized preview, including responsive layouts, axe accessibility, login guidance, reduced motion, session refresh, packaging edits and explainer/PWA regressions. Visuals inspected at 360/390/768/1440px. Push/deployment verification is in progress. Existing provider/device gates remain open.
+237/237 tests in 27 suites pass on fresh disposable PostgreSQL. Production build, lint and web/shared types pass. 79/79 browser tests pass on the optimized preview, including responsive layouts, axe accessibility, login guidance, reduced motion, session refresh, packaging edits and explainer/PWA regressions. Visuals inspected at 360/390/768/1440px. UI commit `002a00a` deployed successfully in run 35749616079. Live footer, guide/login/dismissal, mobile guest notice, cities and readiness pass (2026-09-23), with zero browser errors. A subsequent deployment-only repair for newer Doppler commits is being verified; see CP10_14_MOBILE.md. Existing provider/device gates remain open.
 
 ### Completed: CP-10.13 Navigation, rating rows, Persian tags and onboarding cities (2026-09-22)
 
