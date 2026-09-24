@@ -260,7 +260,7 @@ export default function ListingDetailPage() {
       />
 
       <div className="detail-photo">
-        <ListingImage src={data.images?.[0]?.imageUrl} alt={data.titleFa} priority />
+        <ListingImage src={data.images?.[0]?.imageUrl} alt={data.titleFa} priority sizes="(max-width: 767px) 100vw, (max-width: 1280px) calc(100vw - 64px), 1216px" />
         <div className="detail-photo-actions">
           <Link href="/explore" className="detail-round-button" aria-label="بازگشت به کاوش"><RedesignIcons.ArrowRight size={22}/></Link>
           <Link className="detail-photo-shop" href={`/merchants/${data.merchant.id}`}>{data.merchant.businessNameFa}</Link>

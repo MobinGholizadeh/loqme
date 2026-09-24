@@ -5,6 +5,12 @@ import { env } from '@/core/config';
 
 let notificationServiceInstance: INotificationService | null = null;
 
+const unavailable: INotificationService = {
+  sendOtp: async () => false,
+  sendOrderConfirmation: async () => false,
+  sendPickupReminder: async () => false,
+};
+
 export function getNotificationService(): INotificationService {
   if (!notificationServiceInstance) {
     if (env.SMS_PROVIDER === 'smsir') {
@@ -16,12 +22,13 @@ export function getNotificationService(): INotificationService {
           codeParamName: env.SMSIR_CODE_PARAM_NAME,
         });
       } else {
-        console.warn('⚠️ SMS provider "smsir" requested, but SMSIR_API_KEY is missing. Falling back to ConsoleMock.');
-        notificationServiceInstance = new ConsoleMockNotificationService();
+        console.error('[SMS] SMS.ir API key is missing; delivery is unavailable');
+        notificationServiceInstance = unavailable;
       }
     } else {
-      // Default to console mock for development, testing, and zero-credit local usage
-      notificationServiceInstance = new ConsoleMockNotificationService();
+      // A production login must never claim that a console-only code was sent.
+      notificationServiceInstance = env.NODE_ENV === 'production'
+        ? unavailable : new ConsoleMockNotificationService();
     }
   }
   return notificationServiceInstance;

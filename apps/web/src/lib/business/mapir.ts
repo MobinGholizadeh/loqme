@@ -20,7 +20,10 @@ export function normalizeMapirPlaces(body: unknown): BusinessPlaceDto[] {
   }).slice(0, 10);
 }
 async function mapirRequest(path: string, body?: unknown) {
-  const key = process.env.MAPIR_API_KEY;
+  // Existing installations may only configure the map key used for tiles.
+  // Prefer a dedicated server key, but do not disable search when that same
+  // configured provider key also supports search/reverse requests.
+  const key = process.env.MAPIR_API_KEY?.trim() || process.env.NEXT_PUBLIC_MAP_API_KEY?.trim();
   if (!key) throw new BusinessError(503, 'جست‌وجوی نقشه در دسترس نیست؛ اطلاعات فروشگاه را دستی وارد کنید');
   try {
     const response = await fetch(`https://map.ir/${path}`, {

@@ -8,6 +8,10 @@
 
 ## 1. Project Health & Current State
 
+### Active: CP-10.15 Search, merchant loading and mobile reliability (2026-09-24)
+
+User-requested fixes cover business search, map-to-products loading, photo delivery, footer size, mobile zoom/layout and heading focus. Production search 503 was reproduced; existing Map.ir key supports search. OTP false-success handling is being corrected, while SMS.ir account setup/live delivery is deferred at the user's request. Implementation and validation are in progress; see [CP10_15_RELIABILITY.md](CP10_15_RELIABILITY.md).
+
 ### Completed: CP-10.14 Mobile discovery, pickup details and quieter guidance (2026-09-22)
 
 User-authorized follow-up adds a teal footer with a large scrolling Loqme signature, removes the homepage explainer card, introduces dismissible customer-login guidance, simplifies authenticated mobile navigation and displays a phone-verification entry for guests. Listing details add circular back/share/favorite controls, merchant-declared packaging and pickup instructions; unrated stores retain empty rating bars with 0.0 visual values. Monthly signed sessions remain 30 days; OTP verification is required before session creation, so there is no fabricated unverified-account state. Packaging uses existing listing attributes, without migration or production reseeding. See [CP10_14_MOBILE.md](CP10_14_MOBILE.md).

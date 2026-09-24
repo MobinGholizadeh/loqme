@@ -7,10 +7,12 @@ export function ListingImage({
   src,
   alt,
   priority = false,
+  sizes = "(max-width: 639px) calc(100vw - 32px), (max-width: 1023px) calc(50vw - 32px), (max-width: 1280px) 33vw, 400px",
 }: {
   src?: string | null;
   alt: string;
   priority?: boolean;
+  sizes?: string;
 }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
@@ -25,7 +27,7 @@ export function ListingImage({
         src={src!}
         alt={alt}
         fill
-        sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+        sizes={sizes}
         priority={priority}
         onError={() => setFailed(true)}
         className="object-cover"

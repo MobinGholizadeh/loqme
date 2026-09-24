@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const result = await authService.requestOtp(parseResult.data.mobile);
 
     if (!result.success) {
-      return NextResponse.json(result, { status: 429 });
+      return NextResponse.json(result, { status: result.cooldownSeconds ? 429 : 503 });
     }
 
     return NextResponse.json(result, { status: 200 });

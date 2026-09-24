@@ -63,11 +63,21 @@ export class AuthService {
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_SECONDS * 1000);
 
     // Fail closed when persistence is unavailable; never issue a memory-only credential.
-    await prisma.otpCode.create({ data: { mobile, codeHash, expiresAt } });
+    const issued = await prisma.otpCode.create({ data: { mobile, codeHash, expiresAt } });
 
     // 3. Dispatch SMS via notification abstraction
-    const notificationService = getNotificationService();
-    await notificationService.sendOtp(mobile, code);
+    let sent = false;
+    try {
+      sent = await getNotificationService().sendOtp(mobile, code);
+    } catch {
+      // Never log a code, mobile number or provider response containing secrets.
+      console.error('[Auth] OTP dispatch failed');
+    }
+    if (!sent) {
+      // Keep the latest record as consumed so an older OTP cannot become valid.
+      await prisma.otpCode.updateMany({ where: { id: issued.id }, data: { isUsed: true } });
+      return { success: false, message: 'ارسال پیامک انجام نشد. لطفاً کمی بعد دوباره تلاش کنید.', expiresInSeconds: 0, mobile };
+    }
 
     return {
       success: true,

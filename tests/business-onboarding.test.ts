@@ -46,12 +46,21 @@ describe('business onboarding contracts', () => {
   });
   it('retains manual entry on missing keys, timeouts, or oversized responses', async () => {
     vi.stubEnv('MAPIR_API_KEY', '');
+    vi.stubEnv('NEXT_PUBLIC_MAP_API_KEY', '');
     await expect(searchMapir('کافه', 'ارومیه')).rejects.toThrow('دستی');
     vi.stubEnv('MAPIR_API_KEY', 'test-only');
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new DOMException('Timeout', 'TimeoutError')));
     await expect(searchMapir('کافه', 'ارومیه')).rejects.toThrow('دستی');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('x'.repeat(500001))));
     await expect(searchMapir('کافه', 'ارومیه')).rejects.toThrow('دستی');
+  });
+  it('uses the configured map key for search when a dedicated server key is absent', async () => {
+    vi.stubEnv('MAPIR_API_KEY', ''); vi.stubEnv('NEXT_PUBLIC_MAP_API_KEY', 'configured-map-key');
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ value: [] })));
+    vi.stubGlobal('fetch', fetcher);
+    await expect(searchMapir('کافه', 'ارومیه')).resolves.toEqual([]);
+    expect(fetcher.mock.calls[0][1].headers['x-api-key']).toBe('configured-map-key');
+    expect(fetcher.mock.calls[0][0]).not.toContain('configured-map-key');
   });
   it('rate-limits bursts and permits a later retry', () => {
     const now = Date.now(); for (let i = 0; i < 30; i++) limitMapir('test-client', now);

@@ -49,7 +49,7 @@ export function BusinessRegistration() {
   }, []);
   useEffect(() => { const saved = readBusinessDraft(); if (saved) { draftRestored.current = true; setDraft(saved.draft); setStep(saved.step); } setReady(true); void loadCities(); }, [loadCities]);
   useEffect(() => { if (ready) saveBusinessDraft(draft, step); }, [draft, step, ready]);
-  useEffect(() => { if (ready) heading.current?.focus(); }, [step, ready]);
+  useEffect(() => { if (ready) heading.current?.focus({ preventScroll: true }); }, [step, ready]);
   useEffect(() => { if (Object.keys(errors).length || message) summary.current?.focus(); }, [errors, message]);
   useEffect(() => {
     if (session.status !== 'authenticated') return;

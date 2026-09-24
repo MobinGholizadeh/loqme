@@ -21,7 +21,10 @@
 .business-error a { display: block; text-decoration: underline; min-height: 32px; }
 .business-info, .business-store-summary { background: var(--loqme-primary-50); color: var(--loqme-primary-900); padding: 20px; border-radius: 8px; line-height: 1.9; }
 .business-store-summary { background: var(--loqme-neutral-50); color: var(--color-text-primary); display: grid; gap: 8px; }
-.business-types { display: grid; gap: 8px; }
+.business-registration { min-width: 0; max-width: 100%; }
+/* Programmatic heading focus announces the step without drawing an input-like border. */
+.business-registration h1[tabindex="-1"]:focus { outline: none; }
+.business-types { display: grid; grid-template-columns: minmax(0, 1fr); min-inline-size: 0; width: 100%; gap: 8px; }
 .business-type { position: relative; display: flex; align-items: center; gap: 16px; min-height: 60px; border: 1px solid var(--color-border-subtle); padding: 16px; border-radius: 8px; cursor: pointer; }
 .business-type span { flex: 1; }
 .business-type input { position: absolute; opacity: 0; }

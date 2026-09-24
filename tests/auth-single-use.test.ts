@@ -37,4 +37,14 @@ describe('OTP single-use database authority', () => {
     await expect(auth.requestOtp('09120000002')).rejects.toThrow();
     expect(mocks.send).not.toHaveBeenCalled(); expect(mocks.token).not.toHaveBeenCalled();
   });
+  it.each([false, 'throws'])('invalidates an OTP and reports failure when dispatch %s', async failure => {
+    mocks.create.mockResolvedValue({ id: 'failed-send' });
+    if (failure === false) mocks.send.mockResolvedValue(false);
+    else mocks.send.mockRejectedValue(new Error('provider unavailable'));
+    const result = await auth.requestOtp(failure === false ? '09120000003' : '09120000004');
+    expect(result).toMatchObject({ success: false, expiresInSeconds: 0 });
+    expect(result.message).toContain('ارسال پیامک انجام نشد');
+    expect(mocks.consume).toHaveBeenCalledWith({ where: { id: 'failed-send' }, data: { isUsed: true } });
+    expect(mocks.token).not.toHaveBeenCalled();
+  });
 });

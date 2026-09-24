@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=@loqme/web",
+    "dev": "node scripts/dev.cjs",
     "build": "npm run build --workspace=@loqme/web",
     "start": "npm run start --workspace=@loqme/web",
     "lint": "npm run lint --workspace=@loqme/web",

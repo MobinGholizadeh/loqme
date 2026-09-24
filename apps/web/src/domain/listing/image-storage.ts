@@ -38,12 +38,12 @@ export async function normalizeListingImage(bytes: Buffer) {
   return decoder
     .rotate()
     .resize({
-      width: 1440,
-      height: 1440,
+      width: 2400,
+      height: 2400,
       fit: "inside",
       withoutEnlargement: true,
     })
-    .webp({ quality: 82 })
+    .webp({ quality: 80, effort: 6 })
     .toBuffer();
 }
 

@@ -159,6 +159,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
 
           .select-field {
             flex: 1;
+            min-width: 0;
             width: 100%;
             height: 100%;
             padding-block: var(--space-2);
@@ -175,6 +176,10 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             -webkit-appearance: none;
             -moz-appearance: none;
             cursor: pointer;
+          }
+
+          @media (max-width: 767px) {
+            .select-field { font-size: 16px; }
           }
 
           .select-icon-prefix {

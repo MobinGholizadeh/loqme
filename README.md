@@ -59,6 +59,9 @@ Copy-Item .env.example .env
 ```
 
 The default `.env` is pre-configured for local Docker development:
+
+`npm run dev` loads this repository-root `.env` for the web app as well as Prisma/Docker. Environment variables provided by the shell or Doppler take precedence. Use the root command so app-local configuration does not leave provider keys behind.
+
 * `DATABASE_URL`: `postgresql://postgres:postgres@localhost:5432/loqme?schema=public`
 * `SESSION_SECRET`: Default 32+ character development secret
 * `SMS_PROVIDER`: `console` (prints verification codes to the console without sending actual SMS)
