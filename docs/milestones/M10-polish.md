@@ -117,7 +117,7 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
-- [ ] **CP-10.16 — Store photos and business finder (2026-09-28)**: 266 disposable-database tests, all 92 browser cases, build/lint/types and responsive visual/axe checks pass. Release pending. See [CP10_16_STORE_MEDIA.md](../CP10_16_STORE_MEDIA.md).
+- [x] **CP-10.16 — Store photos and business finder (2026-09-28)**: 266 disposable-database tests, all 92 browser cases, build/lint/types and responsive visual/axe checks pass. Deployed `64937cf` in run 36349502841; live search/map/mobile/login/readiness pass. See [CP10_16_STORE_MEDIA.md](../CP10_16_STORE_MEDIA.md).
 
 - [x] **Production SMS repair (2026-09-27)**: Missing runtime key traced to stale server Compose; `afcd0fe` deployed in run 36333252694. Production OTP returns success; handset receipt unconfirmed. Seven deployment failure/success scenarios pass. See [PRODUCTION_SMS_REPAIR.md](../PRODUCTION_SMS_REPAIR.md).
 
