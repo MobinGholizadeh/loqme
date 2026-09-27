@@ -1,4 +1,4 @@
-name: Production SMS diagnostics
+name: Repair production SMS environment
 on:
   workflow_dispatch:
 permissions:
@@ -28,3 +28,31 @@ jobs:
             if [ -n "${DOPPLER_TOKEN:-}" ]; then
               curl --fail --silent --show-error -H "Authorization: Bearer $DOPPLER_TOKEN" 'https://api.doppler.com/v3/configs/config/secrets/download?format=json' | docker compose -f docker-compose.prod.yml exec -T app node -e 'let s="";process.stdin.on("data",b=>s+=b).on("end",()=>{const e=JSON.parse(s);console.log("DEPLOY_CONFIG",JSON.stringify({project:e.DOPPLER_PROJECT,config:e.DOPPLER_CONFIG,provider:e.SMS_PROVIDER,template:e.SMSIR_TEMPLATE_ID,keyMatches:e.SMSIR_API_KEY===process.env.SMSIR_API_KEY}))})'
             fi
+            # Repair only the missing environment wiring, using the exact running image.
+            CURRENT_IMAGE=$(docker inspect --format '{{.Image}}' loqme-app-prod)
+            export LOQME_IMAGE="$CURRENT_IMAGE"
+            OVERLAY=$(mktemp /opt/loqme/.compose.sms.XXXXXX)
+            trap 'rm -f "$OVERLAY"' EXIT
+            cat > "$OVERLAY" <<'YAML'
+            services:
+              app:
+                environment:
+                  SMS_PROVIDER: smsir
+                  SMSIR_API_KEY: ${SMSIR_API_KEY:?SMS.ir key is missing from server environment}
+                  SMSIR_LINE_NUMBER: ${SMSIR_LINE_NUMBER:-30002108039036}
+                  SMSIR_TEMPLATE_ID: ${SMSIR_TEMPLATE_ID:-}
+                  SMSIR_CODE_PARAM_NAME: ${SMSIR_CODE_PARAM_NAME:-Code}
+            YAML
+            docker compose -f docker-compose.prod.yml -f "$OVERLAY" config --quiet
+            docker compose -f docker-compose.prod.yml -f "$OVERLAY" run --rm --no-deps app node -e 'if(!process.env.SMSIR_API_KEY?.trim())process.exit(1);console.log("SMS key wired successfully")'
+            if ! docker compose -f docker-compose.prod.yml -f "$OVERLAY" up -d --no-deps app; then
+              docker compose -f docker-compose.prod.yml up -d --no-deps app
+              exit 1
+            fi
+            READY=0
+            for attempt in $(seq 1 20); do
+              if docker compose -f docker-compose.prod.yml exec -T app curl --fail --silent http://localhost:3000/api/health/ready; then READY=1; break; fi
+              sleep 3
+            done
+            if [ "$READY" != 1 ]; then docker compose -f docker-compose.prod.yml up -d --no-deps app; exit 1; fi
+            docker compose -f docker-compose.prod.yml exec -T app node -e 'console.log("SMS_REPAIRED",JSON.stringify({provider:process.env.SMS_PROVIDER,keyPresent:!!process.env.SMSIR_API_KEY}))'
