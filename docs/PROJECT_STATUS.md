@@ -8,9 +8,13 @@
 
 ## 1. Project Health & Current State
 
-### Active: CP-10.15 Search, merchant loading and mobile reliability (2026-09-24)
+### Active release: CP-10.16 Store photos and business finder (2026-09-28)
 
-User-requested fixes cover business search, map-to-products loading, photo delivery, footer size, mobile zoom/layout and heading focus. Production search 503 was reproduced; existing Map.ir key supports search. OTP false-success handling is being corrected, while SMS.ir account setup/live delivery is deferred at the user's request. Implementation and validation are in progress; see [CP10_15_RELIABILITY.md](CP10_15_RELIABILITY.md).
+Required merchant covers before publication, required product photos, legacy photo editing, city-scoped business-name search and a polished fixed-center-pin map are implemented. 266/266 disposable-database tests pass. All 92 browser cases are validated (89 full-run passes plus three corrected cases rerun); production build, lint and web/shared types pass. Release is underway. See [CP10_16_STORE_MEDIA.md](CP10_16_STORE_MEDIA.md). Existing provider/device gates remain open.
+
+### Delivered: CP-10.15 Search, merchant loading and mobile reliability (2026-09-24)
+
+User-requested fixes cover business search, map-to-products loading, photo delivery, footer size, mobile zoom/layout and heading focus. Commit `1eac59c` deployed successfully in [run 35963057596](https://github.com/MobinGholizadeh/loqme/actions/runs/35963057596), including full disposable-database CI acceptance. 86/86 browser tests, build, lint and types pass. Live search, mobile bounds, compact footer and readiness pass with zero browser errors. After Docker recovery, a real local merchant also returns its products and ratings successfully. SMS was reopened at the user's request on 2026-09-27: the running container lacked the API key because deployment reused a stale Compose manifest. The repair and permanent workflow fix `afcd0fe` deployed successfully in run 36333252694. A real production OTP request now returns HTTP 200/success; handset receipt remains unconfirmed. See [PRODUCTION_SMS_REPAIR.md](PRODUCTION_SMS_REPAIR.md). See [CP10_15_RELIABILITY.md](CP10_15_RELIABILITY.md).
 
 ### Completed: CP-10.14 Mobile discovery, pickup details and quieter guidance (2026-09-22)
 
@@ -74,11 +78,11 @@ Baseline: web TypeScript passed, lint had six warnings, and unavailable PostgreS
 
 | Metric | Status |
 | :--- | :--- |
-| **Current Milestone** | **CP-10.13 — Navigation, rating rows, localization and onboarding cities** |
-| **Milestone Status** | CP-10.13 deployed and verified; CP-10.11 provider/device gates remain open |
-| **Overall Completion** | Historical roadmap complete; CP-10.13 release evidence tracked separately |
+| **Current Milestone** | **CP-10.16 — Store photos and business finder** |
+| **Milestone Status** | CP-10.16 acceptance complete, release underway; production SMS configuration repaired; device gates remain open |
+| **Overall Completion** | Historical roadmap complete; CP-10.16 release evidence tracked separately |
 | **Repository State** | Monorepo Active (`apps/web`, `packages/*`, PostgreSQL 15 + PostGIS 3.4 running, Dockerized) |
-| **Last Updated** | 2026-09-22 (CP-10.12) |
+| **Last Updated** | 2026-09-28 (CP-10.16 / SMS repair) |
 
 ---
 

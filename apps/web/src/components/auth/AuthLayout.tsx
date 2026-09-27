@@ -5,7 +5,7 @@ import { ArrowRight, ArrowUpLeft } from 'lucide-react';
 import { LoqmeLogo } from '@/components/ui/LoqmeLogo';
 
 export function AuthLayout({ children, business = false }: { children: React.ReactNode; business?: boolean }) {
-  return <div className="auth-split">
+  return <div className={`auth-split${business ? " auth-split--business" : ""}`}>
     <a className="skip-link" href="#auth-content">رفتن به فرم</a>
     <aside className="auth-split-photo" aria-label="لقمه؛ تازه، محلی، به‌صرفه">
       <Image src="/lifestyle-1.jpg" alt="کشف خوراکی‌های تازه در کافه محلی" fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />

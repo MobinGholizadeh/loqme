@@ -15,4 +15,8 @@ User-authorized follow-up (2026-09-24): restore business place search, investiga
 
 35 focused tests pass; production build, lint and shared/web typechecks pass. All 86 browser regression tests pass on the optimized preview, including map-marker to store to product navigation, four-width onboarding bounds/axe checks, SMS failure feedback and compact footer. Mobile and desktop screenshots were visually inspected.
 
-Docker Desktop is blocked by its update-failure dialog, so the local real-data shop reproduction is not yet verified. The release workflow now gates image build/deployment on the full suite against a fresh disposable PostgreSQL/PostGIS service, applying migrations and fixture seeds only there. No production reseeding.
+Commit `1eac59c` passed the disposable-database CI job, image build and production deployment in [run 35963057596](https://github.com/MobinGholizadeh/loqme/actions/runs/35963057596). Live search returned 10 results; mobile bounds and heading outline, 470px desktop footer, readiness and zero runtime errors were verified. Image delivery produced a 44,579-byte responsive AVIF from a 790,842-byte source.
+
+Docker subsequently recovered. A real local approved merchant returns 200 with two products and rating aggregates. The specific previously failing merchant URL was not supplied. The release workflow gates image build/deployment on the full suite against a fresh disposable PostgreSQL/PostGIS service, applying fixture seeds only there. No production reseeding.
+
+Follow-up 2026-09-27: production SMS runtime credentials repaired, permanent workflow fix deployed and real OTP request accepted. See [PRODUCTION_SMS_REPAIR.md](PRODUCTION_SMS_REPAIR.md); this supersedes the earlier SMS deferral.

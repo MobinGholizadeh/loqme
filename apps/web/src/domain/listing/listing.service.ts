@@ -15,6 +15,15 @@ import {
 } from '@loqme/validation';
 
 export class ListingService {
+  private async requireStoreCover(merchantId: string) {
+    const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: { bannerImageUrl: true } });
+    if (!merchant?.bannerImageUrl) throw new Error('پیش از انتشار بسته، عکس جلد فروشگاه را در تنظیمات بارگذاری و ذخیره کنید');
+  }
+  private async requirePublicationImages(merchantId: string, listingId: string) {
+    await this.requireStoreCover(merchantId);
+    if (!await prisma.listingImage.count({ where: { listingId } })) throw new Error('پیش از انتشار، تصویر بسته را اضافه کنید');
+  }
+
   /**
    * Creates a Surprise Bag listing atomically with its inventory counter and safety metadata
    */
@@ -28,6 +37,8 @@ export class ListingService {
     }
   ) {
     const validated = CreateSurpriseBagSchema.parse(params);
+    await listingImageStorage.authorize(merchantId, validated.imageUrl);
+    await this.requireStoreCover(merchantId);
 
     const pickupStartDate = new Date(params.pickupStart);
     const pickupEndDate = new Date(params.pickupEnd);
@@ -47,6 +58,7 @@ export class ListingService {
         data: {
           merchantId,
           merchantLocationId: params.merchantLocationId,
+          images: { create: { imageUrl: validated.imageUrl, isPrimary: true } },
           categoryId: validated.categoryId,
           type: ListingType.SURPRISE_BAG,
           titleFa: validated.title,
@@ -97,6 +109,7 @@ export class ListingService {
   async createListing(input: CreateListingInput) {
     const validated = CreateListingSchema.parse(input);
     await listingImageStorage.authorize(validated.merchantId, validated.imageUrl);
+    await this.requireStoreCover(validated.merchantId);
 
     const pickupStartDate = new Date(validated.pickupStart);
     const pickupEndDate = new Date(validated.pickupEnd);
@@ -167,7 +180,7 @@ export class ListingService {
         },
         category: true,
         images: {
-          orderBy: { displayOrder: 'asc' },
+          orderBy: [{ isPrimary: 'desc' }, { displayOrder: 'asc' }],
         },
         inventory: true,
         safety: true,
@@ -236,6 +249,7 @@ export class ListingService {
    * Updates status of a listing (e.g. PAUSED, SOLD_OUT, EXPIRED)
    */
   async updateListingStatus(id: string, status: ListingStatus) {
+    if (status === ListingStatus.PUBLISHED) { const listing = await prisma.listing.findUniqueOrThrow({ where: { id } }); await this.requirePublicationImages(listing.merchantId, id); }
     return await prisma.listing.update({
       where: { id },
       data: { status },
@@ -250,6 +264,7 @@ export class ListingService {
       where: { merchantId },
       include: {
         attributes: true,
+        images: { orderBy: { isPrimary: "desc" }, take: 1 },
         category: true,
         inventory: true,
         safety: true,
@@ -281,6 +296,7 @@ export class ListingService {
       targetStatus ||
       (listing.status === ListingStatus.PUBLISHED ? ListingStatus.PAUSED : ListingStatus.PUBLISHED);
 
+    if (nextStatus === ListingStatus.PUBLISHED) await this.requirePublicationImages(merchantId, listingId);
     return await prisma.listing.update({
       where: { id: listingId },
       data: { status: nextStatus },
@@ -309,6 +325,7 @@ export class ListingService {
       throw new Error('عدم دسترسی: این بسته متعلق به فروشگاه شما نمی‌باشد');
     }
 
+    if (options.status === ListingStatus.PUBLISHED || (listing.status === ListingStatus.SOLD_OUT && (options.deltaQuantity || options.totalQuantity))) await this.requirePublicationImages(merchantId, listingId);
     const currentInventory = listing.inventory;
     if (!currentInventory) {
       throw new Error('رکورد موجودی برای این بسته یافت نشد');

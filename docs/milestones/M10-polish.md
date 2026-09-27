@@ -117,7 +117,11 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
-- [ ] **CP-10.15 — Search, merchant loading and mobile reliability (2026-09-24)**: User-authorized fixes in progress; SMS.ir account configuration deferred explicitly. See [CP10_15_RELIABILITY.md](../CP10_15_RELIABILITY.md).
+- [ ] **CP-10.16 — Store photos and business finder (2026-09-28)**: 266 disposable-database tests, all 92 browser cases, build/lint/types and responsive visual/axe checks pass. Release pending. See [CP10_16_STORE_MEDIA.md](../CP10_16_STORE_MEDIA.md).
+
+- [x] **Production SMS repair (2026-09-27)**: Missing runtime key traced to stale server Compose; `afcd0fe` deployed in run 36333252694. Production OTP returns success; handset receipt unconfirmed. Seven deployment failure/success scenarios pass. See [PRODUCTION_SMS_REPAIR.md](../PRODUCTION_SMS_REPAIR.md).
+
+- [x] **CP-10.15 — Search, merchant loading and mobile reliability (2026-09-24)**: 86 browser tests, build/lint/types and disposable-database CI pass; `1eac59c` deployed in run 35963057596 and live search/mobile/footer/readiness verified. SMS.ir account configuration deferred explicitly. See [CP10_15_RELIABILITY.md](../CP10_15_RELIABILITY.md).
 
 - [x] **CP-10.14 — Mobile discovery, pickup information and quiet guidance (2026-09-22)**: User-authorized scope implemented; 237 tests pass on disposable PostgreSQL, build/lint/types pass. 79/79 browser tests and responsive visual/axe checks pass. UI commit 002a00a deployed in run 35749616079. Doppler workflow repair ea557ae passed build and deployment in run 35906914457; final public UI, cities and readiness checks passed 2026-09-24 with zero browser errors. SMS.ir credential rotation and existing provider/device gates remain open. See [CP10_14_MOBILE.md](../CP10_14_MOBILE.md).
 

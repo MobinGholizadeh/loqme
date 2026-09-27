@@ -233,6 +233,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
     setFieldErrors({});
 
     const errors: Record<string, string> = {};
+    if (!imageUrl) errors.imageUrl = "تصویر بسته را انتخاب کنید";
     if (!categorySlug) errors.categorySlug = "دسته‌بندی خوراکی را انتخاب کنید";
     if (titleFa.trim().length < 3)
       errors.titleFa = "عنوان بسته حداقل ۳ کاراکتر باشد";
@@ -294,7 +295,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
             .map((item) => item.trim())
             .filter(Boolean),
           storageInstructionsFa: storageInstructions || undefined,
-          imageUrl: imageUrl || undefined,
+          imageUrl,
         }),
       });
 
@@ -343,7 +344,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
             role="alert"
             className="mt-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center justify-between"
           >
-            <span>{errorMessage}</span>
+            <span>{errorMessage}{errorMessage.includes('عکس جلد') && <a href="/merchant/settings" className="block mt-2 underline">بارگذاری عکس جلد در تنظیمات فروشگاه</a>}</span>
             <button aria-label="بستن" onClick={() => setErrorMessage(null)}>
               ✕
             </button>
@@ -445,6 +446,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
           </div>
 
           <PickupDetailsFields value={pickupDetails} onChange={setPickupDetails}/>
+          {fieldErrors.imageUrl && <p role="alert" className="text-sm text-rose-700">{fieldErrors.imageUrl}</p>}
           <ListingImagePicker
             value={imageUrl}
             onChange={setImageUrl}

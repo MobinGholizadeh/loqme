@@ -4,7 +4,9 @@ import { readBoundedBody } from './bounded-body';
 
 const record = (value: unknown): Record<string, unknown> => value && typeof value === 'object' ? value as Record<string, unknown> : {};
 const text = (value: unknown) => typeof value === 'string' ? value.trim() : '';
-export function normalizeMapirPlaces(body: unknown): BusinessPlaceDto[] {
+const businessClasses = new Set(['cafe', 'restaurant', 'fast_food', 'food_court', 'bakery', 'pastry', 'confectionery', 'supermarket', 'convenience', 'grocery', 'greengrocer', 'deli', 'butcher', 'seafood', 'ice_cream', 'tea', 'coffee', 'shop', 'mall', 'department_store']);
+const normalizeName = (value: string) => value.replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\u200c\s]+/g, ' ').trim().toLowerCase();
+export function normalizeMapirPlaces(body: unknown, city?: string, query?: string): BusinessPlaceDto[] {
   const entries = record(body).value;
   if (!Array.isArray(entries)) throw new BusinessError(502, 'پاسخ جست‌وجوی نقشه نامعتبر است');
   return entries.flatMap((item, index) => {
@@ -12,6 +14,11 @@ export function normalizeMapirPlaces(body: unknown): BusinessPlaceDto[] {
     const coordinates = geom.coordinates;
     const name = text(value.title); const address = text(value.address);
     if (value.type !== 'point' || !name || !Array.isArray(coordinates)) return [];
+    // Administrative places are also points. Only named commercial POIs belong
+    // in the business finder; city/county metadata keeps results in the chosen area.
+    if (!businessClasses.has(text(value.fclass))) return [];
+    if (city && ![text(value.city), text(value.county)].some(area => normalizeName(area) === normalizeName(city))) return [];
+    if (query && !normalizeName(query).split(' ').every(word => normalizeName(name).includes(word))) return [];
     const [longitude, latitude] = coordinates;
     if (typeof latitude !== 'number' || typeof longitude !== 'number' || !Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < 24 || latitude > 40 || longitude < 44 || longitude > 64) return [];
     // Search v2 may have no provider ID. Never invent one or treat a list index as an ID.
@@ -36,7 +43,7 @@ async function mapirRequest(path: string, body?: unknown) {
   } catch { throw new BusinessError(503, 'ارتباط با نقشه برقرار نشد؛ دوباره تلاش کنید یا اطلاعات را دستی وارد کنید'); }
 }
 export async function searchMapir(query: string, city: string) {
-  return normalizeMapirPlaces(await mapirRequest('search/v2', { text: `${query} ${city}` }));
+  return normalizeMapirPlaces(await mapirRequest('search/v2', { text: `${query} ${city}` }), city, query);
 }
 export async function reverseMapir(latitude: number, longitude: number) {
   const result = record(await mapirRequest(`reverse?lat=${latitude}&lon=${longitude}`));

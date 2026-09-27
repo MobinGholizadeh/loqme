@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { listingImageStorage } from '@/domain/listing/image-storage';
 import { BusinessType, VerificationStatus, StaffRole, Prisma } from '@prisma/client';
 import { CreateMerchantInput, CreateMerchantSchema } from '@loqme/validation';
 import { NearbyMerchantQuery } from '@loqme/types';
@@ -372,6 +373,7 @@ export class MerchantService {
     return {
       merchantId: merchant.id,
       businessNameFa: merchant.businessNameFa,
+      bannerImageUrl: merchant.bannerImageUrl,
       verificationStatus: merchant.verificationStatus,
       activeListingsCount,
       reservedBagsCount,
@@ -433,6 +435,7 @@ export class MerchantService {
       id: merchant.id,
       businessNameFa: merchant.businessNameFa,
       businessType: merchant.businessType,
+      bannerImageUrl: merchant.bannerImageUrl,
       licenseNumber: merchant.licenseNumber,
       commissionPercent: Number(merchant.commissionPercent),
       verificationStatus: merchant.verificationStatus,
@@ -461,6 +464,7 @@ export class MerchantService {
     merchantUserId: string,
     data: {
       businessNameFa?: string;
+      bannerImageUrl?: string;
       phone?: string | null;
       addressFa?: string;
       postalCode?: string | null;
@@ -484,11 +488,15 @@ export class MerchantService {
     );
 
     return await prisma.$transaction(async (tx) => {
-      // 1. Update Merchant Name if provided
-      if (data.businessNameFa) {
+      // Cover URLs must refer to this merchant's uploaded photo, never a stock illustration.
+      if (data.bannerImageUrl !== undefined) {
+        if (!data.bannerImageUrl.startsWith(`/api/listing-images/${merchant.id}/`)) throw new Error('عکس جلد فروشگاه را از گالری خود بارگذاری کنید');
+        await listingImageStorage.authorize(merchant.id, data.bannerImageUrl);
+      }
+      if (data.businessNameFa || data.bannerImageUrl) {
         await tx.merchant.update({
           where: { id: merchant.id },
-          data: { businessNameFa: data.businessNameFa.trim() },
+          data: { businessNameFa: data.businessNameFa?.trim(), bannerImageUrl: data.bannerImageUrl },
         });
       }
 

@@ -30,8 +30,8 @@ describe.skipIf(!process.env.DATABASE_URL?.includes('/loqme_onboarding_test'))('
   const values = { containerProvided: true, carrierBagProvided: false, instructionsFa: 'به صندوق مراجعه کنید.' };
   beforeAll(async () => {
     ownerId = (await prisma.user.create({ data: { mobile: `cp14-${randomUUID()}`, role: 'MERCHANT_OWNER' } })).id;
-    merchantId = (await prisma.merchant.create({ data: { ownerUserId: ownerId, businessNameFa: 'فروشگاه آزمون', verificationStatus: 'APPROVED' } })).id;
-    listingId = (await listingService.createListing({ merchantId, categoryId: (await prisma.category.findFirstOrThrow()).id,
+    merchantId = (await prisma.merchant.create({ data: { ownerUserId: ownerId, businessNameFa: 'فروشگاه آزمون', verificationStatus: 'APPROVED', bannerImageUrl: '/test-cover.webp' } })).id;
+    listingId = (await listingService.createListing({ imageUrl: '/listing-defaults/bread.png', merchantId, categoryId: (await prisma.category.findFirstOrThrow()).id,
       type: 'SURPRISE_BAG', titleFa: 'بسته آزمون', descriptionFa: 'توضیحات بسته آزمون', originalPriceToman: 100, discountedPriceToman: 50,
       quantity: 3, pickupDate: new Date(), pickupStart: new Date(), pickupEnd: new Date(Date.now() + 3600000),
       temperatureRequirement: 'ROOM_TEMP', dietaryTags: [], allergens: [], pickupDetails: values,

@@ -128,6 +128,7 @@ export async function GET(
       data: {
         id: merchant.id,
         businessNameFa: merchant.businessNameFa,
+        bannerImageUrl: merchant.bannerImageUrl,
         businessType: merchant.businessType,
         ratingAverage: ratings.overallRating.average ?? 0,
         ratings,

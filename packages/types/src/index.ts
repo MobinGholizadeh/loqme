@@ -907,6 +907,7 @@ export interface OperatingHoursDayDto {
 }
 
 export interface MerchantStoreSettingsDto {
+  bannerImageUrl?: string | null;
   id: string;
   businessNameFa: string;
   businessType: string;

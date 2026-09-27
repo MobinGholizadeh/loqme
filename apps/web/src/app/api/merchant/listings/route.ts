@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
     const formattedListings = listings.map((l) => ({
       id: l.id,
       pickupDetails: readPickupDetails(l.attributes),
+      imageUrl: l.images[0]?.imageUrl || null,
       merchantId: l.merchantId,
       merchantLocationId: l.merchantLocationId,
       categoryId: l.categoryId,

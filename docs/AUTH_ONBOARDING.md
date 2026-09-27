@@ -63,4 +63,6 @@ Stage 2 fixes existing OTP replay: PostgreSQL is the sole code authority, latest
 
 ## Local preview
 
+CP-10.16: signup search is restricted to named commercial POIs matching the business query within the selected city/county. Streets and administrative points are excluded even when Map.ir labels them `point`. A compact text list replaces the search map; manual entry uses a fixed-center pin with explicit confirmation and a collapsible numeric coordinate editor. Desktop business photography uses 16px insets and rounded corners. Applicants complete their cover photo in merchant settings after approval; publication is blocked until a cover exists. No privileged upload permission is given to unauthenticated applicants.
+
 During continuation: development `http://localhost:3004`, optimized preview `http://localhost:3005`, both on disposable `loqme_onboarding_test_20260920`. Verify processes before reuse; do not assume these ports remain running. All `loqme_onboarding_test_*` DBs are disposable test artifacts; none was dropped by this task.

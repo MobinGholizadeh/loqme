@@ -1,4 +1,5 @@
 "use client";
+import { ListingImagePicker } from "@/components/merchant/ListingImagePicker";
 import { ErrorState } from "@/components/ui/ErrorState";
 import * as RedesignIcons from "lucide-react";
 
@@ -12,6 +13,8 @@ import { toPersianDigits, toEnglishDigits } from "@/lib/utils/persian";
 import { MerchantStoreSettingsDto, OperatingHoursDayDto } from "@loqme/types";
 
 export default function MerchantSettingsPage() {
+  const [bannerImageUrl, setBannerImageUrl] = useState("");
+  const [imageBusy, setImageBusy] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [settings, setSettings] = useState<MerchantStoreSettingsDto | null>(
     null,
@@ -43,6 +46,7 @@ export default function MerchantSettingsPage() {
         const data = json.data as MerchantStoreSettingsDto;
         setSettings(data);
         setBusinessNameFa(data.businessNameFa);
+        setBannerImageUrl(data.bannerImageUrl || "");
         setPhone(data.primaryLocation?.phone || "");
         setAddressFa(data.primaryLocation?.addressFa || "");
         setPostalCode(data.primaryLocation?.postalCode || "");
@@ -93,6 +97,7 @@ export default function MerchantSettingsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!bannerImageUrl) { setMessage({ type: "error", text: "عکس جلد فروشگاه را بارگذاری کنید" }); return; }
     setIsSaving(true);
     setMessage(null);
 
@@ -102,6 +107,7 @@ export default function MerchantSettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           businessNameFa,
+          bannerImageUrl,
           phone: phone || null,
           addressFa,
           postalCode: postalCode || null,
@@ -183,6 +189,7 @@ export default function MerchantSettingsPage() {
         </div>
       ) : (
         <form onSubmit={handleSave} className="space-y-6">
+          <Card className="p-6"><ListingImagePicker cover value={bannerImageUrl} onChange={setBannerImageUrl} onBusyChange={setImageBusy}/><p className="mt-3 text-sm text-loqme-neutral-600">این تصویر در بالای صفحه فروشگاه شما نمایش داده می‌شود. پیش از انتشار بسته، عکس جلد را ذخیره کنید.</p></Card>
           {/* Business Profile Card */}
           <Card
             variant="elevated"
@@ -472,7 +479,7 @@ export default function MerchantSettingsPage() {
               type="submit"
               variant="primary"
               size="lg"
-              disabled={isSaving}
+              disabled={isSaving || imageBusy}
               className="gap-2 px-8 shadow-sm font-bold"
             >
               {isSaving ? (

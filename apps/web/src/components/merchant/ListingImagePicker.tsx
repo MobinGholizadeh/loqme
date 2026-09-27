@@ -8,7 +8,9 @@ export function ListingImagePicker({
   value,
   onChange,
   onBusyChange,
+  cover = false,
 }: {
+  cover?: boolean;
   value: string;
   onChange: (value: string) => void;
   onBusyChange: (busy: boolean) => void;
@@ -46,8 +48,9 @@ export function ListingImagePicker({
     }
   }
   return (
-    <fieldset className="space-y-3" disabled={busy}>
-      <legend className="text-sm font-bold mb-2">تصویر بسته</legend>
+    <fieldset className="min-w-0 w-full space-y-3" disabled={busy}>
+      <legend className="text-sm font-bold mb-2">{cover ? "عکس جلد فروشگاه (الزامی)" : "تصویر بسته (الزامی)"}</legend>
+      <p className="text-xs text-loqme-neutral-600">{cover ? "یک عکس افقی و روشن از فروشگاه خود انتخاب کنید؛ پیشنهاد ما ۱۸۰۰ × ۶۰۰ پیکسل است." : "عکس بسته را بارگذاری کنید یا یک تصویر تزئینی متناسب انتخاب کنید."}</p>
       <input
         ref={input}
         className="sr-only"
@@ -65,7 +68,7 @@ export function ListingImagePicker({
         <Upload size={18} />
         {busy ? "در حال بارگذاری..." : "انتخاب از گالری"}
       </button>
-      <p className="text-xs text-loqme-neutral-600">عکس‌های تزئینی لقمه</p>
+      {!cover && <><p className="text-xs text-loqme-neutral-600">عکس‌های تزئینی لقمه</p>
       <div className="grid grid-cols-3 gap-2">
         {LISTING_IMAGE_CATALOG.map((image) => (
           <button
@@ -86,9 +89,10 @@ export function ListingImagePicker({
           </button>
         ))}
       </div>
+      </>}
       {value && (
-        <div className="flex items-center gap-3">
-          <div className="relative h-20 w-28 overflow-hidden rounded-lg">
+        <div className={cover ? "space-y-3" : "flex items-center gap-3"}>
+          <div className={cover ? "merchant-profile-cover" : "relative h-20 w-28 overflow-hidden rounded-lg"}>
             <ListingImage src={value} alt="تصویر انتخاب‌شده" />
           </div>
           <button

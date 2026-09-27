@@ -120,4 +120,6 @@ CP-10.13 persists the Urmia launch city and West Azerbaijan province via an idem
 
 ## CP-10.14 pickup attributes (2026-09-22)
 
+CP-10.16 adds nullable `Merchant.bannerImageUrl` for uploaded store cover photos. Null preserves historical records; domain publication requires a cover and a primary listing image. Merchant settings authorize cover ownership against persistent image storage. Listing photo replacement locks the parent listing before changing primary flags, and public details prioritize the primary photo. See [CP10_16_STORE_MEDIA.md](CP10_16_STORE_MEDIA.md).
+
 ListingAttributes reserves key `pickupDetails` for merchant-declared container/carrier-bag booleans (nullable when unspecified) and Persian pickup notes. Validated creation/editing and public/merchant responses share the contract documented in [CP10_14_MOBILE.md](CP10_14_MOBILE.md). Edits lock the parent listing and replace only this key, leaving inventory and safety intact. No migration or historical defaults are required.

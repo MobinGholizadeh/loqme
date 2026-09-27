@@ -22,6 +22,7 @@ describe('Milestone M02 — Core Domain, Database & PostGIS Verification', () =>
     });
     expect(merchant).toBeDefined();
     testMerchantId = merchant!.id;
+    await prisma.merchant.update({ where: { id: testMerchantId }, data: { bannerImageUrl: '/test-cover.webp' } });
     testLocationId = merchant!.locations[0].id;
   });
 
@@ -88,7 +89,7 @@ describe('Milestone M02 — Core Domain, Database & PostGIS Verification', () =>
       const pickupStart = new Date(now.getTime() + 2 * 3600 * 1000);
       const pickupEnd = new Date(now.getTime() + 4 * 3600 * 1000);
 
-      const bag = await listingService.createSurpriseBag(testMerchantId, {
+      const bag = await listingService.createSurpriseBag(testMerchantId, { imageUrl: '/listing-defaults/bread.png',
         title: 'بسته تست تست‌کیس خودکار',
         description: 'توضیحات بسته تست برای اطمینان از صحت ثبت در پایگاه داده',
         categoryId: testCategoryId,
@@ -133,7 +134,7 @@ describe('Milestone M02 — Core Domain, Database & PostGIS Verification', () =>
       const pickupEnd = new Date(now.getTime() + 2 * 3600 * 1000);
 
       await expect(
-        listingService.createSurpriseBag(testMerchantId, {
+        listingService.createSurpriseBag(testMerchantId, { imageUrl: '/listing-defaults/bread.png',
           title: 'بسته با قیمت نامعتبر',
           categoryId: testCategoryId,
           originalPrice: 100000,
@@ -154,7 +155,7 @@ describe('Milestone M02 — Core Domain, Database & PostGIS Verification', () =>
       const pickupEnd = new Date(now.getTime() + 2 * 3600 * 1000); // Invalid: end before start
 
       await expect(
-        listingService.createSurpriseBag(testMerchantId, {
+        listingService.createSurpriseBag(testMerchantId, { imageUrl: '/listing-defaults/bread.png',
           title: 'بسته با زمان نامعتبر',
           categoryId: testCategoryId,
           originalPrice: 100000,
@@ -255,7 +256,7 @@ describe('Milestone M02 — Core Domain, Database & PostGIS Verification', () =>
       const pickupStart = new Date(now.getTime() + 3600 * 1000);
       const pickupEnd = new Date(now.getTime() + 2 * 3600 * 1000);
 
-      const listing = await listingService.createSurpriseBag(testMerchantId, {
+      const listing = await listingService.createSurpriseBag(testMerchantId, { imageUrl: '/listing-defaults/bread.png',
         title: 'بسته تست رزرو همزمان',
         categoryId: testCategoryId,
         originalPrice: 100000,

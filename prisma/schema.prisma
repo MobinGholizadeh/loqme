@@ -171,6 +171,7 @@ model Customer {
 }
 
 model Merchant {
+  bannerImageUrl     String?
   id                 String             @id @default(uuid())
   ownerUserId        String
   businessNameFa     String

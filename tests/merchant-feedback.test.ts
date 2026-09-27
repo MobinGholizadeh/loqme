@@ -46,6 +46,7 @@ import { POST as upload } from "@/app/api/merchant/listings/image/route";
 const merchantId = "00000000-0000-4000-8000-000000000001";
 function input(template = PRESET_TEMPLATES[0]) {
   return {
+    imageUrl: '/listing-defaults/bread.png',
     categorySlug: template.categorySlug,
     titleFa: template.titleFa,
     descriptionFa: template.descriptionFa,

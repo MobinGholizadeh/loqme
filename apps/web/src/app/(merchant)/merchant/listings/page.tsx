@@ -1,5 +1,6 @@
 "use client";
 import { PickupDetailsEditor } from "@/components/merchant/PickupDetailsEditor";
+import { ListingPhotoEditor } from "@/components/merchant/ListingPhotoEditor";
 import type { PickupDetailsInput } from "@loqme/validation";
 import { ErrorState } from "@/components/ui/ErrorState";
 import * as RedesignIcons from "lucide-react";
@@ -14,6 +15,7 @@ import { FastListingModal } from "@/components/merchant/FastListingModal";
 import { formatToman, toPersianDigits } from "@/lib/utils/persian";
 
 interface MerchantListingItem {
+  imageUrl?: string | null;
   pickupDetails?: PickupDetailsInput;
   id: string;
   titleFa: string;
@@ -35,6 +37,8 @@ interface MerchantListingItem {
 }
 
 export default function MerchantListingsPage() {
+  const [editingPhoto, setEditingPhoto] = useState<MerchantListingItem | null>(null);
+  const [actionError, setActionError] = useState('');
   const [editingPickup, setEditingPickup] = useState<MerchantListingItem | null>(null);
   const [loadError, setLoadError] = useState("");
   const [listings, setListings] = useState<MerchantListingItem[]>([]);
@@ -83,6 +87,7 @@ export default function MerchantListingsPage() {
         body: JSON.stringify({ status: nextStatus }),
       });
       if (!res.ok) {
+        const result = await res.json(); setActionError(result.message || 'ذخیره انجام نشد');
         // Rollback on failure
         fetchListings();
       }
@@ -413,6 +418,7 @@ export default function MerchantListingsPage() {
                     </Button>
                   </div>
                 </div>
+                <Button variant="ghost" size="sm" onClick={() => setEditingPhoto(item)}>{item.imageUrl ? 'ویرایش تصویر' : 'افزودن تصویر (الزامی)'}</Button>
                 <Button variant="ghost" size="sm" onClick={() => setEditingPickup(item)}>بسته‌بندی و راهنمای دریافت</Button>
               </Card>
             );
@@ -420,6 +426,8 @@ export default function MerchantListingsPage() {
         </div>
       )}
 
+      {actionError && <p role="alert" className="p-4 rounded-lg bg-rose-50 text-rose-700">{actionError} <a className="underline" href="/merchant/settings">تنظیمات فروشگاه</a></p>}
+      {editingPhoto && <ListingPhotoEditor listing={editingPhoto} onClose={() => setEditingPhoto(null)} onSaved={fetchListings}/>}
       {editingPickup && <PickupDetailsEditor listing={editingPickup} onClose={() => setEditingPickup(null)} onSaved={fetchListings}/>}
       {/* Fast Listing Modal */}
       <FastListingModal

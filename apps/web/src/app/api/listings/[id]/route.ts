@@ -35,7 +35,7 @@ export async function GET(
         inventory: true,
         safety: true,
         images: {
-          orderBy: { displayOrder: 'asc' },
+          orderBy: [{ isPrimary: 'desc' }, { displayOrder: 'asc' }],
         },
       },
     });

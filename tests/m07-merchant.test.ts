@@ -20,7 +20,7 @@ describe('Milestone M07 — Merchant Product & Management Portal', () => {
   // =========================================================================
   describe('1. Zod Validation & Schema Integrity', () => {
     it('validates correct fast listing input with price discount', () => {
-      const validInput = {
+      const validInput = { imageUrl: '/listing-defaults/bread.png',
         categorySlug: 'pastry',
         titleFa: 'بسته شیرینی عصرانه',
         descriptionFa: 'بسته تازه شیرینی دانمارکی و رولت خامه پخت امروز',

@@ -49,6 +49,7 @@ test('manual onboarding validates, edits pin by keyboard, recovers draft, verifi
   await page.getByRole('button', { name: 'تأیید و ادامه', exact: true }).click();
   await expect(page.getByRole('alert').first()).toBeFocused();
   await page.getByLabel('آدرس کامل').fill('ارومیه خیابان آزمایش شماره ۱۲');
+  await page.getByText('ویرایش مختصات با صفحه‌کلید', { exact: true }).click();
   await page.getByLabel('عرض جغرافیایی').fill('37.56');
   await expect(page.getByLabel('عرض جغرافیایی')).toBeFocused();
   await page.getByLabel('طول جغرافیایی').fill('45.08');
@@ -195,9 +196,10 @@ for (const width of [360, 390, 768, 1024, 1440, 1920]) test(`full-screen composi
     await expect(page.locator('.market-header')).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const photo = await page.locator('.auth-split-photo').boundingBox();
-    expect(photo!.x).toBe(0); expect(photo!.y).toBe(0);
-    expect(Math.round(photo!.width)).toBe(width >= 1024 ? width / 2 : width);
-    expect(Math.round(photo!.height)).toBe(width >= 1024 ? 900 : 230);
+    const insetBusiness = path.startsWith('/business') && width >= 1024;
+    expect(photo!.x).toBe(insetBusiness ? 16 : 0); expect(photo!.y).toBe(insetBusiness ? 16 : 0);
+    expect(Math.round(photo!.width)).toBe(width >= 1024 ? (width - (insetBusiness ? 48 : 0)) / 2 : width);
+    expect(Math.round(photo!.height)).toBe(width >= 1024 ? 900 - (insetBusiness ? 32 : 0) : 230);
     await expect(page.locator('.auth-split-photo img').first()).toHaveJSProperty('complete', true);
     await page.getByRole('link', { name: 'رفتن به فرم' }).focus(); await page.keyboard.press('Enter');
     await expect(page.locator('#auth-content')).toBeFocused();

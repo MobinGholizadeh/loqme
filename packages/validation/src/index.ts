@@ -102,6 +102,7 @@ export type VerifyOtpInput = z.infer<typeof VerifyOtpSchema>;
 // ==========================================
 
 export const CreateSurpriseBagSchema = z.object({
+  imageUrl: z.string().trim().min(1, 'تصویر بسته الزامی است').max(500),
   title: z.string().min(3, 'عنوان بسته باید حداقل ۳ حرف باشد'),
   description: z.string().max(500, 'توضیحات نمی‌تواند بیش از ۵۰۰ حرف باشد').optional(),
   categoryId: z.string().min(1, 'انتخاب دسته‌بندی الزامی است'),
@@ -130,7 +131,7 @@ export type PickupDetailsInput = z.infer<typeof PickupDetailsSchema>;
 
 export const CreateListingSchema = z.object({
   pickupDetails: PickupDetailsSchema.optional(),
-  imageUrl: z.string().max(500).optional(),
+  imageUrl: z.string().trim().min(1, 'تصویر بسته الزامی است').max(500),
   merchantId: z.string().uuid('شناسه فروشگاه نامعتبر است'),
   merchantLocationId: z.string().uuid('شناسه شعبه نامعتبر است').optional(),
   categoryId: z.string().min(1, 'شناسه دسته‌بندی الزامی است'),
@@ -427,7 +428,7 @@ export type UpdateListingSafetyInput = z.infer<typeof UpdateListingSafetySchema>
 export const FastCreateListingSchema = z
   .object({
     pickupDetails: PickupDetailsSchema.optional(),
-    imageUrl: z.string().max(500).optional(),
+    imageUrl: z.string().trim().min(1, 'تصویر بسته الزامی است').max(500),
     categoryId: z.string().optional(),
     categorySlug: z.string().optional(),
     titleFa: z.string().trim().min(3, 'عنوان بسته حداقل باید ۳ کاراکتر باشد').max(100),
@@ -495,6 +496,7 @@ export const OperatingHoursDaySchema = z.object({
   .refine(day => (day.defaultPickupStart === null && day.defaultPickupEnd === null) || (!!day.defaultPickupStart && !!day.defaultPickupEnd && day.defaultPickupEnd > day.defaultPickupStart), { message: 'شروع و پایان بازه تحویل را با هم و به ترتیب وارد کنید', path: ['defaultPickupEnd'] });
 
 export const UpdateStoreSettingsSchema = z.object({
+  bannerImageUrl: z.string().trim().min(1, 'عکس جلد فروشگاه الزامی است').max(500).optional(),
   businessNameFa: z.string().trim().min(2, 'نام فروشگاه حداقل باید ۲ کاراکتر باشد').max(100).optional(),
   phone: z.string().trim().max(30).optional().nullable(),
   addressFa: z.string().trim().min(5, 'آدرس حداقل باید ۵ کاراکتر باشد').max(255).optional(),

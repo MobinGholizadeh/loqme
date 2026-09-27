@@ -32,7 +32,7 @@ describe.skipIf(!isolated)('CP10.12 real database acceptance', () => {
   beforeAll(async () => {
     const user = await prisma.user.create({ data: { mobile: `cp12-${run}`, role: 'CUSTOMER', customer: { create: {} } }, include: { customer: true } });
     userId = user.id; customerId = user.customer!.id;
-    merchantId = (await prisma.merchant.create({ data: { ownerUserId: userId, businessNameFa: `آزمون ${run}`, verificationStatus: 'APPROVED' } })).id;
+    merchantId = (await prisma.merchant.create({ data: { ownerUserId: userId, businessNameFa: `آزمون ${run}`, verificationStatus: 'APPROVED', bannerImageUrl: '/test-cover.webp' } })).id;
     categoryId = (await prisma.category.findFirstOrThrow()).id;
   });
   afterAll(async () => {
@@ -47,7 +47,7 @@ describe.skipIf(!isolated)('CP10.12 real database acceptance', () => {
     return prisma.order.create({ data: { orderNumber: randomUUID(), merchantId, customerId, status: 'COMPLETED', totalAmountToman: 100 } });
   }
   async function listing(quantity = 2) {
-    const value = await listingService.createListing({ merchantId, categoryId, type: 'SURPRISE_BAG', titleFa: `بسته آزمون ${run}`, descriptionFa: 'بسته آزمون ایزوله', originalPriceToman: 100, discountedPriceToman: 50, quantity,
+    const value = await listingService.createListing({ imageUrl: '/listing-defaults/bread.png', merchantId, categoryId, type: 'SURPRISE_BAG', titleFa: `بسته آزمون ${run}`, descriptionFa: 'بسته آزمون ایزوله', originalPriceToman: 100, discountedPriceToman: 50, quantity,
       pickupDate: new Date().toISOString(), pickupStart: new Date().toISOString(), pickupEnd: new Date(Date.now() + 3600000).toISOString(), allergens: [], dietaryTags: [], temperatureRequirement: 'ROOM_TEMP' });
     listingIds.push(value.id); return value;
   }

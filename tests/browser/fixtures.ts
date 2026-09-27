@@ -238,8 +238,9 @@ export async function installFixtures(page: Page, role = "CUSTOMER") {
         createdAt: now,
       },
     ],
-    "/api/merchant/settings": {
-      ...merchant,
+      "/api/merchant/settings": {
+        ...merchant,
+        bannerImageUrl: "/lifestyle-1.jpg",
       licenseNumber: "12345",
       commissionPercent: 10,
       primaryLocation: location,

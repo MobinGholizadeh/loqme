@@ -121,6 +121,7 @@ test("merchant publishing form and stock operations send existing contracts", as
   await expect(launch).toBeFocused();
   await launch.click();
   await page.getByRole("dialog").getByRole("checkbox").check();
+  await page.getByRole("button", { name: "نان و کروسان", exact: true }).click();
   const request = page.waitForRequest(
     (req) =>
       req.url().endsWith("/api/merchant/listings") && req.method() === "POST",

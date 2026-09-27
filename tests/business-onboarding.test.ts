@@ -26,13 +26,13 @@ describe('business onboarding contracts', () => {
     for (const url of ['https://evil.example', '//evil.example', '/\\evil.example', '/%5cevil.example', 'javascript:alert(1)', '/%2fevil.example', '/login', '/unknown', '/merchant/../../login']) expect(safeLoginRedirect(url)).toBeNull();
   });
   it('normalizes actual Map.ir v2 point results, longitude first, without invented ID/hours', () => {
-    const data = normalizeMapirPlaces({ value: [{ title: 'کافه', type: 'point', address: 'ارومیه', geom: { coordinates: [45.07, 37.55] } }, { title: 'خیابان', type: 'line', geom: { coordinates: [45.07, 37.55] } }, { title: 'خراب', type: 'point', geom: { coordinates: [0, 0] } }] });
+    const data = normalizeMapirPlaces({ value: [{ title: 'کافه', type: 'point', fclass: 'cafe', city: 'ارومیه', address: 'ارومیه', geom: { coordinates: [45.07, 37.55] } }, { title: 'خیابان', type: 'line', geom: { coordinates: [45.07, 37.55] } }, { title: 'خراب', type: 'point', geom: { coordinates: [0, 0] } }] });
     expect(data).toHaveLength(1); expect(data[0]).toMatchObject({ providerId: null, latitude: 37.55, longitude: 45.07 });
     expect(data[0]).not.toHaveProperty('hours');
     expect(() => normalizeMapirPlaces({ error: true })).toThrow();
   });
   it('caps search output', () => {
-    expect(normalizeMapirPlaces({ value: Array.from({ length: 30 }, (_, i) => ({ id: String(i), title: 'کافه', type: 'point', geom: { coordinates: [45, 37] } })) })).toHaveLength(10);
+    expect(normalizeMapirPlaces({ value: Array.from({ length: 30 }, (_, i) => ({ id: String(i), title: 'کافه', type: 'point', fclass: 'cafe', city: 'ارومیه', geom: { coordinates: [45, 37] } })) })).toHaveLength(10);
   });
   it('maps provider failure into a useful manual-entry fallback without leaking secrets', async () => {
     vi.stubEnv('MAPIR_API_KEY', 'private-secret'); vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 403 })));

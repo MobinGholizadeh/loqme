@@ -1,4 +1,5 @@
 @import "leaflet/dist/leaflet.css";
+.merchant-profile-cover { position: relative; width: 100%; aspect-ratio: 3 / 1; min-height: 150px; overflow: hidden; border-radius: 20px; background: var(--loqme-neutral-100); }
 
 @font-face {
   font-family: 'IranYekanDigits';

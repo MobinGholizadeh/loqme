@@ -1,4 +1,5 @@
 "use client";
+import { ListingImage } from "@/components/ui/ListingImage";
 import { ListingCard } from "@/components/discovery/ListingCard";
 import type { MerchantRatingSummaryDto, ListingAvailability } from "@loqme/types";
 import { MerchantRatings } from "@/components/reviews/MerchantRatings";
@@ -18,6 +19,7 @@ import { formatToman, toPersianDigits } from "@/lib/utils/persian";
 import { generateLocalBusinessSchema } from "@/lib/seo/structured-data";
 
 interface MerchantDetailData {
+  bannerImageUrl?: string | null;
   ratings?: MerchantRatingSummaryDto;
   id: string;
   businessNameFa: string;
@@ -225,6 +227,7 @@ export default function MerchantProfilePage() {
         <span>بازگشت به لیست</span>
       </button>
 
+      {data.bannerImageUrl && <div className="merchant-profile-cover"><ListingImage src={data.bannerImageUrl} alt={`نمای فروشگاه ${data.businessNameFa}`} sizes="(max-width: 768px) 100vw, 1152px" priority /></div>}
       {/* Store Header Banner */}
       <Card variant="elevated" className="store-overview overflow-hidden p-0">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">

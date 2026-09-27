@@ -1,4 +1,5 @@
 import { updatePickupDetails } from '@/domain/listing/pickup-details';
+import { updateListingImage } from '@/domain/listing/update-image';
 import { NextRequest, NextResponse } from 'next/server';
 import { listingService } from '@/domain/listing/listing.service';
 import { merchantService } from '@/domain/merchant/merchant.service';
@@ -39,6 +40,11 @@ export async function PATCH(
       merchantId
     );
 
+    if (body.imageUrl !== undefined) {
+      if (body.pickupDetails !== undefined || body.status !== undefined || body.deltaQuantity !== undefined || body.totalQuantity !== undefined) throw new Error('تصویر را جداگانه ذخیره کنید');
+      const imageUrl = await updateListingImage(merchant.id, id, body.imageUrl);
+      return NextResponse.json({ success: true, data: { id, imageUrl } });
+    }
     if (body.pickupDetails !== undefined) {
       if (body.status !== undefined || body.deltaQuantity !== undefined || body.totalQuantity !== undefined) throw new Error('راهنمای دریافت را جداگانه ذخیره کنید');
       const pickupDetails = await updatePickupDetails(merchant.id, id, body.pickupDetails);
