@@ -118,6 +118,12 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare versioned production Compose manifest
+        id: compose
+        run: echo "manifest=$(base64 -w0 docker-compose.prod.yml)" >> "$GITHUB_OUTPUT"
+
       - name: Verify Deployment Secrets Configuration
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
@@ -131,6 +137,7 @@ jobs:
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          COMPOSE_FILE_B64: ${{ steps.compose.outputs.manifest }}
         if: env.SERVER_HOST != ''
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -138,7 +145,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           command_timeout: 15m
-          envs: DOPPLER_TOKEN
+          envs: DOPPLER_TOKEN,COMPOSE_FILE_B64
           script: |
             set -eu
             umask 077
@@ -146,17 +153,26 @@ jobs:
             test -f docker-compose.prod.yml
 
             PREVIOUS_ENV=""
+            PREVIOUS_COMPOSE=$(mktemp /opt/loqme/.compose.previous.XXXXXX)
+            cp docker-compose.prod.yml "$PREVIOUS_COMPOSE"
             DOPPLER_ENV=""
             restore_environment() {
               if [ -n "$PREVIOUS_ENV" ]; then cp "$PREVIOUS_ENV" .env; fi
+              cp "$PREVIOUS_COMPOSE" docker-compose.prod.yml
             }
             cleanup_environment() {
               RESULT=$?
               if [ "$RESULT" -ne 0 ]; then restore_environment; fi
               if [ -n "$DOPPLER_ENV" ]; then rm -f "$DOPPLER_ENV" "$DOPPLER_ENV.merged"; fi
               if [ -n "$PREVIOUS_ENV" ]; then rm -f "$PREVIOUS_ENV"; fi
+              rm -f "$PREVIOUS_COMPOSE"
             }
             trap cleanup_environment EXIT
+
+            # Deploy the manifest from this revision, not a stale server-side copy.
+            test -n "$COMPOSE_FILE_B64"
+            printf '%s' "$COMPOSE_FILE_B64" | base64 -d > docker-compose.prod.yml
+            test -s docker-compose.prod.yml
 
             # Stage and validate a complete environment before replacing the existing file.
             # Without Doppler, preserve the server-managed environment unchanged.
@@ -194,6 +210,8 @@ jobs:
             REPOSITORY=$(printf '%s' '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
             export LOQME_IMAGE="ghcr.io/$REPOSITORY@${{ needs.build-and-push.outputs.digest }}"
             docker compose -f docker-compose.prod.yml pull app
+            # Verify secret wiring before migration or replacing the running app.
+            docker compose -f docker-compose.prod.yml run --rm --no-deps app node -e 'if(process.env.SMS_PROVIDER!=="smsir" || !process.env.SMSIR_API_KEY?.trim()) { console.error("Production SMS configuration is missing; refusing deployment"); process.exit(1); } console.log("Production SMS credentials are wired");'
 
             # Keep the exact previous image available for application rollback.
             PREVIOUS_CONTAINER=$(docker compose -f docker-compose.prod.yml ps -q app)
