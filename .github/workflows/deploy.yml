@@ -1,240 +1,30 @@
-name: Production Deployment CI/CD
-
+name: Production SMS diagnostics
 on:
-  push:
-    branches:
-      - main
-      - master
   workflow_dispatch:
-
-# Enforce Node 24 on GitHub Actions runners to prevent Node 20 deprecation notices
-env:
-  ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: "node24"
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
-concurrency:
-  group: production-deployment
-  cancel-in-progress: false
-
+permissions:
+  contents: read
 jobs:
-  validate:
-    name: Validate with Disposable PostgreSQL
+  diagnose:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: test-only
-          POSTGRES_DB: loqme_onboarding_test_ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d loqme_onboarding_test_ci"
-          --health-interval 5s --health-timeout 5s --health-retries 12
-    env:
-      DATABASE_URL: postgresql://postgres:test-only@localhost:5432/loqme_onboarding_test_ci?schema=public
-      SESSION_SECRET: ci-only-session-secret-not-for-production-123456789
-      SMS_PROVIDER: console
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run db:generate
-      - run: npm run db:migrate:deploy
-      - name: Seed only the disposable acceptance database
-        run: npm run db:seed
-      - run: npm test
-
-  build-and-push:
-    name: Build & Push Docker Image
-    needs: validate
-    runs-on: ubuntu-latest
-    env:
-      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-    outputs:
-      digest: ${{ steps.build.outputs.digest }}
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry (GHCR)
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker Metadata (Tags & Labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
-            type=sha,format=short,prefix=sha-
-            type=ref,event=branch
-
-      - name: Fetch Production Secrets from Doppler
-        if: env.DOPPLER_TOKEN != ''
-        uses: dopplerhq/secrets-fetch-action@v1.3.0
-        with:
-          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
-          inject-env-vars: true
-
-      - name: Build and Push Docker Image
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NEXT_PUBLIC_APP_URL=${{ env.NEXT_PUBLIC_APP_URL || vars.NEXT_PUBLIC_APP_URL || 'https://loqme.ir' }}
-            NEXT_PUBLIC_MAP_API_KEY=${{ env.NEXT_PUBLIC_MAP_API_KEY || secrets.NEXT_PUBLIC_MAP_API_KEY }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  deploy:
-    name: Deploy to Production Server
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    # Do NOT evaluate secrets in job-level 'if' condition to prevent parser errors
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-
-    steps:
-      - name: Verify Deployment Secrets Configuration
+      - uses: appleboy/ssh-action@v1.0.3
         env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-        if: env.SERVER_HOST == ''
-        run: |
-          echo "::warning::SERVER_HOST secret is not configured. Skipping remote SSH deployment."
-          exit 0
-
-      - name: Execute Remote Deployment via SSH
-        uses: appleboy/ssh-action@v1.2.0
-        env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-        if: env.SERVER_HOST != ''
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
-          command_timeout: 15m
           envs: DOPPLER_TOKEN
           script: |
             set -eu
-            umask 077
             cd /opt/loqme
-            test -f docker-compose.prod.yml
-
-            PREVIOUS_ENV=""
-            DOPPLER_ENV=""
-            restore_environment() {
-              if [ -n "$PREVIOUS_ENV" ]; then cp "$PREVIOUS_ENV" .env; fi
-            }
-            cleanup_environment() {
-              RESULT=$?
-              if [ "$RESULT" -ne 0 ]; then restore_environment; fi
-              if [ -n "$DOPPLER_ENV" ]; then rm -f "$DOPPLER_ENV" "$DOPPLER_ENV.merged"; fi
-              if [ -n "$PREVIOUS_ENV" ]; then rm -f "$PREVIOUS_ENV"; fi
-            }
-            trap cleanup_environment EXIT
-
-            # Stage and validate a complete environment before replacing the existing file.
-            # Without Doppler, preserve the server-managed environment unchanged.
+            docker compose -f docker-compose.prod.yml exec -T app node - <<'JS'
+            const e=process.env;
+            console.log('SMS_RUNTIME',JSON.stringify({provider:e.SMS_PROVIDER,keyPresent:!!e.SMSIR_API_KEY,keyWhitespace:e.SMSIR_API_KEY!==e.SMSIR_API_KEY?.trim(),line:e.SMSIR_LINE_NUMBER,template:e.SMSIR_TEMPLATE_ID,parameter:e.SMSIR_CODE_PARAM_NAME,nodeEnv:e.NODE_ENV}));
+            (async()=>{const r=await fetch('https://api.sms.ir/v1/credit',{headers:{'x-api-key':e.SMSIR_API_KEY||''},signal:AbortSignal.timeout(8000)});const b=await r.json();console.log('SMS_CREDIT',JSON.stringify({http:r.status,status:b.status,message:b.message,credit:b.data}));})().catch(e=>console.log('SMS_NETWORK',e.name,e.cause?.code));
+            JS
+            docker compose -f docker-compose.prod.yml logs --since 48h app 2>&1 | grep -E '\[SmsIr\]|\[SMS\]|\[Auth\] OTP dispatch failed' | tail -20 || true
             if [ -n "${DOPPLER_TOKEN:-}" ]; then
-              DOPPLER_ENV=$(mktemp /opt/loqme/.env.doppler.XXXXXX)
-              curl --fail --silent --show-error --retry 3 \
-                -H "Authorization: Bearer $DOPPLER_TOKEN" \
-                "https://api.doppler.com/v3/configs/config/secrets/download?format=env" > "$DOPPLER_ENV"
-              test -s "$DOPPLER_ENV"
-              # Existing PostgreSQL volumes retain their initialized credentials.
-              # Keep database configuration server-owned; an app deploy is not a DB password rotation.
-              if [ -f .env ]; then
-                awk '
-                  FILENAME == ARGV[1] {
-                    if ($0 ~ /^(POSTGRES_USER|POSTGRES_PASSWORD|POSTGRES_DB|DATABASE_URL)=/) {
-                      key=$0; sub(/=.*/, "", key); database[key]=$0
-                    }
-                    next
-                  }
-                  $0 !~ /^(POSTGRES_USER|POSTGRES_PASSWORD|POSTGRES_DB|DATABASE_URL)=/ { print }
-                  END { for (key in database) print database[key] }
-                ' .env "$DOPPLER_ENV" > "$DOPPLER_ENV.merged"
-                mv "$DOPPLER_ENV.merged" "$DOPPLER_ENV"
-              fi
-              docker compose --env-file "$DOPPLER_ENV" -f docker-compose.prod.yml config --quiet
-              chmod 600 "$DOPPLER_ENV"
-              if [ -f .env ]; then
-                PREVIOUS_ENV=$(mktemp /opt/loqme/.env.previous.XXXXXX)
-                cp .env "$PREVIOUS_ENV"
-              fi
-              mv "$DOPPLER_ENV" .env
+              curl --fail --silent --show-error -H "Authorization: Bearer $DOPPLER_TOKEN" 'https://api.doppler.com/v3/configs/config/secrets/download?format=json' | docker compose -f docker-compose.prod.yml exec -T app node -e 'let s="";process.stdin.on("data",b=>s+=b).on("end",()=>{const e=JSON.parse(s);console.log("DEPLOY_CONFIG",JSON.stringify({project:e.DOPPLER_PROJECT,config:e.DOPPLER_CONFIG,provider:e.SMS_PROVIDER,template:e.SMSIR_TEMPLATE_ID,keyMatches:e.SMSIR_API_KEY===process.env.SMSIR_API_KEY}))})'
             fi
-
-            printf '%s' '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
-            REPOSITORY=$(printf '%s' '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
-            export LOQME_IMAGE="ghcr.io/$REPOSITORY@${{ needs.build-and-push.outputs.digest }}"
-            docker compose -f docker-compose.prod.yml pull app
-
-            # Keep the exact previous image available for application rollback.
-            PREVIOUS_CONTAINER=$(docker compose -f docker-compose.prod.yml ps -q app)
-            PREVIOUS_IMAGE=""
-            if [ -n "$PREVIOUS_CONTAINER" ]; then
-              PREVIOUS_IMAGE=$(docker inspect --format '{{.Image}}' "$PREVIOUS_CONTAINER")
-              docker tag "$PREVIOUS_IMAGE" "loqme-rollback:${{ github.sha }}"
-            fi
-
-            # Backup and validate before migration; errors leave the running app intact.
-            mkdir -p backups
-            BACKUP="backups/pre-${{ github.sha }}-$(date +%Y%m%d%H%M%S).dump"
-            docker compose -f docker-compose.prod.yml exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$BACKUP"
-            test -s "$BACKUP"
-            docker compose -f docker-compose.prod.yml exec -T postgres pg_restore --list < "$BACKUP" > /dev/null
-            sha256sum "$BACKUP" > "$BACKUP.sha256"
-            sha256sum -c "$BACKUP.sha256"
-            docker compose -f docker-compose.prod.yml run --rm --no-deps app ./node_modules/.bin/prisma migrate deploy
-
-            rollback() {
-              restore_environment
-              if [ -n "$PREVIOUS_IMAGE" ]; then
-                export LOQME_IMAGE="$PREVIOUS_IMAGE"
-                docker compose -f docker-compose.prod.yml up -d --no-deps app
-                echo "Previous app image restored; compatible migration retained."
-              fi
-            }
-            if ! docker compose -f docker-compose.prod.yml up -d --no-deps app; then
-              rollback
-              exit 1
-            fi
-            READY=0
-            for attempt in $(seq 1 30); do
-              if docker compose -f docker-compose.prod.yml exec -T app curl --fail --silent http://localhost:3000/api/health/ready; then
-                READY=1
-                break
-              fi
-              sleep 4
-            done
-            if [ "$READY" != 1 ]; then
-              rollback
-              exit 1
-            fi
-            echo "Deployment verified: $LOQME_IMAGE"
