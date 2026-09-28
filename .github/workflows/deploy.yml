@@ -1,4 +1,4 @@
-name: Repair production SMS environment
+name: Diagnose production session persistence
 on:
   workflow_dispatch:
 permissions:
@@ -8,51 +8,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: appleboy/ssh-action@v1.0.3
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
-          envs: DOPPLER_TOKEN
           script: |
             set -eu
             cd /opt/loqme
             docker compose -f docker-compose.prod.yml exec -T app node - <<'JS'
-            const e=process.env;
-            console.log('SMS_RUNTIME',JSON.stringify({provider:e.SMS_PROVIDER,keyPresent:!!e.SMSIR_API_KEY,keyWhitespace:e.SMSIR_API_KEY!==e.SMSIR_API_KEY?.trim(),line:e.SMSIR_LINE_NUMBER,template:e.SMSIR_TEMPLATE_ID,parameter:e.SMSIR_CODE_PARAM_NAME,nodeEnv:e.NODE_ENV}));
-            (async()=>{const r=await fetch('https://api.sms.ir/v1/credit',{headers:{'x-api-key':e.SMSIR_API_KEY||''},signal:AbortSignal.timeout(8000)});const b=await r.json();console.log('SMS_CREDIT',JSON.stringify({http:r.status,status:b.status,message:b.message,credit:b.data}));})().catch(e=>console.log('SMS_NETWORK',e.name,e.cause?.code));
+            const {SignJWT}=require('jose');
+            (async()=>{
+             const token=await new SignJWT({userId:'diagnostic-nonexistent-user',mobile:'diagnostic',role:'CUSTOMER'}).setProtectedHeader({alg:'HS256'}).setExpirationTime('1m').sign(new TextEncoder().encode(process.env.SESSION_SECRET));
+             for(const origin of ['http://localhost:3000','https://loqme.shop']){
+              const r=await fetch(origin+'/profile',{headers:{cookie:'loqme_session='+token},redirect:'manual',signal:AbortSignal.timeout(10000)});
+              console.log('AUTH_PROBE',JSON.stringify({origin,status:r.status,location:r.headers.get('location'),cache:r.headers.get('cache-control')}));await r.body?.cancel();
+             }
+             const {Client}=require('pg');const db=new Client({connectionString:process.env.DATABASE_URL});await db.connect();
+             const user=await db.query('SELECT "isActive", role FROM "User" WHERE mobile=$1',['09392148140']);
+             const otp=await db.query('SELECT "isUsed", attempts FROM "OtpCode" WHERE mobile=$1 ORDER BY "createdAt" DESC LIMIT 1',['09392148140']);
+             console.log('AUTH_ACCOUNT',JSON.stringify({exists:user.rowCount>0,active:user.rows[0]?.isActive,role:user.rows[0]?.role,latestOtpUsed:otp.rows[0]?.isUsed,latestOtpAttempts:otp.rows[0]?.attempts}));await db.end();
+            })().catch(e=>{console.log('AUTH_DIAGNOSTIC_ERROR',e.name);process.exitCode=1;});
             JS
-            docker compose -f docker-compose.prod.yml logs --since 48h app 2>&1 | grep -E '\[SmsIr\]|\[SMS\]|\[Auth\] OTP dispatch failed' | tail -20 || true
-            if [ -n "${DOPPLER_TOKEN:-}" ]; then
-              curl --fail --silent --show-error -H "Authorization: Bearer $DOPPLER_TOKEN" 'https://api.doppler.com/v3/configs/config/secrets/download?format=json' | docker compose -f docker-compose.prod.yml exec -T app node -e 'let s="";process.stdin.on("data",b=>s+=b).on("end",()=>{const e=JSON.parse(s);console.log("DEPLOY_CONFIG",JSON.stringify({project:e.DOPPLER_PROJECT,config:e.DOPPLER_CONFIG,provider:e.SMS_PROVIDER,template:e.SMSIR_TEMPLATE_ID,keyMatches:e.SMSIR_API_KEY===process.env.SMSIR_API_KEY}))})'
-            fi
-            # Repair only the missing environment wiring, using the exact running image.
-            CURRENT_IMAGE=$(docker inspect --format '{{.Image}}' loqme-app-prod)
-            export LOQME_IMAGE="$CURRENT_IMAGE"
-            OVERLAY=$(mktemp /opt/loqme/.compose.sms.XXXXXX)
-            trap 'rm -f "$OVERLAY"' EXIT
-            cat > "$OVERLAY" <<'YAML'
-            services:
-              app:
-                environment:
-                  SMS_PROVIDER: smsir
-                  SMSIR_API_KEY: ${SMSIR_API_KEY:?SMS.ir key is missing from server environment}
-                  SMSIR_LINE_NUMBER: ${SMSIR_LINE_NUMBER:-30002108039036}
-                  SMSIR_TEMPLATE_ID: ${SMSIR_TEMPLATE_ID:-}
-                  SMSIR_CODE_PARAM_NAME: ${SMSIR_CODE_PARAM_NAME:-Code}
-            YAML
-            docker compose -f docker-compose.prod.yml -f "$OVERLAY" config --quiet
-            docker compose -f docker-compose.prod.yml -f "$OVERLAY" run --rm --no-deps app node -e 'if(!process.env.SMSIR_API_KEY?.trim())process.exit(1);console.log("SMS key wired successfully")'
-            if ! docker compose -f docker-compose.prod.yml -f "$OVERLAY" up -d --no-deps app; then
-              docker compose -f docker-compose.prod.yml up -d --no-deps app
-              exit 1
-            fi
-            READY=0
-            for attempt in $(seq 1 20); do
-              if docker compose -f docker-compose.prod.yml exec -T app curl --fail --silent http://localhost:3000/api/health/ready; then READY=1; break; fi
-              sleep 3
-            done
-            if [ "$READY" != 1 ]; then docker compose -f docker-compose.prod.yml up -d --no-deps app; exit 1; fi
-            docker compose -f docker-compose.prod.yml exec -T app node -e 'console.log("SMS_REPAIRED",JSON.stringify({provider:process.env.SMS_PROVIDER,keyPresent:!!process.env.SMSIR_API_KEY}))'
