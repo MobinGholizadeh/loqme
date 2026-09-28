@@ -388,14 +388,19 @@ export async function installFixtures(page: Page, role = "CUSTOMER") {
     const path = new URL(route.request().url()).pathname;
     if (path === "/api/auth/session")
       return route.fulfill({
-        json: { success: true, user: session, authenticated: true },
+        json: (await route.request().allHeaders()).cookie?.includes(`loqme_session=${token}`)
+          ? { success: true, user: session, authenticated: true }
+          : { authenticated: false, user: null },
       });
     if (path === "/api/auth/request-otp")
       return route.fulfill({
         json: { success: true, mobile: user.mobile, expiresInSeconds: 2 },
       });
     if (path === "/api/auth/verify-otp")
-      return route.fulfill({ json: { success: true, user: session } });
+      return route.fulfill({
+        headers: { 'set-cookie': `loqme_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000` },
+        json: { success: true, user: session },
+      });
     if (path === "/api/reviews")
       return route.fulfill({ json: { success: true, items: [] } });
     if (path === "/api/admin/complaints" || path === "/api/admin/audit")

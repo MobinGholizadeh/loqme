@@ -130,6 +130,7 @@
 
 ### M10 — UX, SEO, PWA & Performance
 * **CP-10.15 follow-on (2026-09-24)**: Restore search and merchant loading, improve mobile form sizing/focus, reduce footer scale and improve responsive photo delivery. False delivery success is fixed; the production runtime credential fault was repaired 2026-09-27 (see PRODUCTION_SMS_REPAIR.md). Handset confirmation remains open. See [CP10_15_RELIABILITY.md](CP10_15_RELIABILITY.md).
+* **CP-10.17 follow-on (2026-09-28)**: Repair post-OTP account navigation by confirming persisted sessions and invalidating anonymous router state at login. See [CP10_17_LOGIN_PERSISTENCE.md](CP10_17_LOGIN_PERSISTENCE.md).
 * **CP-10.16 follow-on (2026-09-24)**: Require covers before store publication and photos for offers; support legacy photo editing, business-only city/name search and fixed-center map selection. See [CP10_16_STORE_MEDIA.md](CP10_16_STORE_MEDIA.md).
 * **CP-10.14 follow-on (2026-09-22)**: User-requested footer signature, discreet login guide, session-aware mobile discovery, packaging/pickup details and empty rating bars. Existing attributes store merchant-declared pickup information; no migration. See [CP10_14_MOBILE.md](CP10_14_MOBILE.md).
 * **CP-10.13 follow-on (2026-09-22)**: Full-width centered navigation, horizontal ratings, Persian food tags, local merchant-schema repair and production Urmia reference data. Explicit user scope authorizes the non-destructive city migration and push. See [CP10_13_PRESENTATION.md](CP10_13_PRESENTATION.md).

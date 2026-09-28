@@ -8,6 +8,10 @@
 
 ## 1. Project Health & Current State
 
+### Active: CP-10.17 Login persistence (2026-09-28)
+
+Reproduced the user-reported post-OTP account login loop in an optimized browser build. Login now confirms a persisted session and starts a fresh document to discard anonymous router redirects; protected responses and all session states are private/no-store. 269/269 fresh disposable-database tests, production build, lint and web/shared types pass. All 95 browser cases pass, including real database-backed OTP/profile/reload/logout and the formerly failing redirect regression. Production release verification is pending. See [CP10_17_LOGIN_PERSISTENCE.md](CP10_17_LOGIN_PERSISTENCE.md). Existing provider/device gates remain open.
+
 ### Delivered: CP-10.16 Store photos and business finder (2026-09-28)
 
 Required merchant covers before publication, required product photos, legacy photo editing, city-scoped business-name search and a polished fixed-center-pin map are implemented. 266/266 disposable-database tests pass. All 92 browser cases are validated (89 full-run passes plus three corrected cases rerun); production build, lint and web/shared types pass. Commit `64937cf` deployed successfully in [run 36349502841](https://github.com/MobinGholizadeh/loqme/actions/runs/36349502841). Live search, center-pin confirmation, mobile layout, login and readiness pass with zero runtime errors. See [CP10_16_STORE_MEDIA.md](CP10_16_STORE_MEDIA.md). Existing provider/device gates remain open.

@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
         user: result.user,
         token: result.token,
       },
-      { status: 200 }
+      { status: 200, headers: { 'Cache-Control': 'private, no-store' } }
     );
 
     response.cookies.set(SESSION_COOKIE_NAME, result.token, {

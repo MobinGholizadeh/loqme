@@ -11,7 +11,6 @@ async function setup(page: Page, authenticated = false) {
   await installFixtures(page);
   if (!authenticated) {
     await page.context().clearCookies();
-    await page.route('**/api/auth/session', r => r.fulfill({ json: { authenticated: false, user: null } }));
   }
   // Map availability must not control form tests; the fallback is tested explicitly.
   await page.route('https://map.ir/**', r => r.abort());
@@ -103,7 +102,7 @@ test('rejected application corrections survive refresh without being overwritten
 
 for (const role of ['MERCHANT_OWNER', 'MERCHANT_STAFF']) test(`returning ${role} logs in without onboarding`, async ({ page }) => {
   await installFixtures(page, role);
-  await page.route('**/api/auth/session', r => r.fulfill({ json: { authenticated: false } }));
+  await page.context().clearCookies();
   await page.goto('/business/login?redirect=/merchant/orders');
   await page.getByLabel('شماره موبایل', { exact: true }).fill(user.mobile);
   await page.getByRole('button', { name: 'دریافت کد تایید' }).click();

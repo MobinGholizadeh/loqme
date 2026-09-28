@@ -24,7 +24,7 @@ export default function ProfilePage() {
       setLoading(true);
       setError(false);
       try {
-        const response = await fetch("/api/auth/session");
+        const response = await fetch("/api/auth/session", { cache: "no-store" });
         const session = await response.json();
         if (!response.ok) throw new Error();
         if (!active) return;

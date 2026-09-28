@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 import { canAccessPath, UserRole } from '@loqme/types';
 
+function privateResponse(response: NextResponse) {
+  response.headers.set('Cache-Control', 'private, no-store');
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -22,28 +27,28 @@ export async function middleware(request: NextRequest) {
   if (!isAllowed) {
     // If request is an API call, return JSON 401/403 rather than HTML redirect
     if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
+      return privateResponse(NextResponse.json(
         {
           success: false,
           message: userRole ? 'شما مجوز دسترسی به این بخش را ندارید' : 'لطفاً ابتدا وارد حساب کاربری شوید',
         },
         { status: userRole ? 403 : 401 }
-      );
+      ));
     }
 
     // If not authenticated at all, redirect to login with return URL
     if (!userRole) {
       const loginUrl = new URL(pathname === '/merchant' || pathname.startsWith('/merchant/') ? '/business/login' : '/login', request.url);
       loginUrl.searchParams.set('redirect', pathname + request.nextUrl.search);
-      return NextResponse.redirect(loginUrl);
+      return privateResponse(NextResponse.redirect(loginUrl));
     }
 
     // If authenticated but role lacks authorization
     const unauthorizedUrl = new URL(userRole === 'ADMIN' ? '/admin' : '/', request.url);
-    return NextResponse.redirect(unauthorizedUrl);
+    return privateResponse(NextResponse.redirect(unauthorizedUrl));
   }
 
-  return NextResponse.next();
+  return privateResponse(NextResponse.next());
 }
 
 export const config = {

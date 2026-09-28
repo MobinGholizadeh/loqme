@@ -2,7 +2,7 @@
 import { useSession } from "@/components/auth/SessionProvider";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toPersianDigits, isValidIranianMobile } from "@/lib/utils/persian";
@@ -23,7 +23,6 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   embedded = false,
   preventRedirect = false,
 }) => {
-  const router = useRouter();
   const session = useSession();
   const searchParams = useSearchParams();
 
@@ -112,30 +111,32 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
         return;
       }
 
-      // Success
-      if (data.user) session.setUser(data.user);
-      else await session.refresh();
-      if (onSuccess) {
-        onSuccess();
+      // A successful OTP response alone does not prove the browser stored its cookie.
+      const sessionResponse = await fetch('/api/auth/session', {
+        cache: 'no-store', credentials: 'same-origin',
+      });
+      if (!sessionResponse.ok) throw new Error('Session unavailable');
+      const persisted = await sessionResponse.json();
+      if (!persisted.authenticated || !persisted.user) {
+        session.setUser(null);
+        setError('ورود ذخیره نشد. کوکی‌های مرورگر را فعال کنید و دوباره وارد شوید.');
+        return;
       }
+      session.setUser(persisted.user);
+      if (onSuccess) onSuccess();
       if (preventRedirect) return;
 
-      // Smart redirect
-      if (audience === 'business') {
-        router.push(data.user?.role === 'MERCHANT_OWNER' || data.user?.role === 'MERCHANT_STAFF' ? (targetRedirect && /^\/merchant(?:\/|\?|$)/.test(targetRedirect) ? targetRedirect : '/merchant') : data.user?.role === 'ADMIN' ? '/admin' : '/business/status');
-      } else if (targetRedirect) {
-        router.push(targetRedirect);
-      } else if (
-        data.user?.role === "MERCHANT_OWNER" ||
-        data.user?.role === "MERCHANT_STAFF"
-      ) {
-        router.push("/merchant");
-      } else if (data.user?.role === "ADMIN") {
-        router.push("/admin");
-      } else {
-        router.push("/explore");
-      }
-      router.refresh();
+      const role = persisted.user.role;
+      const merchant = role === 'MERCHANT_OWNER' || role === 'MERCHANT_STAFF';
+      const destination = audience === 'business'
+        ? merchant
+          ? (targetRedirect && /^\/merchant(?:\/|\?|$)/.test(targetRedirect) ? targetRedirect : '/merchant')
+          : role === 'ADMIN' ? '/admin' : '/business/status'
+        : targetRedirect || (merchant ? '/merchant' : role === 'ADMIN' ? '/admin' : '/explore');
+
+      // OTP uses a route handler: Next's existing anonymous Link-prefetch redirects
+      // survive cookie changes. A new document clears that router cache at login.
+      window.location.replace(destination);
     } catch {
       setError("خطا در تایید کد");
     } finally {

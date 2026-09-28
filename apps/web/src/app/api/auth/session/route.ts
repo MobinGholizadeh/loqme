@@ -8,12 +8,12 @@ export async function GET(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
-      return NextResponse.json({ authenticated: false, user: null }, { status: 200 });
+      return NextResponse.json({ authenticated: false, user: null }, { status: 200, headers: { 'Cache-Control': 'private, no-store' } });
     }
 
     const payload = await verifySessionToken(token);
     if (!payload) {
-      return NextResponse.json({ authenticated: false, user: null }, { status: 200 });
+      return NextResponse.json({ authenticated: false, user: null }, { status: 200, headers: { 'Cache-Control': 'private, no-store' } });
     }
 
     const user = await prisma.user.findUnique({ where: { id: payload.userId }, include: { customer: { select: { fullName: true } } } });
@@ -33,6 +33,6 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error fetching session:', error);
-    return NextResponse.json({ authenticated: false, user: null }, { status: 500 });
+    return NextResponse.json({ authenticated: false, user: null }, { status: 500, headers: { 'Cache-Control': 'private, no-store' } });
   }
 }
