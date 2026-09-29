@@ -25,6 +25,8 @@ jobs:
   build-apk:
     name: Build Android APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Source Code
@@ -69,9 +71,10 @@ jobs:
       - name: Locate Generated APK
         id: find_apk
         run: |
-          APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" | head -n 1)
-          echo "Found APK at: $APK_PATH"
-          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          APK_RAW=$(find android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          echo "Found APK at: $APK_RAW"
+          cp "$APK_RAW" "android/app/build/outputs/apk/loqme-app.apk"
+          echo "apk_path=android/app/build/outputs/apk/loqme-app.apk" >> $GITHUB_OUTPUT
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -81,10 +84,12 @@ jobs:
           retention-days: 14
 
       - name: Publish Release Asset to GitHub Releases
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'Loqme Android TWA (Latest)' }}
           files: ${{ steps.find_apk.outputs.apk_path }}
           generate_release_notes: true
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
