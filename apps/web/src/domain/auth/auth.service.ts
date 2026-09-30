@@ -103,8 +103,12 @@ export class AuthService {
     if (dbRecord) {
       const matches = dbRecord.codeHash === inputHash;
       const consumed = await prisma.otpCode.updateMany({
-        // TEMPORARY FOR TESTING: OTP code expiry check removed (expiresAt: { gt: new Date() } omitted)
-        where: { id: dbRecord.id, isUsed: false, attempts: { lt: 5 } },
+        where: {
+          id: dbRecord.id,
+          isUsed: false,
+          attempts: { lt: 5 },
+          ...(process.env.DISABLE_OTP_EXPIRY === 'true' ? {} : { expiresAt: { gt: new Date() } }),
+        },
         data: { attempts: { increment: 1 }, ...(matches ? { isUsed: true } : {}) },
       });
       isValid = matches && consumed.count === 1;
