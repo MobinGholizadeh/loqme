@@ -107,24 +107,19 @@ export function BusinessRegistration() {
   }
   async function submit() {
     setErrors({}); setMessage('');
-    console.log('[LOGIN-TRACE][Client] BusinessRegistration submit() called', { draft, ownerName, sessionStatus: session.status });
     const { locationConfirmed: _confirmed, ...fields } = draft;
     const parsed = MerchantApplicationSchema.safeParse({ ...fields, ownerName });
     if (!parsed.success) {
-      console.warn('[LOGIN-TRACE][Client] MerchantApplicationSchema validation failed', parsed.error.format());
       setErrors({ ownerName: parsed.error.issues[0].message });
       return;
     }
     setSaving(true);
     try {
-      console.log('[LOGIN-TRACE][Client] Sending apiClient.business.submit', parsed.data);
-      const res = await apiClient.business.submit(parsed.data);
-      console.log('[LOGIN-TRACE][Client] apiClient.business.submit response', res);
+      await apiClient.business.submit(parsed.data);
       clearBusinessDraft();
       router.push('/business/status');
     }
     catch (e) {
-      console.error('[LOGIN-TRACE][Client] apiClient.business.submit error caught:', e);
       setMessage(e instanceof Error ? e.message : 'ثبت درخواست انجام نشد');
     }
     finally { setSaving(false); }

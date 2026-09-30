@@ -9,15 +9,7 @@ export const businessJson = (data: unknown, status = 200) => NextResponse.json({
 export async function businessUser(request: NextRequest) {
   const token = extractSessionToken(request);
   const session = token ? await verifySessionToken(token) : null;
-  console.log('[LOGIN-TRACE][Server] businessUser auth check', {
-    hasToken: !!token,
-    hasSession: !!session,
-    userId: session?.userId,
-  });
-  if (!session) {
-    console.warn('[LOGIN-TRACE][Server] businessUser: unauthenticated request');
-    throw new BusinessError(401, 'لطفاً ابتدا وارد حساب شوید');
-  }
+  if (!session) throw new BusinessError(401, 'لطفاً ابتدا وارد حساب شوید');
   return requireActiveAccount(session.userId);
 }
 
@@ -55,20 +47,7 @@ export function sameOrigin(request: NextRequest) {
     } catch {}
   }
 
-  const normalizedOrigin = origin.toLowerCase();
-  const isAllowed = origins.has(normalizedOrigin);
-
-  console.log('[LOGIN-TRACE][Server] sameOrigin check', {
-    origin: normalizedOrigin,
-    allowedOrigins: Array.from(origins),
-    isAllowed,
-  });
-
-  if (!isAllowed) {
-    console.error('[LOGIN-TRACE][Server] sameOrigin MISMATCH DETECTED -> Throwing 403 "درخواست نامعتبر است"', {
-      origin: normalizedOrigin,
-      allowedOrigins: Array.from(origins),
-    });
+  if (!origins.has(origin.toLowerCase())) {
     throw new BusinessError(403, 'درخواست نامعتبر است');
   }
 }
@@ -79,16 +58,12 @@ export async function readBusinessBody(request: NextRequest) {
   try {
     text = await readBoundedBody(request.body, 32000);
   } catch (error) {
-    if (error instanceof RangeError) {
-      console.warn('[LOGIN-TRACE][Server] readBusinessBody: payload too large');
-      throw new BusinessError(413, 'حجم درخواست بیش از حد مجاز است');
-    }
+    if (error instanceof RangeError) throw new BusinessError(413, 'حجم درخواست بیش از حد مجاز است');
     throw error;
   }
   try {
     return JSON.parse(text);
-  } catch (parseErr) {
-    console.warn('[LOGIN-TRACE][Server] readBusinessBody: invalid JSON in body', parseErr);
+  } catch {
     throw new BusinessError(400, 'اطلاعات ارسالی نامعتبر است');
   }
 }
@@ -96,11 +71,5 @@ export async function readBusinessBody(request: NextRequest) {
 export function businessFailure(error: unknown) {
   const status = error instanceof BusinessError ? error.status : error instanceof ZodError ? 400 : 500;
   const message = error instanceof BusinessError ? error.message : error instanceof ZodError ? error.issues[0]?.message : 'دریافت یا ذخیره اطلاعات ممکن نشد؛ دوباره تلاش کنید';
-  console.warn('[LOGIN-TRACE][Server] businessFailure returned to client', {
-    status,
-    message,
-    isBusinessError: error instanceof BusinessError,
-    isZodError: error instanceof ZodError,
-  });
   return NextResponse.json({ success: false, message, ...(error instanceof ZodError ? { details: error.flatten().fieldErrors } : {}) }, { status, headers: { 'Cache-Control': 'private, no-store' } });
 }

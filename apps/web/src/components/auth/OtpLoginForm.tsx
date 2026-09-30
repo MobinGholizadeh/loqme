@@ -55,10 +55,8 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   const handleRequestOtp = async (targetMobile?: string) => {
     const phoneToSubmit = targetMobile || mobile;
     setError(null);
-    console.log('[LOGIN-TRACE][Client] handleRequestOtp called', { phoneToSubmit });
 
     if (!isValidIranianMobile(phoneToSubmit)) {
-      console.warn('[LOGIN-TRACE][Client] Invalid Iranian mobile number entered', { phoneToSubmit });
       setError(
         "لطفاً یک شماره موبایل معتبر ایران (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید",
       );
@@ -67,7 +65,6 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
 
     setIsLoading(true);
     try {
-      console.log('[LOGIN-TRACE][Client] Sending POST /api/auth/request-otp');
       const res = await fetch("/api/auth/request-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,16 +72,9 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
       });
 
       const data = await res.json().catch(() => null);
-      console.log('[LOGIN-TRACE][Client] POST /api/auth/request-otp response', {
-        status: res.status,
-        ok: res.ok,
-        data,
-      });
 
       if (!res.ok || !data?.success) {
-        const errorMsg = data?.message || "خطا در ارسال کد تایید";
-        console.warn('[LOGIN-TRACE][Client] Request OTP rejected', { errorMsg });
-        setError(errorMsg);
+        setError(data?.message || "خطا در ارسال کد تایید");
         setIsLoading(false);
         return;
       }
@@ -92,9 +82,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
       setMobile(data.mobile);
       setStep("OTP");
       setCountdown(data.expiresInSeconds || 120);
-      console.log('[LOGIN-TRACE][Client] Transitioned to step OTP', { mobile: data.mobile });
-    } catch (err) {
-      console.error('[LOGIN-TRACE][Client] Request OTP fetch error', err);
+    } catch {
       setError("خطا در برقراری ارتباط با سرور");
     } finally {
       setIsLoading(false);
@@ -104,17 +92,14 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   // Verify OTP
   const handleVerifyOtp = async () => {
     setError(null);
-    console.log('[LOGIN-TRACE][Client] handleVerifyOtp called', { mobile, codeLength: code?.length });
 
     if (!code || code.length !== 5) {
-      console.warn('[LOGIN-TRACE][Client] Code length invalid', { codeLength: code?.length });
       setError("کد تایید باید ۵ رقم باشد");
       return;
     }
 
     setIsLoading(true);
     try {
-      console.log('[LOGIN-TRACE][Client] Sending POST /api/auth/verify-otp', { mobile });
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -122,37 +107,25 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
       });
 
       const data = await res.json().catch(() => null);
-      console.log('[LOGIN-TRACE][Client] POST /api/auth/verify-otp response', {
-        status: res.status,
-        ok: res.ok,
-        data,
-      });
 
       if (!res.ok || !data?.success) {
-        const errorMsg = data?.message || "کد تایید اشتباه است";
-        console.warn('[LOGIN-TRACE][Client] verify-otp failed', { status: res.status, errorMsg });
-        setError(errorMsg);
+        setError(data?.message || "کد تایید اشتباه است");
         setIsLoading(false);
         return;
       }
 
       // A successful OTP response alone does not prove the browser stored its cookie.
-      console.log('[LOGIN-TRACE][Client] Fetching /api/auth/session to confirm cookie persistence');
       const sessionResponse = await fetch('/api/auth/session', {
         cache: 'no-store', credentials: 'same-origin',
       });
-      console.log('[LOGIN-TRACE][Client] /api/auth/session status', { status: sessionResponse.status, ok: sessionResponse.ok });
 
       if (!sessionResponse.ok) {
-        console.error('[LOGIN-TRACE][Client] /api/auth/session returned non-200');
         throw new Error('Session unavailable');
       }
 
       const persisted = await sessionResponse.json().catch(() => null);
-      console.log('[LOGIN-TRACE][Client] /api/auth/session payload', persisted);
 
       if (!persisted?.authenticated || !persisted?.user) {
-        console.warn('[LOGIN-TRACE][Client] Cookie was not persisted by browser', persisted);
         session.setUser(null);
         setError('ورود ذخیره نشد. کوکی‌های مرورگر را فعال کنید و دوباره وارد شوید.');
         return;
@@ -161,7 +134,6 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
       session.setUser(persisted.user);
       if (onSuccess) onSuccess();
       if (preventRedirect) {
-        console.log('[LOGIN-TRACE][Client] preventRedirect is true, halting redirect');
         return;
       }
 
@@ -173,12 +145,10 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
           : role === 'ADMIN' ? '/admin' : '/business/status'
         : targetRedirect || (merchant ? '/merchant' : role === 'ADMIN' ? '/admin' : '/explore');
 
-      console.log('[LOGIN-TRACE][Client] Redirecting to destination:', destination);
       // OTP uses a route handler: Next's existing anonymous Link-prefetch redirects
       // survive cookie changes. A new document clears that router cache at login.
       window.location.replace(destination);
-    } catch (err) {
-      console.error('[LOGIN-TRACE][Client] Error in handleVerifyOtp exception caught:', err);
+    } catch {
       setError("خطا در تایید کد");
     } finally {
       setIsLoading(false);
