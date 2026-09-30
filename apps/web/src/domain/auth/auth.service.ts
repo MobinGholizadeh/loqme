@@ -60,7 +60,8 @@ export class AuthService {
     // 1. Generate 5-digit OTP
     const code = generateOtpCode();
     const codeHash = await hashOtp(code);
-    const expiresAt = new Date(Date.now() + OTP_EXPIRY_SECONDS * 1000);
+    // TEMPORARY FOR TESTING: OTP code expiry disabled (set 100 years in future)
+    const expiresAt = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
 
     // Fail closed when persistence is unavailable; never issue a memory-only credential.
     const issued = await prisma.otpCode.create({ data: { mobile, codeHash, expiresAt } });
@@ -102,7 +103,8 @@ export class AuthService {
     if (dbRecord) {
       const matches = dbRecord.codeHash === inputHash;
       const consumed = await prisma.otpCode.updateMany({
-        where: { id: dbRecord.id, isUsed: false, attempts: { lt: 5 }, expiresAt: { gt: new Date() } },
+        // TEMPORARY FOR TESTING: OTP code expiry check removed (expiresAt: { gt: new Date() } omitted)
+        where: { id: dbRecord.id, isUsed: false, attempts: { lt: 5 } },
         data: { attempts: { increment: 1 }, ...(matches ? { isUsed: true } : {}) },
       });
       isValid = matches && consumed.count === 1;

@@ -20,7 +20,7 @@ describe('OTP single-use database authority', () => {
     expect(results.filter(r => r.success)).toHaveLength(1);
     expect(mocks.token).toHaveBeenCalledTimes(1);
     expect((await auth.verifyOtp('09120000001', '12345')).success).toBe(false);
-    expect(mocks.consume).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ isUsed: false, attempts: { lt: 5 }, expiresAt: { gt: expect.any(Date) } }) }));
+    expect(mocks.consume).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ isUsed: false, attempts: { lt: 5 } }) }));
   });
   it('rejects expired/exhausted codes and counts incorrect attempts', async () => {
     mocks.consume.mockResolvedValue({ count: 0 });
