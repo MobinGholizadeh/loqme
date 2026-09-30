@@ -880,6 +880,155 @@ img {
   color: var(--color-text-secondary);
   margin-top: 6px;
 }
+
+.profile-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 9999px;
+  margin-top: 8px;
+}
+.profile-role-badge.badge-customer {
+  background: var(--loqme-neutral-100);
+  color: var(--color-text-secondary);
+}
+.profile-role-badge.badge-merchant {
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+}
+.profile-role-badge.badge-admin {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+.profile-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+}
+.profile-portal-card {
+  margin-top: 24px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-subtle);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.profile-portal-card.customer {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%);
+  border-color: #ccfbf1;
+}
+.profile-portal-card.merchant {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%);
+  border-color: #99f6e4;
+  box-shadow: 0 4px 16px rgba(15, 118, 110, 0.08);
+}
+.profile-portal-card.admin {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+.portal-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.portal-card-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #115e59;
+  color: #ffffff;
+}
+.profile-portal-card.merchant .portal-card-icon {
+  background: #0f766e;
+  color: #ffffff;
+}
+.profile-portal-card.admin .portal-card-icon {
+  background: #1e293b;
+  color: #ffffff;
+}
+.portal-card-title {
+  flex: 1;
+  min-width: 0;
+}
+.portal-card-title h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+.portal-card-title p {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+.portal-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.portal-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 16px;
+  background: #115e59;
+  color: #ffffff !important;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.1s;
+}
+.portal-primary-btn:hover {
+  background: #0d4d49;
+}
+.portal-primary-btn.merchant-action {
+  background: #0f766e;
+}
+.portal-primary-btn.merchant-action:hover {
+  background: #115e59;
+}
+.portal-primary-btn.admin-action {
+  background: #1e293b;
+}
+.portal-primary-btn.admin-action:hover {
+  background: #0f172a;
+}
+.portal-secondary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #115e59;
+  text-decoration: none;
+  padding: 8px;
+  border-radius: 8px;
+}
+.portal-secondary-link:hover {
+  text-decoration: underline;
+  background: rgba(17, 94, 89, 0.05);
+}
+
 .auth-page {
   min-height: 100dvh;
   display: flex;
@@ -1624,3 +1773,47 @@ img {
 }
 
 .detail-page .purchase-bar .loqme-button { border-radius: 999px; }
+
+
+/* Responsive Profile Dashboard Layout (Mobile: untouched 440px stack; Desktop: 2-column balanced grid) */
+.profile-desktop-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (min-width: 1024px) {
+  .profile-desktop-grid {
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      "user     actions"
+      "promo    orders"
+      "impact   orders";
+    gap: 28px;
+    align-items: start;
+  }
+  .area-user {
+    grid-area: user;
+  }
+  .area-actions {
+    grid-area: actions;
+  }
+  .area-promo {
+    grid-area: promo;
+  }
+  .area-orders {
+    grid-area: orders;
+  }
+  .area-impact {
+    grid-area: impact;
+  }
+}
+
+@media (min-width: 1280px) {
+  .profile-desktop-grid {
+    grid-template-columns: 400px minmax(0, 1fr);
+    gap: 32px;
+  }
+}

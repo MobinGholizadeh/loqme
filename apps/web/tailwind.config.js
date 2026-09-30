@@ -7,6 +7,16 @@ module.exports = {
     extend: {
       colors: {
         loqme: {
+          50: '#F0FDF9',
+          100: '#CCFBF1',
+          200: '#99F6E4',
+          300: '#5EEAD4',
+          500: '#14B8A6',
+          600: '#0D9488',
+          700: '#0F766E',
+          800: '#115E59',
+          900: '#0E4E49',
+          950: '#062E2B',
           primary: {
             50: 'var(--loqme-primary-50)',
             100: 'var(--loqme-primary-100)',
@@ -64,6 +74,11 @@ module.exports = {
             600: 'var(--loqme-danger-600)',
           },
         },
+      },
+      boxShadow: {
+        'soft': '0 4px 20px -2px rgba(17, 94, 89, 0.06)',
+        'card': '0 2px 10px -1px rgba(0, 0, 0, 0.04)',
+        'floating': '0 12px 30px -4px rgba(14, 78, 73, 0.16)',
       },
       fontFamily: {
         sans: ['IranYekanDigits', 'var(--font-vazirmatn)', 'Vazirmatn', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
