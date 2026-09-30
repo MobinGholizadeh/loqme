@@ -23,19 +23,51 @@ export async function businessUser(request: NextRequest) {
 
 export function sameOrigin(request: NextRequest) {
   const origin = request.headers.get('origin');
+  if (!origin) return;
+
+  const origins = new Set<string>();
+
+  // 1. Direct Next.js URL origin
+  if (request.nextUrl.origin) {
+    origins.add(request.nextUrl.origin.toLowerCase());
+  }
+
+  // 2. Forwarded Host & Proto from reverse proxies (Nginx, Caddy, Cloudflare, Docker)
+  const forwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || (request.nextUrl.protocol ? request.nextUrl.protocol.replace(':', '') : 'https');
+  if (forwardedHost) {
+    origins.add(`${forwardedProto}://${forwardedHost}`.toLowerCase());
+    origins.add(`https://${forwardedHost}`.toLowerCase());
+    origins.add(`http://${forwardedHost}`.toLowerCase());
+  }
+
+  // 3. Host header
+  const host = request.headers.get('host');
+  if (host) {
+    origins.add(`https://${host}`.toLowerCase());
+    origins.add(`http://${host}`.toLowerCase());
+  }
+
+  // 4. Configured APP_URL if present
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    try {
+      origins.add(new URL(process.env.NEXT_PUBLIC_APP_URL).origin.toLowerCase());
+    } catch {}
+  }
+
+  const normalizedOrigin = origin.toLowerCase();
+  const isAllowed = origins.has(normalizedOrigin);
+
   console.log('[LOGIN-TRACE][Server] sameOrigin check', {
-    originHeader: origin,
-    nextUrlOrigin: request.nextUrl.origin,
-    requestUrl: request.url,
-    hostHeader: request.headers.get('host'),
-    xForwardedHost: request.headers.get('x-forwarded-host'),
-    xForwardedProto: request.headers.get('x-forwarded-proto'),
+    origin: normalizedOrigin,
+    allowedOrigins: Array.from(origins),
+    isAllowed,
   });
 
-  if (origin && origin !== request.nextUrl.origin) {
+  if (!isAllowed) {
     console.error('[LOGIN-TRACE][Server] sameOrigin MISMATCH DETECTED -> Throwing 403 "درخواست نامعتبر است"', {
-      originHeader: origin,
-      nextUrlOrigin: request.nextUrl.origin,
+      origin: normalizedOrigin,
+      allowedOrigins: Array.from(origins),
     });
     throw new BusinessError(403, 'درخواست نامعتبر است');
   }
