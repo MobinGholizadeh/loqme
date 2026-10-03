@@ -2,6 +2,32 @@
  * Schema.org JSON-LD Structured Data Generators for Loqme
  */
 
+/** Homepage identity: the Persian and Latin names describe the same brand. */
+export function generateBrandSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': 'https://loqme.shop/#organization',
+        name: 'لقمه',
+        alternateName: 'Loqme',
+        url: 'https://loqme.shop/',
+        logo: 'https://loqme.shop/logo.png',
+      },
+      {
+        '@type': 'WebSite',
+        '@id': 'https://loqme.shop/#website',
+        name: 'لقمه',
+        alternateName: ['Loqme', 'لقمه (Loqme)', 'loqme.shop'],
+        url: 'https://loqme.shop/',
+        inLanguage: 'fa-IR',
+        publisher: { '@id': 'https://loqme.shop/#organization' },
+      },
+    ],
+  };
+}
+
 export function generateLocalBusinessSchema(merchant: {
   id: string;
   businessNameFa: string;

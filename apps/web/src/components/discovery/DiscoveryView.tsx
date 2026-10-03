@@ -224,10 +224,10 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
   return (
     <div className="discovery-view">
       <div className="discovery-heading">
-        <div>
-          <h1>{home ? "لقمه‌های تازه، نزدیک شما" : "کشف طعم‌های محله"}</h1>
+        {!home && <div>
+          <h1>کشف طعم‌های محله</h1>
           <p>بسته‌های روزانه فروشگاه‌های محله، با قیمت کمتر و دریافت حضوری.</p>
-        </div>
+        </div>}
         <div className="discovery-location">
           <Select
             aria-label="محله"

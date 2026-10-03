@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fa_IR",
     url: "https://loqme.shop",
-    siteName: "لقمه | Loqme",
+    siteName: "لقمه",
     title: "لقمه | کشف خوراکی‌های تازه محله",
     description:
       "بسته‌های تازه فروشگاه‌های ارومیه را با قیمت کمتر و زمان دریافت حضوری مشخص کشف کنید.",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "لقمه | عرضه هوشمند مازاد خوراکی‌ها",
+    title: "لقمه | کشف خوراکی‌های تازه محله",
     description:
       "کشف و رزرو بسته‌های تازه فروشگاه‌های محله، با قیمت کمتر و دریافت حضوری در ارومیه.",
     images: ["/logo.png"],

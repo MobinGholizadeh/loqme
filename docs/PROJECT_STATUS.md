@@ -8,6 +8,10 @@
 
 ## 1. Project Health & Current State
 
+### Implemented: CP-10.18 Persian brand SEO (2026-10-03)
+
+User requested visibility for «لقمه» alongside Loqme and explicitly authorized pushing code. Added static server-visible homepage brand heading/introduction outside the discovery Suspense boundary, linked WebSite/Organization JSON-LD, homepage/explore canonicals, Persian site-name consistency, login/register noindex and sitemap cleanup. **10/10 focused SEO tests, 3/3 optimized-build browser tests, production build, lint and all workspace typechecks pass.** Browser acceptance covers JavaScript disabled and 360/390/1440px widths; 390px screenshot inspected. Local database was unavailable, so sitemap fallback was exercised; dynamic records are mocked in focused tests. Push/deployment confirmation and Google recrawl/ranking evidence remain separate operational steps. See [PERSIAN_SEO.md](PERSIAN_SEO.md). Existing M11 coverage and provider gates remain open.
+
 ### Delivered: Tagline Refinement & Login Account Existence Guard (2026-10-03)
 
 - **Brand Tagline**: Replaced «خوب بخور، کمتر خرج کن» with «طعم‌های تازه، انتخابی هوشمندانه» across `AuthLayout.tsx`, `README.md`, and `docs/BRAND.md`.

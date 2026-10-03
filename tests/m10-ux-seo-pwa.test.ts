@@ -6,6 +6,7 @@ import {
   generateLocalBusinessSchema,
   generateProductListingSchema,
   generateBreadcrumbSchema,
+  generateBrandSchema,
 } from "@/lib/seo/structured-data";
 import { toPersianDigits, formatToman } from "@loqme/validation";
 import { prisma } from "@/lib/prisma";
@@ -106,7 +107,9 @@ describe("Milestone M10 — UX, SEO, PWA & Performance Excellence", () => {
       const urls = sitemapEntries.map((e) => e.url);
       expect(urls).toContain("https://loqme.shop");
       expect(urls).toContain("https://loqme.shop/explore");
-      expect(urls).toContain("https://loqme.shop/login");
+      expect(urls).not.toContain("https://loqme.shop/login");
+      expect(urls).not.toContain("https://loqme.shop/register");
+      expect(sitemapEntries[0].lastModified).toBeUndefined();
 
       // Check dynamic merchant URLs
       expect(urls).toContain("https://loqme.shop/merchants/mch-1");
@@ -121,6 +124,16 @@ describe("Milestone M10 — UX, SEO, PWA & Performance Excellence", () => {
   // 3. Schema.org JSON-LD Structured Data (CP-10.3)
   // =========================================================================
   describe("3. Schema.org JSON-LD Structured Data Generators", () => {
+    it("connects the Persian site name and Latin alias to one organization", () => {
+      const graph = generateBrandSchema()['@graph'];
+      const website = graph.find(item => item['@type'] === 'WebSite')!;
+      const organization = graph.find(item => item['@type'] === 'Organization')!;
+      expect(website.name).toBe('لقمه');
+      expect(website.alternateName).toContain('Loqme');
+      expect(website.publisher?.['@id']).toBe(organization['@id']);
+      expect(website.url).toBe('https://loqme.shop/');
+      expect(website.inLanguage).toBe('fa-IR');
+    });
     it("generates compliant LocalBusiness structured data for stores", () => {
       const mockStore = {
         id: "store-urmia-1",
