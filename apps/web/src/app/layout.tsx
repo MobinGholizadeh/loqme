@@ -60,6 +60,9 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "لقمه",
   },
+  verification: {
+    google: "OPtOX-MOcdHG5CKvWN05TAEcGc9fWUUvmGcxwQEBGwc",
+  },
 };
 
 export const viewport: Viewport = {
