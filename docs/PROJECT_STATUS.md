@@ -8,6 +8,10 @@
 
 ## 1. Project Health & Current State
 
+### Active: M11 coverage and regression repairs (2026-10-03)
+
+User explicitly requested 100% coverage and defect repair. The latest complete fresh disposable PostgreSQL/PostGIS run passed **917/917 tests across 73 suites with no skips**, with **60.63% lines, 58.76% statements, 47.50% functions and 52.19% branches** using Vitest 5.0.3. Strict 100% thresholds remain unmet. Repairs cover authentication/ownership/privacy, OTP expiry, gateway and amount validation, timezone-safe inventory/pickup inputs, transactional order/pickup completion, refund concurrency, historical financial reporting, CSV export and browser request/camera lifecycles. Dependency audit is zero; types and lint pass. Production build passes. All 95 browser cases pass; both focused listing-publication cases pass after the final clock-comparison fix. **CP-11.9 remains active; neither 100% coverage nor production readiness is established.** See [TEST_COVERAGE_AUDIT.md](TEST_COVERAGE_AUDIT.md).
+
 ### Active: CP-10.17 Login persistence (2026-09-28)
 
 Reproduced the user-reported post-OTP account login loop in an optimized browser build. Login now confirms a persisted session and starts a fresh document to discard anonymous router redirects; protected responses and all session states are private/no-store. 269/269 fresh disposable-database tests, production build, lint and web/shared types pass. All 95 browser cases pass, including real database-backed OTP/profile/reload/logout and the formerly failing redirect regression. Production release verification is pending. See [CP10_17_LOGIN_PERSISTENCE.md](CP10_17_LOGIN_PERSISTENCE.md). Existing provider/device gates remain open.

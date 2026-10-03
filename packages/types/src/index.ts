@@ -1070,7 +1070,7 @@ export interface MerchantSettlementSheetDto {
   commissionCutToman: number;
   refundsDeductedToman: number;
   netPayableToman: number;
-  shabaNumber: string;
+  shabaNumber: string | null;
   ordersCount: number;
 }
 

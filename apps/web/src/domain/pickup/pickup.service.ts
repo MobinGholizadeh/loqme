@@ -68,7 +68,8 @@ export class PickupService {
       }
 
       const decoded = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString('utf8'));
-      if (!decoded.orderId || !decoded.t) {
+      if (typeof decoded.orderId !== 'string' || !decoded.orderId ||
+        typeof decoded.t !== 'number' || !Number.isSafeInteger(decoded.t)) {
         return { valid: false, reason: 'محتوای توکن ناقص است' };
       }
 
@@ -152,6 +153,7 @@ export class PickupService {
 
     if (!order) return null;
     if (customerId && order.customerId !== customerId) return null;
+    if (!([OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP, OrderStatus.COMPLETED] as OrderStatus[]).includes(order.status)) return null;
 
     // Ensure verification record exists
     let verification = order.pickupVerification;
@@ -261,6 +263,12 @@ export class PickupService {
     const { merchantUserId, qrToken } = input;
     const otpCode = input.otpCode ? toEnglishDigits(input.otpCode).trim() : undefined;
     const orderNumber = input.orderNumber ? toEnglishDigits(input.orderNumber).trim().toUpperCase() : undefined;
+    if (!qrToken && !otpCode) {
+      return {
+        statusCode: 400,
+        response: { success: false, message: 'کد تحویل یا بارکد مشتری الزامی است', orderId: '', orderNumber: '', status: OrderStatus.PENDING_PAYMENT, verifiedAt: '', customerNameFa: '', listingTitleFa: '', quantity: 0, totalAmountToman: 0 },
+      };
+    }
 
     // 1. Resolve target order ID
     let targetOrderId = input.orderId;
@@ -453,6 +461,13 @@ export class PickupService {
       };
     }
 
+    if (order.status !== OrderStatus.PAID && order.status !== OrderStatus.READY_FOR_PICKUP) {
+      return {
+        statusCode: 409,
+        response: { success: false, message: 'این سفارش در وضعیت قابل تحویل نیست', orderId: order.id, orderNumber: order.orderNumber, status: order.status, verifiedAt: '', customerNameFa: '', listingTitleFa: '', quantity: 0, totalAmountToman: 0 },
+      };
+    }
+
     // 6. If OTP was provided, validate matching code
     if (otpCode) {
       if (otpCode !== verification.otpCode) {
@@ -489,53 +504,36 @@ export class PickupService {
       }
     }
 
-    // 7. Atomic Concurrency Lock: UPDATE WHERE isVerified = false
-    // If multiple concurrent requests hit this point at the exact same millisecond,
-    // exactly one will update the row and receive count = 1. All others receive count = 0.
-    const updateResult = await prisma.pickupVerification.updateMany({
-      where: {
-        id: verification.id,
-        isVerified: false,
-      },
-      data: {
-        isVerified: true,
-        verifiedAt: now,
-        verifiedByUserId: merchantUserId,
-        verifiedByStaffId: staffMember?.id || null,
-        attemptCount: 0,
-        lockedUntil: null,
-      },
-    });
-
-    if (updateResult.count === 0) {
-      // Race condition caught: another concurrent request just completed the order!
+    // Claim the paid order and consume its pickup proof in one transaction.
+    // A failed proof update must roll back the order transition as well.
+    const pickupConflict = new Error('Pickup state changed');
+    let completed = false;
+    try {
+      completed = await prisma.$transaction(async (tx) => {
+        const claimed = await tx.order.updateMany({
+          where: { id: order.id, status: { in: [OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP] } },
+          data: { status: OrderStatus.COMPLETED, updatedAt: now },
+        });
+        if (claimed.count !== 1) return false;
+        const consumed = await tx.pickupVerification.updateMany({
+          where: { id: verification.id, isVerified: false, OR: [{ lockedUntil: null }, { lockedUntil: { lte: now } }] },
+          data: { isVerified: true, verifiedAt: now, verifiedByUserId: merchantUserId,
+            verifiedByStaffId: staffMember?.id || null, attemptCount: 0, lockedUntil: null },
+        });
+        if (consumed.count !== 1) throw pickupConflict;
+        return true;
+      });
+    } catch (error) {
+      if (error !== pickupConflict) throw error;
+    }
+    if (!completed) {
       return {
         statusCode: 409,
-        response: {
-          success: false,
-          alreadyVerified: true,
-          message: 'این سفارش هم‌اکنون در درخواست موازی دیگری با موفقیت تحویل شد.',
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          status: OrderStatus.COMPLETED,
-          verifiedAt: now.toISOString(),
-          customerNameFa: order.customer.fullName || 'مشتری لقمه',
-          listingTitleFa: order.items[0]?.listing.titleFa || 'بسته لقمه',
-          quantity: order.items[0]?.quantity || 1,
-          totalAmountToman: Number(order.totalAmountToman),
-        },
+        response: { success: false, message: 'وضعیت سفارش تغییر کرده است. لطفاً فهرست سفارش‌ها را تازه‌سازی کنید.',
+          orderId: order.id, orderNumber: order.orderNumber, status: order.status, verifiedAt: '',
+          customerNameFa: '', listingTitleFa: '', quantity: 0, totalAmountToman: 0 },
       };
     }
-
-    // 8. Transition Order status to COMPLETED
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        status: OrderStatus.COMPLETED,
-        updatedAt: now,
-      },
-    });
-
     const firstItem = order.items[0];
 
     return {
@@ -673,18 +671,23 @@ export class PickupService {
 
     const orderIds = expiredOrders.map((o) => o.id);
 
-    await prisma.order.updateMany({
-      where: { id: { in: orderIds } },
+    const swept = await prisma.order.updateManyAndReturn({
+      where: {
+        id: { in: orderIds },
+        status: { in: [OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP] },
+        OR: [{ pickupVerification: null }, { pickupVerification: { isVerified: false } }],
+      },
       data: {
         status: OrderStatus.NO_SHOW,
         updatedAt: now,
       },
+      select: { id: true },
     });
 
     return {
       success: true,
-      sweptCount: orderIds.length,
-      orderIds,
+      sweptCount: swept.length,
+      orderIds: swept.map(order => order.id),
     };
   }
 

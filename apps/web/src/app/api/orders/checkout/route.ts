@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
     }
 
     const { reservationId, gateway, notesFa } = validated.data;
+    const effectiveGateway = process.env.NODE_ENV === 'production'
+      ? PaymentGatewayType.ZARINPAL : gateway as PaymentGatewayType;
 
     // 3. Resolve host and callback URL
     const host = request.headers.get('host') || 'localhost:3000';
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
     const result = await orderService.createOrderFromReservation({
       customerId: customer.id,
       reservationId,
-      gateway: gateway as PaymentGatewayType,
+      gateway: effectiveGateway,
       notesFa,
       callbackUrl,
       mobile: payload.mobile,
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
         totalAmountToman: Number(result.order.totalAmountToman),
         paymentUrl: result.paymentUrl,
         authority: result.authority,
-        gateway,
+        gateway: effectiveGateway,
       },
     });
   } catch (error) {

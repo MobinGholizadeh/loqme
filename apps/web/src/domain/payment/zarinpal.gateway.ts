@@ -50,7 +50,7 @@ export class ZarinpalGatewayAdapter implements IPaymentGateway {
 
       const json = await response.json();
 
-      if (json.data && json.data.code === 100) {
+      if (response.ok && json.data && json.data.code === 100) {
         const authority = json.data.authority;
         return {
           success: true,
@@ -96,7 +96,7 @@ export class ZarinpalGatewayAdapter implements IPaymentGateway {
 
       const json = await response.json();
 
-      if (json.data && (json.data.code === 100 || json.data.code === 101)) {
+      if (response.ok && json.data && (json.data.code === 100 || json.data.code === 101)) {
         return {
           success: true,
           referenceId: json.data.ref_id ? json.data.ref_id.toString() : undefined,

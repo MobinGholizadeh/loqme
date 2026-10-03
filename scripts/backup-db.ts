@@ -30,7 +30,7 @@ export function generateChecksum(buffer: Buffer): string {
 }
 
 /**
- * Creates an encrypted/compressed backup archive with SHA256 checksum
+ * Creates a compressed backup archive with SHA256 checksum (not encryption).
  */
 export async function createDatabaseBackup(
   sqlContent: string,
@@ -77,7 +77,10 @@ export function verifyBackupIntegrity(filepath: string): {
     const compressed = fs.readFileSync(filepath);
     const checksumPath = `${filepath}.sha256`;
 
-    if (fs.existsSync(checksumPath)) {
+    if (!fs.existsSync(checksumPath)) {
+      return { valid: false, decompressedBytes: 0, error: 'Checksum file does not exist' };
+    }
+    {
       const recorded = fs.readFileSync(checksumPath, 'utf-8').trim().split(/\s+/)[0];
       const actual = generateChecksum(compressed);
       if (recorded !== actual) {

@@ -41,6 +41,12 @@ export async function GET(
     });
 
     const isPlatformAdmin = session.role === Role.ADMIN;
+    if (!isPlatformAdmin && !customer) {
+      return NextResponse.json(
+        { success: false, message: 'حساب مشتری یافت نشد' },
+        { status: 404 }
+      );
+    }
     const customerId = isPlatformAdmin ? undefined : customer?.id;
 
     const credentials = await pickupService.getCustomerPickupCredentials(orderId, customerId);
@@ -55,7 +61,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: credentials,
-    });
+    }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
     console.error('Error in GET /api/pickup/credentials:', error);
     return NextResponse.json(

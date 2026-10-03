@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({ find: vi.fn(), consume: vi.fn(), create: vi.fn(), user: vi.fn(), token: vi.fn(), send: vi.fn() }));
 vi.mock('@/lib/prisma', () => ({ prisma: { otpCode: { findFirst: mocks.find, updateMany: mocks.consume, create: mocks.create } } }));
 vi.mock('@/domain/user/user.service', () => ({ userService: { findOrCreateCustomer: mocks.user } }));
@@ -13,6 +13,27 @@ describe('OTP single-use database authority', () => {
     mocks.find.mockResolvedValue({ id: 'otp', codeHash: await hashOtp('12345') });
     mocks.user.mockResolvedValue({ id: 'customer', mobile: '09120000001', role: 'CUSTOMER', isActive: true });
     mocks.token.mockResolvedValue('signed-test-token');
+  });
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); });
+  it('persists the same two-minute expiry that it advertises to the customer', async () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-02T12:00:00Z'));
+    mocks.create.mockResolvedValue({ id: 'new-code' }); mocks.send.mockResolvedValue(true);
+    const result = await auth.requestOtp('09120000777');
+    expect(result.expiresInSeconds).toBe(120);
+    expect(mocks.create.mock.calls[0][0].data.expiresAt.getTime()).toBe(Date.now() + 120000);
+  });
+  it('always requires an unexpired code even if a legacy bypass flag is present', async () => {
+    vi.stubEnv('DISABLE_OTP_EXPIRY', 'true');
+    mocks.consume.mockResolvedValue({ count: 0 });
+    expect((await auth.verifyOtp('09120000001', '12345')).success).toBe(false);
+    expect(mocks.consume).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ expiresAt: { gt: expect.any(Date) } }) }));
+  });
+  it('bounds credential age even when a legacy row has a far-future expiry', async () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-03T12:00:00Z'));
+    mocks.consume.mockResolvedValue({ count: 0 });
+    expect((await auth.verifyOtp('09120000001', '12345')).success).toBe(false);
+    expect(mocks.consume).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ createdAt: { gt: new Date(Date.now() - 120000) } }) }));
+    expect(mocks.token).not.toHaveBeenCalled();
   });
   it('issues one session for simultaneous redemption, and rejects replay', async () => {
     mocks.consume.mockResolvedValue({ count: 0 }).mockResolvedValueOnce({ count: 1 });

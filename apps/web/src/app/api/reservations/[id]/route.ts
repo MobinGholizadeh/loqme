@@ -12,9 +12,16 @@ export async function GET(
   try {
     const { id } = await params;
 
+    const token = extractSessionToken(request);
+    if (!token) return NextResponse.json({ success: false, message: 'احراز هویت الزامی است' }, { status: 401 });
+    const payload = await verifySessionToken(token);
+    if (!payload) return NextResponse.json({ success: false, message: 'نشست کاربری نامعتبر است' }, { status: 401 });
+    const customer = await prisma.customer.findUnique({ where: { userId: payload.userId } });
+    if (!customer) return NextResponse.json({ success: false, message: 'حساب مشتری یافت نشد' }, { status: 404 });
+
     const reservation = await reservationService.getReservation(id);
 
-    if (!reservation) {
+    if (!reservation || reservation.customerId !== customer.id) {
       return NextResponse.json(
         { success: false, message: 'رزرو مورد نظر یافت نشد' },
         { status: 404 }
@@ -53,7 +60,7 @@ export async function GET(
           pickupEndIso: listing.pickupEnd.toISOString(),
         },
       },
-    });
+    }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
     console.error('Error fetching reservation:', error);
     return NextResponse.json(

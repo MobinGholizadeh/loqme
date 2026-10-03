@@ -55,7 +55,7 @@ export class AdminService {
         createdAt: { gte: twentyFourHoursAgo },
         status: { in: [OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP, OrderStatus.COMPLETED] },
       },
-      select: { totalAmountToman: true },
+      select: { totalAmountToman: true, commissionAmountToman: true },
     });
 
     const totalOrders24hCount = recentOrders.length;
@@ -63,7 +63,7 @@ export class AdminService {
     for (const ord of recentOrders) {
       gmv24hToman += Number(ord.totalAmountToman);
     }
-    const commission24hToman = Math.round((gmv24hToman * 10) / 100);
+    const commission24hToman = recentOrders.reduce((sum, order) => sum + Number(order.commissionAmountToman), 0);
 
     // 4. Open Complaints
     const openComplaintsCount = await prisma.complaint.count({
@@ -448,16 +448,17 @@ export class AdminService {
     for (const m of merchants) {
       let storeGmv = 0;
       let storeRefunds = 0;
+      let commissionCut = 0;
 
       for (const ord of m.orders) {
         storeGmv += Number(ord.totalAmountToman);
+        commissionCut += Number(ord.commissionAmountToman);
         for (const ref of ord.refunds) {
           storeRefunds += Number(ref.amountToman);
         }
       }
 
-      const commissionRate = Number(m.commissionPercent) || 10.0;
-      const commissionCut = Math.round((storeGmv * commissionRate) / 100);
+      const commissionRate = Number(m.commissionPercent ?? 10.0);
       const netPayable = Math.max(0, storeGmv - commissionCut - storeRefunds);
 
       totalGmvToman += storeGmv;
@@ -473,7 +474,7 @@ export class AdminService {
         commissionCutToman: commissionCut,
         refundsDeductedToman: storeRefunds,
         netPayableToman: netPayable,
-        shabaNumber: 'IR820170000000109283746501',
+        shabaNumber: null,
         ordersCount: m.orders.length,
       });
     }

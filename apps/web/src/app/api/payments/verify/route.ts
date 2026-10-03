@@ -27,9 +27,10 @@ export async function GET(request: NextRequest) {
 
     // If status is explicitly cancelled / NOK
     if (status && (status.toUpperCase() === 'NOK' || status.toUpperCase() === 'CANCELLED')) {
-      return NextResponse.redirect(
-        new URL(`/explore?error=payment_cancelled&authority=${authority}`, request.url)
-      );
+      const cancelledUrl = new URL('/explore', request.url);
+      cancelledUrl.searchParams.set('error', 'payment_cancelled');
+      cancelledUrl.searchParams.set('authority', authority);
+      return NextResponse.redirect(cancelledUrl);
     }
 
     const verifyResult = await orderService.verifyAndCompleteOrder({
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     const failedUrl = new URL(
-      `/orders/${verifyResult.order?.id || ''}/receipt`,
+      verifyResult.order?.id ? `/orders/${verifyResult.order.id}/receipt` : '/orders',
       request.url
     );
     failedUrl.searchParams.set('status', 'failed');

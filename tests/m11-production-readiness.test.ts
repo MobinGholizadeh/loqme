@@ -36,13 +36,15 @@ describe('Milestone M11 — Production Readiness Verification Suite', () => {
 
     it('readiness probe executes database ping and returns structured check', async () => {
       const response = await getReadyHealth();
-      // Status can be 200 (DB online) or 503 (DB offline in unit testing environment)
-      expect([200, 503]).toContain(response.status);
+      // This acceptance suite requires a migrated, disposable PostgreSQL database.
+      // An outage must not be reported as a passing readiness check.
+      expect(response.status).toBe(200);
 
       const json = await response.json();
-      expect(['ready', 'unhealthy']).toContain(json.status);
+      expect(json.status).toBe('ready');
       expect(json.service).toBe('loqme-web');
       expect(json.checks.database).toBeDefined();
+      expect(json.checks.database.status).toBe('connected');
       expect(typeof json.checks.database.latencyMs).toBe('number');
     });
 
@@ -230,7 +232,7 @@ describe('Milestone M11 — Production Readiness Verification Suite', () => {
       fs.rmSync(testBackupDir, { recursive: true, force: true });
     });
 
-    it('detects corrupted or tampered backup files during restore drill', async () => {
+    it('detects corrupted or tampered backup archives (not a database restore drill)', async () => {
       const sampleSql = 'SELECT 1;';
       const backup = await createDatabaseBackup(sampleSql, {
         backupDir: testBackupDir,

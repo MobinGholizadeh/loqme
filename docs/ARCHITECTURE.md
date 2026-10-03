@@ -153,3 +153,7 @@ export interface INotificationService {
 * **Containerization**: Multi-stage `Dockerfile` producing a lightweight Node.js Alpine production container.
 * **Hosting**: Compatible with standard container platforms (ArvanCloud Container, Liara PaaS, Docker Compose on Linux VPS).
 * **Database**: Managed PostgreSQL with PostGIS or containerized instance with automated daily backups.
+
+## CP-11.9 pickup clock parsing (2026-10-03)
+
+Merchant HH:mm pickup inputs represent Asia/Tehran wall-clock time, independently of host timezone. The backend `domain/listing/pickup-window.ts` resolves instants with Intl timezone data, validates calendar dates and clock ranges, requires paired start/end inputs and rejects expired or reversed windows. Explicit ISO timestamps must include an offset. Clients do not determine authoritative availability from local clock assumptions.

@@ -92,7 +92,8 @@ export const VerifyOtpSchema = z.object({
   code: z
     .string({ required_error: 'لطفاً کد تایید را وارد نمایید' })
     .trim()
-    .regex(/^\d{5}$/, 'کد تایید باید دقیقاً ۵ رقم عددی باشد'),
+    .transform(toEnglishDigits)
+    .pipe(z.string().regex(/^\d{5}$/, 'کد تایید باید دقیقاً ۵ رقم عددی باشد')),
 });
 
 export type VerifyOtpInput = z.infer<typeof VerifyOtpSchema>;

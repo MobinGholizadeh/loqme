@@ -163,10 +163,10 @@ export default function MerchantFinancePage() {
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-base font-bold text-loqme-neutral-900 tracking-wider">
-                    {finance?.shabaNumber || "IR820170000000109283746501"}
+                    {finance?.shabaNumber || "حساب بانکی ثبت نشده است"}
                   </span>
-                  <Badge variant="success" size="sm">
-                    ✓ شبا تایید شده در سامانه پایا/ساتنا
+                  <Badge variant={finance?.shabaNumber && finance?.isBankVerified ? "success" : "warning"} size="sm">
+                    {finance?.shabaNumber && finance?.isBankVerified ? "✓ شبا تایید شده در سامانه پایا/ساتنا" : "حساب بانکی تایید نشده است"}
                   </Badge>
                 </div>
               </div>

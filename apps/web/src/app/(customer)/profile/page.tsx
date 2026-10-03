@@ -327,7 +327,7 @@ export default function ProfilePage() {
                 <h3 className="text-sm font-bold text-slate-700 group-hover:text-rose-700">
                   خروج از حساب
                 </h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">پایان نشست فعلی</p>
+                <p className="text-[11px] text-loqme-neutral-600 mt-0.5">پایان نشست فعلی</p>
               </div>
             </button>
           </div>
@@ -475,7 +475,7 @@ export default function ProfilePage() {
                         {order.merchantNameFa}
                       </p>
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
-                        <span className="inline-flex items-center text-[11px] text-slate-400 font-medium">
+                        <span className="inline-flex items-center text-[11px] text-loqme-neutral-600 font-medium">
                           <Calendar className="w-3.5 h-3.5 ml-1 text-slate-400" />
                           {new Intl.DateTimeFormat("fa-IR", {
                             dateStyle: "medium",

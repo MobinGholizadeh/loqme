@@ -120,3 +120,11 @@ Business APIs recheck active users and admin roles against the DB. Ownership and
 * All secret keys (`DATABASE_URL`, `JWT_SECRET`, `PAYMENT_GATEWAY_KEY`, `SMS_API_KEY`, `S3_SECRET_KEY`) reside exclusively in environment variables.
 * No credentials, certificates, or production keys may ever be committed to git.
 * A clean, comprehensive `.env.example` file is provided for developer onboarding.
+
+## CP-11.9 regression repairs (2026-10-03, release pending)
+
+Order/reservation detail and pickup credentials require authenticated ownership; missing customer profiles cannot disable scoping. Public review queries omit customer phone numbers, customer IDs and private order identifiers. Login OTP consumption requires both unexpired `expiresAt` and issuance within 120 seconds, invalidating legacy long-lived codes as well as new expired codes.
+
+Production checkout selects Zarinpal on the server; mock and unsupported gateway resolution fail closed. Payment verification rechecks state under a payment-row lock so delayed failures cannot replace success/refunds. Order completion locks its order and commits reservation conversion, inventory, ledger and savings together. Pickup requires customer proof and an eligible paid order; consuming proof and completing the order share a transaction. No-show mutation requires a session and conditionally rechecks order eligibility. Refund processing supports full refunds only and rejects adapters without a real refund operation. These changes have regression tests; coverage work and operational release gates remain open. See `TEST_COVERAGE_AUDIT.md` for current evidence and limitations.
+
+Refund requests now claim a REQUESTED refund under a payment-row lock before external transfer. Concurrent/repeated requests cannot issue another transfer while a non-rejected claim exists. Only an explicit provider rejection permits a new attempt. Exceptions or failed local finalization retain the claim for operator/provider reconciliation; do not delete it or retry blindly. CSV exports escape delimiters and neutralize formula-leading user text. Merchant staff invitations update customer-to-staff role and membership atomically without changing existing owner/admin roles.

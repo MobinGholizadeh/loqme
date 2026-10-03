@@ -14,35 +14,8 @@ export interface NotificationItem {
   link?: string;
 }
 
-const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: "notif-1",
-    title: "سفارش شما در انتظار تحویل است",
-    body: "سفارش شما در فروشگاه آماده تحویل است. لطفاً در بازه زمانی تعیین‌شده مراجعه نمایید.",
-    time: "۱۰ دقیقه پیش",
-    read: false,
-    type: "order",
-    link: "/orders",
-  },
-  {
-    id: "notif-2",
-    title: "بسته‌های جدید شگفت‌انگیز محله",
-    body: "۳ بسته جدید تازه با ۵۰٪ تخفیف مازاد در نانوایی‌ها و کافه‌های محله شما اضافه شد.",
-    time: "۲ ساعت پیش",
-    read: false,
-    type: "discount",
-    link: "/explore",
-  },
-  {
-    id: "notif-3",
-    title: "صاحب کسب‌وکار یا فروشگاه هستید؟",
-    body: "فروشگاه یا رستوران خود را در لقمه ثبت کنید و از درآمد مازاد روزانه بهره‌مند شوید.",
-    time: "دیروز",
-    read: true,
-    type: "system",
-    link: "/business",
-  },
-];
+// Until real notifications are supplied, show the empty state without invented activity.
+const DEFAULT_NOTIFICATIONS: NotificationItem[] = [];
 
 const STORAGE_KEY = "loqme-user-notifications-v1";
 
@@ -64,8 +37,10 @@ export function NotificationsModal({
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setNotifications(parsed);
-          const unread = parsed.filter((n: NotificationItem) => !n.read).length;
+          // Earlier versions persisted three fabricated demo entries.
+          const actual = parsed.filter((n: NotificationItem) => n && !['notif-1', 'notif-2', 'notif-3'].includes(n.id));
+          setNotifications(actual);
+          const unread = actual.filter((n: NotificationItem) => !n.read).length;
           onUnreadCountChange?.(unread);
           return;
         }

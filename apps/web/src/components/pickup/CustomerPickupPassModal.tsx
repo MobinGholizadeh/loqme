@@ -2,7 +2,7 @@
 import { DialogSurface } from "@/components/ui/DialogSurface";
 import * as RedesignIcons from "lucide-react";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { CustomerPickupCredentialsDto } from "@loqme/types";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -26,16 +26,20 @@ export const CustomerPickupPassModal: React.FC<
   const [highContrast, setHighContrast] = useState<boolean>(false);
   const [copiedOtp, setCopiedOtp] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const requestVersion = useRef(0);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch or refresh credentials
   const fetchCredentials = useCallback(
     async (silent = false) => {
       if (!orderId) return;
+      const version = ++requestVersion.current;
       if (!silent) setIsLoading(true);
       try {
         const res = await fetch(`/api/pickup/credentials/${orderId}`);
         const json = await res.json();
-        if (json.success && json.data) {
+        if (version !== requestVersion.current) return;
+        if (res.ok && json.success && json.data) {
           setErrorMsg(null);
           setCredentials(json.data);
           setSecondsRemaining(json.data.expiresInSeconds || 60);
@@ -46,9 +50,9 @@ export const CustomerPickupPassModal: React.FC<
           setErrorMsg(json.message || "خطا در دریافت اطلاعات تحویل");
         }
       } catch {
-        setErrorMsg("ارتباط با سرور برقرار نشد");
+        if (version === requestVersion.current) setErrorMsg("ارتباط با سرور برقرار نشد");
       } finally {
-        if (!silent) setIsLoading(false);
+        if (!silent && version === requestVersion.current) setIsLoading(false);
       }
     },
     [orderId, onVerified],
@@ -57,8 +61,13 @@ export const CustomerPickupPassModal: React.FC<
   // Initial load
   useEffect(() => {
     if (isOpen) {
+      setCredentials(null);
       fetchCredentials();
     }
+    return () => {
+      requestVersion.current += 1;
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+    };
   }, [isOpen, fetchCredentials]);
 
   // 1-second interval countdown for 60s rotation
@@ -92,12 +101,16 @@ export const CustomerPickupPassModal: React.FC<
 
   if (!isOpen) return null;
 
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     if (!credentials?.otpCode) return;
-    navigator.clipboard.writeText(credentials.otpCode).then(() => {
+    try {
+      await navigator.clipboard.writeText(credentials.otpCode);
       setCopiedOtp(true);
-      setTimeout(() => setCopiedOtp(false), 2000);
-    });
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopiedOtp(false), 2000);
+    } catch {
+      setCopiedOtp(false);
+    }
   };
 
   return (

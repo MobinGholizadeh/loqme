@@ -23,6 +23,8 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameId = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const requestVersion = useRef(0);
 
   const [facingMode, setFacingMode] = useState<"environment" | "user">(
     "environment",
@@ -35,15 +37,14 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
 
   // Stop camera media stream
   const stopStream = useCallback(() => {
-    if (animationFrameId.current) {
+    requestVersion.current += 1;
+    if (animationFrameId.current !== null) {
       cancelAnimationFrame(animationFrameId.current);
       animationFrameId.current = null;
     }
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
   // Frame scanning loop
@@ -83,6 +84,7 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
     setErrorMessage(null);
 
     stopStream();
+    const version = requestVersion.current;
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setHasCameraPermission(false);
@@ -101,15 +103,23 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
         audio: false,
       });
 
+      if (version !== requestVersion.current || !videoRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.setAttribute("playsinline", "true");
         await videoRef.current.play();
+        if (version !== requestVersion.current) return;
         setHasCameraPermission(true);
         setIsInitializing(false);
         animationFrameId.current = requestAnimationFrame(scanFrame);
       }
     } catch (err: unknown) {
+      if (version !== requestVersion.current) return;
+      stopStream();
       console.error("Camera access error:", err);
       setHasCameraPermission(false);
       setErrorMessage(

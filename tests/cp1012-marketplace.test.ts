@@ -11,6 +11,7 @@ import { CreateReviewSchema } from '@loqme/validation';
 import { GET as nearby } from '@/app/api/listings/nearby/route';
 import { GET as search } from '@/app/api/listings/search/route';
 import { GET as merchantDetail } from '@/app/api/merchants/[id]/route';
+import { GET as publicReviews } from '@/app/api/reviews/route';
 
 const isolated = /\/loqme_(cp1012|onboarding)_test/.test(new URL(process.env.DATABASE_URL || 'postgresql://localhost/none').pathname)
   || process.env.DATABASE_URL?.includes('/loqme_cp1012_acceptance_');
@@ -70,6 +71,17 @@ describe.skipIf(!isolated)('CP10.12 real database acceptance', () => {
     const results = await Promise.allSettled([1,2].map(() => moderationService.submitReview(customerId, item.id, { orderId: item.id, overallRating: 5 })));
     expect(results.filter(result => result.status === 'fulfilled')).toHaveLength(1);
     expect(await prisma.review.count({ where: { orderId: item.id } })).toBe(1);
+  });
+  it('does not expose customer phone numbers or private order identifiers in public reviews', async () => {
+    const item = await order();
+    const review = await moderationService.submitReview(customerId, item.id, { orderId: item.id, overallRating: 5, commentFa: 'نظر عمومی آزمایش' });
+    const response = await publicReviews(new NextRequest(`http://localhost/api/reviews?merchantId=${merchantId}`));
+    expect(response.status).toBe(200);
+    const body = await response.json(); const publicReview = body.items.find((r: any) => r.id === review.id);
+    expect(publicReview.commentFa).toBe('نظر عمومی آزمایش');
+    expect(JSON.stringify(body)).not.toContain(`cp12-${run}`);
+    expect(publicReview).not.toHaveProperty('customerId'); expect(publicReview).not.toHaveProperty('orderId');
+    expect(publicReview.customer).not.toHaveProperty('user'); expect(publicReview.order).not.toHaveProperty('orderNumber');
   });
   it('retains reserved and sold offers across feed, search and merchant APIs', async () => {
     const item = await listing();

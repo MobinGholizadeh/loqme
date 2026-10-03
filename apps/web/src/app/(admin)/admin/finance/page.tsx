@@ -8,6 +8,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatToman, toPersianDigits } from "@/lib/utils/persian";
 import { AdminSettlementReportDto } from "@loqme/types";
+import { csvRow } from "@/lib/utils/csv";
 
 export default function AdminFinancePage() {
   const [loadError, setLoadError] = useState("");
@@ -63,11 +64,8 @@ export default function AdminFinancePage() {
       m.ordersCount,
     ]);
 
-    const csvContent =
-      "data:text/csv;charset=utf-8,\uFEFF" +
-      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
-
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = "\uFEFF" + [csvRow(headers), ...rows.map(csvRow)].join("\n");
+    const encodedUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute(
@@ -249,7 +247,7 @@ export default function AdminFinancePage() {
                         </td>
 
                         <td className="p-4 font-mono text-loqme-neutral-700 dir-ltr text-right">
-                          {m.shabaNumber}
+                          {m.shabaNumber || "ثبت نشده"}
                         </td>
                       </tr>
                     ))}

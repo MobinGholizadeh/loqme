@@ -73,3 +73,9 @@ graph TD
    * Algorithmic discount adjustments (e.g. starting at 40% discount at 18:00, ramping up to 65% discount 30 minutes before closing).
 5. **Enterprise B2B Surplus Exchange**:
    * Brokering pallet-level near-date bulk inventory between food manufacturers/distributors and institutional kitchens or budget grocers.
+
+## CP-11.9 financial reporting correction (2026-10-03)
+
+Order commission and merchant payout are agreed and stored at checkout. Later changes to a merchant's commission rate must not recalculate historical dashboard or settlement amounts; zero commission is valid. Financial reports now sum those stored values. Merchant transaction rows represent customer payment transfers and the customer-facing refund transfer, rather than applying another commission to each internal clearing entry. Refund amounts are negative in that statement.
+
+No persisted bank-account verification model exists yet. APIs now return a missing bank account and an unverified state; the UI must not substitute a sample IBAN or claim verification. Account registration/verification and actual payout-provider acceptance remain release requirements. Automated refunds currently support full-order reversal only; unsupported provider refund operations fail explicitly.

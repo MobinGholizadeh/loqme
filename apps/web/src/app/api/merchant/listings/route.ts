@@ -1,3 +1,4 @@
+import { resolvePickupWindow } from '@/domain/listing/pickup-window';
 import { readPickupDetails } from '@/domain/listing/pickup-details';
 import { NextRequest, NextResponse } from "next/server";
 import { listingService } from "@/domain/listing/listing.service";
@@ -141,47 +142,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Resolve pickup times
-    const now = new Date();
-    const pickupDateObj = validated.pickupDate
-      ? new Date(validated.pickupDate)
-      : new Date();
-
-    let startDate: Date;
-    let endDate: Date;
-
-    if (validated.pickupStart && validated.pickupEnd) {
-      if (
-        validated.pickupStart.includes(":") &&
-        !validated.pickupStart.includes("T")
-      ) {
-        // "HH:mm" format
-        const [sH, sM] = validated.pickupStart.split(":").map(Number);
-        const [eH, eM] = validated.pickupEnd.split(":").map(Number);
-
-        startDate = new Date(pickupDateObj);
-        startDate.setHours(sH, sM, 0, 0);
-
-        endDate = new Date(pickupDateObj);
-        endDate.setHours(eH, eM, 0, 0);
-      } else {
-        startDate = new Date(validated.pickupStart);
-        endDate = new Date(validated.pickupEnd);
-      }
-    } else {
-      // Default: 1 hour from now to 3 hours from now today
-      startDate = new Date(now.getTime() + 60 * 60 * 1000);
-      endDate = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-    }
-
-    if (endDate <= startDate) {
-      throw new Error("زمان پایان تحویل باید بعد از زمان شروع تحویل باشد");
-    }
-    if (endDate <= now) {
-      throw new Error(
-        "بازه تحویل انتخاب‌شده گذشته است؛ زمان امروز را به آینده تغییر دهید",
-      );
-    }
+    const { pickupDate: pickupDateObj, pickupStart: startDate, pickupEnd: endDate } = resolvePickupWindow(validated);
 
     const primaryLocation = merchant.locations[0];
 

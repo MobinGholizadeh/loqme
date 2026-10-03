@@ -346,11 +346,13 @@ describe('Milestone M08 — Admin Operations & Marketplace Governance', () => {
             {
               id: 'ord-1',
               totalAmountToman: 100000,
+              commissionAmountToman: 10000,
               refunds: [],
             },
             {
               id: 'ord-2',
               totalAmountToman: 50000,
+              commissionAmountToman: 5000,
               refunds: [{ amountToman: 20000 }],
             },
           ],
@@ -363,6 +365,7 @@ describe('Milestone M08 — Admin Operations & Marketplace Governance', () => {
             {
               id: 'ord-3',
               totalAmountToman: 200000,
+              commissionAmountToman: 30000,
               refunds: [],
             },
           ],
@@ -417,6 +420,7 @@ describe('Milestone M08 — Admin Operations & Marketplace Governance', () => {
           orders: [
             {
               totalAmountToman: 50000,
+              commissionAmountToman: 5000,
               refunds: [{ amountToman: 60000 }],
             },
           ],

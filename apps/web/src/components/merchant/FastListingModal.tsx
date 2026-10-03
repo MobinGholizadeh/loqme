@@ -250,7 +250,11 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
       errors.pickupStart = "زمان شروع را مانند ۱۹:۳۰ وارد کنید";
     if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(pickupEnd))
       errors.pickupEnd = "زمان پایان را مانند ۲۱:۳۰ وارد کنید";
-    if (Object.keys(errors).length === 0 && pickupEnd <= pickupStart)
+    const minutes = (time: string) => {
+      const [hours, mins] = time.split(":").map(Number);
+      return hours * 60 + mins;
+    };
+    if (Object.keys(errors).length === 0 && minutes(pickupEnd) <= minutes(pickupStart))
       errors.pickupEnd = "زمان پایان باید بعد از زمان شروع باشد";
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);

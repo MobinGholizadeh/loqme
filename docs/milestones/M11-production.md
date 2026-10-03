@@ -2,7 +2,7 @@
 
 > **Milestone**: M11  
 > **Title**: Production Readiness  
-> **Status**: `Completed`  
+> **Status**: `Reopened — CP-11.9 in progress`
 > **Target Completion**: 100%
 
 ---
@@ -117,6 +117,8 @@ M11 is the final validation gate before public commercial launch. It ensures tha
 ---
 
 # Checkpoints
+
+- [ ] **CP-11.9 — Full-source coverage and regression repair (2026-10-03)**: User-authorized target remains 100% of instrumented lines/statements/functions/branches. Latest complete disposable PostgreSQL/PostGIS run: 917/917 cases, 73 suites, no skips; coverage 60.63% lines, 58.76% statements, 47.50% functions, 52.19% branches. Authentication, financial concurrency/reporting, privacy, inventory/pickup timezone and browser lifecycle repairs have regression coverage. Types/lint pass and dependency audit is zero. Production build passes and browser acceptance passed 95/95; both focused listing-publication cases pass after the final clock-comparison fix. Substantial coverage gaps remain. See [TEST_COVERAGE_AUDIT.md](../TEST_COVERAGE_AUDIT.md). Historical completed checkpoints below do not constitute a current release sign-off.
 
 - [x] **CP-11.1**: Execute comprehensive security and authorization boundary audit.
 - [x] **CP-11.2**: Audit payment gateway failover, webhook idempotency, and amount validation.

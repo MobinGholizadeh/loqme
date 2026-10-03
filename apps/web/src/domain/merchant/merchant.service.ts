@@ -326,10 +326,8 @@ export class MerchantService {
       },
     });
 
-    // 4. Net Payout (Gross - 10% commission)
-    const commissionPercent = Number(merchant.commissionPercent) || 10.0;
-    const commissionToman = Math.round((grossRevenueTodayToman * commissionPercent) / 100);
-    const netPayoutTodayToman = grossRevenueTodayToman - commissionToman;
+    // Commission changes must not rewrite the amounts agreed at checkout.
+    const netPayoutTodayToman = todayOrders.reduce((sum, order) => sum + Number(order.merchantPayoutAmountToman), 0);
 
     // 5. Next Pickup Window Alert
     let nextPickupWindow: {
@@ -599,65 +597,73 @@ export class MerchantService {
 
     const normalizedMobile = data.mobile;
 
-    // 1. Find or create the user
-    let user = await prisma.user.findUnique({
-      where: { mobile: normalizedMobile },
-    });
+    return prisma.$transaction(async (tx) => {
+      // 1. Find or create the user
+      let user = await tx.user.findUnique({
+        where: { mobile: normalizedMobile },
+      });
 
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          mobile: normalizedMobile,
-          role: 'MERCHANT_STAFF',
-          customer: data.fullName
-            ? {
-                create: {
-                  fullName: data.fullName,
-                },
-              }
-            : undefined,
+      if (!user) {
+        user = await tx.user.create({
+          data: {
+            mobile: normalizedMobile,
+            role: 'MERCHANT_STAFF',
+            customer: data.fullName
+              ? {
+                  create: {
+                    fullName: data.fullName,
+                  },
+                }
+              : undefined,
+          },
+        });
+      }
+
+      // 2. Check if already staff at this store
+      const existingStaff = await tx.merchantStaff.findUnique({
+        where: {
+          merchantId_userId: {
+            merchantId: merchant.id,
+            userId: user.id,
+          },
         },
       });
-    }
 
-    // 2. Check if already staff at this store
-    const existingStaff = await prisma.merchantStaff.findUnique({
-      where: {
-        merchantId_userId: {
+      if (existingStaff) {
+        throw new Error('این شماره موبایل قبلاً به عنوان همکار در این فروشگاه ثبت شده است');
+      }
+
+      // Existing customers need the merchant role to enter the portal. Preserve higher roles.
+      await tx.user.updateMany({
+        where: { id: user.id, role: 'CUSTOMER' },
+        data: { role: 'MERCHANT_STAFF' },
+      });
+
+      // 3. Create staff record
+      const staffRecord = await tx.merchantStaff.create({
+        data: {
           merchantId: merchant.id,
           userId: user.id,
+          role: data.role as StaffRole,
+          canScanPickup: data.canScanPickup ?? true,
         },
-      },
-    });
+        include: {
+          user: {
+            include: { customer: true },
+          },
+        },
+      });
 
-    if (existingStaff) {
-      throw new Error('این شماره موبایل قبلاً به عنوان همکار در این فروشگاه ثبت شده است');
-    }
-
-    // 3. Create staff record
-    const staffRecord = await prisma.merchantStaff.create({
-      data: {
-        merchantId: merchant.id,
+      return {
+        id: staffRecord.id,
         userId: user.id,
-        role: data.role as StaffRole,
-        canScanPickup: data.canScanPickup ?? true,
-      },
-      include: {
-        user: {
-          include: { customer: true },
-        },
-      },
+        mobile: user.mobile,
+        fullName: staffRecord.user.customer?.fullName || data.fullName || null,
+        role: staffRecord.role,
+        canScanPickup: staffRecord.canScanPickup,
+        createdAt: staffRecord.createdAt.toISOString(),
+      };
     });
-
-    return {
-      id: staffRecord.id,
-      userId: user.id,
-      mobile: user.mobile,
-      fullName: staffRecord.user.customer?.fullName || data.fullName || null,
-      role: staffRecord.role,
-      canScanPickup: staffRecord.canScanPickup,
-      createdAt: staffRecord.createdAt.toISOString(),
-    };
   }
 
   /**
@@ -715,13 +721,17 @@ export class MerchantService {
       grossSalesToman += Number(ord.totalAmountToman);
     }
 
-    const commissionPercent = Number(merchant.commissionPercent) || 10.0;
-    const platformCommissionToman = Math.round((grossSalesToman * commissionPercent) / 100);
-    const netPayableBalanceToman = grossSalesToman - platformCommissionToman;
+    const commissionPercent = Number(merchant.commissionPercent ?? 10.0);
+    const platformCommissionToman = orders.reduce((sum, order) => sum + Number(order.commissionAmountToman), 0);
+    const netPayableBalanceToman = orders.reduce((sum, order) => sum + Number(order.merchantPayoutAmountToman), 0);
 
     // 2. Fetch double-entry ledger transactions
     const transactions = await prisma.financialTransaction.findMany({
       where: {
+        OR: [
+          { type: 'CUSTOMER_PAYMENT' },
+          { type: 'CUSTOMER_REFUND', debitAccount: 'PLATFORM_CLEARING', creditAccount: 'CUSTOMER_PAYMENT' },
+        ],
         order: {
           merchantId: merchant.id,
         },
@@ -734,8 +744,9 @@ export class MerchantService {
     });
 
     const ledgerEntries = transactions.map((tx) => {
-      const gross = Number(tx.amountToman);
-      const comm = Math.round((gross * commissionPercent) / 100);
+      const sign = tx.type === 'CUSTOMER_REFUND' ? -1 : 1;
+      const gross = sign * Number(tx.amountToman);
+      const comm = sign * Number(tx.order?.commissionAmountToman ?? 0);
       const net = gross - comm;
 
       return {
@@ -743,7 +754,7 @@ export class MerchantService {
         orderId: tx.orderId,
         orderNumber: tx.order?.orderNumber || 'LQ-TRANSACTION',
         type: tx.type,
-        descriptionFa: `تسویه سفارش شماره ${tx.order?.orderNumber || ''}`,
+        descriptionFa: `${sign < 0 ? 'استرداد وجه' : 'پرداخت'} سفارش شماره ${tx.order?.orderNumber || ''}`,
         grossAmountToman: gross,
         commissionAmountToman: comm,
         netAmountToman: net,
@@ -760,8 +771,8 @@ export class MerchantService {
       netPayableBalanceToman,
       totalOrdersCount: orders.length,
       completedOrdersCount,
-      shabaNumber: 'IR820170000000109283746501', // Standard Iranian IBAN format
-      isBankVerified: true,
+      shabaNumber: null,
+      isBankVerified: false,
       transactions: ledgerEntries,
     };
   }

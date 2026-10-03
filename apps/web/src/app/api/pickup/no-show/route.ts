@@ -8,15 +8,15 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
-    if (token) {
-      const session = await verifySessionToken(token);
-      // If user is authenticated, ensure they are staff/owner or admin
-      if (session && session.role === Role.CUSTOMER) {
-        return NextResponse.json(
-          { success: false, message: 'عدم دسترسی کافی برای اجرای پاکسازی عدم مراجعه' },
-          { status: 403 }
-        );
-      }
+    const session = token ? await verifySessionToken(token) : null;
+    if (!session) {
+      return NextResponse.json({ success: false, message: 'ورود به حساب کاربری الزامی است' }, { status: 401 });
+    }
+    if (session.role === Role.CUSTOMER) {
+      return NextResponse.json(
+        { success: false, message: 'عدم دسترسی کافی برای اجرای پاکسازی عدم مراجعه' },
+        { status: 403 }
+      );
     }
 
     const result = await pickupService.sweepNoShows();

@@ -35,6 +35,7 @@ export class InventoryService {
    * Checks if sufficient quantity is available
    */
   async checkAvailability(listingId: string, requestedQuantity: number): Promise<boolean> {
+    if (!Number.isSafeInteger(requestedQuantity) || requestedQuantity <= 0) return false;
     const status = await this.getInventory(listingId);
     if (!status) return false;
     return status.availableQuantity >= requestedQuantity;
@@ -53,14 +54,14 @@ export class InventoryService {
       UPDATE "ListingInventory"
       SET "reservedQuantity" = "reservedQuantity" + ${quantity},
           "version" = "version" + 1,
-          "updatedAt" = NOW()
+          "updatedAt" = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
       WHERE "listingId" = ${listingId}
         AND ("totalQuantity" - ("reservedQuantity" + "soldQuantity")) >= ${quantity}
         AND EXISTS (SELECT 1 FROM "Listing" l
           JOIN "ListingSafety" s ON s."listingId" = l.id
           JOIN "Merchant" m ON m.id = l."merchantId"
           WHERE l.id = ${listingId} AND l.status = 'PUBLISHED'
-            AND l."pickupEnd" > NOW() AND s."safetyStatus" = 'APPROVED'
+            AND l."pickupEnd" > (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') AND s."safetyStatus" = 'APPROVED'
             AND m."verificationStatus" = 'APPROVED');
     `;
 
@@ -80,7 +81,7 @@ export class InventoryService {
       const count = await db.$executeRaw`
         UPDATE "ListingInventory"
         SET "reservedQuantity" = "reservedQuantity" - ${quantity},
-            "version" = "version" + 1, "updatedAt" = NOW()
+            "version" = "version" + 1, "updatedAt" = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
         WHERE "listingId" = ${listingId} AND "reservedQuantity" >= ${quantity};
       `;
       await this.reconcileStatus(db, listingId);
@@ -94,29 +95,30 @@ export class InventoryService {
     await tx.$executeRaw`
       UPDATE "Listing" l SET status = CASE
         WHEN i."soldQuantity" >= i."totalQuantity" THEN 'SOLD_OUT'::"ListingStatus"
-        ELSE 'PUBLISHED'::"ListingStatus" END, "updatedAt" = NOW()
+        ELSE 'PUBLISHED'::"ListingStatus" END, "updatedAt" = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
       FROM "ListingInventory" i, "ListingSafety" s, "Merchant" m
       WHERE l.id = ${listingId} AND i."listingId" = l.id AND s."listingId" = l.id
         AND m.id = l."merchantId" AND m."verificationStatus" = 'APPROVED'
         AND l.status IN ('PUBLISHED', 'SOLD_OUT')
-        AND l."pickupEnd" > NOW() AND s."safetyStatus" = 'APPROVED';
+        AND l."pickupEnd" > (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') AND s."safetyStatus" = 'APPROVED';
     `;
   }
 
   /** Convert only an actual held quantity, preserving concurrent inventory bounds. */
-  async atomicConfirmSold(listingId: string, quantity: number): Promise<{ success: boolean }> {
+  async atomicConfirmSold(listingId: string, quantity: number, tx?: Prisma.TransactionClient): Promise<{ success: boolean }> {
     if (!Number.isInteger(quantity) || quantity <= 0) return { success: false };
-    return prisma.$transaction(async (tx) => {
-      const count = await tx.$executeRaw`
+    const confirm = async (db: Prisma.TransactionClient) => {
+      const count = await db.$executeRaw`
         UPDATE "ListingInventory"
         SET "reservedQuantity" = "reservedQuantity" - ${quantity},
             "soldQuantity" = "soldQuantity" + ${quantity},
-            "version" = "version" + 1, "updatedAt" = NOW()
+            "version" = "version" + 1, "updatedAt" = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
         WHERE "listingId" = ${listingId} AND "reservedQuantity" >= ${quantity};
       `;
-      await this.reconcileStatus(tx, listingId);
+      await this.reconcileStatus(db, listingId);
       return { success: count > 0 };
-    });
+    };
+    return tx ? confirm(tx) : prisma.$transaction(confirm);
   }
 }
 

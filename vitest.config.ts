@@ -5,8 +5,16 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
     fileParallelism: false,
+    coverage: {
+      provider: 'v8',
+      include: ['apps/web/src/**/*.{ts,tsx}', 'apps/web/public/sw.js', 'packages/*/src/**/*.{ts,tsx}', 'scripts/*.{ts,cjs}'],
+      exclude: ['**/*.d.ts'],
+      reporter: ['text', 'html', 'json', 'json-summary', 'lcov'],
+      reportOnFailure: true,
+      thresholds: { statements: 100, branches: 100, functions: 100, lines: 100 },
+    },
   },
   resolve: {
     alias: {

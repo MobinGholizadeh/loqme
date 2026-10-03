@@ -11,6 +11,16 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+function wasDismissed(): boolean {
+  try { return localStorage.getItem("loqme_pwa_dismissed") === "true"; }
+  catch { return false; }
+}
+
+function rememberDismissal(): void {
+  try { localStorage.setItem("loqme_pwa_dismissed", "true"); }
+  catch { /* Installation remains optional when browser storage is unavailable. */ }
+}
+
 export const PwaInstallPrompt: React.FC = () => {
   const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] =
@@ -55,7 +65,7 @@ export const PwaInstallPrompt: React.FC = () => {
     }
 
     // 3. Check if previously dismissed
-    const isDismissed = localStorage.getItem("loqme_pwa_dismissed");
+    const isDismissed = wasDismissed();
     if (isDismissed) {
       return;
     }
@@ -74,7 +84,7 @@ export const PwaInstallPrompt: React.FC = () => {
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      if (localStorage.getItem("loqme_pwa_dismissed") !== "true") {
+      if (!wasDismissed()) {
         setShowPrompt(true);
       }
     };
@@ -96,19 +106,23 @@ export const PwaInstallPrompt: React.FC = () => {
       return;
     }
 
-    await deferredPrompt.prompt();
-    const choiceResult = await deferredPrompt.userChoice;
-    if (choiceResult.outcome === "accepted") {
+    try {
+      await deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      if (choiceResult.outcome === "accepted") rememberDismissal();
+    } catch (err) {
+      console.warn("Installation prompt failed:", err);
+    } finally {
+      // A browser install event is single-use, including when it is dismissed.
       setShowPrompt(false);
-      localStorage.setItem("loqme_pwa_dismissed", "true");
+      setDeferredPrompt(null);
     }
-    setDeferredPrompt(null);
   };
 
   const handleDismiss = () => {
     setShowPrompt(false);
     setShowIosGuide(false);
-    localStorage.setItem("loqme_pwa_dismissed", "true");
+    rememberDismissal();
   };
 
   if (/^\/(checkout|listings|orders|merchant|admin|login|business)(\/|$)/.test(pathname))

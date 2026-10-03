@@ -171,22 +171,17 @@ export class ModerationService {
         orderBy: { createdAt: 'desc' },
         take: limit,
         skip: offset,
-        include: {
+        select: {
+          id: true, merchantId: true, overallRating: true, qualityRating: true,
+          valueRating: true, collectionRating: true, varietyRating: true, quantityRating: true,
+          commentFa: true, merchantReplyFa: true, merchantReplyAt: true, createdAt: true,
           customer: {
             select: {
-              id: true,
               fullName: true,
-              user: {
-                select: {
-                  mobile: true,
-                },
-              },
             },
           },
           order: {
             select: {
-              id: true,
-              orderNumber: true,
               items: {
                 select: {
                   listing: {

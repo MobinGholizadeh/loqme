@@ -12,21 +12,14 @@ export async function GET(
   try {
     const { id } = await params;
 
-    let customerId: string | undefined;
     const token = extractSessionToken(request);
-    if (token) {
-      const payload = await verifySessionToken(token);
-      if (payload) {
-        const customer = await prisma.customer.findUnique({
-          where: { userId: payload.userId },
-        });
-        if (customer) {
-          customerId = customer.id;
-        }
-      }
-    }
+    if (!token) return NextResponse.json({ success: false, message: 'احراز هویت الزامی است' }, { status: 401 });
+    const payload = await verifySessionToken(token);
+    if (!payload) return NextResponse.json({ success: false, message: 'نشست کاربری نامعتبر است' }, { status: 401 });
+    const customer = await prisma.customer.findUnique({ where: { userId: payload.userId } });
+    if (!customer) return NextResponse.json({ success: false, message: 'حساب مشتری یافت نشد' }, { status: 404 });
 
-    const order = await orderService.getOrderById(id, customerId);
+    const order = await orderService.getOrderById(id, customer.id);
 
     if (!order) {
       return NextResponse.json(
@@ -38,7 +31,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: order,
-    });
+    }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
     console.error('Error fetching order detail:', error);
     return NextResponse.json(

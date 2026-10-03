@@ -337,13 +337,17 @@ describe('Milestone M06 — Trust, Safety, Verification & Moderation', () => {
       const txOps: any[] = [];
       vi.spyOn(prisma, '$transaction').mockImplementation(async (callback: any) => {
         const tx = {
+          $queryRaw: vi.fn().mockResolvedValue([]),
           refund: {
+            findFirst: vi.fn().mockResolvedValue(null),
+            update: vi.fn().mockImplementation(args => ({ id: 'refund-rec-1', ...args.data })),
             create: vi.fn().mockImplementation((args) => {
               txOps.push({ type: 'REFUND_CREATE', ...args });
               return { id: 'refund-rec-1', ...args.data };
             }),
           },
           payment: {
+            findUnique: vi.fn().mockResolvedValue(mockPayment),
             update: vi.fn().mockImplementation((args) => {
               txOps.push({ type: 'PAYMENT_UPDATE', ...args });
               return args;

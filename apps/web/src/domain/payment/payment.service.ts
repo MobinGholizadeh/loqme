@@ -20,8 +20,12 @@ export class PaymentService {
       case PaymentGatewayType.ZARINPAL:
         return zarinpalGateway;
       case PaymentGatewayType.MOCK:
-      default:
+        if (process.env.NODE_ENV === 'production') {
+          throw new Error('Mock payments are disabled in production');
+        }
         return mockPaymentGateway;
+      default:
+        throw new Error('Unsupported payment gateway');
     }
   }
 
@@ -73,6 +77,9 @@ export class PaymentService {
     const gateway = this.getGateway(gatewayType);
 
     const amountToman = Number(order.totalAmountToman);
+    if (!Number.isSafeInteger(amountToman) || amountToman <= 0) {
+      return { success: false, authority: '', paymentUrl: '', gateway: gatewayType, errorMessage: 'مبلغ پرداخت معتبر نیست' };
+    }
     const description = `خرید بسته از سامانه لقمه - شماره سفارش ${order.orderNumber}`;
 
     const initResult = await gateway.initiatePayment({
@@ -138,6 +145,10 @@ export class PaymentService {
       return { success: false, errorMessage: 'تراکنش پرداخت مربوط به این کد رهگیری یافت نشد' };
     }
 
+    if (payment.status === PaymentStatus.REFUNDED) {
+      return { success: false, errorMessage: 'این پرداخت قبلاً مسترد شده است' };
+    }
+
     // Idempotent return if already succeeded
     if (payment.status === PaymentStatus.SUCCESS) {
       return {
@@ -148,48 +159,63 @@ export class PaymentService {
       };
     }
 
+    const verifiedAmountToman = Number(payment.amountToman);
+    if (!Number.isSafeInteger(verifiedAmountToman) || verifiedAmountToman <= 0) {
+      return { success: false, errorMessage: 'مبلغ پرداخت معتبر نیست' };
+    }
     const gateway = this.getGateway(payment.gateway);
     const verifyResult = await gateway.verifyPayment({
       authority,
-      amountToman: Number(payment.amountToman),
+      amountToman: verifiedAmountToman,
     });
 
-    // Record verification event
-    await prisma.paymentEvent.create({
-      data: {
-        paymentId: payment.id,
-        eventType: verifyResult.success ? 'VERIFY_SUCCESS' : 'VERIFY_FAILED',
-        payloadJson: verifyResult.rawPayload || { errorMessage: verifyResult.errorMessage },
-        ipAddress,
-      },
-    });
-
-    if (!verifyResult.success) {
-      await prisma.payment.update({
-        where: { id: payment.id },
+    // Provider calls happen outside the lock. Persist their result only after
+    // rechecking state, so a delayed failure cannot overwrite success or a refund.
+    return prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Payment" WHERE "id" = ${payment.id} FOR UPDATE`;
+      const current = await tx.payment.findUnique({ where: { id: payment.id }, include: { order: true } });
+      if (!current || current.status === PaymentStatus.REFUNDED) {
+        return { success: false, errorMessage: 'پرداخت یافت نشد یا قبلاً مسترد شده است' };
+      }
+      if (current.status === PaymentStatus.SUCCESS) {
+        return { success: true, payment: current, orderId: current.orderId, referenceId: current.referenceId || undefined };
+      }
+      // Record verification event
+      await tx.paymentEvent.create({
         data: {
-          status: PaymentStatus.FAILED,
-          errorMessage: verifyResult.errorMessage,
+          paymentId: payment.id,
+          eventType: verifyResult.success ? 'VERIFY_SUCCESS' : 'VERIFY_FAILED',
+          payloadJson: verifyResult.rawPayload || { errorMessage: verifyResult.errorMessage },
+          ipAddress,
         },
       });
 
-      return {
-        success: false,
-        payment,
-        orderId: payment.orderId,
-        errorMessage: verifyResult.errorMessage || 'پرداخت توسط درگاه بانکی تایید نشد',
-      };
-    }
+      if (!verifyResult.success) {
+        await tx.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: PaymentStatus.FAILED,
+            errorMessage: verifyResult.errorMessage,
+          },
+        });
 
-    // Update payment record to SUCCESS
-    const updatedPayment = await prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        status: PaymentStatus.SUCCESS,
-        referenceId: verifyResult.referenceId,
-        trackingCode: trackingCode || verifyResult.trackingCode,
-      },
-      include: { order: true },
+        return {
+          success: false,
+          payment,
+          orderId: payment.orderId,
+          errorMessage: verifyResult.errorMessage || 'پرداخت توسط درگاه بانکی تایید نشد',
+        };
+      }
+
+      // Update payment record to SUCCESS
+      const updatedPayment = await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.SUCCESS,
+          referenceId: verifyResult.referenceId,
+          trackingCode: trackingCode || verifyResult.trackingCode,
+        },
+        include: { order: true },
     });
 
     return {
@@ -198,6 +224,7 @@ export class PaymentService {
       orderId: payment.orderId,
       referenceId: verifyResult.referenceId,
     };
+    });
   }
 
   /**
@@ -230,23 +257,44 @@ export class PaymentService {
     }
 
     const refundAmount = amountToman ?? Number(payment.amountToman);
+    // The current order lifecycle and ledger reversal support full refunds only.
+    // Reject other amounts before calling the provider or changing financial state.
+    if (!Number.isSafeInteger(refundAmount) || refundAmount <= 0 ||
+      BigInt(refundAmount) !== payment.amountToman) {
+      return { success: false, errorMessage: 'فقط استرداد کامل مبلغ پرداخت‌شده پشتیبانی می‌شود' };
+    }
     const gateway = this.getGateway(payment.gateway);
-
-    let refundResult = { success: true, refundId: `REF-${Date.now()}`, errorMessage: undefined as string | undefined };
-    if (gateway.refundPayment) {
-      const res = await gateway.refundPayment({
-        authority: payment.authority,
-        amountToman: refundAmount,
-        reason: reasonFa,
+    if (!gateway.refundPayment) {
+      return { success: false, errorMessage: 'استرداد خودکار وجه برای این درگاه پشتیبانی نمی‌شود' };
+    }
+    // Persist the claim before contacting the provider. A crash or uncertain
+    // provider response must not permit a second transfer on an automatic retry.
+    const pendingRefund = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Payment" WHERE "id" = ${payment.id} FOR UPDATE`;
+      const current = await tx.payment.findUnique({ where: { id: payment.id } });
+      if (current?.status !== PaymentStatus.SUCCESS) return null;
+      const existing = await tx.refund.findFirst({
+        where: { paymentId: payment.id, status: { not: RefundStatus.REJECTED } },
       });
-      refundResult = {
-        success: res.success,
-        refundId: res.refundId || `REF-${Date.now()}`,
-        errorMessage: res.errorMessage,
-      };
+      if (existing) return null;
+      return tx.refund.create({
+        data: { paymentId: payment.id, orderId: payment.orderId, amountToman: BigInt(refundAmount), reasonFa, status: RefundStatus.REQUESTED, processedByUserId },
+      });
+    });
+    if (!pendingRefund) {
+      return { success: false, errorMessage: 'استرداد این پرداخت قبلاً ثبت شده یا در حال بررسی است' };
+    }
+    let refundResult;
+    try {
+      refundResult = await gateway.refundPayment({
+        authority: payment.authority, amountToman: refundAmount, reason: reasonFa,
+      });
+    } catch {
+      return { success: false, errorMessage: 'نتیجه استرداد نامشخص است و نیاز به بررسی دارد؛ درخواست مجدد ارسال نشد' };
     }
 
     if (!refundResult.success) {
+      await prisma.refund.update({ where: { id: pendingRefund.id }, data: { status: RefundStatus.REJECTED } });
       return {
         success: false,
         errorMessage: refundResult.errorMessage || 'درخواست استرداد وجه توسط درگاه بانکی رد شد',
@@ -255,16 +303,7 @@ export class PaymentService {
 
     const now = new Date();
     const refund = await prisma.$transaction(async (tx) => {
-      const refundRecord = await tx.refund.create({
-        data: {
-          paymentId: payment.id,
-          orderId: payment.orderId,
-          amountToman: BigInt(refundAmount),
-          reasonFa,
-          status: RefundStatus.SETTLED,
-          processedByUserId,
-        },
-      });
+      const refundRecord = await tx.refund.update({ where: { id: pendingRefund.id }, data: { status: RefundStatus.SETTLED } });
 
       // Update Payment status to REFUNDED
       await tx.payment.update({
@@ -278,6 +317,7 @@ export class PaymentService {
                 refundId: refundRecord.id,
                 amountToman: refundAmount,
                 reasonFa,
+                gatewayRefundId: refundResult.refundId || null,
               },
             },
           },
@@ -347,4 +387,3 @@ export class PaymentService {
 }
 
 export const paymentService = new PaymentService();
-

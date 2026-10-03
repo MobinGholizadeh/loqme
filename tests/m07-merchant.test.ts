@@ -253,11 +253,13 @@ describe('Milestone M07 — Merchant Product & Management Portal', () => {
         {
           id: 'o1',
           totalAmountToman: BigInt(200000),
+          merchantPayoutAmountToman: BigInt(180000),
           items: [{ quantity: 2 }],
         },
         {
           id: 'o2',
           totalAmountToman: BigInt(100000),
+          merchantPayoutAmountToman: BigInt(90000),
           items: [{ quantity: 1 }],
         },
       ] as any);
@@ -282,8 +284,8 @@ describe('Milestone M07 — Merchant Product & Management Portal', () => {
 
     it('calculates settlement statement with double-entry ledger history', async () => {
       vi.spyOn(prisma.order, 'findMany').mockResolvedValue([
-        { id: 'o1', totalAmountToman: BigInt(100000), status: 'COMPLETED' },
-        { id: 'o2', totalAmountToman: BigInt(50000), status: 'COMPLETED' },
+        { id: 'o1', totalAmountToman: BigInt(100000), commissionAmountToman: BigInt(10000), merchantPayoutAmountToman: BigInt(90000), status: 'COMPLETED' },
+        { id: 'o2', totalAmountToman: BigInt(50000), commissionAmountToman: BigInt(5000), merchantPayoutAmountToman: BigInt(45000), status: 'COMPLETED' },
       ] as any);
 
       vi.spyOn(prisma.financialTransaction, 'findMany').mockResolvedValue([
@@ -291,9 +293,9 @@ describe('Milestone M07 — Merchant Product & Management Portal', () => {
           id: 'tx-1',
           orderId: 'o1',
           amountToman: BigInt(100000),
-          type: 'ORDER_PAYMENT',
+          type: 'CUSTOMER_PAYMENT',
           createdAt: new Date(),
-          order: { orderNumber: 'LQ-1001' },
+          order: { orderNumber: 'LQ-1001', commissionAmountToman: BigInt(10000) },
         },
       ] as any);
 
@@ -319,6 +321,8 @@ describe('Milestone M07 — Merchant Product & Management Portal', () => {
     const merchantId = 'merchant-0001';
 
     it('allows store owner to invite a new cashier staff member by mobile', async () => {
+      vi.spyOn(prisma, '$transaction').mockImplementation(async (callback: any) => callback(prisma));
+      vi.spyOn(prisma.user, 'updateMany').mockResolvedValue({ count: 0 });
       vi.spyOn(merchantService, 'resolveMerchantAndAuthorize').mockResolvedValue({
         merchant: { id: merchantId, ownerUserId },
         isOwner: true,
@@ -361,6 +365,8 @@ describe('Milestone M07 — Merchant Product & Management Portal', () => {
     });
 
     it('prevents duplicate staff invitation with the same mobile number', async () => {
+      vi.spyOn(prisma, '$transaction').mockImplementation(async (callback: any) => callback(prisma));
+      vi.spyOn(prisma.user, 'updateMany').mockResolvedValue({ count: 0 });
       vi.spyOn(merchantService, 'resolveMerchantAndAuthorize').mockResolvedValue({
         merchant: { id: merchantId, ownerUserId },
         isOwner: true,

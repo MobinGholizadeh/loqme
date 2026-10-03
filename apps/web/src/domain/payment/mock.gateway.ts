@@ -37,7 +37,7 @@ export class MockPaymentGateway implements IPaymentGateway {
       };
     }
 
-    if (amountToman <= 0) {
+    if (!Number.isSafeInteger(amountToman) || amountToman <= 0) {
       return {
         success: false,
         errorMessage: 'مبلغ تراکنش نامعتبر است',
@@ -82,4 +82,3 @@ export class MockPaymentGateway implements IPaymentGateway {
 }
 
 export const mockPaymentGateway = new MockPaymentGateway();
-

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { csvRow } from '@/lib/utils/csv';
 import { OrderStatus, RefundStatus, ListingStatus } from '@prisma/client';
 import {
   AnalyticsTimeframe,
@@ -476,7 +477,7 @@ export class AnalyticsService {
     rows.push('تاریخ شمسی,تاریخ میلادی,تعداد سفارش‌ها,تعداد بسته,فروش ناخالص (تومان),کارمزد (تومان)');
     for (const d of report.dailyTrends) {
       rows.push(
-        `${d.dateFa},${d.dateIso},${d.ordersCount},${d.soldBags},${d.gmvToman},${d.commissionToman}`
+        csvRow([d.dateFa, d.dateIso, d.ordersCount, d.soldBags, d.gmvToman, d.commissionToman])
       );
     }
     rows.push('');
@@ -485,7 +486,7 @@ export class AnalyticsService {
     rows.push('نام محله,نام شهر,تعداد فروشگاه فعال,بسته‌های موجود,تعداد سفارش,فروش کل (تومان),شاخص تقاضای برآورده‌نشده');
     for (const n of report.neighborhoodDensity) {
       rows.push(
-        `${n.neighborhoodNameFa},${n.cityNameFa},${n.activeMerchantsCount},${n.activeListingsCount},${n.totalOrdersCount},${n.totalGmvToman},${n.unmetDemandScore}`
+        csvRow([n.neighborhoodNameFa, n.cityNameFa, n.activeMerchantsCount, n.activeListingsCount, n.totalOrdersCount, n.totalGmvToman, n.unmetDemandScore])
       );
     }
 

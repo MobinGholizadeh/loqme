@@ -49,7 +49,7 @@ export class OrderService {
     const {
       customerId,
       reservationId,
-      gateway = PaymentGatewayType.MOCK,
+      gateway = process.env.NODE_ENV === 'production' ? PaymentGatewayType.ZARINPAL : PaymentGatewayType.MOCK,
       notesFa,
       callbackUrl,
       mobile,
@@ -81,13 +81,13 @@ export class OrderService {
     }
 
     // Safety lockout check
-    if (reservation.listing.safety?.safetyStatus && reservation.listing.safety.safetyStatus !== SafetyStatus.APPROVED) {
+    if (reservation.listing.safety?.safetyStatus !== SafetyStatus.APPROVED) {
       return { success: false, message: 'این بسته به علت بررسی سلامت و بهداشت در حال حاضر قابل سفارش نیست' };
     }
 
     // 2. Check if an order already exists for this reservation
     if (reservation.order) {
-      if (reservation.order.status === OrderStatus.PAID) {
+      if (reservation.order.status !== OrderStatus.PENDING_PAYMENT) {
         return { success: false, message: 'این سفارش قبلاً پرداخت و نهایی شده است' };
       }
 
@@ -98,6 +98,10 @@ export class OrderService {
         callbackUrl,
         mobile,
       });
+
+      if (!initResult.success) {
+        return { success: false, message: initResult.errorMessage || 'خطا در برقراری ارتباط با درگاه پرداخت' };
+      }
 
       return {
         success: true,
@@ -113,7 +117,7 @@ export class OrderService {
     const unitPriceToman = Number(listing.discountedPriceToman);
     const totalAmountToman = unitPriceToman * reservation.quantity;
 
-    const commissionPercent = Number(merchant.commissionPercent) || 10.0;
+    const commissionPercent = Number(merchant.commissionPercent ?? 10.0);
     const commissionAmountToman = Math.round((totalAmountToman * commissionPercent) / 100);
     const merchantPayoutAmountToman = totalAmountToman - commissionAmountToman;
 
@@ -192,152 +196,67 @@ export class OrderService {
     }
 
     const orderId = verifyResult.orderId;
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        items: true,
-        reservation: true,
-      },
-    });
-
-    if (!order) {
-      return { success: false, message: 'سفارش مورد نظر یافت نشد' };
-    }
-
-    // Idempotent completion check
-    if (order.status === OrderStatus.PAID || order.status === OrderStatus.READY_FOR_PICKUP) {
-      return {
-        success: true,
-        order,
-        referenceId: verifyResult.referenceId,
-        orderNumber: order.orderNumber,
-      };
-    }
-
-    // 2. Strict amount verification guard (Security: Zero mismatch tolerance)
-    const verifiedAmount = Number(verifyResult.payment.amountToman);
-    const orderTotal = Number(order.totalAmountToman);
-    if (verifiedAmount !== orderTotal) {
-      console.error(`Security Alert: Amount mismatch on order ${order.id}. Order total: ${orderTotal}, Verified: ${verifiedAmount}`);
-      return {
-        success: false,
-        message: 'مغایرت مبلغ پرداختی با فاکتور سفارش. تراکنش لغو شد.',
-      };
-    }
-
-    const now = new Date();
-
-    // 3. Update Order status to READY_FOR_PICKUP
-    const updatedOrder = await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        status: OrderStatus.READY_FOR_PICKUP,
-        updatedAt: now,
-      },
-    });
-
-    // Initialize pickup verification record (QR token base and 4-digit OTP)
+    if (!orderId) return { success: false, message: 'سفارش مورد نظر یافت نشد' };
+    let completedNow = false;
+    let result: VerifyOrderPaymentResult;
     try {
-      await pickupService.getOrCreateVerification(order.id);
-    } catch (verErr) {
-      console.warn('Failed to pre-initialize pickup verification:', verErr);
-    }
-
-    // 4. Convert reservation to CONVERTED_TO_ORDER
-    if (order.reservationId) {
-      await prisma.reservation.update({
-        where: { id: order.reservationId },
-        data: {
-          status: ReservationStatus.CONVERTED_TO_ORDER,
-          updatedAt: now,
-        },
-      });
-    }
-
-    // 5. Atomically confirm inventory sold for each order item
-    for (const item of order.items) {
-      await inventoryService.atomicConfirmSold(item.listingId, item.quantity);
-    }
-
-    // 6. Write double-entry Financial Ledger transactions
-    const totalAmount = BigInt(order.totalAmountToman);
-    const merchantPayout = BigInt(order.merchantPayoutAmountToman);
-    const platformCommission = BigInt(order.commissionAmountToman);
-
-    await prisma.$transaction([
-      // A. Gross Merchandise Value received from customer
-      prisma.financialTransaction.create({
-        data: {
-          orderId: order.id,
-          type: FinancialTransactionType.CUSTOMER_PAYMENT,
-          debitAccount: 'CUSTOMER_PAYMENT',
-          creditAccount: 'PLATFORM_CLEARING',
-          amountToman: totalAmount,
-          referenceNumber: verifyResult.referenceId,
-        },
-      }),
-      // B. Merchant payable allocated
-      prisma.financialTransaction.create({
-        data: {
-          orderId: order.id,
-          type: FinancialTransactionType.MERCHANT_PAYOUT,
-          debitAccount: 'PLATFORM_CLEARING',
-          creditAccount: 'MERCHANT_PAYABLE',
-          amountToman: merchantPayout,
-          referenceNumber: verifyResult.referenceId,
-        },
-      }),
-      // C. Platform commission recognized
-      prisma.financialTransaction.create({
-        data: {
-          orderId: order.id,
-          type: FinancialTransactionType.COMMISSION_EARNED,
-          debitAccount: 'PLATFORM_CLEARING',
-          creditAccount: 'PLATFORM_COMMISSION',
-          amountToman: platformCommission,
-          referenceNumber: verifyResult.referenceId,
-        },
-      }),
-    ]);
-
-    // 7. Update Customer cumulative savings
-    try {
-      let orderSavings = 0;
-      for (const item of order.items) {
-        const listing = await prisma.listing.findUnique({
-          where: { id: item.listingId },
-          select: { originalPriceToman: true, discountedPriceToman: true },
+      result = await prisma.$transaction(async (tx): Promise<VerifyOrderPaymentResult> => {
+        // Serialize callbacks before reading state. All sale/ledger effects commit together.
+        await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${orderId} FOR UPDATE`;
+        const order = await tx.order.findUnique({ where: { id: orderId }, include: { items: true, reservation: true } });
+        if (!order) return { success: false, message: 'سفارش مورد نظر یافت نشد' };
+        if (BigInt(verifyResult.payment.amountToman) !== order.totalAmountToman) {
+          return { success: false, message: 'مغایرت مبلغ پرداختی با فاکتور سفارش. تراکنش نیازمند بررسی است.' };
+        }
+        if (([OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP, OrderStatus.COMPLETED] as OrderStatus[]).includes(order.status)) {
+          return { success: true, order, referenceId: verifyResult.referenceId, orderNumber: order.orderNumber };
+        }
+        if (order.status !== OrderStatus.PENDING_PAYMENT || !order.reservationId) {
+          return { success: false, message: 'وضعیت سفارش اجازه تکمیل پرداخت را نمی‌دهد؛ با پشتیبانی تماس بگیرید.' };
+        }
+        const now = new Date();
+        const claimed = await tx.reservation.updateMany({
+          where: { id: order.reservationId, status: ReservationStatus.PENDING, expiresAt: { gt: now } },
+          data: { status: ReservationStatus.CONVERTED_TO_ORDER, updatedAt: now },
         });
-        if (listing) {
-          const diff = Number(listing.originalPriceToman - listing.discountedPriceToman);
-          if (diff > 0) {
-            orderSavings += diff * item.quantity;
+        if (claimed.count !== 1) {
+          return { success: false, message: 'رزرو منقضی یا آزاد شده است؛ پرداخت برای بررسی و استرداد نیازمند پیگیری پشتیبانی است.' };
+        }
+        for (const item of order.items) {
+          const sold = await inventoryService.atomicConfirmSold(item.listingId, item.quantity, tx);
+          if (!sold.success) throw new Error('Reserved inventory unavailable');
+        }
+        const updatedOrder = await tx.order.update({ where: { id: order.id }, data: { status: OrderStatus.READY_FOR_PICKUP, updatedAt: now } });
+        const transfers = [
+          { type: FinancialTransactionType.CUSTOMER_PAYMENT, debitAccount: 'CUSTOMER_PAYMENT', creditAccount: 'PLATFORM_CLEARING', amountToman: order.totalAmountToman },
+          { type: FinancialTransactionType.MERCHANT_PAYOUT, debitAccount: 'PLATFORM_CLEARING', creditAccount: 'MERCHANT_PAYABLE', amountToman: order.merchantPayoutAmountToman },
+          { type: FinancialTransactionType.COMMISSION_EARNED, debitAccount: 'PLATFORM_CLEARING', creditAccount: 'PLATFORM_COMMISSION', amountToman: order.commissionAmountToman },
+        ];
+        for (const transfer of transfers) {
+          await tx.financialTransaction.create({ data: { ...transfer, orderId: order.id, referenceNumber: verifyResult.referenceId } });
+        }
+        let savings = BigInt(0);
+        for (const item of order.items) {
+          const listing = await tx.listing.findUnique({ where: { id: item.listingId }, select: { originalPriceToman: true } });
+          if (listing) {
+            const difference = listing.originalPriceToman - item.unitPriceToman;
+            if (difference > BigInt(0)) savings += difference * BigInt(item.quantity);
           }
         }
-      }
-
-      if (orderSavings > 0) {
-        await prisma.customer.update({
-          where: { id: order.customerId },
-          data: {
-            cumulativeSavingsToman: {
-              increment: BigInt(orderSavings),
-            },
-          },
-        });
-      }
-    } catch (savingsErr) {
-      console.warn('Failed to increment customer savings metric:', savingsErr);
+        if (savings > BigInt(0)) await tx.customer.update({ where: { id: order.customerId }, data: { cumulativeSavingsToman: { increment: savings } } });
+        completedNow = true;
+        return { success: true, order: updatedOrder, referenceId: verifyResult.referenceId, orderNumber: order.orderNumber };
+      });
+    } catch {
+      // Gateway verification remains recorded; a callback retry can safely resume completion.
+      return { success: false, message: 'تکمیل سفارش انجام نشد؛ پرداخت ثبت شده است و نیازمند بررسی یا تلاش مجدد است.' };
     }
-
-    return {
-      success: true,
-      order: updatedOrder,
-      referenceId: verifyResult.referenceId,
-      orderNumber: order.orderNumber,
-    };
+    if (completedNow) {
+      try { await pickupService.getOrCreateVerification(orderId); }
+      catch { console.warn('Failed to pre-initialize pickup verification'); }
+    }
+    return result;
   }
-
   /**
    * Retrieves all orders for a customer with merchant and listing relations
    */
