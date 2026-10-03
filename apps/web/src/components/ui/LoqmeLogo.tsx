@@ -64,7 +64,7 @@ export const LoqmeLogo: React.FC<LoqmeLogoProps> = ({
       alt="Loqme Logo"
       width={dim.icon}
       height={dim.icon}
-      className="object-contain shrink-0 transition-transform duration-200 group-hover:scale-105 select-none"
+      className="object-contain shrink-0 select-none"
       style={{ width: `${dim.icon}px`, height: `${dim.icon}px` }}
     />
   );

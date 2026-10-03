@@ -25,7 +25,7 @@ async function verify() {
 describe('OTP form authentication flow', () => {
   it('normalizes Persian/Arabic digits and waits for cookie-backed session before success', async () => {
     const success = vi.fn(); render(<OtpLoginForm preventRedirect onSuccess={success} embedded />); await phone(); await verify();
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ mobile: '09121111111' });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ mobile: '09121111111', mode: 'login', audience: 'customer' });
     expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ mobile: '09121111111', code: '12345' });
     expect(fetchMock).toHaveBeenLastCalledWith('/api/auth/session', { cache: 'no-store', credentials: 'same-origin' });
     expect(state.setUser).toHaveBeenCalledWith({ id: 'user', role: 'CUSTOMER' }); expect(success).toHaveBeenCalledOnce();

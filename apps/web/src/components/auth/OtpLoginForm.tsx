@@ -65,6 +65,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   // Request OTP
   const handleRequestOtp = async (targetMobile?: string) => {
     const phoneToSubmit = targetMobile || mobile;
+    if (isLoading) return;
     setError(null);
     setAccountNotFound(false);
     setAccountAlreadyExists(false);
@@ -78,16 +79,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
 
     setIsLoading(true);
     try {
-      // In embedded mode, send plain mobile for backward compatibility with nested flows.
-      // In normal auth forms, pass mode & checkExists so server validates existence before dispatching OTP.
-      const payload = embedded
-        ? { mobile: phoneToSubmit }
-        : {
-            mobile: phoneToSubmit,
-            mode,
-            audience,
-            checkExists: mode === 'login',
-          };
+      const payload = { mobile: phoneToSubmit, mode, audience };
 
       const res = await fetch("/api/auth/request-otp", {
         method: "POST",
@@ -196,10 +188,12 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
 
   return (
     <div className="space-y-6">
-      {!embedded && audience === 'customer' && step === 'PHONE' && (
+      {(audience === 'customer' || embedded) && step === 'PHONE' && (
         <div className="flex p-1 bg-loqme-neutral-100 rounded-xl border border-loqme-neutral-200/80 text-sm font-medium">
           <button
             type="button"
+            disabled={isLoading}
+            aria-pressed={mode === 'login'}
             onClick={() => {
               setMode('login');
               setError(null);
@@ -216,6 +210,8 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
           </button>
           <button
             type="button"
+            disabled={isLoading}
+            aria-pressed={mode === 'register'}
             onClick={() => {
               setMode('register');
               setError(null);
@@ -269,7 +265,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
               <p className="text-xs text-amber-800 leading-relaxed">
                 {audience === 'business'
                   ? 'این شماره موبایل در سیستم همکاران لقمه ثبت نشده است. برای ثبت فروشگاه، از بخش ثبت کسب‌وکار اقدام فرمایید.'
-                  : 'هیچ حسابی با این شماره در پایگاه داده لقمه ثبت نشده است. می‌توانید به سادگی و در چند ثانیه ثبت‌نام کنید.'}
+                  : 'هنوز با این شماره در لقمه حساب ندارید. برای ادامه، ثبت‌نام کنید.'}
               </p>
             </div>
           </div>

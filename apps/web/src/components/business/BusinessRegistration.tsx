@@ -158,7 +158,7 @@ export function BusinessRegistration() {
     </div>}
     {step === 4 && <div className="space-y-6">
       <Input id="business-ownerName" label="نام و نام خانوادگی مالک" autoComplete="name" value={ownerName} onChange={e => setOwnerName(e.target.value)} error={errors.ownerName} maxLength={100} />
-      {session.status === 'loading' ? <HeartbeatLoading /> : session.status === 'authenticated' ? <div className="business-info"><p>شماره تأییدشده: <bdi>{toPersianDigits(session.user?.mobile || '')}</bdi></p><p className="text-sm mt-2">درخواست با همین حساب ثبت می‌شود. پس از بررسی و تأیید لقمه، دسترسی فروشگاه فعال خواهد شد.</p></div> : <Suspense fallback={<HeartbeatLoading />}><OtpLoginForm audience="business" embedded preventRedirect /></Suspense>}
+      {session.status === 'loading' ? <HeartbeatLoading /> : session.status === 'authenticated' ? <div className="business-info"><p>شماره تأییدشده: <bdi>{toPersianDigits(session.user?.mobile || '')}</bdi></p><p className="text-sm mt-2">درخواست با همین حساب ثبت می‌شود. پس از بررسی و تأیید لقمه، دسترسی فروشگاه فعال خواهد شد.</p></div> : <Suspense fallback={<HeartbeatLoading />}><OtpLoginForm audience="business" embedded preventRedirect initialMode="register" /></Suspense>}
       {session.status === 'authenticated' && <Button className="w-full" size="lg" isLoading={saving} onClick={submit}>تأیید و ارسال درخواست</Button>}
     </div>}
     {step > 0 && step < 4 && <Button className="w-full" size="lg" onClick={next}>{step === 3 ? 'تأیید ساعت‌های کاری و ادامه' : 'تأیید و ادامه'}</Button>}

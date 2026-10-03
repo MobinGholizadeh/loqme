@@ -12,7 +12,7 @@ on:
       build_type:
         description: 'Build Type (debug or release)'
         required: true
-        default: 'debug'
+        default: 'release'
         type: choice
         options:
           - debug
@@ -57,16 +57,44 @@ jobs:
           chmod +x ./gradlew
 
       - name: Assemble Debug APK
-        if: "${{ github.event_name != 'workflow_dispatch' || github.event.inputs.build_type == 'debug' }}"
+        if: "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.build_type == 'debug' }}"
         run: |
           cd android
           gradle assembleDebug --stacktrace
 
+      - name: Restore persistent release signing key
+        if: github.event.inputs.build_type != 'debug'
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          test -n "$KEYSTORE" && test -n "$KEY_PASSWORD" && test -n "$KEY_ALIAS"
+          umask 077
+          printf '%s' "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/loqme-release.jks"
+
       - name: Assemble Release APK
-        if: "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.build_type == 'release' }}"
+        if: github.event.inputs.build_type != 'debug'
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/loqme-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           cd android
           gradle assembleRelease --stacktrace
+
+      - name: Verify release signature and wait for website trust deployment
+        if: github.event.inputs.build_type != 'debug'
+        run: |
+          set -euo pipefail
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          "$SIGNER" verify --print-certs android/app/build/outputs/apk/release/app-release.apk > "$RUNNER_TEMP/apk-cert.txt"
+          python3 scripts/verify-android-release.py "$RUNNER_TEMP/apk-cert.txt" --wait-seconds 900
+
+      - name: Remove temporary signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/loqme-release.jks"
 
       - name: Locate Generated APK
         id: find_apk
@@ -84,6 +112,7 @@ jobs:
           retention-days: 14
 
       - name: Publish Release Asset to GitHub Releases
+        if: github.event.inputs.build_type != 'debug'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
@@ -91,5 +120,9 @@ jobs:
           files: ${{ steps.find_apk.outputs.apk_path }}
           generate_release_notes: true
           make_latest: true
+          body: |
+            Signed Loqme Android release for https://loqme.shop.
+            If you installed the old debug APK, uninstall that debug app before installing this release.
+            Loqme pages use verified full-screen TWA mode; external websites may show browser controls.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

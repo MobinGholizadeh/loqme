@@ -26,7 +26,7 @@ test("OTP error and resend recover without losing the phone", async ({
   await page
     .getByRole("button", { name: "ارسال مجدد کد", exact: true })
     .click();
-  expect((await resend).postDataJSON()).toEqual({ mobile: user.mobile });
+  expect((await resend).postDataJSON()).toMatchObject({ mobile: user.mobile, mode: 'login' });
   await page.getByRole("button", { name: "ویرایش شماره" }).click();
   await expect(page.getByLabel("شماره موبایل", { exact: true })).toHaveValue(
     user.mobile,

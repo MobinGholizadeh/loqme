@@ -117,6 +117,8 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
+- [ ] **CP-10.19 — Android launch/account security (2026-10-03)**: Implementation and local checks pass (86 focused cases, 9 browser cases, build/lint/types). User authorized push. Persistent signed Android release with correct domain trust, default-login existence enforcement, restricted lookup/OTP abuse surfaces and consistent profile logo. CI/database/deployment/device acceptance pending; unpatched development dependency advisory remains. See [CP10_19_ANDROID_AUTH_SECURITY.md](../CP10_19_ANDROID_AUTH_SECURITY.md).
+
 - [x] **CP-10.18 — Persian brand SEO implementation (2026-10-03)**: User-authorized code and push scope. Static visible Persian homepage identity, WebSite/Organization JSON-LD, home/explore canonicals, auth noindex and sitemap cleanup. 10 focused SEO tests, 3 optimized-build browser tests, build/lint/workspace types pass; mobile screenshot inspected. Google indexing/ranking and deployment verification are separate, pending operational evidence. See [PERSIAN_SEO.md](../PERSIAN_SEO.md).
 
 - [ ] **CP-10.17 — Login persistence (2026-09-28)**: User-authorized production account login-loop repair. Persisted-cookie confirmation, fresh post-login document and private/no-store session/protected responses. 269 fresh database tests, all 95 browser cases and build/lint/types pass; production release checks pending. See [CP10_17_LOGIN_PERSISTENCE.md](../CP10_17_LOGIN_PERSISTENCE.md).

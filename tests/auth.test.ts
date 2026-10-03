@@ -55,7 +55,7 @@ describe('Authentication & OTP Security Domain', () => {
     const testMobile = '09129999999';
 
     // 1. Request OTP
-    const requestResult = await authService.requestOtp(testMobile);
+    const requestResult = await authService.requestOtp(testMobile, { mode: 'register' });
     expect(requestResult.success).toBe(true);
     expect(requestResult.expiresInSeconds).toBe(120);
 
@@ -79,19 +79,19 @@ describe('Authentication & OTP Security Domain', () => {
     const rateMobile = '09128888888';
 
     // 1st request
-    const r1 = await authService.requestOtp(rateMobile);
+    const r1 = await authService.requestOtp(rateMobile, { mode: 'register' });
     expect(r1.success).toBe(true);
 
     // 2nd request
-    const r2 = await authService.requestOtp(rateMobile);
+    const r2 = await authService.requestOtp(rateMobile, { mode: 'register' });
     expect(r2.success).toBe(true);
 
     // 3rd request
-    const r3 = await authService.requestOtp(rateMobile);
+    const r3 = await authService.requestOtp(rateMobile, { mode: 'register' });
     expect(r3.success).toBe(true);
 
     // 4th request must be rate limited!
-    const r4 = await authService.requestOtp(rateMobile);
+    const r4 = await authService.requestOtp(rateMobile, { mode: 'register' });
     expect(r4.success).toBe(false);
     expect(r4.cooldownSeconds).toBeGreaterThan(0);
   });

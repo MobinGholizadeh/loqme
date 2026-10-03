@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Error in verify-otp:', error);
+    console.error('[Auth] OTP verification failed');
     return NextResponse.json(
       { success: false, message: 'خطای سرور در تایید کد' },
       { status: 500 }

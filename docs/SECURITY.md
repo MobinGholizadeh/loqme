@@ -6,6 +6,8 @@
 
 ## 1. Authentication & Session Management
 
+CP-10.19 (2026-10-03): Login is now the default OTP intent; only explicit registration permits a missing account. Phone checks run after rate limiting; request routes add an IP limit, browser-origin checks, bounded bodies and no-store. Public account lookup is retired (410); limited existence disclosure in the login form is intentional. Production sessions reject missing/short/default signing keys. Android releases use a stable private signing key and verify the live website association before publication. Exact limits, proxy assumptions, residual per-process throttling, development dependency advisory and release gates are in [CP10_19_ANDROID_AUTH_SECURITY.md](CP10_19_ANDROID_AUTH_SECURITY.md).
+
 * **Phone-First OTP**: Authentication is anchored on verified Iranian mobile phone numbers (`09xxxxxxxxx`).
 * **Cryptographic OTP Generation**: 5-digit cryptographically secure pseudo-random numbers (CSPRNG). Validity window: **2 minutes**.
 * **Rate Limiting**: Maximum 3 OTP requests per 10-minute window per phone number and per client IP to prevent SMS fatigue and gateway exhaustion.

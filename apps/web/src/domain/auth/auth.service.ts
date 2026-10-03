@@ -33,6 +33,12 @@ export class AuthService {
    */
   private checkRateLimit(mobile: string): { allowed: boolean; cooldownSeconds?: number } {
     const now = Date.now();
+    for (const [key, times] of Array.from(inMemoryRequestTimestamps.entries())) {
+      if (!times.some(t => now - t < RATE_LIMIT_WINDOW_MS)) inMemoryRequestTimestamps.delete(key);
+    }
+    if (!inMemoryRequestTimestamps.has(mobile) && inMemoryRequestTimestamps.size >= 10000) {
+      return { allowed: false, cooldownSeconds: 600 };
+    }
     const timestamps = inMemoryRequestTimestamps.get(mobile) || [];
     const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
 
@@ -52,11 +58,26 @@ export class AuthService {
    * Initiates OTP generation and SMS dispatch
    */
   async requestOtp(mobile: string, options?: RequestOtpOptions): Promise<RequestOtpResult> {
-    const shouldCheckExists = options?.checkExists || options?.mode === 'login';
+    const rateCheck = this.checkRateLimit(mobile);
+    if (!rateCheck.allowed) {
+      return {
+        success: false,
+        message: `تعداد دفعات ارسال بیش از حد مجاز است. لطفاً ${rateCheck.cooldownSeconds} ثانیه دیگر دوباره امتحان کنید.`,
+        expiresInSeconds: 0,
+        mobile,
+        cooldownSeconds: rateCheck.cooldownSeconds,
+      };
+    }
+
+    const shouldCheckExists = options?.checkExists === true || options?.mode !== 'register';
     const isRegister = options?.mode === 'register';
 
     if (shouldCheckExists || isRegister) {
       const existingUser = await userService.findByMobile(mobile);
+
+      if (existingUser && !existingUser.isActive) {
+        return { success: false, code: 'ACCOUNT_UNAVAILABLE', message: 'ورود به این حساب امکان‌پذیر نیست. با پشتیبانی لقمه تماس بگیرید.', expiresInSeconds: 0, mobile };
+      }
 
       if (shouldCheckExists && !existingUser) {
         return {
@@ -79,17 +100,6 @@ export class AuthService {
           mobile,
         };
       }
-    }
-
-    const rateCheck = this.checkRateLimit(mobile);
-    if (!rateCheck.allowed) {
-      return {
-        success: false,
-        message: `تعداد دفعات ارسال بیش از حد مجاز است. لطفاً ${rateCheck.cooldownSeconds} ثانیه دیگر دوباره امتحان کنید.`,
-        expiresInSeconds: 0,
-        mobile,
-        cooldownSeconds: rateCheck.cooldownSeconds,
-      };
     }
 
     // 1. Generate 5-digit OTP

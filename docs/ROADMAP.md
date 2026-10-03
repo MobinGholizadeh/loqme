@@ -129,6 +129,7 @@
 * **Status**: `Pending`
 
 ### M10 — UX, SEO, PWA & Performance
+* **CP-10.19 follow-on (2026-10-03)**: User-requested repairs to the existing Android distribution, authentication security and account header. See [CP10_19_ANDROID_AUTH_SECURITY.md](CP10_19_ANDROID_AUTH_SECURITY.md). Native Expo work remains a separate roadmap item.
 * **CP-10.18 follow-on (2026-10-03)**: User-requested Persian brand discovery: server-rendered brand introduction, linked WebSite/Organization identity, page canonicals and authentication indexing hygiene. See [PERSIAN_SEO.md](PERSIAN_SEO.md). Ranking and Search Console acceptance are separate from code delivery.
 * **CP-10.15 follow-on (2026-09-24)**: Restore search and merchant loading, improve mobile form sizing/focus, reduce footer scale and improve responsive photo delivery. False delivery success is fixed; the production runtime credential fault was repaired 2026-09-27 (see PRODUCTION_SMS_REPAIR.md). Handset confirmation remains open. See [CP10_15_RELIABILITY.md](CP10_15_RELIABILITY.md).
 * **CP-10.17 follow-on (2026-09-28)**: Repair post-OTP account navigation by confirming persisted sessions and invalidating anonymous router state at login. See [CP10_17_LOGIN_PERSISTENCE.md](CP10_17_LOGIN_PERSISTENCE.md).

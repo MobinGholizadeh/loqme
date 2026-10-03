@@ -1,5 +1,5 @@
 // Loqme (لقمه) Service Worker — Version 1.0.0
-const CACHE_NAME = 'loqme-cache-v4';
+const CACHE_NAME = 'loqme-cache-v5';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
@@ -59,6 +59,7 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/orders') ||
     url.pathname.startsWith('/profile') ||
     url.pathname.startsWith('/login') ||
+    url.pathname.startsWith('/register') ||
     url.pathname.startsWith('/business') ||
     url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/admin') ||

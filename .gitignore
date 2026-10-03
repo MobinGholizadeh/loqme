@@ -53,3 +53,12 @@ loqme_pgdata/
 *.sqlite
 *.sqlite-journal
 .data/
+
+# Android signing secrets and build outputs
+*.jks
+*.keystore
+android/.gradle/
+android/**/build/
+android/local.properties
+
+__pycache__/

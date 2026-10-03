@@ -26,78 +26,53 @@ vi.mock('@/lib/notifications', () => ({
 }));
 
 describe('Account Existence Pre-Check & Guardrails', () => {
+  let clock = Date.now();
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(clock += 660000));
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
-  describe('GET & POST /api/auth/check-account', () => {
-    it('returns exists: true when user is present in database', async () => {
-      vi.spyOn(userService, 'findByMobile').mockResolvedValueOnce({
-        id: 'user-1',
-        mobile: '09121111111',
-        role: 'CUSTOMER',
-        isActive: true,
-        fullName: 'کاربر تست',
-        createdAt: new Date(),
-      });
-
-      const getReq = new NextRequest('https://shop.test/api/auth/check-account?mobile=09121111111');
-      const getRes = await checkAccountGet(getReq);
-      expect(getRes.status).toBe(200);
-      const getData = await getRes.json();
-      expect(getData.exists).toBe(true);
-      expect(getData.role).toBe('CUSTOMER');
-
-      vi.spyOn(userService, 'findByMobile').mockResolvedValueOnce({
-        id: 'user-1',
-        mobile: '09121111111',
-        role: 'CUSTOMER',
-        isActive: true,
-        fullName: 'کاربر تست',
-        createdAt: new Date(),
-      });
-
-      const postReq = new NextRequest('https://shop.test/api/auth/check-account', {
-        method: 'POST',
-        body: JSON.stringify({ mobile: '۰۹۱۲۱۱۱۱۱۱۱' }),
-      });
-      const postRes = await checkAccountPost(postReq);
-      expect(postRes.status).toBe(200);
-      const postData = await postRes.json();
-      expect(postData.exists).toBe(true);
-      expect(postData.mobile).toBe('09121111111');
-    });
-
-    it('returns exists: false when user is NOT in database', async () => {
-      vi.spyOn(userService, 'findByMobile').mockResolvedValueOnce(null);
-
-      const getReq = new NextRequest('https://shop.test/api/auth/check-account?mobile=09120000000');
-      const getRes = await checkAccountGet(getReq);
-      expect(getRes.status).toBe(200);
-      const getData = await getRes.json();
-      expect(getData.exists).toBe(false);
-      expect(getData.message).toContain('حساب کاربری با این شماره یافت نشد');
-    });
-
-    it('rejects invalid mobile numbers with 400', async () => {
-      const getReq = new NextRequest('https://shop.test/api/auth/check-account?mobile=123');
-      const getRes = await checkAccountGet(getReq);
-      expect(getRes.status).toBe(400);
-
-      const postReq = new NextRequest('https://shop.test/api/auth/check-account', {
-        method: 'POST',
-        body: JSON.stringify({ mobile: 'invalid-phone' }),
-      });
-      const postRes = await checkAccountPost(postReq);
-      expect(postRes.status).toBe(400);
+  describe('retired account lookup', () => {
+    it('does not disclose account existence, role, status or phone', async () => {
+      const lookup = vi.spyOn(userService, 'findByMobile');
+      for (const handler of [checkAccountGet, checkAccountPost]) {
+        const response = handler();
+        expect(response.status).toBe(410);
+        expect(response.headers.get('cache-control')).toBe('private, no-store');
+        const body = await response.json();
+        for (const field of ['exists', 'mobile', 'role', 'isActive']) expect(body).not.toHaveProperty(field);
+      }
+      expect(lookup).not.toHaveBeenCalled();
     });
   });
 
   describe('AuthService.requestOtp with mode constraints', () => {
+    it('throttles missing accounts before repeating database lookups', async () => {
+      const lookup = vi.spyOn(userService, 'findByMobile').mockResolvedValue(null);
+      for (let i = 0; i < 3; i++) expect((await authService.requestOtp('09125554444')).code).toBe('ACCOUNT_NOT_FOUND');
+      expect((await authService.requestOtp('09125554444')).cooldownSeconds).toBeGreaterThan(0);
+      expect(lookup).toHaveBeenCalledTimes(3);
+    });
+    it('does not persist or dispatch codes to disabled users', async () => {
+      const { prisma } = await import('@/lib/prisma');
+      vi.spyOn(userService, 'findByMobile').mockResolvedValue({ id: 'disabled', mobile: '09125554445', role: 'CUSTOMER', isActive: false, fullName: null, createdAt: new Date() });
+      expect((await authService.requestOtp('09125554445')).code).toBe('ACCOUNT_UNAVAILABLE');
+      expect(prisma.otpCode.create).not.toHaveBeenCalled();
+    });
+
+    it('defaults to login even with checkExists false and never writes an OTP', async () => {
+      const { prisma } = await import('@/lib/prisma');
+      vi.spyOn(userService, 'findByMobile').mockResolvedValue(null);
+      const result = await authService.requestOtp('09124443333', { checkExists: false });
+      expect(result.code).toBe('ACCOUNT_NOT_FOUND');
+      expect(prisma.otpCode.create).not.toHaveBeenCalled();
+    });
     it('blocks OTP dispatch in login mode if user does not exist', async () => {
       vi.spyOn(userService, 'findByMobile').mockResolvedValueOnce(null);
 

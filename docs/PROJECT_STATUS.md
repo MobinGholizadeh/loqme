@@ -8,6 +8,10 @@
 
 ## 1. Project Health & Current State
 
+### Implemented: CP-10.19 Android launch and authentication security (2026-10-03)
+
+User-authorized repairs/push: existing Android TWA targets official `loqme.shop`, uses persistent signed non-debuggable releases and verified app/site associations; release publication waits for live trust. Login defaults to existing accounts, blocks missing/disabled users before SMS, applies throttles/body/origin checks and retires public account-role lookup. Production JWT signing rejects default/missing secrets; profile logo sizing is consistent. 86 focused tests, 9 optimized-build browser cases, build/lint/workspace types pass. No runtime dependency vulnerabilities; an unpatched development-only braces advisory remains. CI database/APK compilation, deployment and physical Android acceptance pending. See [CP10_19_ANDROID_AUTH_SECURITY.md](CP10_19_ANDROID_AUTH_SECURITY.md). Existing M11 and provider gates remain open.
+
 ### Implemented: CP-10.18 Persian brand SEO (2026-10-03)
 
 User requested visibility for «لقمه» alongside Loqme and explicitly authorized pushing code. Added static server-visible homepage brand heading/introduction outside the discovery Suspense boundary, linked WebSite/Organization JSON-LD, homepage/explore canonicals, Persian site-name consistency, login/register noindex and sitemap cleanup. **10/10 focused SEO tests, 3/3 optimized-build browser tests, production build, lint and all workspace typechecks pass.** Browser acceptance covers JavaScript disabled and 360/390/1440px widths; 390px screenshot inspected. Local database was unavailable, so sitemap fallback was exercised; dynamic records are mocked in focused tests. Push/deployment confirmation and Google recrawl/ranking evidence remain separate operational steps. See [PERSIAN_SEO.md](PERSIAN_SEO.md). Existing M11 coverage and provider gates remain open.

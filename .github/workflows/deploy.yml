@@ -105,7 +105,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            NEXT_PUBLIC_APP_URL=${{ env.NEXT_PUBLIC_APP_URL || vars.NEXT_PUBLIC_APP_URL || 'https://loqme.ir' }}
+            NEXT_PUBLIC_APP_URL=${{ env.NEXT_PUBLIC_APP_URL || vars.NEXT_PUBLIC_APP_URL || 'https://loqme.shop' }}
             NEXT_PUBLIC_MAP_API_KEY=${{ env.NEXT_PUBLIC_MAP_API_KEY || secrets.NEXT_PUBLIC_MAP_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

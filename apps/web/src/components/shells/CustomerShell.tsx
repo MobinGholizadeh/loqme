@@ -106,12 +106,12 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
             {/* Brand Logo / Emblem (Centered Stacked Logo) */}
             <Link
               href="/"
-              className="flex flex-col items-center justify-center no-underline group select-none transition-transform hover:opacity-95"
+              className="brand-link flex flex-col items-center justify-center gap-[3px] no-underline select-none"
               aria-label="لقمه، صفحه اصلی"
             >
               <LoqmeLogo size={38} variant="icon" />
               <span
-                className="font-black text-[15px] text-[#135E66] tracking-tight leading-none mt-1"
+                className="header-brand-name"
                 lang="en"
               >
                 Loqme

@@ -6,7 +6,8 @@ vi.mock('@/lib/auth/session', () => ({ SESSION_COOKIE_NAME: 'loqme_session', SES
 import { POST as requestOtp } from '@/app/api/auth/request-otp/route';
 import { POST as verifyOtp } from '@/app/api/auth/verify-otp/route';
 describe('OTP endpoint contracts', () => {
-  const request = (body: unknown) => new NextRequest('https://shop.test/api/auth', { method: 'POST', body: JSON.stringify(body) });
+  let requestNumber = 0;
+  const request = (body: unknown) => new NextRequest('https://shop.test/api/auth', { method: 'POST', headers: { 'x-real-ip': `192.0.2.${++requestNumber}` }, body: JSON.stringify(body) });
   beforeEach(() => { vi.resetAllMocks(); vi.spyOn(console, 'error').mockImplementation(() => {}); });
   afterEach(() => vi.restoreAllMocks());
   it.each([{}, { mobile: '123' }, { mobile: 'not-a-phone' }])('rejects invalid OTP request %o before dispatch', async body => {
@@ -34,6 +35,6 @@ describe('OTP endpoint contracts', () => {
   it.each([requestOtp, verifyOtp])('returns a generic server error for exceptions and malformed JSON', async handler => {
     auth.requestOtp.mockRejectedValue(new Error('private detail')); auth.verifyOtp.mockRejectedValue(new Error('private detail'));
     const response = await handler(request({ mobile: '09121111111', code: '12345' })); expect(response.status).toBe(500); expect(await response.text()).not.toContain('private detail');
-    expect((await handler(new NextRequest('https://shop.test', { method: 'POST', body: '{' }))).status).toBe(500);
+    expect((await handler(new NextRequest('https://shop.test', { method: 'POST', body: '{' }))).status).toBe(handler === requestOtp ? 400 : 500);
   });
 });

@@ -6,6 +6,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "لقمه",
     description:
       "کشف و رزرو بسته‌های تازه فروشگاه‌های ارومیه، با قیمت کمتر و زمان دریافت حضوری مشخص.",
+    id: "/",
+    scope: "/",
     start_url: "/",
     display: "standalone",
     background_color: "#FFFFFF",

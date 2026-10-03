@@ -6,7 +6,11 @@ export const SESSION_COOKIE_NAME = 'loqme_session';
 export type { SessionPayload };
 
 const getSecretKey = () => {
-  const secret = process.env.SESSION_SECRET || 'loqme-development-session-super-secret-key-change-in-production-32c';
+  const configured = process.env.SESSION_SECRET;
+  if (process.env.NODE_ENV === 'production' && (!configured || configured.length < 32 || configured === 'loqme-development-session-super-secret-key-change-in-production-32c')) {
+    throw new Error('A non-default SESSION_SECRET of at least 32 characters is required');
+  }
+  const secret = configured || 'loqme-development-session-super-secret-key-change-in-production-32c';
   return new TextEncoder().encode(secret);
 };
 

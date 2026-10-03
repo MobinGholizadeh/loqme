@@ -8,6 +8,8 @@
 
 ## 1. Why Native Mobile (React Native / Expo)?
 
+Repository reality (2026-10-03): an existing `android/` TWA wrapper and GitHub APK workflow predate the native client. CP-10.19 repairs that user-reported distribution's signing and domain verification; it does not constitute native-mobile milestone completion or change the React Native/Expo target below. See [CP10_19_ANDROID_AUTH_SECURITY.md](CP10_19_ANDROID_AUTH_SECURITY.md).
+
 Loqme rejects the "WebView-in-a-box" (or PWA wrapper) paradigm for its primary mobile application. Surplus food discovery and pickup handoffs are deeply physical, time-sensitive, and neighborhood-centric interactions:
 
 1. **60-Second Pickup Handoff**: At the merchant counter, customers must instantly present dynamic, animated QR codes or fallback OTPs without web-page reload latency or flaky offline states.
