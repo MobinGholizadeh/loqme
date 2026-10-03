@@ -8,6 +8,14 @@
 
 ## 1. Project Health & Current State
 
+### Delivered: Tagline Refinement & Login Account Existence Guard (2026-10-03)
+
+- **Brand Tagline**: Replaced «خوب بخور، کمتر خرج کن» with «طعم‌های تازه، انتخابی هوشمندانه» across `AuthLayout.tsx`, `README.md`, and `docs/BRAND.md`.
+- **Login Account Existence Check**: Enforced account existence verification before OTP code dispatch on `/login` and via `authService.requestOtp` when `mode: 'login'` or `checkExists: true`. Unregistered mobile numbers receive HTTP 404 with code `ACCOUNT_NOT_FOUND` and no OTP SMS is dispatched.
+- **Dedicated Register Route & Mode Switch**: Added `/register` route and segmented mode toggle in `OtpLoginForm`. When a user attempts to log in with an unregistered number, a clear, friendly Persian alert box displays with a 1-click CTA button to register with the same pre-filled mobile number.
+- **Check-Account Endpoint**: Created `/api/auth/check-account` supporting both `GET` and `POST` for instant mobile number registration checks.
+- **Test Coverage & Verification**: Added 9 new unit/route contract tests (`tests/auth-account-check.test.ts`) and 2 new UI interaction tests in `tests/otp-login-form.test.tsx`. All 18 OTP form tests, 14 route contract tests, and full production build pass with 0 errors.
+
 ### Active: M11 coverage and regression repairs (2026-10-03)
 
 User explicitly requested 100% coverage and defect repair. The latest complete fresh disposable PostgreSQL/PostGIS run passed **917/917 tests across 73 suites with no skips**, with **60.63% lines, 58.76% statements, 47.50% functions and 52.19% branches** using Vitest 5.0.3. Strict 100% thresholds remain unmet. Repairs cover authentication/ownership/privacy, OTP expiry, gateway and amount validation, timezone-safe inventory/pickup inputs, transactional order/pickup completion, refund concurrency, historical financial reporting, CSV export and browser request/camera lifecycles. Dependency audit is zero; types and lint pass. Production build passes. All 95 browser cases pass; both focused listing-publication cases pass after the final clock-comparison fix. **CP-11.9 remains active; neither 100% coverage nor production readiness is established.** See [TEST_COVERAGE_AUDIT.md](TEST_COVERAGE_AUDIT.md).

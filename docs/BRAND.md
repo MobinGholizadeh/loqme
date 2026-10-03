@@ -9,8 +9,8 @@
 ## 1. Brand Essence & Taglines
 
 ### Primary Tagline
-> **«خوب بخور، کمتر خرج کن.»**  
-> *Eat well, spend less.*
+> **«طعم‌های تازه، انتخابی هوشمندانه.»**  
+> *Fresh flavors, a smart choice.*
 
 ### Supporting Taglines & Hooks
 * **«چیزای خوب هنوز تموم نشدن.»** *(Good things aren't over yet.)*

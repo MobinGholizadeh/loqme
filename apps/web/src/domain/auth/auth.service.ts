@@ -21,6 +21,12 @@ if (process.env.NODE_ENV !== 'production') {
   globalForAuth.__loqme_timestamps = inMemoryRequestTimestamps;
 }
 
+export interface RequestOtpOptions {
+  mode?: 'login' | 'register';
+  audience?: 'customer' | 'business';
+  checkExists?: boolean;
+}
+
 export class AuthService {
   /**
    * Enforces rate limit: Max 3 requests in 10 minutes
@@ -45,7 +51,36 @@ export class AuthService {
   /**
    * Initiates OTP generation and SMS dispatch
    */
-  async requestOtp(mobile: string): Promise<RequestOtpResult> {
+  async requestOtp(mobile: string, options?: RequestOtpOptions): Promise<RequestOtpResult> {
+    const shouldCheckExists = options?.checkExists || options?.mode === 'login';
+    const isRegister = options?.mode === 'register';
+
+    if (shouldCheckExists || isRegister) {
+      const existingUser = await userService.findByMobile(mobile);
+
+      if (shouldCheckExists && !existingUser) {
+        return {
+          success: false,
+          code: 'ACCOUNT_NOT_FOUND',
+          message: options?.audience === 'business'
+            ? 'حساب کاربری با این شماره یافت نشد. برای ثبت فروشگاه، لطفاً ثبت کسب‌وکار را انجام دهید.'
+            : 'حساب کاربری با این شماره یافت نشد. می‌توانید از بخش ثبت‌نام، حساب جدید بسازید.',
+          expiresInSeconds: 0,
+          mobile,
+        };
+      }
+
+      if (isRegister && existingUser) {
+        return {
+          success: false,
+          code: 'ACCOUNT_ALREADY_EXISTS',
+          message: 'این شماره موبایل قبلاً در لقمه ثبت شده است. لطفاً وارد حساب خود شوید.',
+          expiresInSeconds: 0,
+          mobile,
+        };
+      }
+    }
+
     const rateCheck = this.checkRateLimit(mobile);
     if (!rateCheck.allowed) {
       return {

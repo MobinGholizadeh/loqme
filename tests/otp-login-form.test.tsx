@@ -65,4 +65,42 @@ describe('OTP form authentication flow', () => {
     } }); await verify(); expect(success).not.toHaveBeenCalled();
     expect(screen.getByText(kind === 'http' ? 'خطا در تایید کد' : /ورود ذخیره نشد/)).toBeTruthy();
   });
+
+  it('renders account-not-found notice and allows switching to register mode', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      json: async () => ({
+        success: false,
+        code: 'ACCOUNT_NOT_FOUND',
+        message: 'حساب کاربری با این شماره یافت نشد. می‌توانید از بخش ثبت‌نام، حساب جدید بسازید.',
+      }),
+    });
+
+    render(<OtpLoginForm preventRedirect />);
+    fireEvent.change(screen.getByLabelText('شماره موبایل'), { target: { value: '۰۹۱۲۹۹۹۰۰۰۰' } });
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'دریافت کد تایید' })));
+
+    expect(screen.getByText('حساب کاربری با این شماره یافت نشد')).toBeTruthy();
+    const switchButton = screen.getByRole('button', { name: /ثبت‌نام با همین شماره/ });
+    expect(switchButton).toBeTruthy();
+
+    await act(async () => fireEvent.click(switchButton));
+    expect(screen.getByRole('heading', { name: 'ثبت‌نام در لقمه' })).toBeTruthy();
+    expect((screen.getByLabelText('شماره موبایل') as HTMLInputElement).value).toBe('09129990000');
+  });
+
+  it('allows manual switching between login and register tabs', async () => {
+    render(<OtpLoginForm preventRedirect />);
+    expect(screen.getByRole('heading', { name: 'ورود به حساب کاربری' })).toBeTruthy();
+
+    const registerTab = screen.getByRole('button', { name: 'ثبت‌نام' });
+    await act(async () => fireEvent.click(registerTab));
+    expect(screen.getByRole('heading', { name: 'ثبت‌نام در لقمه' })).toBeTruthy();
+
+    const loginTab = screen.getByRole('button', { name: 'ورود' });
+    await act(async () => fireEvent.click(loginTab));
+    expect(screen.getByRole('heading', { name: 'ورود به حساب کاربری' })).toBeTruthy();
+  });
 });
+

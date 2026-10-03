@@ -12,10 +12,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: errorMsg }, { status: 400 });
     }
 
-    const result = await authService.requestOtp(parseResult.data.mobile);
+    const { mobile, mode, audience, checkExists } = parseResult.data;
+    const hasOptions = mode !== undefined || audience !== undefined || checkExists !== undefined;
+    const result = hasOptions
+      ? await authService.requestOtp(mobile, { mode, audience, checkExists })
+      : await authService.requestOtp(mobile);
 
     if (!result.success) {
-      return NextResponse.json(result, { status: result.cooldownSeconds ? 429 : 503 });
+      const status = result.code === 'ACCOUNT_NOT_FOUND'
+        ? 404
+        : result.code === 'ACCOUNT_ALREADY_EXISTS'
+        ? 409
+        : result.cooldownSeconds
+        ? 429
+        : 503;
+      return NextResponse.json(result, { status });
     }
 
     return NextResponse.json(result, { status: 200 });

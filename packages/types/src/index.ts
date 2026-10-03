@@ -100,6 +100,7 @@ export interface RequestOtpResult {
   expiresInSeconds: number;
   mobile: string;
   cooldownSeconds?: number;
+  code?: 'ACCOUNT_NOT_FOUND' | 'ACCOUNT_ALREADY_EXISTS' | 'RATE_LIMITED' | 'DISPATCH_FAILED' | string;
 }
 
 export interface VerifyOtpResult {

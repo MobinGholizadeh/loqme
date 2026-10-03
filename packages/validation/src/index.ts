@@ -76,6 +76,9 @@ export const RequestOtpSchema = z.object({
       message: 'شماره موبایل باید با ۰۹ شروع شده و ۱۱ رقم باشد',
     })
     .transform((val) => normalizeIranianMobile(val)),
+  mode: z.enum(['login', 'register']).optional(),
+  audience: z.enum(['customer', 'business']).optional(),
+  checkExists: z.boolean().optional(),
 });
 
 export type RequestOtpInput = z.infer<typeof RequestOtpSchema>;

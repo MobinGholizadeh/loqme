@@ -1,6 +1,6 @@
 # Loqme (لقمه) — Surplus Food & Inventory Marketplace
 
-> **خوب بخور، کمتر خرج کن.**  
+> **طعم‌های تازه، انتخابی هوشمندانه.**  
 > *Eat well, spend less.*
 
 Official Domain: **[loqme.shop](https://loqme.shop)**  

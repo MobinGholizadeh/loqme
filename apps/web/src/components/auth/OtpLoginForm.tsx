@@ -3,10 +3,12 @@ import { useSession } from "@/components/auth/SessionProvider";
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toPersianDigits, isValidIranianMobile } from "@/lib/utils/persian";
 import { safeLoginRedirect } from '@loqme/validation';
+import { AlertCircle, UserX, UserPlus, LogIn, CheckCircle2, ArrowLeft } from "lucide-react";
 
 interface OtpLoginFormProps {
   onSuccess?: () => void;
@@ -14,6 +16,7 @@ interface OtpLoginFormProps {
   audience?: 'customer' | 'business';
   embedded?: boolean;
   preventRedirect?: boolean;
+  initialMode?: 'login' | 'register';
 }
 
 export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
@@ -22,12 +25,20 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   audience = 'customer',
   embedded = false,
   preventRedirect = false,
+  initialMode,
 }) => {
   const session = useSession();
   const searchParams = useSearchParams();
 
+  const queryMobile = searchParams.get("mobile") || "";
+  const queryMode = searchParams.get("mode") === "register" ? "register" : "login";
+
+  const [mode, setMode] = useState<'login' | 'register'>(initialMode || queryMode);
+  const [accountNotFound, setAccountNotFound] = useState(false);
+  const [accountAlreadyExists, setAccountAlreadyExists] = useState(false);
+
   const [step, setStep] = useState<"PHONE" | "OTP">("PHONE");
-  const [mobile, setMobile] = useState("");
+  const [mobile, setMobile] = useState(queryMobile);
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +66,8 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   const handleRequestOtp = async (targetMobile?: string) => {
     const phoneToSubmit = targetMobile || mobile;
     setError(null);
+    setAccountNotFound(false);
+    setAccountAlreadyExists(false);
 
     if (!isValidIranianMobile(phoneToSubmit)) {
       setError(
@@ -65,16 +78,35 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
 
     setIsLoading(true);
     try {
+      // In embedded mode, send plain mobile for backward compatibility with nested flows.
+      // In normal auth forms, pass mode & checkExists so server validates existence before dispatching OTP.
+      const payload = embedded
+        ? { mobile: phoneToSubmit }
+        : {
+            mobile: phoneToSubmit,
+            mode,
+            audience,
+            checkExists: mode === 'login',
+          };
+
       const res = await fetch("/api/auth/request-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile: phoneToSubmit }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json().catch(() => null);
 
       if (!res.ok || !data?.success) {
-        setError(data?.message || "خطا در ارسال کد تایید");
+        if (data?.code === 'ACCOUNT_NOT_FOUND') {
+          setAccountNotFound(true);
+          setError(data?.message || "حسابی با این شماره موبایل یافت نشد.");
+        } else if (data?.code === 'ACCOUNT_ALREADY_EXISTS') {
+          setAccountAlreadyExists(true);
+          setError(data?.message || "این شماره موبایل قبلاً در لقمه ثبت شده است.");
+        } else {
+          setError(data?.message || "خطا در ارسال کد تایید");
+        }
         setIsLoading(false);
         return;
       }
@@ -159,22 +191,148 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
     value
       .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
       .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+
   const Heading = embedded ? 'h2' : 'h1';
+
   return (
-    <div className="space-y-7">
-      <div className="space-y-3">
+    <div className="space-y-6">
+      {!embedded && audience === 'customer' && step === 'PHONE' && (
+        <div className="flex p-1 bg-loqme-neutral-100 rounded-xl border border-loqme-neutral-200/80 text-sm font-medium">
+          <button
+            type="button"
+            onClick={() => {
+              setMode('login');
+              setError(null);
+              setAccountNotFound(false);
+              setAccountAlreadyExists(false);
+            }}
+            className={`flex-1 py-2 rounded-lg transition-all text-center text-sm ${
+              mode === 'login'
+                ? 'bg-white text-loqme-primary-700 shadow-sm font-bold'
+                : 'text-loqme-neutral-600 hover:text-loqme-neutral-900 font-normal'
+            }`}
+          >
+            ورود
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode('register');
+              setError(null);
+              setAccountNotFound(false);
+              setAccountAlreadyExists(false);
+            }}
+            className={`flex-1 py-2 rounded-lg transition-all text-center text-sm ${
+              mode === 'register'
+                ? 'bg-white text-loqme-primary-700 shadow-sm font-bold'
+                : 'text-loqme-neutral-600 hover:text-loqme-neutral-900 font-normal'
+            }`}
+          >
+            ثبت‌نام
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-2">
         <span className="text-xs font-bold text-loqme-primary-700">
           به لقمه خوش آمدید
         </span>
-        <Heading className={embedded ? 'text-xl font-bold' : 'text-3xl font-extrabold'}>
-          {step === "PHONE" ? (audience === 'business' ? 'ورود به حساب کسب‌وکار' : 'ورود یا ثبت‌نام') : "کد تایید را وارد کنید"}
+        <Heading className={embedded ? 'text-xl font-bold' : 'text-2xl lg:text-3xl font-extrabold text-loqme-neutral-900'}>
+          {step === "PHONE"
+            ? (audience === 'business'
+                ? 'ورود به حساب کسب‌وکار'
+                : (mode === 'login' ? 'ورود به حساب کاربری' : 'ثبت‌نام در لقمه'))
+            : "کد تایید را وارد کنید"}
         </Heading>
         <p className="text-sm text-loqme-neutral-600">
           {step === "PHONE"
-            ? (audience === 'business' ? 'با شماره موبایل مالک یا همکار فروشگاه وارد شوید.' : "با شماره موبایل وارد شوید و لقمه بعدی‌تان را کشف کنید.")
+            ? (audience === 'business'
+                ? 'با شماره موبایل مالک یا همکار فروشگاه وارد شوید.'
+                : (mode === 'login'
+                    ? 'با شماره موبایل خود وارد شوید و به لقمه‌های ذخیره‌شده دسترسی پیدا کنید.'
+                    : 'با شماره موبایل ثبت‌نام کنید و لذت کشف طعم‌های تازه را تجربه کنید.'))
             : `کد ۵ رقمی به ${toPersianDigits(mobile)} ارسال شد.`}
         </p>
       </div>
+
+      {step === 'PHONE' && accountNotFound && (
+        <div
+          className="p-4 rounded-xl border border-amber-300 bg-amber-50/95 text-amber-950 space-y-3 shadow-sm transition-all"
+          role="alert"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-amber-100 text-amber-700 shrink-0 mt-0.5">
+              <UserX size={18} aria-hidden="true" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-sm text-amber-900">حساب کاربری با این شماره یافت نشد</h3>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                {audience === 'business'
+                  ? 'این شماره موبایل در سیستم همکاران لقمه ثبت نشده است. برای ثبت فروشگاه، از بخش ثبت کسب‌وکار اقدام فرمایید.'
+                  : 'هیچ حسابی با این شماره در پایگاه داده لقمه ثبت نشده است. می‌توانید به سادگی و در چند ثانیه ثبت‌نام کنید.'}
+              </p>
+            </div>
+          </div>
+          <div className="pt-1">
+            {audience === 'business' ? (
+              <Link
+                href="/business"
+                className="inline-flex items-center justify-center w-full py-2.5 px-4 text-xs font-bold rounded-lg bg-loqme-primary-700 text-white hover:bg-loqme-primary-800 transition-colors shadow-sm gap-1.5"
+              >
+                ثبت‌نام کسب‌وکار در لقمه
+                <ArrowLeft size={14} aria-hidden="true" />
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('register');
+                  setAccountNotFound(false);
+                  setError(null);
+                }}
+                className="inline-flex items-center justify-center w-full py-2.5 px-4 text-xs font-bold rounded-lg bg-loqme-primary-700 text-white hover:bg-loqme-primary-800 transition-colors shadow-sm gap-1.5"
+              >
+                <UserPlus size={16} aria-hidden="true" />
+                ثبت‌نام با همین شماره ({toPersianDigits(mobile)})
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {step === 'PHONE' && accountAlreadyExists && (
+        <div
+          className="p-4 rounded-xl border border-teal-300 bg-teal-50/95 text-teal-950 space-y-3 shadow-sm transition-all"
+          role="alert"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-teal-100 text-teal-700 shrink-0 mt-0.5">
+              <CheckCircle2 size={18} aria-hidden="true" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-sm text-teal-900">حساب کاربری از قبل وجود دارد</h3>
+              <p className="text-xs text-teal-800 leading-relaxed">
+                این شماره موبایل قبلاً در لقمه ثبت شده است. نیازی به ثبت‌نام مجدد ندارید و می‌توانید مستقیماً وارد شوید.
+              </p>
+            </div>
+          </div>
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('login');
+                setAccountAlreadyExists(false);
+                setError(null);
+              }}
+              className="inline-flex items-center justify-center w-full py-2.5 px-4 text-xs font-bold rounded-lg bg-loqme-primary-700 text-white hover:bg-loqme-primary-800 transition-colors shadow-sm gap-1.5"
+            >
+              <LogIn size={16} aria-hidden="true" />
+              ورود به حساب کاربری ({toPersianDigits(mobile)})
+            </button>
+          </div>
+        </div>
+      )}
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -192,7 +350,12 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
             autoComplete="tel"
             placeholder="۰۹۱۲۳۴۵۶۷۸۹"
             value={mobile}
-            onChange={(e) => setMobile(digits(e.target.value))}
+            onChange={(e) => {
+              setMobile(digits(e.target.value));
+              if (error) setError(null);
+              if (accountNotFound) setAccountNotFound(false);
+              if (accountAlreadyExists) setAccountAlreadyExists(false);
+            }}
             error={error || undefined}
             dir="ltr"
           />
@@ -249,6 +412,44 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
           </div>
         )}
       </form>
+
+      {!embedded && audience === 'customer' && step === 'PHONE' && (
+        <div className="text-center pt-1 border-t border-loqme-neutral-100">
+          {mode === 'login' ? (
+            <p className="text-xs text-loqme-neutral-600">
+              هنوز در لقمه حساب کاربری ندارید؟{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('register');
+                  setError(null);
+                  setAccountNotFound(false);
+                  setAccountAlreadyExists(false);
+                }}
+                className="text-loqme-primary-700 font-bold hover:underline underline-offset-4"
+              >
+                ثبت‌نام کنید
+              </button>
+            </p>
+          ) : (
+            <p className="text-xs text-loqme-neutral-600">
+              قبلاً در لقمه ثبت‌نام کرده‌اید؟{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setError(null);
+                  setAccountNotFound(false);
+                  setAccountAlreadyExists(false);
+                }}
+                className="text-loqme-primary-700 font-bold hover:underline underline-offset-4"
+              >
+                ورود به حساب
+              </button>
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };
