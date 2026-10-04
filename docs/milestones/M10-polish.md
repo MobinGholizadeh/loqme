@@ -117,6 +117,8 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
+- [ ] **CP-10.18 Search Console follow-through (2026-10-04)**: User-authorized URL-prefix setup; additional Google-issued HTML token added without removing existing ownership. Types pass; deployment, verification and sitemap submission pending. See [PERSIAN_SEO.md](../PERSIAN_SEO.md).
+
 - [x] **CP-10.19 — Android launch/account security code/release (2026-10-04)**: Pushed/deployed `69fb507`; 936 CI cases, 3 retention tests, 9 browser cases, build/lint/types pass. Production and signed Android release workflows succeed, including live certificate association. Full server disk repaired while retaining containers/two rollback images and all business data. Public readiness/account-retirement/origin checks pass. Physical Android launch acceptance and unpatched development dependency advisory remain open. See [CP10_19_ANDROID_AUTH_SECURITY.md](../CP10_19_ANDROID_AUTH_SECURITY.md).
 
 - [x] **CP-10.18 — Persian brand SEO implementation (2026-10-03)**: User-authorized code and push scope. Static visible Persian homepage identity, WebSite/Organization JSON-LD, home/explore canonicals, auth noindex and sitemap cleanup. 10 focused SEO tests, 3 optimized-build browser tests, build/lint/workspace types pass; mobile screenshot inspected. Google indexing/ranking and deployment verification are separate, pending operational evidence. See [PERSIAN_SEO.md](../PERSIAN_SEO.md).

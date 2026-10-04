@@ -20,6 +20,8 @@ Focused schema/sitemap tests, optimized-build browser tests (including JavaScrip
 
 ## Search Console follow-through
 
+2026-10-04 setup in progress: the user signed into Google Search Console and requested setup of `https://loqme.shop/`. Its URL-prefix property requires an additional Google-issued HTML verification token; root metadata now preserves the existing token and adds the signed-in account's token. Workspace typechecks pass. Deployment, Google verification and sitemap submission remain pending confirmation.
+
 After deployment, the property owner should:
 
 1. Verify the `loqme.shop` domain property via Google's supplied DNS TXT record if it is not already verified. Do not invent a verification token.

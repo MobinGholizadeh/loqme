@@ -61,7 +61,10 @@ export const metadata: Metadata = {
     title: "لقمه",
   },
   verification: {
-    google: "OPtOX-MOcdHG5CKvWN05TAEcGc9fWUUvmGcxwQEBGwc",
+    google: [
+      "OPtOX-MOcdHG5CKvWN05TAEcGc9fWUUvmGcxwQEBGwc",
+      "536WDaAPakTIWC5tj63s_zorv8MX7uuyRbDIwMa9QcM",
+    ],
   },
 };
 
