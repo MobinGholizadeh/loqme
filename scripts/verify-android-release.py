@@ -24,10 +24,12 @@ if __name__ == "__main__":
     parser.add_argument("--wait-seconds", type=int, default=0)
     args = parser.parse_args()
     text = Path(args.certificate_output).read_text()
-    match = re.search(r"Signer #1 certificate SHA-256 digest: ([a-fA-F0-9]{64})", text)
-    if not match:
+    # SDK versions use different signer prefixes; the verified certificate digest
+    # label is stable. Require exactly one signing certificate.
+    matches = re.findall(r"certificate SHA-256 digest:\s*([a-fA-F0-9]{64})", text)
+    if len(set(matches)) != 1:
         raise SystemExit("APK certificate was not verified by apksigner")
-    fingerprint = match[1].lower()
+    fingerprint = matches[0].lower()
     statements = json.loads(Path("apps/web/public/.well-known/assetlinks.json").read_text())
     if not verify(statements, fingerprint):
         raise SystemExit("APK signer does not match the committed website association")

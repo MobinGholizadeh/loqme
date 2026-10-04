@@ -24,6 +24,8 @@ User explicitly requested repair and push on 2026-10-03. This checkpoint repairs
 
 ## Release checks
 
+Follow-up release investigation: production disk was 100% full (48 GB), with approximately 44.85 GB of Docker images, 2.667 GB build cache and only 2.7 MB of database backups. The deployment now removes only obsolete Loqme image references, preserving all images referenced by any container plus the two newest rollback images, and prunes build cache older than seven days. Database volumes, uploaded files and backups are untouched. Three retention safety tests cover these boundaries. A manual read-only diagnostics workflow records disk/image inventory. CI also caught the outdated service-worker v4 test fixture; it now asserts v1/v4 eviction and v5 preservation. Android certificate parsing supports SDK-specific signer prefixes while requiring one certificate.
+
 After push, inspect both workflows. Production must serve the new assetlinks without redirects. APK publication is gated on matching live trust and can wait 15 minutes for deployment. A failed trust gate must never be bypassed: complete the web deployment, then rerun Android build. Confirm missing-account response in the real login UI and launch the new signed release on Android to verify absence of the URL bar on Loqme pages.
 
 Reference: [Chrome TWA integration](https://developer.chrome.com/docs/android/trusted-web-activity/integration-guide).

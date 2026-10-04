@@ -51,6 +51,7 @@ jobs:
       - name: Seed only the disposable acceptance database
         run: npm run db:seed
       - run: npm test
+      - run: python3 scripts/test-release-safety.py
 
   build-and-push:
     name: Build & Push Docker Image
@@ -122,7 +123,9 @@ jobs:
 
       - name: Prepare versioned production Compose manifest
         id: compose
-        run: echo "manifest=$(base64 -w0 docker-compose.prod.yml)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "manifest=$(base64 -w0 docker-compose.prod.yml)" >> "$GITHUB_OUTPUT"
+          echo "cleanup=$(base64 -w0 scripts/prune-deployment-images.py)" >> "$GITHUB_OUTPUT"
 
       - name: Verify Deployment Secrets Configuration
         env:
@@ -138,6 +141,7 @@ jobs:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           COMPOSE_FILE_B64: ${{ steps.compose.outputs.manifest }}
+          CLEANUP_SCRIPT_B64: ${{ steps.compose.outputs.cleanup }}
         if: env.SERVER_HOST != ''
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -145,12 +149,16 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           command_timeout: 15m
-          envs: DOPPLER_TOKEN,COMPOSE_FILE_B64
+          envs: DOPPLER_TOKEN,COMPOSE_FILE_B64,CLEANUP_SCRIPT_B64
           script: |
             set -eu
             umask 077
             cd /opt/loqme
             test -f docker-compose.prod.yml
+            # Retain running/stopped container images and the newest two rollbacks.
+            # No volumes, uploaded files, database backups or application data are pruned.
+            printf '%s' "$CLEANUP_SCRIPT_B64" | base64 -d | python3
+            df -h /opt/loqme
 
             PREVIOUS_ENV=""
             PREVIOUS_COMPOSE=$(mktemp /opt/loqme/.compose.previous.XXXXXX)

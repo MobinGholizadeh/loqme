@@ -24,11 +24,11 @@ describe('Service worker privacy and offline behavior', () => {
     expect(cache.addAll).toHaveBeenNthCalledWith(2, ['https://loqme.test/_next/static/a.js', 'https://loqme.test/_next/static/a.css']); expect(skipWaiting).toHaveBeenCalledOnce();
   });
   it('removes only outdated Loqme caches', async () => {
-    storage.keys.mockResolvedValue(['loqme-cache-v1', 'loqme-cache-v4', 'another-app']);
+    storage.keys.mockResolvedValue(['loqme-cache-v1', 'loqme-cache-v4', 'loqme-cache-v5', 'another-app']);
     const input = event(); handlers.activate(input); await input.waitUntil.mock.calls[0][0];
-    expect(storage.delete).toHaveBeenCalledExactlyOnceWith('loqme-cache-v1'); expect(claim).toHaveBeenCalledOnce();
+    expect(storage.delete.mock.calls).toEqual([['loqme-cache-v1'], ['loqme-cache-v4']]); expect(claim).toHaveBeenCalledOnce();
   });
-  it.each(['/orders/1', '/profile', '/login', '/business', '/api/session', '/admin', '/merchant', '/checkout'])('never intercepts private path %s', path => {
+  it.each(['/orders/1', '/profile', '/login', '/register', '/business', '/api/session', '/admin', '/merchant', '/checkout'])('never intercepts private path %s', path => {
     const input = event(path, { mode: 'navigate' }); handlers.fetch(input); expect(input.respondWith).not.toHaveBeenCalled();
   });
   it.each([{ method: 'POST' }, { url: 'https://external.test/image' }, { headers: new Headers({ Authorization: 'Bearer token' }) }])('bypasses unsafe request %j', values => {
