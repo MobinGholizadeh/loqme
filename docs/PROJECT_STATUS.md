@@ -8,9 +8,9 @@
 
 ## 1. Project Health & Current State
 
-### Implemented: CP-10.19 Android launch and authentication security (2026-10-03)
+### Delivered: CP-10.19 Android launch and authentication security (2026-10-04)
 
-User-authorized repairs/push: existing Android TWA targets official `loqme.shop`, uses persistent signed non-debuggable releases and verified app/site associations; release publication waits for live trust. Login defaults to existing accounts, blocks missing/disabled users before SMS, applies throttles/body/origin checks and retires public account-role lookup. Production JWT signing rejects default/missing secrets; profile logo sizing is consistent. 86 focused tests, 9 optimized-build browser cases, build/lint/workspace types pass. No runtime dependency vulnerabilities; an unpatched development-only braces advisory remains. CI database/APK compilation, deployment and physical Android acceptance pending. See [CP10_19_ANDROID_AUTH_SECURITY.md](CP10_19_ANDROID_AUTH_SECURITY.md). Existing M11 and provider gates remain open.
+User-authorized repairs/push delivered as `69fb507`: Android TWA targets official `loqme.shop`, uses a persistent signed release and verified app/site associations. Login defaults to existing accounts, blocks missing/disabled users before SMS, applies throttles/body/origin checks and retires public account-role lookup. Production JWT signing rejects default/missing secrets; profile logo sizing is consistent. **936/936 CI tests across 75 suites**, three retention tests, 9 optimized-build browser cases, build/lint/workspace types pass. Production run 37169339205 and Android release run 37169339257 succeeded. Safe old-image retention repaired a full server disk (now 36 GB free). Live readiness, assetlinks, retired account API and cross-origin OTP rejection pass. No runtime dependency vulnerabilities; an unpatched development-only braces advisory and physical Android acceptance remain. See [CP10_19_ANDROID_AUTH_SECURITY.md](CP10_19_ANDROID_AUTH_SECURITY.md). Existing M11 and provider gates remain open.
 
 ### Implemented: CP-10.18 Persian brand SEO (2026-10-03)
 

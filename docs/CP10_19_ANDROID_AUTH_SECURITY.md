@@ -24,6 +24,12 @@ User explicitly requested repair and push on 2026-10-03. This checkpoint repairs
 
 ## Release checks
 
+### Delivered 2026-10-04
+
+Implementation/release revision `69fb507` is deployed. [Production run 37169339205](https://github.com/MobinGholizadeh/loqme/actions/runs/37169339205) passed **936/936 cases across 75 suites**, three retention tests, image build and deployment. Cleanup reduced root disk usage from 100% to 25% (36 GB available); the production database readiness check passed. [Android run 37169339257](https://github.com/MobinGholizadeh/loqme/actions/runs/37169339257) compiled and signed the release, checked the APK certificate against the committed and live association, and published `loqme-app.apk` (2,712,095 bytes) in [Latest](https://github.com/MobinGholizadeh/loqme/releases/tag/latest).
+
+Public post-release checks: readiness HTTP 200/database connected; assetlinks HTTP 200/application-json with the expected package/certificate; retired account lookup HTTP 410/private-no-store; cross-origin OTP request HTTP 403. No SMS was dispatched by live checks. Physical Android launch/Chrome verification remains an owner device check; install the new signed APK rather than the old debug build. The unpatched development dependency advisory and existing M11 gates remain open.
+
 Follow-up release investigation: production disk was 100% full (48 GB), with approximately 44.85 GB of Docker images, 2.667 GB build cache and only 2.7 MB of database backups. The deployment now removes only obsolete Loqme image references, preserving all images referenced by any container plus the two newest rollback images, and prunes build cache older than seven days. Database volumes, uploaded files and backups are untouched. Three retention safety tests cover these boundaries. A manual read-only diagnostics workflow records disk/image inventory. CI also caught the outdated service-worker v4 test fixture; it now asserts v1/v4 eviction and v5 preservation. Android certificate parsing supports SDK-specific signer prefixes while requiring one certificate.
 
 After push, inspect both workflows. Production must serve the new assetlinks without redirects. APK publication is gated on matching live trust and can wait 15 minutes for deployment. A failed trust gate must never be bypassed: complete the web deployment, then rerun Android build. Confirm missing-account response in the real login UI and launch the new signed release on Android to verify absence of the URL bar on Loqme pages.
