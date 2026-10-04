@@ -117,7 +117,7 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
-- [ ] **CP-10.18 Search Console follow-through (2026-10-04)**: User-authorized URL-prefix setup; additional Google-issued HTML token added without removing existing ownership. Types pass; deployment, verification and sitemap submission pending. See [PERSIAN_SEO.md](../PERSIAN_SEO.md).
+- [ ] **CP-10.18 Search Console follow-through (2026-10-04)**: `c5b0550` deployed, URL-prefix ownership verified, homepage live test passed and indexing request accepted. Ten SEO tests, types and CI pass. Sitemap submission accepted and live Google fetch succeeds, but processing report still shows Couldn't fetch after one resubmission; retain as pending. Manual actions/security reports clear. See [PERSIAN_SEO.md](../PERSIAN_SEO.md).
 
 - [x] **CP-10.19 — Android launch/account security code/release (2026-10-04)**: Pushed/deployed `69fb507`; 936 CI cases, 3 retention tests, 9 browser cases, build/lint/types pass. Production and signed Android release workflows succeed, including live certificate association. Full server disk repaired while retaining containers/two rollback images and all business data. Public readiness/account-retirement/origin checks pass. Physical Android launch acceptance and unpatched development dependency advisory remain open. See [CP10_19_ANDROID_AUTH_SECURITY.md](../CP10_19_ANDROID_AUTH_SECURITY.md).
 

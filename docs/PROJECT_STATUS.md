@@ -8,9 +8,9 @@
 
 ## 1. Project Health & Current State
 
-### Active: Google Search Console setup (2026-10-04)
+### Verified: Google Search Console; sitemap processing pending (2026-10-04)
 
-User signed into Search Console and authorized setup. Added its Google-issued URL-prefix verification token alongside the existing token; workspace typechecks pass. Deployment, ownership verification and sitemap submission are in progress. See [PERSIAN_SEO.md](PERSIAN_SEO.md).
+Verified `https://loqme.shop/` ownership using the added HTML token, preserving previous ownership. Commit `c5b0550` deployed successfully (run 37185092517); 10 SEO tests, workspace types and CI pass. Homepage already indexed; live test passes and recrawl request accepted. Sitemap submitted and resubmitted once after Google's live fetch succeeded, but its report still says Couldn't fetch; processing success remains pending. Manual actions/security reports show no issues. See [PERSIAN_SEO.md](PERSIAN_SEO.md).
 
 ### Delivered: CP-10.19 Android launch and authentication security (2026-10-04)
 

@@ -20,13 +20,20 @@ Focused schema/sitemap tests, optimized-build browser tests (including JavaScrip
 
 ## Search Console follow-through
 
-2026-10-04 setup in progress: the user signed into Google Search Console and requested setup of `https://loqme.shop/`. Its URL-prefix property requires an additional Google-issued HTML verification token; root metadata now preserves the existing token and adds the signed-in account's token. Workspace typechecks pass. Deployment, Google verification and sitemap submission remain pending confirmation.
+2026-10-04 setup performed in the user's signed-in Google Search Console account:
 
-After deployment, the property owner should:
+- Verified ownership of the URL-prefix property `https://loqme.shop/` using Google's HTML tag. Root metadata preserves the previous token and adds the account's Google-issued token. Commit `c5b0550` pushed and deployed successfully in production run [37185092517](https://github.com/MobinGholizadeh/loqme/actions/runs/37185092517). Ten focused SEO tests, workspace types and production CI validation/build/deploy pass; both tokens confirmed in live HTML.
+- Homepage inspection reports **URL is on Google / Page is indexed**, with Google selecting the inspected URL as canonical. The stored crawl was September 21 (before the recent SEO changes). Google's October 4 live test succeeds; a single homepage indexing request was accepted into the priority crawl queue.
+- Submitted `https://loqme.shop/sitemap.xml`. Submission accepted, but the sitemap report displays **Couldn't fetch / Sitemap could not be read** with no detailed cause. Google's subsequent live inspection at 10:53 AM reports **Crawl allowed: Yes / Page fetch: Successful / Indexing allowed: Yes**. Independent HTTP checks return 200 XML without redirects; parsing succeeds and robots.txt permits crawling. Resubmitted once after the successful live fetch; processing success remains unconfirmed. Do not request search indexing of the sitemap XML itself.
+- Manual actions and Security issues both report **No issues detected**. The new property's indexing report is still processing; no reliable Persian-query ranking baseline is available yet.
 
-1. Verify the `loqme.shop` domain property via Google's supplied DNS TXT record if it is not already verified. Do not invent a verification token.
-2. Inspect `https://loqme.shop/`, run the live test, check rendered content and Google-selected canonical, then request indexing once.
-3. Submit `https://loqme.shop/sitemap.xml` and review indexing/crawl errors.
+Remaining operational acceptance: recheck sitemap processing after Google retries; investigate further if the fetch warning persists. Record query performance once reports populate. URL-prefix verification covers the current HTTPS host; no domain-wide DNS property was created.
+
+Ongoing owner follow-through:
+
+1. Optionally add a domain-wide property via Google's supplied DNS TXT record if all protocols/subdomains need reporting. Keep the deployed HTML tokens for the verified URL-prefix property.
+2. Review the homepage after Google recrawls; do not repeatedly request indexing.
+3. Recheck `https://loqme.shop/sitemap.xml` processing and review indexing/crawl errors.
 4. Record a baseline and compare successive 28-day periods for exact queries `لقمه`, `Loqme`, `لقمه ارومیه`, `اپلیکیشن لقمه`, and `لقمه شاپ`: impressions, clicks, CTR and average position. Segment Iran/device where sufficient data exists; country signals can be affected by VPN use.
 5. Use `لقمه (Loqme)` and the official URL consistently on genuine owned profiles and merchant partner references. Add schema sameAs only for verified existing profiles; avoid bought links or manufactured reviews. No outreach or external-profile changes were performed.
 
