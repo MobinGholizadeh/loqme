@@ -4,11 +4,43 @@ import re
 import subprocess
 import sys
 import time
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
 def adb(*args):
     return subprocess.check_output(['adb', *args], text=True, stderr=subprocess.STDOUT)
+
+
+def screen_tree():
+    adb('shell', 'uiautomator', 'dump', '/sdcard/loqme-window.xml')
+    return adb('shell', 'cat', '/sdcard/loqme-window.xml')
+
+
+def tap(node):
+    bounds = [int(value) for value in re.findall(r'\d+', node.attrib['bounds'])]
+    adb('shell', 'input', 'tap', str((bounds[0] + bounds[2]) // 2), str((bounds[1] + bounds[3]) // 2))
+
+
+# Complete the browser's first-run screen only on this disposable emulator.
+# Do not bypass Digital Asset Links or suppress real browser security UI.
+adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', 'https://loqme.shop', 'com.android.chrome')
+time.sleep(5)
+for _ in range(4):
+    nodes = list(ET.fromstring(screen_tree()).iter('node'))
+    consent = next((node for node in nodes if node.attrib.get('text') == 'Accept & continue'), None)
+    if consent is not None:
+        metrics = next((node for node in nodes if node.attrib.get('class') == 'android.widget.CheckBox' and node.attrib.get('checked') == 'true'), None)
+        if metrics is not None:
+            tap(metrics)
+        tap(consent)
+    else:
+        skip = next((node for node in nodes if node.attrib.get('text') in ('No thanks', 'Use without an account')), None)
+        if skip is None:
+            break
+        tap(skip)
+    time.sleep(3)
+adb('shell', 'am', 'force-stop', 'com.android.chrome')
 
 
 apk = sys.argv[1]
@@ -35,6 +67,7 @@ assert not re.search(r'FATAL EXCEPTION[^\n]*\n[^\n]*Process: ' + re.escape(packa
 (evidence / 'launch.txt').write_text(launch)
 (evidence / 'browser-packages.txt').write_text(adb('shell', 'pm', 'list', 'packages'))
 (evidence / 'screen.png').write_bytes(subprocess.check_output(['adb', 'exec-out', 'screencap', '-p']))
+(evidence / 'screen.xml').write_text(screen_tree())
 adb('shell', 'am', 'force-stop', package)
 link = adb('shell', 'am', 'start', '-W', '-a', 'android.intent.action.VIEW', '-d', 'https://loqme.shop/explore', package)
 assert 'Status: ok' in link, link
