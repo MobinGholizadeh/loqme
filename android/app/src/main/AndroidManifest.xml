@@ -47,6 +47,12 @@
 
         </activity>
 
+        <!-- Preserve explicit launcher shortcuts created by the previous signed APK. -->
+        <activity-alias
+            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:targetActivity=".EntryActivity"
+            android:exported="true" />
+
         <activity android:name=".LoqmeLauncherActivity" android:exported="false" android:screenOrientation="portrait">
             <!-- TWA Configuration Meta-data -->
             <meta-data
