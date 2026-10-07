@@ -183,8 +183,8 @@ export const CustomerPickupPassModal: React.FC<
                   نوش جان!
                 </h3>
                 <p className="text-xs text-loqme-neutral-600 leading-relaxed max-w-xs mx-auto">
-                  امیدواریم از لقمه‌تان لذت ببرید. از همراهی شما در کاهش هدررفت
-                  و حمایت از کسب‌وکارهای محلی سپاسگزاریم.
+                  امیدواریم از لقمه‌تان لذت ببرید. از همراهی شما در نجات خوراکی‌های خوشمزه
+                  و مراقبت از طبیعت و محله سپاسگزاریم.
                 </p>
               </div>
 

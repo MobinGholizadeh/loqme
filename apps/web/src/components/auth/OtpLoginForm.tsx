@@ -246,7 +246,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
                 ? 'با شماره موبایل مالک یا همکار فروشگاه وارد شوید.'
                 : (mode === 'login'
                     ? 'با شماره موبایل خود وارد شوید و به لقمه‌های ذخیره‌شده دسترسی پیدا کنید.'
-                    : 'با شماره موبایل ثبت‌نام کنید و لذت کشف طعم‌های تازه را تجربه کنید.'))
+                    : 'با شماره موبایل ثبت‌نام کنید و در لذت کشف طعم‌های تازه و دوستی با طبیعت سهیم شوید.'))
             : `کد ۵ رقمی به ${toPersianDigits(mobile)} ارسال شد.`}
         </p>
       </div>
@@ -408,6 +408,13 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
           </div>
         )}
       </form>
+
+      {!embedded && audience === 'customer' && (
+        <Link href="/" className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-loqme-primary-200 px-4 py-3 text-sm font-bold text-loqme-primary-700 transition-colors hover:bg-loqme-primary-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-loqme-primary-700">
+          ادامه بدون حساب کاربری
+          <ArrowLeft size={18} aria-hidden="true" />
+        </Link>
+      )}
 
       {!embedded && audience === 'customer' && step === 'PHONE' && (
         <div className="text-center pt-1 border-t border-loqme-neutral-100">

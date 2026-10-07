@@ -107,6 +107,7 @@ describe("Milestone M10 — UX, SEO, PWA & Performance Excellence", () => {
       const urls = sitemapEntries.map((e) => e.url);
       expect(urls).toContain("https://loqme.shop");
       expect(urls).toContain("https://loqme.shop/explore");
+      expect(urls).toContain("https://loqme.shop/about");
       expect(urls).not.toContain("https://loqme.shop/login");
       expect(urls).not.toContain("https://loqme.shop/register");
       expect(sitemapEntries[0].lastModified).toBeUndefined();

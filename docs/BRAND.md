@@ -9,10 +9,13 @@
 ## 1. Brand Essence & Taglines
 
 ### Primary Tagline
-> **«طعم‌های تازه، انتخابی هوشمندانه.»**  
+> **«طعم‌های تازه، مهربانی با زمین، انتخابی هوشمندانه.»**  
 > *Fresh flavors, a smart choice.*
 
 ### Supporting Taglines & Hooks
+* **«سهم خوشمزه شما از هوای زمین.»** *(Your delicious share of fresh air for earth.)*
+* **«نجات طعم‌های خوب، لبخند به طبیعت.»** *(Rescuing good flavors, smiling at nature.)*
+* **«تازه، به‌صرفه، دوستدار زمین.»** *(Fresh, affordable, eco-friendly.)*
 * **«چیزای خوب هنوز تموم نشدن.»** *(Good things aren't over yet.)*
 * **«لذت کشف طعم‌های تازه، با قیمتی که لبخند می‌اره.»** *(The joy of fresh flavors at a price that brings a smile.)*
 * **«سهم محله‌ات از دست‌نخورده‌های خوشمزه.»** *(Your neighborhood's share of untouched deliciousness.)*

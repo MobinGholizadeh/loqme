@@ -78,9 +78,11 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="customer-shell" data-session={status}>
+      <nav aria-label="دسترسی سریع">
       <a href="#main-content" className="skip-link">
         رفتن به محتوای اصلی
       </a>
+      </nav>
 
       {isProfile ? (
         <header
@@ -204,6 +206,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
       )}
 
       {status === "anonymous" && !isProfile && (
+        <aside aria-label="ورود به حساب">
         <Link
           className="mobile-verification-notice"
           href={`/login?redirect=${encodeURIComponent(pathname)}`}
@@ -212,6 +215,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
           <span>ورود و تأیید شماره همراه</span>
           <ArrowUpLeft size={18} aria-hidden="true" />
         </Link>
+        </aside>
       )}
 
       <main id="main-content" className="customer-main" tabIndex={-1}>

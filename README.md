@@ -1,7 +1,7 @@
 # Loqme (لقمه) — Surplus Food & Inventory Marketplace
 
-> **طعم‌های تازه، انتخابی هوشمندانه.**  
-> *Eat well, spend less.*
+> **طعم‌های تازه، مهربانی با زمین، انتخابی هوشمندانه.**  
+> *Fresh flavors, kindness to the earth, a smart choice.*
 
 Official Domain: **[loqme.shop](https://loqme.shop)**  
 Persian Brand: **لقمه**  

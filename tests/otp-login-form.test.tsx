@@ -23,6 +23,21 @@ async function verify() {
   await act(async () => fireEvent.click(screen.getByRole('button', { name: 'تایید و ورود' })));
 }
 describe('OTP form authentication flow', () => {
+  it.each(['login', 'register'] as const)('offers guest browsing in %s on both steps without creating a session', async initialMode => {
+    render(<OtpLoginForm initialMode={initialMode} />);
+    expect(screen.getByRole('link', { name: 'ادامه بدون حساب کاربری' }).getAttribute('href')).toBe('/');
+    expect(fetchMock).not.toHaveBeenCalled();
+    await phone();
+    expect(screen.getByRole('link', { name: 'ادامه بدون حساب کاربری' }).getAttribute('href')).toBe('/');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(state.setUser).not.toHaveBeenCalled();
+  });
+  it.each([{ audience: 'business' as const }, { embedded: true }])('does not offer guest entry in restricted forms %j', async props => {
+    render(<OtpLoginForm {...props} />);
+    expect(screen.queryByRole('link', { name: 'ادامه بدون حساب کاربری' })).toBeNull();
+    await phone();
+    expect(screen.queryByRole('link', { name: 'ادامه بدون حساب کاربری' })).toBeNull();
+  });
   it('normalizes Persian/Arabic digits and waits for cookie-backed session before success', async () => {
     const success = vi.fn(); render(<OtpLoginForm preventRedirect onSuccess={success} embedded />); await phone(); await verify();
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ mobile: '09121111111', mode: 'login', audience: 'customer' });

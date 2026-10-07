@@ -15,6 +15,24 @@ User reported login failure on production (`https://loqme.shop/login`), displayi
 - **Fix**: Replaced the strict equality check in `request-guard.ts` with `isValidOrigin(request)` which inspects `x-forwarded-host`, `x-forwarded-proto`, `host`, configured `NEXT_PUBLIC_APP_URL`, and official Loqme domains (`loqme.shop`, `loqme.ir`), while maintaining strict rejection of `sec-fetch-site: cross-site` and untrusted origins. Aligned official domain fallbacks in `apps/web/src/lib/business/http.ts`.
 - **Verification**: Tested live reproduction using curl (HTTP 403 reproduced with `Origin: https://loqme.shop`, HTTP 200 without Origin). Added automated tests in `tests/auth-security-repairs.test.ts` validating reverse-proxied production requests, native mobile requests, and untrusted cross-origin requests. Lint and workspace typecheck pass with zero errors.
 
+### Implemented: CP-10.20 Guest browsing and About Loqme (2026-10-07)
+
+Customer login/register now offer «ادامه بدون حساب کاربری» on phone and OTP steps; business and embedded forms omit it. Added public `/about`, footer navigation, canonical/sitemap metadata and centralized editable Persian copy with hidden empty business/contact fields. Desktop, mobile web/PWA and existing Android TWA share the change; no native client, listing-type expansion, migration or deployment. Shared shell navigation landmarks were corrected. Existing uncommitted edits are preserved.
+
+Validation: **39/39 focused unit tests**, **8/8 optimized-build browser tests**, production build, lint and all workspace typechecks pass. Browser coverage includes guest navigation with no session, reservation 401, protected order redirect, persisted-login return flow, public About HTML, empty contact omission, sitemap and keyboard/axe checks at 360/390/768/1440px. Mobile/desktop screenshots inspected. Local database unavailable; no physical Android smoke or SMS.ir approval. The root loading boundary still requires JavaScript to reveal About content, although its content is server-rendered. Existing M11/provider/device gates remain open. See [GUEST_ABOUT.md](GUEST_ABOUT.md).
+
+### Delivered: Tagline Refinement & Nature-Friendly Food-Rescue Messaging (2026-10-04)
+
+User requested replacing the legacy «خوب بخور، کمتر خرج کن» slogan with an inspiring, nature-friendly, food-rescue tone across the website.
+- **Brand Taglines**: Introduced «طعم‌های تازه، مهربانی با زمین، انتخابی هوشمندانه» as primary tagline and «تازه، به‌صرفه، دوستدار زمین» as the compact triplet across `AuthLayout.tsx`, `MarketFooter.tsx`, `README.md`, and `docs/BRAND.md`.
+- **Site-Wide Food Rescue & Nature Messaging**:
+  - `page.tsx` (Homepage): Enhanced intro paragraph emphasizing food rescue, neighborhood support, and caring for nature while preserving the H1 heading for verified SEO tests.
+  - `AuthLayout.tsx` & `OtpLoginForm.tsx`: Updated captions, aria-labels, register subtitles, and footnotes to emphasize saving quality surplus food and smiling to the earth.
+  - `MarketFooter.tsx`: Enhanced footer description and bottom brand signature.
+  - `LoqmeExplainer.tsx`: Updated interactive explainer scenes to communicate food rescue, eco-friendly impact, and mindful consumption.
+  - `CustomerPickupPassModal.tsx`: Updated post-pickup success note thanking customers for food rescue and caring for nature and the neighborhood.
+  - `orders/page.tsx`: Updated empty state description to invite customers to join food rescue and nature preservation.
+
 ### Verified: Google Search Console; sitemap processing pending (2026-10-04)
 
 Verified `https://loqme.shop/` ownership using the added HTML token, preserving previous ownership. Commit `c5b0550` deployed successfully (run 37185092517); 10 SEO tests, workspace types and CI pass. Homepage already indexed; live test passes and recrawl request accepted. Sitemap submitted and resubmitted once after Google's live fetch succeeded, but its report still says Couldn't fetch; processing success remains pending. Manual actions/security reports show no issues. See [PERSIAN_SEO.md](PERSIAN_SEO.md).

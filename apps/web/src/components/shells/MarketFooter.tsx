@@ -18,8 +18,9 @@ export function MarketFooter({ portal }: { portal: { href: string; label: string
     <div className="market-footer-top">
       <Link href="/" className="footer-brand" aria-label="لقمه، صفحه اصلی"><LoqmeLogo variant="icon" theme="white" size={52}/><span lang="en">Loqme</span></Link>
       <div className="footer-links">
-        <p>کشف خوراکی‌های تازه، خرید هوشمندانه از محله.</p>
+        <p>نجات خوراکی‌های تازه، دوستی با زمین و خرید هوشمندانه از محله.</p>
         <nav aria-label="پیوندهای پایین صفحه">
+          <Link href="/about">درباره ما</Link>
           <Link href="/explore">کشف بسته‌ها</Link><Link href="/orders">سفارش‌های من</Link>
           {portal ? <Link href={portal.href}>{portal.label}</Link> : <Link href="/business">همراهی کسب‌وکارها</Link>}<HowItWorksButton/>
         </nav>
@@ -27,7 +28,7 @@ export function MarketFooter({ portal }: { portal: { href: string; label: string
     </div>
     <div className="footer-signature" ref={wordmark} data-revealed={revealed}>
       <div className="footer-wordmark" lang="en" dir="ltr">Loqme</div>
-      <div className="footer-bottom"><span>تازه، محلی، به‌صرفه</span><span lang="en" dir="ltr">loqme.shop</span><span>تمام حقوق برای لقمه محفوظ است.</span></div>
+      <div className="footer-bottom"><span>تازه، به‌صرفه، دوستدار زمین</span><span lang="en" dir="ltr">loqme.shop</span><span>تمام حقوق برای لقمه محفوظ است.</span></div>
     </div>
   </footer>;
 }

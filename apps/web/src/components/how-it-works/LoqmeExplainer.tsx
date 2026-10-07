@@ -6,10 +6,10 @@ import { toPersianDigits } from "@/lib/utils/persian";
 const SCENE_MS = 7500;
 const DURATION = SCENE_MS * 4;
 const scenes = [
-  { title: "یک طعم تازه کشف کن", text: "بسته‌های فروشگاه‌های نزدیکت را ببین؛ محتویات، قیمت و زمان دریافت را بررسی کن.", label: "کشف" },
+  { title: "طعم‌های تازه را کشف و نجات بده", text: "بسته‌های مازاد روزانه فروشگاه‌های نزدیکت را با قیمت استثنایی ببین و مانع هدررفت آن‌ها شو.", label: "کشف و نجات" },
   { title: "انتخاب کن، رزرو کن", text: "بسته دلخواهت را رزرو کن و پیش از پایان مهلت واقعی رزرو، پرداخت آنلاین را انجام بده.", label: "رزرو و پرداخت" },
-  { title: "سر وقت، حضوری دریافت کن", text: "در بازه اعلام‌شده به فروشگاه برو و کد QR یا رمز دریافت سفارش را نشان بده.", label: "دریافت" },
-  { title: "لذت ببر و تجربه‌ات را بگو", text: "از خوراکی‌ها لذت ببر و پس از دریافت، به کیفیت، تنوع، مقدار و تجربه تحویل امتیاز بده.", label: "لذت و نظر" },
+  { title: "سر وقت، حضوری دریافت کن", text: "در بازه اعلام‌شده به فروشگاه برو و با نشان دادن کد دریافت، بسته نجات‌یافته‌ات را تحویل بگیر.", label: "دریافت" },
+  { title: "لذت ببر و ردپای سبکت را بساز", text: "از خوراکی‌های تازه و باکیفیت لذت ببر؛ هر خرید تو، گامی کوچک و مؤثر در مهربانی با طبیعت است.", label: "لذت و طبیعت" },
 ];
 function Illustration({ scene }: { scene: number }) {
   return <div className="explainer-art" aria-hidden="true">
@@ -32,9 +32,9 @@ function Illustration({ scene }: { scene: number }) {
     </div>}
     {scene === 3 && <div className="illustration-enjoy scene-enter">
       <div className="illustration-bag"><ShoppingBag size={82}/><span className="illustration-check"><Check size={27}/></span></div>
-      <b>یک کشف خوشمزه، یک خرید هوشمندانه</b>
+      <b>یک کشف خوشمزه، یک لبخند به طبیعت</b>
       <div className="illustration-stars">{[0,1,2,3,4].map(i => <Star key={i} size={28} style={{ animationDelay: `${i * 100}ms` }}/>)}</div>
-      <span>تجربه تو به انتخاب دیگران کمک می‌کند</span>
+      <span>تجربه و همراهی تو به زمین و محله کمک می‌کند</span>
     </div>}
   </div>;
 }
