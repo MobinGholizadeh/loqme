@@ -12,6 +12,24 @@ describe('authentication abuse boundaries', () => {
     });
     expect(guardOtpRequest(request)?.status).toBe(403);
   });
+  it('accepts legitimate reverse-proxied production requests with HTTPS origin', () => {
+    const request = new NextRequest('http://127.0.0.1:3000/api/auth/request-otp', {
+      headers: {
+        origin: 'https://loqme.shop',
+        host: 'loqme.shop',
+        'x-forwarded-host': 'loqme.shop',
+        'x-forwarded-proto': 'https',
+        'x-real-ip': '192.0.2.100',
+      },
+    });
+    expect(guardOtpRequest(request)).toBeNull();
+  });
+  it('accepts requests from native mobile clients without origin header', () => {
+    const request = new NextRequest('https://loqme.shop/api/auth/request-otp', {
+      headers: { 'x-real-ip': '192.0.2.100' },
+    });
+    expect(guardOtpRequest(request)).toBeNull();
+  });
   it('limits one IP across different numbers, ignores spoofed forwarding chains and recovers after expiry', () => {
     vi.useFakeTimers(); vi.setSystemTime(new Date('2030-01-01'));
     const request = () => new NextRequest('https://loqme.shop/api/auth/request-otp', {

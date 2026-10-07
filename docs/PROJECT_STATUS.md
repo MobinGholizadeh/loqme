@@ -8,6 +8,13 @@
 
 ## 1. Project Health & Current State
 
+### Fixed: Production OTP login rejection behind reverse proxy (2026-10-07)
+
+User reported login failure on production (`https://loqme.shop/login`), displaying `درخواست نامعتبر است.` on OTP code request.
+- **Root Cause**: In `apps/web/src/lib/auth/request-guard.ts`, `guardOtpRequest` performed a naive `origin !== request.nextUrl.origin` equality check. In production, Nginx terminates SSL for `https://loqme.shop` and proxies internally to Next.js standalone on `http://127.0.0.1:3000`. Next.js constructed `request.nextUrl.origin` as `http://localhost:3000`, while modern browsers always send `Origin: https://loqme.shop`. Because `https://loqme.shop !== http://localhost:3000`, all web browser login attempts were blocked with HTTP 403 (`درخواست نامعتبر است.`).
+- **Fix**: Replaced the strict equality check in `request-guard.ts` with `isValidOrigin(request)` which inspects `x-forwarded-host`, `x-forwarded-proto`, `host`, configured `NEXT_PUBLIC_APP_URL`, and official Loqme domains (`loqme.shop`, `loqme.ir`), while maintaining strict rejection of `sec-fetch-site: cross-site` and untrusted origins. Aligned official domain fallbacks in `apps/web/src/lib/business/http.ts`.
+- **Verification**: Tested live reproduction using curl (HTTP 403 reproduced with `Origin: https://loqme.shop`, HTTP 200 without Origin). Added automated tests in `tests/auth-security-repairs.test.ts` validating reverse-proxied production requests, native mobile requests, and untrusted cross-origin requests. Lint and workspace typecheck pass with zero errors.
+
 ### Verified: Google Search Console; sitemap processing pending (2026-10-04)
 
 Verified `https://loqme.shop/` ownership using the added HTML token, preserving previous ownership. Commit `c5b0550` deployed successfully (run 37185092517); 10 SEO tests, workspace types and CI pass. Homepage already indexed; live test passes and recrawl request accepted. Sitemap submitted and resubmitted once after Google's live fetch succeeded, but its report still says Couldn't fetch; processing success remains pending. Manual actions/security reports show no issues. See [PERSIAN_SEO.md](PERSIAN_SEO.md).
