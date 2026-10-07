@@ -1,5 +1,6 @@
 """Installation/upgrade and launch smoke on a disposable CI emulator, never a user phone."""
 import os
+import json
 import re
 import subprocess
 import sys
@@ -67,9 +68,42 @@ assert not re.search(r'FATAL EXCEPTION[^\n]*\n[^\n]*Process: ' + re.escape(packa
 (evidence / 'launch.txt').write_text(launch)
 (evidence / 'browser-packages.txt').write_text(adb('shell', 'pm', 'list', 'packages'))
 (evidence / 'screen.png').write_bytes(subprocess.check_output(['adb', 'exec-out', 'screencap', '-p']))
-(evidence / 'screen.xml').write_text(screen_tree())
+tree = screen_tree()
+(evidence / 'screen.xml').write_text(tree)
+later = next((node for node in ET.fromstring(tree).iter('node') if node.attrib.get('text') == 'بعداً'), None)
+if later is not None:
+    tap(later)
+    time.sleep(5)
+    adb('shell', 'am', 'force-stop', package)
+    adb('shell', 'am', 'start', '-W', '-n', package + '/ir.loqme.app.EntryActivity')
+    time.sleep(4)
+    assert 'بعداً' not in screen_tree(), 'Dismissed update prompted again on same day'
+    (evidence / 'after-dismissal.png').write_bytes(subprocess.check_output(['adb', 'exec-out', 'screencap', '-p']))
 adb('shell', 'am', 'force-stop', package)
 link = adb('shell', 'am', 'start', '-W', '-a', 'android.intent.action.VIEW', '-d', 'https://loqme.shop/explore', package)
 assert 'Status: ok' in link, link
 (evidence / 'deep-link.txt').write_text(link)
+time.sleep(5)
+(evidence / 'deep-link.png').write_bytes(subprocess.check_output(['adb', 'exec-out', 'screencap', '-p']))
+
+# Clear only this disposable app's data so offline entry exercises a fresh check.
+adb('shell', 'am', 'force-stop', package)
+adb('shell', 'pm', 'clear', package)
+adb('shell', 'svc', 'wifi', 'disable')
+adb('shell', 'svc', 'data', 'disable')
+try:
+    adb('logcat', '-c')
+    adb('shell', 'am', 'start', '-W', '-n', package + '/ir.loqme.app.EntryActivity')
+    time.sleep(5)
+    activity = adb('shell', 'dumpsys', 'activity', 'activities')
+    resumed = '\n'.join(line for line in activity.splitlines() if 'mResumedActivity' in line)
+    assert 'EntryActivity' not in resumed, 'Offline check blocked native launch'
+    offline_log = adb('logcat', '-d')
+    assert not re.search(r'FATAL EXCEPTION[^\n]*\n[^\n]*Process: ' + re.escape(package), offline_log), 'Offline launch crashed'
+    (evidence / 'offline.txt').write_text(resumed)
+    (evidence / 'offline.png').write_bytes(subprocess.check_output(['adb', 'exec-out', 'screencap', '-p']))
+finally:
+    adb('shell', 'svc', 'wifi', 'enable')
+    adb('shell', 'svc', 'data', 'enable')
+(evidence / 'acceptance.json').write_text(json.dumps({'updatePromptObserved': later is not None, 'offlineLaunchPassed': True}))
 print('Clean installation, signed upgrade (when available), launch and deep link passed.')
