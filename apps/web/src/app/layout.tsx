@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { generateCssVariables } from "@loqme/design-tokens";
-import { Vazirmatn } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import './about/about.css';
 import '@/components/business/business.css';
 import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 
-const vazirmatn = Vazirmatn({
-  subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+const vazirmatn = localFont({
+  src: "../../public/fonts/Vazirmatn-Variable.woff2",
+  weight: "100 900",
   display: "swap",
   variable: "--font-vazirmatn",
 });

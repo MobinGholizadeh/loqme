@@ -36,7 +36,7 @@ for _ in range(4):
             tap(metrics)
         tap(consent)
     else:
-        skip = next((node for node in nodes if node.attrib.get('text') in ('No thanks', 'Use without an account')), None)
+        skip = next((node for node in nodes if node.attrib.get('text', '').casefold() in ('no thanks', 'use without an account')), None)
         if skip is None:
             break
         tap(skip)

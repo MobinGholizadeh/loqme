@@ -22,3 +22,5 @@ Browser controls are expected for external payment origins and browsers that do 
 ## Validation
 
 Local web/API tests and release-policy tests pass; production build/lint/types and Android CI/emulator acceptance are being completed. The Windows host has Java 8 but no Android SDK; compilation/device evidence will come from the isolated CI runner. Linux file-locking publication tests run in CI (skipped locally on Windows). Release URLs and final evidence will be recorded after publication.
+
+Release acceptance exposed two build issues before publication: optimized APKs shorten resource paths (the verifier now resolves the compiled resource table), and Google's Vazirmatn CSS response caused Next's Google font loader to crash. Official OFL-licensed Vazirmatn v33.003 is now bundled locally through `next/font/local`; builds no longer fetch fonts from Google. The font license and source attribution are included with the asset.
