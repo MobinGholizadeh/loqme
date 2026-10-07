@@ -10,8 +10,8 @@ android {
         applicationId "ir.loqme.app"
         minSdk 21
         targetSdk 34
-        versionCode (System.getenv("GITHUB_RUN_NUMBER") ? 100 + Integer.parseInt(System.getenv("GITHUB_RUN_NUMBER")) : 2)
-        versionName "1.0.1"
+        versionCode (System.getenv("ANDROID_VERSION_CODE") ?: "2").toInteger()
+        versionName (System.getenv("ANDROID_VERSION_NAME") ?: "1.1.0-dev")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -52,9 +52,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+    buildFeatures { buildConfig true }
 }
 
 dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.22')
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'

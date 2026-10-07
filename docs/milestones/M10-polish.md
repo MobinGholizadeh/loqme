@@ -117,6 +117,8 @@ A consumer marketplace succeeds on first impressions, smooth performance, and ef
 
 # Checkpoints
 
+- [ ] **CP-10.21 — Android branding, launch and updates (2026-10-07)**: Official icons, native update entry, canonical shop origin, public versioned downloads and deployment-linked releases implemented. Local API/auth and release-policy tests pass. Build/CI/emulator/publication evidence is pending; physical-device acceptance is separate. See [ANDROID_RELEASES.md](../ANDROID_RELEASES.md).
+
 - [x] **CP-10.20 — Guest browsing and About Loqme (2026-10-07)**: Customer guest links on phone/OTP screens; public Persian About page, editable content/optional contact fields, footer link and SEO metadata; shared shell accessibility landmarks. 39/39 focused unit tests, 8/8 optimized-build browser tests, build/lint/workspace types pass. Four-width axe/keyboard/layout coverage and screenshots inspected. Existing mobile web/PWA/TWA covered by web changes; physical Android, owner details, SMS.ir review and deployment remain separate. JavaScript-disabled visibility remains limited by the existing root loading boundary. See [GUEST_ABOUT.md](../GUEST_ABOUT.md). Existing M11 gates remain open.
 
 - [ ] **CP-10.18 Search Console follow-through (2026-10-04)**: `c5b0550` deployed, URL-prefix ownership verified, homepage live test passed and indexing request accepted. Ten SEO tests, types and CI pass. Sitemap submission accepted and live Google fetch succeeds, but processing report still shows Couldn't fetch after one resubmission; retain as pending. Manual actions/security reports clear. See [PERSIAN_SEO.md](../PERSIAN_SEO.md).

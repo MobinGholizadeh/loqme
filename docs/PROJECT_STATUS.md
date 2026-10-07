@@ -8,6 +8,10 @@
 
 ## 1. Project Health & Current State
 
+### Active: CP-10.21 Android branding, launch and updates (2026-10-07)
+
+User-approved repair retains the TWA for automatic web-feature parity. Adds official launcher artwork, canonical shop configuration, a bounded native update prompt, public versioned APK downloads and deployment-linked immutable releases. Source and artifact checks retain the existing signing identity and reject stale promotion. Local API/auth tests: 23/23 pass; release policy tests: 3 pass with 4 Linux-only publication tests deferred to CI. Production build and Android/emulator/release acceptance are in progress. See [ANDROID_RELEASES.md](ANDROID_RELEASES.md). Existing M11 and physical-device/provider gates remain open.
+
 ### Fixed: Production OTP login rejection behind reverse proxy (2026-10-07)
 
 User reported login failure on production (`https://loqme.shop/login`), displaying `درخواست نامعتبر است.` on OTP code request.

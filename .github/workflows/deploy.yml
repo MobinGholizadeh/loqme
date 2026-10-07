@@ -52,6 +52,7 @@ jobs:
         run: npm run db:seed
       - run: npm test
       - run: python3 scripts/test-release-safety.py
+      - run: python3 scripts/test-android-release.py
 
   build-and-push:
     name: Build & Push Docker Image
@@ -106,7 +107,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            NEXT_PUBLIC_APP_URL=${{ env.NEXT_PUBLIC_APP_URL || vars.NEXT_PUBLIC_APP_URL || 'https://loqme.shop' }}
+            NEXT_PUBLIC_APP_URL=https://loqme.shop
             NEXT_PUBLIC_MAP_API_KEY=${{ env.NEXT_PUBLIC_MAP_API_KEY || secrets.NEXT_PUBLIC_MAP_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -132,8 +133,8 @@ jobs:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
         if: env.SERVER_HOST == ''
         run: |
-          echo "::warning::SERVER_HOST secret is not configured. Skipping remote SSH deployment."
-          exit 0
+          echo "::error::SERVER_HOST is required for a successful production deployment."
+          exit 1
 
       - name: Execute Remote Deployment via SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -155,6 +156,11 @@ jobs:
             umask 077
             cd /opt/loqme
             test -f docker-compose.prod.yml
+            if [ -f deployed-revision.json ]; then
+              python3 -c 'import json; d=json.load(open("deployed-revision.json")); assert int(d["deploymentRunNumber"]) <= ${{ github.run_number }}, "Refusing an older production run; deploy the desired revision in a new workflow run"'
+            fi
+            mkdir -p android-releases
+            chmod 755 android-releases
             # Retain running/stopped container images and the newest two rollbacks.
             # No volumes, uploaded files, database backups or application data are pruned.
             printf '%s' "$CLEANUP_SCRIPT_B64" | base64 -d | python3
@@ -219,7 +225,7 @@ jobs:
             export LOQME_IMAGE="ghcr.io/$REPOSITORY@${{ needs.build-and-push.outputs.digest }}"
             docker compose -f docker-compose.prod.yml pull app
             # Verify secret wiring before migration or replacing the running app.
-            docker compose -f docker-compose.prod.yml run --rm --no-deps app node -e 'if(process.env.SMS_PROVIDER!=="smsir" || !process.env.SMSIR_API_KEY?.trim()) { console.error("Production SMS configuration is missing; refusing deployment"); process.exit(1); } console.log("Production SMS credentials are wired");'
+            docker compose -f docker-compose.prod.yml run --rm --no-deps app node -e 'if(process.env.SMS_PROVIDER!=="smsir" || !process.env.SMSIR_API_KEY?.trim()) { console.error("Production SMS configuration is missing; refusing deployment"); process.exit(1); } if(process.env.NEXT_PUBLIC_APP_URL!=="https://loqme.shop") { console.error("Production application URL must be https://loqme.shop"); process.exit(1); } console.log("Production SMS and canonical URL configuration verified");'
 
             # Keep the exact previous image available for application rollback.
             PREVIOUS_CONTAINER=$(docker compose -f docker-compose.prod.yml ps -q app)
@@ -264,3 +270,18 @@ jobs:
               exit 1
             fi
             echo "Deployment verified: $LOQME_IMAGE"
+            printf '%s\n' '{"sourceCommit":"${{ github.sha }}","deploymentRunNumber":${{ github.run_number }}}' > deployed-revision.json.tmp
+            chmod 644 deployed-revision.json.tmp
+            mv deployed-revision.json.tmp deployed-revision.json
+
+  android:
+    name: Publish Android after verified deployment
+    needs: deploy
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/build-android.yml
+    with:
+      source_sha: ${{ github.sha }}
+      deployment_run_number: ${{ github.run_number }}
+    secrets: inherit

@@ -129,6 +129,7 @@
 * **Status**: `Pending`
 
 ### M10 — UX, SEO, PWA & Performance
+* **CP-10.21 follow-on (2026-10-07)**: User-selected TWA repair, official Android icon, shop URL consistency, public update prompt/downloads and immutable APK releases after successful deployment. Native-client work remains deferred. See [ANDROID_RELEASES.md](ANDROID_RELEASES.md).
 * **CP-10.20 follow-on (2026-10-07)**: User-authorized guest entry on customer authentication and public Persian About page/footer link for desktop, mobile web/PWA and existing Android TWA. Owner supplies business/contact details later. Preserve existing listing types; no native-client or database expansion. See [GUEST_ABOUT.md](GUEST_ABOUT.md).
 * **CP-10.19 follow-on (2026-10-03)**: User-requested repairs to the existing Android distribution, authentication security and account header. See [CP10_19_ANDROID_AUTH_SECURITY.md](CP10_19_ANDROID_AUTH_SECURITY.md). Native Expo work remains a separate roadmap item.
 * **CP-10.18 follow-on (2026-10-03)**: User-requested Persian brand discovery: server-rendered brand introduction, linked WebSite/Organization identity, page canonicals and authentication indexing hygiene. See [PERSIAN_SEO.md](PERSIAN_SEO.md). Ranking and Search Console acceptance are separate from code delivery.

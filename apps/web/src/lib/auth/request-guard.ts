@@ -58,8 +58,6 @@ export function isValidOrigin(request: NextRequest): boolean {
   // 5. Official Loqme domains
   allowed.add('https://loqme.shop');
   allowed.add('https://www.loqme.shop');
-  allowed.add('https://loqme.ir');
-  allowed.add('https://www.loqme.ir');
 
   return allowed.has(normalizedOrigin);
 }

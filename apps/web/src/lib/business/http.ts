@@ -50,8 +50,6 @@ export function sameOrigin(request: NextRequest) {
   // 5. Official Loqme domains
   origins.add('https://loqme.shop');
   origins.add('https://www.loqme.shop');
-  origins.add('https://loqme.ir');
-  origins.add('https://www.loqme.ir');
 
   if (!origins.has(origin.toLowerCase())) {
     throw new BusinessError(403, 'درخواست نامعتبر است');

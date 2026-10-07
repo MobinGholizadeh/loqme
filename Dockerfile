@@ -42,7 +42,7 @@ ENV NEXTAUTH_SECRET="build-time-placeholder-nextauth-secret-32-chars-minimum"
 ENV SESSION_SECRET="build-time-placeholder-session-secret-32-chars-minimum"
 
 # Public build-time arguments inlined into Next.js client bundles
-ARG NEXT_PUBLIC_APP_URL="https://loqme.ir"
+ARG NEXT_PUBLIC_APP_URL="https://loqme.shop"
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_MAP_API_KEY=""
 ENV NEXT_PUBLIC_MAP_API_KEY=$NEXT_PUBLIC_MAP_API_KEY
@@ -64,7 +64,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-ARG NEXT_PUBLIC_APP_URL="https://loqme.ir"
+ARG NEXT_PUBLIC_APP_URL="https://loqme.shop"
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_MAP_API_KEY=""
 ENV NEXT_PUBLIC_MAP_API_KEY=$NEXT_PUBLIC_MAP_API_KEY
@@ -77,8 +77,9 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Set up storage directory for listing images with appropriate permissions
-RUN mkdir -p /app/.data/listing-images && chown -R nextjs:nodejs /app/.data
+RUN mkdir -p /app/.data/listing-images /app/.data/android-releases && chown -R nextjs:nodejs /app/.data
 ENV LISTING_IMAGE_STORAGE_DIR=/app/.data/listing-images
+ENV ANDROID_RELEASE_STORAGE_DIR=/app/.data/android-releases
 
 # Copy public static assets
 COPY --from=builder /app/apps/web/public ./apps/web/public

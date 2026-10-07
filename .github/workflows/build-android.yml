@@ -1,69 +1,57 @@
 name: Build Android TWA APK
 
 on:
-  push:
-    branches:
-      - main
-      - master
-    tags:
-      - 'v*'
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      build_type:
-        description: 'Build Type (debug or release)'
+      source_sha:
         required: true
-        default: 'release'
-        type: choice
-        options:
-          - debug
-          - release
+        type: string
+      deployment_run_number:
+        required: true
+        type: string
+  workflow_dispatch:
+    # Manual runs are debug artifacts only. Release runs follow production deployment.
 
 env:
   ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: "node24"
 
 jobs:
   build-apk:
-    name: Build Android APK
+    name: Verify and publish Android
     runs-on: ubuntu-latest
+    concurrency:
+      group: android-release-publication
+      cancel-in-progress: false
     permissions:
       contents: write
-
+    env:
+      RELEASE_SHA: ${{ inputs.source_sha || github.sha }}
+      DEPLOYMENT_RUN_NUMBER: ${{ inputs.deployment_run_number || '0' }}
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v4
-
-      - name: Set up Java Development Kit (JDK 17)
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
         with:
-          distribution: 'temurin'
+          ref: ${{ inputs.source_sha || github.sha }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
           java-version: '17'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
-
-      - name: Accept Android SDK Licenses
-        run: |
-          yes | sdkmanager --licenses || true
-
-      - name: Set up Gradle 8.5
-        uses: gradle/actions/setup-gradle@v3
+      - uses: android-actions/setup-android@v4
+      - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.5'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install Pillow==11.3.0
 
-      - name: Ensure Gradle Wrapper
-        run: |
-          cd android
-          gradle wrapper
-          chmod +x ./gradlew
-
-      - name: Assemble Debug APK
-        if: "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.build_type == 'debug' }}"
-        run: |
-          cd android
-          gradle assembleDebug --stacktrace
+      - name: Allocate a version above all historical APKs
+        if: inputs.source_sha != ''
+        run: python3 scripts/android-release.py allocate
 
       - name: Restore persistent release signing key
-        if: github.event.inputs.build_type != 'debug'
+        if: inputs.source_sha != ''
         env:
           KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -74,56 +62,123 @@ jobs:
           umask 077
           printf '%s' "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/loqme-release.jks"
 
-      - name: Assemble Release APK
-        if: github.event.inputs.build_type != 'debug'
+      - name: Test Android update policy and build
         env:
-          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/loqme-release.jks
+          ANDROID_KEYSTORE_PATH: ${{ inputs.source_sha != '' && format('{0}/loqme-release.jks', runner.temp) || '' }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
+          set -euo pipefail
+          python3 scripts/test-android-release.py
           cd android
-          gradle assembleRelease --stacktrace
+          gradle testDebugUnitTest --stacktrace
+          if [ "$DEPLOYMENT_RUN_NUMBER" = 0 ]; then
+            gradle assembleDebug --stacktrace
+          else
+            gradle assembleRelease --stacktrace
+          fi
 
-      - name: Verify release signature and wait for website trust deployment
-        if: github.event.inputs.build_type != 'debug'
+      - name: Verify the compiled release and website trust
+        if: inputs.source_sha != ''
         run: |
           set -euo pipefail
+          mkdir android-release
+          cp android/app/build/outputs/apk/release/app-release.apk android-release/loqme.apk
           SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
-          "$SIGNER" verify --print-certs android/app/build/outputs/apk/release/app-release.apk > "$RUNNER_TEMP/apk-cert.txt"
-          cat "$RUNNER_TEMP/apk-cert.txt"
-          python3 scripts/verify-android-release.py "$RUNNER_TEMP/apk-cert.txt" --wait-seconds 900
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort -V | tail -1)
+          "$SIGNER" verify --print-certs android-release/loqme.apk > android-release/certificate.txt
+          python3 scripts/verify-android-release.py android-release/certificate.txt --wait-seconds 120
+          python3 scripts/android-release.py verify --aapt "$AAPT"
+
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Emulator installation and launch acceptance
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: python3 scripts/test-android-device.py ${{ inputs.source_sha != '' && 'android/app/build/outputs/apk/release/app-release.apk' || 'android/app/build/outputs/apk/debug/app-debug.apk' }}
+
+      - name: Create immutable GitHub release
+        if: inputs.source_sha != ''
+        run: |
+          set -euo pipefail
+          gh release create "android-v$ANDROID_VERSION_CODE" \
+            "android-release/loqme-v$ANDROID_VERSION_CODE.apk" android-release/release.json \
+            android-release/SHA256SUMS android-release/certificate.txt \
+            --target "$RELEASE_SHA" --title "Loqme Android $ANDROID_VERSION_NAME" --latest=false \
+            --notes "Signed Android release for https://loqme.shop. Source: $RELEASE_SHA. Version code: $ANDROID_VERSION_CODE. Existing signed releases update in place; historical debug packages require separate migration. Checksums and signing certificate are attached."
+
+      - name: Prepare server publication bundle
+        if: inputs.source_sha != ''
+        run: |
+          mkdir -p android-publication
+          cp "android-release/loqme-v$ANDROID_VERSION_CODE.apk" android-release/release.json scripts/publish-android-release.py android-publication/
+
+      - name: Upload validated APK to persistent server staging
+        if: inputs.source_sha != ''
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          source: android-publication/*
+          target: /opt/loqme/android-staging/${{ github.run_id }}-${{ github.run_attempt }}
+          strip_components: 1
+
+      - name: Stage, verify public download, then atomically promote
+        if: inputs.source_sha != ''
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          STAGE: /opt/loqme/android-staging/${{ github.run_id }}-${{ github.run_attempt }}
+          VERSION: ${{ env.ANDROID_VERSION_CODE }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          envs: STAGE,VERSION
+          script: |
+            set -eu
+            python3 "$STAGE/publish-android-release.py" --stage "$STAGE"
+            curl --fail --silent --show-error "https://loqme.shop/api/android/downloads/loqme-v$VERSION.apk" -o "$STAGE/download-check.apk"
+            cmp "$STAGE/loqme-v$VERSION.apk" "$STAGE/download-check.apk"
+            python3 "$STAGE/publish-android-release.py" --stage "$STAGE" --promote
+
+      - name: Verify live metadata and promote GitHub latest
+        if: inputs.source_sha != ''
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error https://loqme.shop/api/android/latest -o android-release/live.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          live = json.loads(Path('android-release/live.json').read_text())
+          expected = json.loads(Path('android-release/release.json').read_text())
+          assert all(live[key] == expected[key] for key in live), 'Live metadata mismatch'
+          assert live['versionCode'] == expected['versionCode']
+          PY
+          gh release edit "android-v$ANDROID_VERSION_CODE" --latest
 
       - name: Remove temporary signing key
         if: always()
         run: rm -f "$RUNNER_TEMP/loqme-release.jks"
 
-      - name: Locate Generated APK
-        id: find_apk
-        run: |
-          APK_RAW=$(find android/app/build/outputs/apk -name "*.apk" | head -n 1)
-          echo "Found APK at: $APK_RAW"
-          cp "$APK_RAW" "android/app/build/outputs/apk/loqme-app.apk"
-          echo "apk_path=android/app/build/outputs/apk/loqme-app.apk" >> $GITHUB_OUTPUT
-
-      - name: Upload APK Artifact
+      - name: Upload build evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: loqme-android-twa-apk
-          path: ${{ steps.find_apk.outputs.apk_path }}
+          name: loqme-android-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            android-release/
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/reports/tests/
+            android-device-evidence/
           retention-days: 14
-
-      - name: Publish Release Asset to GitHub Releases
-        if: github.event.inputs.build_type != 'debug'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
-          name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'Loqme Android TWA (Latest)' }}
-          files: ${{ steps.find_apk.outputs.apk_path }}
-          generate_release_notes: true
-          make_latest: true
-          body: |
-            Signed Loqme Android release for https://loqme.shop.
-            If you installed the old debug APK, uninstall that debug app before installing this release.
-            Loqme pages use verified full-screen TWA mode; external websites may show browser controls.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

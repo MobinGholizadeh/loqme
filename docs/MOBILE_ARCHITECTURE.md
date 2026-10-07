@@ -8,6 +8,8 @@
 
 ## 1. Why Native Mobile (React Native / Expo)?
 
+CP-10.21 (2026-10-07): the user explicitly chose to retain and repair the existing TWA so web UI features update on Android without separate native screen development. A small native launch/update component is added; it does not implement the future React Native client or duplicate domain logic. See [ANDROID_RELEASES.md](ANDROID_RELEASES.md).
+
 Repository reality (2026-10-03): an existing `android/` TWA wrapper and GitHub APK workflow predate the native client. CP-10.19 repairs that user-reported distribution's signing and domain verification; it does not constitute native-mobile milestone completion or change the React Native/Expo target below. See [CP10_19_ANDROID_AUTH_SECURITY.md](CP10_19_ANDROID_AUTH_SECURITY.md).
 
 Loqme rejects the "WebView-in-a-box" (or PWA wrapper) paradigm for its primary mobile application. Surplus food discovery and pickup handoffs are deeply physical, time-sensitive, and neighborhood-centric interactions:
