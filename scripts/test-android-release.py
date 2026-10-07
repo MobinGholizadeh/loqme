@@ -19,6 +19,22 @@ publisher = module('publish-android-release.py', 'publisher')
 
 
 class PolicyTests(unittest.TestCase):
+    def test_compiled_icon_paths_resolve_after_resource_shortening(self):
+        table = '''
+        spec resource 0x7f0c0000 ir.loqme.app:mipmap/ic_launcher: flags=0x0
+        config mdpi-v4:
+          resource 0x7f0c0000 ir.loqme.app:mipmap/ic_launcher: t=0x03 d=0x01
+            (string8) "res/A.png"
+          resource 0x7f0c0001 ir.loqme.app:mipmap/ic_launcher_round: t=0x03 d=0x02
+            (string8) "res/B.png"
+        config hdpi-v4:
+          resource 0x7f0c0000 ir.loqme.app:mipmap/ic_launcher: t=0x03 d=0x03
+            (string8) "res/mipmap-hdpi-v4/ic_launcher.png"
+        '''
+        self.assertEqual(release.resource_files(table, 'mipmap/ic_launcher'),
+                         ['res/A.png', 'res/mipmap-hdpi-v4/ic_launcher.png'])
+        self.assertEqual(release.resource_files(table, 'drawable/missing'), [])
+
     def test_versions_exceed_legacy_and_new_releases_including_drafts(self):
         self.assertEqual(release.next_version([{'tag_name': 'latest'}, {'tag_name': 'android-v501'}], [117, 600]), 601)
         self.assertEqual(release.next_version([{'tag_name': 'android-v501'}], [117]), 502)

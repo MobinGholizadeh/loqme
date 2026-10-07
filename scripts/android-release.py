@@ -69,6 +69,19 @@ def next_version(releases, legacy_codes):
     return code
 
 
+def resource_files(table, resource):
+    """Resolve resource-table names, including release-shortened ZIP paths."""
+    paths, selected = [], False
+    for line in table.splitlines():
+        if re.match(r'\s*resource\s+0x', line):
+            selected = f':{resource}:' in line
+        elif re.match(r'\s*config\s', line):
+            selected = False
+        if selected:
+            paths.extend(re.findall(r'"(res/[^"\n]+)"', line))
+    return list(dict.fromkeys(paths))
+
+
 def allocate():
     repository = os.environ['GITHUB_REPOSITORY']
     pages = json.loads(subprocess.check_output(['gh', 'api', '--paginate', '--slurp', f'repos/{repository}/releases?per_page=100']))
@@ -124,17 +137,22 @@ def verify(apk, code, version, commit, deployment, aapt, output):
     assert re.fullmatch(r'[0-9a-f]{40}', commit), 'Invalid source SHA'
     # Inspect compiled adaptive vector path and decoded legacy PNG pixels.
     from PIL import Image, ImageChops
+    table = subprocess.check_output([aapt, 'dump', '--values', 'resources', str(output / 'loqme.apk')], text=True)
+    (output / 'compiled-resources.txt').write_text(table)
     with zipfile.ZipFile(io.BytesIO(apk)) as archive:
         manifest = subprocess.check_output([aapt, 'dump', 'badging', str(output / 'loqme.apk')], text=True)
         assert 'application-icon-' in manifest, 'Missing compiled icon'
-        for density in ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']:
-            for basename in ['ic_launcher', 'ic_launcher_round']:
-                files = [name for name in archive.namelist() if re.fullmatch(rf'res/mipmap-{density}(?:-v\d+)?/{basename}\.png', name)]
-                assert len(files) == 1, 'Missing density icon'
-                actual = Image.open(io.BytesIO(archive.read(files[0]))).convert('RGBA')
+        for basename in ['ic_launcher', 'ic_launcher_round']:
+            files = [name for name in resource_files(table, f'mipmap/{basename}') if name.endswith('.png')]
+            assert len(files) == 5, f'Missing density icons for {basename}: {files}'
+            images = [Image.open(io.BytesIO(archive.read(name))).convert('RGBA') for name in files]
+            for density in ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']:
                 expected = Image.open(f'android/app/src/main/res/mipmap-{density}/{basename}.png').convert('RGBA')
-                assert actual.size == expected.size and ImageChops.difference(actual, expected).getbbox(alpha_only=False) is None, 'Compiled icon differs from artwork'
-        vector = next(name for name in archive.namelist() if name.endswith('/ic_launcher_foreground.xml'))
+                matches = [actual for actual in images if actual.size == expected.size]
+                assert len(matches) == 1 and ImageChops.difference(matches[0], expected).getbbox(alpha_only=False) is None, 'Compiled icon differs from artwork'
+        vectors = resource_files(table, 'drawable/ic_launcher_foreground')
+        assert len(vectors) == 1, 'Missing compiled adaptive foreground'
+        vector = vectors[0]
     tree = subprocess.check_output([aapt, 'dump', 'xmltree', str(output / 'loqme.apk'), vector], text=True)
     path_data = re.search(r'android:pathData="([^"]+)"', Path('android/app/src/main/res/drawable/ic_launcher_foreground.xml').read_text())[1]
     assert path_data in tree, 'Wrong compiled adaptive icon'
