@@ -8,9 +8,9 @@
 
 ## 1. Project Health & Current State
 
-### Active: CP-10.21 Android branding, launch and updates (2026-10-07)
+### Delivered: CP-10.21 Android branding, launch and updates (2026-10-08)
 
-User-approved repair retains the TWA for automatic web-feature parity. Adds official launcher artwork, canonical shop configuration, a bounded native update prompt, public versioned APK downloads and deployment-linked immutable releases. Source and artifact checks retain the existing signing identity and reject stale promotion. Local API/auth tests: 23/23 pass; production build, lint and workspace typechecks pass. Isolated Android CI run 37662056983 passed compilation, four native update-policy tests, seven Linux release-policy/publication tests and emulator install/launch smoke. The emulator screenshot revealed Chrome first-run onboarding; the acceptance script now completes that before recording the app. Signed upgrade, public publication and final release acceptance are in progress. See [ANDROID_RELEASES.md](ANDROID_RELEASES.md). Existing M11 and physical-device/provider gates remain open.
+Official icons, canonical shop configuration, native daily update prompt, public versioned downloads and deployment-linked releases are implemented and pushed. Production run 37665504690 deployed source 1f2095a and published signed **1.1.123 (123)**; anonymous Loqme download and GitHub asset are byte-identical. Compiled artwork/domain/signer checks, signed upgrade from 122, clean emulator install, deep links and offline entry pass. 958 web tests, eight Linux publication-policy tests, four native policy tests, production build, lint, workspace types and three optimized-build guest/About browser scenarios pass. Bundled official Vazirmatn fixes the Google font-loader build failure. Follow-up runs verify the live Persian update dialog, Later and daily suppression, plus full-screen signed TWA launch. API-35/Chrome-124 run 37726572658 confirms rendered full-screen discovery from the public signed APK. Physical-device/login/payment acceptance and existing M11 gates remain open. See [ANDROID_RELEASES.md](ANDROID_RELEASES.md).
 
 ### Fixed: Production OTP login rejection behind reverse proxy (2026-10-07)
 
