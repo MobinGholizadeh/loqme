@@ -1,11 +1,13 @@
 """Installation/upgrade and launch smoke on a disposable CI emulator, never a user phone."""
 import os
 import json
+import hashlib
 import re
 import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
+import urllib.request
 from pathlib import Path
 
 
@@ -23,12 +25,16 @@ def tap(node):
     adb('shell', 'input', 'tap', str((bounds[0] + bounds[2]) // 2), str((bounds[1] + bounds[3]) // 2))
 
 
+evidence = Path(os.environ.get('ANDROID_EVIDENCE_DIR', 'android-device-evidence'))
+evidence.mkdir(parents=True, exist_ok=True)
 # Complete the browser's first-run screen only on this disposable emulator.
 # Do not bypass Digital Asset Links or suppress real browser security UI.
 adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', 'https://loqme.shop', 'com.android.chrome')
 time.sleep(5)
-for _ in range(4):
-    nodes = list(ET.fromstring(screen_tree()).iter('node'))
+for attempt in range(15):
+    tree = screen_tree()
+    (evidence / f'browser-setup-{attempt}.xml').write_text(tree)
+    nodes = list(ET.fromstring(tree).iter('node'))
     consent = next((node for node in nodes if node.attrib.get('text') == 'Accept & continue'), None)
     if consent is not None:
         metrics = next((node for node in nodes if node.attrib.get('class') == 'android.widget.CheckBox' and node.attrib.get('checked') == 'true'), None)
@@ -38,16 +44,19 @@ for _ in range(4):
     else:
         skip = next((node for node in nodes if node.attrib.get('text', '').casefold() in ('no thanks', 'use without an account')), None)
         if skip is None:
-            break
-        tap(skip)
+            if any(node.attrib.get('resource-id') == 'com.android.chrome:id/url_bar' for node in nodes):
+                break
+        else:
+            tap(skip)
     time.sleep(3)
+else:
+    raise AssertionError('Chrome onboarding did not reach a browser tab')
+time.sleep(3)
 adb('shell', 'am', 'force-stop', 'com.android.chrome')
 
 
 apk = sys.argv[1]
 package = 'ir.loqme.app' if os.environ.get('DEPLOYMENT_RUN_NUMBER', '0') != '0' else 'ir.loqme.app.debug'
-evidence = Path('android-device-evidence')
-evidence.mkdir(exist_ok=True)
 previous = os.environ.get('PREVIOUS_APK')
 if previous and package == 'ir.loqme.app':
     assert 'Success' in adb('install', previous), 'Previous signed release did not install'
@@ -107,3 +116,21 @@ finally:
     adb('shell', 'svc', 'data', 'enable')
 (evidence / 'acceptance.json').write_text(json.dumps({'updatePromptObserved': later is not None, 'offlineLaunchPassed': True}))
 print('Clean installation, signed upgrade (when available), launch and deep link passed.')
+
+if package.endswith('.debug'):
+    # Also inspect the real public signed app; a debug signer cannot prove TWA trust.
+    with urllib.request.urlopen('https://loqme.shop/api/android/latest', timeout=15) as response:
+        published = json.load(response)
+    code = published['versionCode']
+    assert isinstance(code, int) and code > 0
+    url = f'https://loqme.shop/api/android/downloads/loqme-v{code}.apk'
+    assert published['apkUrl'] == url
+    with urllib.request.urlopen(url, timeout=30) as response:
+        binary = response.read()
+    assert hashlib.sha256(binary).hexdigest() == published['sha256']
+    public_apk = evidence / f'loqme-v{code}.apk'
+    public_apk.write_bytes(binary)
+    environment = {**os.environ, 'DEPLOYMENT_RUN_NUMBER': 'published', 'ANDROID_VERSION_CODE': str(code),
+                   'ANDROID_EVIDENCE_DIR': str(evidence / 'published')}
+    environment.pop('PREVIOUS_APK', None)
+    subprocess.run([sys.executable, __file__, str(public_apk)], env=environment, check=True)
