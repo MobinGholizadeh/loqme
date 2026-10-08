@@ -27,6 +27,7 @@ def tap(node):
 
 evidence = Path(os.environ.get('ANDROID_EVIDENCE_DIR', 'android-device-evidence'))
 evidence.mkdir(parents=True, exist_ok=True)
+(evidence / 'chrome-package.txt').write_text(adb('shell', 'dumpsys', 'package', 'com.android.chrome'))
 # Complete the browser's first-run screen only on this disposable emulator.
 # Do not bypass Digital Asset Links or suppress real browser security UI.
 adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', 'https://loqme.shop', 'com.android.chrome')
