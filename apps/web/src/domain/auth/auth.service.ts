@@ -5,7 +5,8 @@ import { getNotificationService } from '@/lib/notifications';
 import { userService } from '../user/user.service';
 import { RequestOtpResult, VerifyOtpResult } from './auth.types';
 
-const OTP_EXPIRY_SECONDS = 120; // 2 minutes
+const OTP_EXPIRY_SECONDS = Number(process.env.OTP_EXPIRY_SECONDS) || 15 * 60; // 15 minutes (900 seconds)
+const OTP_RESEND_COOLDOWN_SECONDS = 120; // 2 minutes resend cooldown
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_REQUESTS_PER_WINDOW = 3;
 
@@ -128,6 +129,7 @@ export class AuthService {
       success: true,
       message: 'کد تایید ۵ رقمی ارسال گردید',
       expiresInSeconds: OTP_EXPIRY_SECONDS,
+      cooldownSeconds: OTP_RESEND_COOLDOWN_SECONDS,
       mobile,
     };
   }

@@ -94,7 +94,7 @@ describe('Account Existence Pre-Check & Guardrails', () => {
 
       const result = await authService.requestOtp('09121111111', { mode: 'login' });
       expect(result.success).toBe(true);
-      expect(result.expiresInSeconds).toBe(120);
+      expect(result.expiresInSeconds).toBe(900);
     });
 
     it('blocks OTP dispatch in register mode if user already exists', async () => {
@@ -118,7 +118,7 @@ describe('Account Existence Pre-Check & Guardrails', () => {
 
       const result = await authService.requestOtp('09127776655', { mode: 'register' });
       expect(result.success).toBe(true);
-      expect(result.expiresInSeconds).toBe(120);
+      expect(result.expiresInSeconds).toBe(900);
     });
   });
 

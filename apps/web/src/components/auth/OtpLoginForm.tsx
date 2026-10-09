@@ -105,7 +105,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
 
       setMobile(data.mobile);
       setStep("OTP");
-      setCountdown(data.expiresInSeconds || 120);
+      setCountdown(data.cooldownSeconds ?? Math.min(data.expiresInSeconds ?? 120, 120));
     } catch {
       setError("خطا در برقراری ارتباط با سرور");
     } finally {
@@ -247,7 +247,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
                 : (mode === 'login'
                     ? 'با شماره موبایل خود وارد شوید و به لقمه‌های ذخیره‌شده دسترسی پیدا کنید.'
                     : 'با شماره موبایل ثبت‌نام کنید و در لذت کشف طعم‌های تازه و دوستی با طبیعت سهیم شوید.'))
-            : `کد ۵ رقمی به ${toPersianDigits(mobile)} ارسال شد.`}
+            : `کد ۵ رقمی به ${toPersianDigits(mobile)} ارسال شد (اعتبار: ۱۵ دقیقه).`}
         </p>
       </div>
 

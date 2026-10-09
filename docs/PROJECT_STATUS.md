@@ -8,6 +8,14 @@
 
 ## 1. Project Health & Current State
 
+### Delivered: Extended OTP Expiration to 15 Minutes (2026-10-09)
+
+User reported OTP codes expiring prematurely due to Iranian SMS gateway delays.
+- **Extended Validity**: Increased `OTP_EXPIRY_SECONDS` from 120s (2m) to 900s (15m) in `apps/web/src/domain/auth/auth.service.ts` with `.env` override support (`OTP_EXPIRY_SECONDS`).
+- **Decoupled Resend Throttling**: Kept resend button cooldown at 120s (`cooldownSeconds: 120`) in `auth.service.ts` and `OtpLoginForm.tsx` so users can request a resend after 2 minutes if SMS was lost, while existing issued codes remain valid for 15 minutes.
+- **Friendly UX Hint**: Added Persian indicator in `OtpLoginForm.tsx` clarifying `(اعتبار: ۱۵ دقیقه)`.
+- **Test Suite Updates**: Updated `tests/auth-account-check.test.ts` and `tests/auth.test.ts` to assert 900s expiration. All 32 focused auth tests, workspace typecheck, and lint pass.
+
 ### Delivered: CP-10.21 Android branding, launch and updates (2026-10-08)
 
 Official icons, canonical shop configuration, native daily update prompt, public versioned downloads and deployment-linked releases are implemented and pushed. Production run 37665504690 deployed source 1f2095a and published signed **1.1.123 (123)**; anonymous Loqme download and GitHub asset are byte-identical. Compiled artwork/domain/signer checks, signed upgrade from 122, clean emulator install, deep links and offline entry pass. 958 web tests, eight Linux publication-policy tests, four native policy tests, production build, lint, workspace types and three optimized-build guest/About browser scenarios pass. Bundled official Vazirmatn fixes the Google font-loader build failure. Follow-up runs verify the live Persian update dialog, Later and daily suppression, plus full-screen signed TWA launch. API-35/Chrome-124 run 37726572658 confirms rendered full-screen discovery from the public signed APK. Physical-device/login/payment acceptance and existing M11 gates remain open. See [ANDROID_RELEASES.md](ANDROID_RELEASES.md).

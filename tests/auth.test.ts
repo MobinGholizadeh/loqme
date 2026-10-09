@@ -57,7 +57,7 @@ describe('Authentication & OTP Security Domain', () => {
     // 1. Request OTP
     const requestResult = await authService.requestOtp(testMobile, { mode: 'register' });
     expect(requestResult.success).toBe(true);
-    expect(requestResult.expiresInSeconds).toBe(120);
+    expect(requestResult.expiresInSeconds).toBe(900);
 
     // 2. Fetch mock dispatched OTP
     const sentRecord = ConsoleMockNotificationService.getRecentOtp(testMobile);
