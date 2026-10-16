@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { inventoryService } from '@/domain/inventory/inventory.service';
 import { paymentService } from '@/domain/payment/payment.service';
@@ -28,14 +29,6 @@ export interface VerifyOrderPaymentResult {
 
 export class OrderService {
   /**
-   * Generates a unique, friendly human order number (e.g. "LQ-74821")
-   */
-  private generateOrderNumber(): string {
-    const randomCode = Math.floor(10000 + Math.random() * 90000);
-    return `LQ-${randomCode}`;
-  }
-
-  /**
    * Creates an order from a verified, active reservation hold and initiates payment
    */
   async createOrderFromReservation(params: {
@@ -46,129 +39,38 @@ export class OrderService {
     callbackUrl: string;
     mobile?: string;
   }): Promise<CreateOrderResult> {
-    const {
-      customerId,
-      reservationId,
-      gateway = process.env.NODE_ENV === 'production' ? PaymentGatewayType.ZARINPAL : PaymentGatewayType.MOCK,
-      notesFa,
-      callbackUrl,
-      mobile,
-    } = params;
-
-    const now = new Date();
-
-    // 1. Fetch and validate reservation
-    const reservation = await prisma.reservation.findUnique({
-      where: { id: reservationId },
-      include: {
-        listing: {
-          include: { merchant: true, safety: true },
-        },
-        order: true,
-      },
+    const { customerId, reservationId, notesFa, callbackUrl, mobile } = params;
+    const gateway = params.gateway ?? (process.env.NODE_ENV === 'production' ? PaymentGatewayType.ZARINPAL : PaymentGatewayType.MOCK);
+    const prepared = await prisma.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM "Reservation" WHERE id=${reservationId} FOR UPDATE`;
+      await tx.$queryRaw`SELECT l.id FROM "Listing" l JOIN "Reservation" r ON r."listingId"=l.id WHERE r.id=${reservationId} FOR SHARE OF l`;
+      const reservation = await tx.reservation.findUnique({ where: { id: reservationId }, include: {
+        listing: { include: { merchant: true, safety: true } }, order: true,
+      } });
+      if (!reservation || reservation.customerId !== customerId) return { message: 'رزرو در دسترس نیست' };
+      if (reservation.status !== ReservationStatus.PENDING || reservation.expiresAt <= new Date()) return { message: 'مهلت رزرو پایان یافته است' };
+      if (reservation.listing.safety?.safetyStatus !== SafetyStatus.APPROVED || reservation.listing.merchant.verificationStatus !== 'APPROVED') return { message: 'بسته تاییدیه فعال ندارد' };
+      if (reservation.order) return reservation.order.status === OrderStatus.PENDING_PAYMENT
+        ? { order: reservation.order } : { message: 'سفارش قبلاً نهایی شده است' };
+      const listing = reservation.listing;
+      const total = listing.discountedPriceToman * BigInt(reservation.quantity);
+      if (total <= BigInt(0) || total > BigInt(Number.MAX_SAFE_INTEGER)) return { message: 'مبلغ سفارش معتبر نیست' };
+      const rate = Number(listing.merchant.commissionPercent ?? 10);
+      if (!Number.isFinite(rate) || rate < 0 || rate > 100) return { message: 'کارمزد سفارش معتبر نیست' };
+      const commission = (total * BigInt(Math.round(rate * 100)) + BigInt(5000)) / BigInt(10000);
+      const order = await tx.order.create({ data: {
+        orderNumber: `LQ-${randomUUID().replaceAll('-', '').slice(0, 12).toUpperCase()}`,
+        customerId, merchantId: listing.merchantId ?? listing.merchant.id, reservationId, status: OrderStatus.PENDING_PAYMENT,
+        totalAmountToman: total, commissionPercent: rate, commissionAmountToman: commission,
+        merchantPayoutAmountToman: total - commission, notesFa,
+        items: { create: { listingId: listing.id, unitPriceToman: listing.discountedPriceToman, quantity: reservation.quantity, subtotalToman: total } },
+      }, include: { items: true } });
+      return { order };
     });
-
-    if (!reservation) {
-      return { success: false, message: 'رزرو مورد نظر یافت نشد' };
-    }
-
-    if (reservation.customerId !== customerId) {
-      return { success: false, message: 'دسترسی به این رزرو امکان‌پذیر نیست' };
-    }
-
-    if (reservation.status !== ReservationStatus.PENDING || reservation.expiresAt <= now) {
-      return { success: false, message: 'مهلت ۱۰ دقیقه‌ای این رزرو منقضی شده است. لطفاً مجدداً رزرو نمایید.' };
-    }
-
-    // Safety lockout check
-    if (reservation.listing.safety?.safetyStatus !== SafetyStatus.APPROVED) {
-      return { success: false, message: 'این بسته به علت بررسی سلامت و بهداشت در حال حاضر قابل سفارش نیست' };
-    }
-
-    // 2. Check if an order already exists for this reservation
-    if (reservation.order) {
-      if (reservation.order.status !== OrderStatus.PENDING_PAYMENT) {
-        return { success: false, message: 'این سفارش قبلاً پرداخت و نهایی شده است' };
-      }
-
-      // Re-initiate payment for existing pending order
-      const initResult = await paymentService.initiateOrderPayment({
-        order: reservation.order,
-        gatewayType: gateway,
-        callbackUrl,
-        mobile,
-      });
-
-      if (!initResult.success) {
-        return { success: false, message: initResult.errorMessage || 'خطا در برقراری ارتباط با درگاه پرداخت' };
-      }
-
-      return {
-        success: true,
-        order: reservation.order,
-        paymentUrl: initResult.paymentUrl,
-        authority: initResult.authority,
-      };
-    }
-
-    // 3. Authoritative server-side financial calculations
-    const listing = reservation.listing;
-    const merchant = listing.merchant;
-    const unitPriceToman = Number(listing.discountedPriceToman);
-    const totalAmountToman = unitPriceToman * reservation.quantity;
-
-    const commissionPercent = Number(merchant.commissionPercent ?? 10.0);
-    const commissionAmountToman = Math.round((totalAmountToman * commissionPercent) / 100);
-    const merchantPayoutAmountToman = totalAmountToman - commissionAmountToman;
-
-    const orderNumber = this.generateOrderNumber();
-
-    // 4. Create Order and OrderItem records atomically
-    const order = await prisma.order.create({
-      data: {
-        orderNumber,
-        customerId,
-        merchantId: merchant.id,
-        reservationId: reservation.id,
-        status: OrderStatus.PENDING_PAYMENT,
-        totalAmountToman: BigInt(totalAmountToman),
-        commissionPercent,
-        commissionAmountToman: BigInt(commissionAmountToman),
-        merchantPayoutAmountToman: BigInt(merchantPayoutAmountToman),
-        notesFa,
-        items: {
-          create: {
-            listingId: listing.id,
-            unitPriceToman: BigInt(unitPriceToman),
-            quantity: reservation.quantity,
-            subtotalToman: BigInt(totalAmountToman),
-          },
-        },
-      },
-      include: { items: true },
-    });
-
-    // 5. Initiate gateway payment session
-    const paymentResult = await paymentService.initiateOrderPayment({
-      order,
-      gatewayType: gateway,
-      callbackUrl,
-      mobile,
-    });
-
-    if (!paymentResult.success) {
-      return {
-        success: false,
-        message: paymentResult.errorMessage || 'خطا در برقراری ارتباط با درگاه پرداخت',
-      };
-    }
-
-    return {
-      success: true,
-      order,
-      paymentUrl: paymentResult.paymentUrl,
-      authority: paymentResult.authority,
-    };
+    if (!prepared.order) return { success: false, message: prepared.message };
+    const initiation = await paymentService.initiateOrderPayment({ order: prepared.order, gatewayType: gateway, callbackUrl, mobile });
+    if (!initiation.success) return { success: false, message: initiation.errorMessage || 'درخواست پرداخت در حال بررسی است' };
+    return { success: true, order: prepared.order, paymentUrl: initiation.paymentUrl, authority: initiation.authority };
   }
 
   /**
@@ -205,13 +107,39 @@ export class OrderService {
         await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${orderId} FOR UPDATE`;
         const order = await tx.order.findUnique({ where: { id: orderId }, include: { items: true, reservation: true } });
         if (!order) return { success: false, message: 'سفارش مورد نظر یافت نشد' };
-        if (BigInt(verifyResult.payment.amountToman) !== order.totalAmountToman) {
+        const issue = async (reason: string) => {
+          await tx.reconciliationCase.upsert({ where: { caseKey: `${verifyResult.payment.id}:${reason}` }, update: {}, create: {
+            caseKey: `${verifyResult.payment.id}:${reason}`, merchantId: order.merchantId, orderId: order.id,
+            paymentId: verifyResult.payment.id, reason,
+          } });
+        };
+        await tx.$queryRaw`SELECT id FROM "Payment" WHERE id=${verifyResult.payment.id} FOR UPDATE`;
+        const currentPayment = await tx.payment.findUnique({ where: { id: verifyResult.payment.id } });
+        if (!currentPayment || currentPayment.status !== 'SUCCESS' || currentPayment.orderId !== order.id) {
+          return { success: false, message: 'پرداخت قابل تخصیص نیست' };
+        }
+        if (await tx.refund.findFirst({ where: { paymentId: currentPayment.id, status: { not: 'REJECTED' } } })) {
+          await issue('REFUND_PENDING');
+          return { success: false, message: 'پرداخت در مسیر استرداد است' };
+        }
+        if (order.acceptedPaymentId && order.acceptedPaymentId !== currentPayment.id) {
+          await issue('DUPLICATE_PAYMENT');
+          return { success: false, message: 'پرداخت اضافه نیازمند بررسی است' };
+        }
+
+        if (BigInt(currentPayment.amountToman) !== order.totalAmountToman) {
+          await issue('AMOUNT_MISMATCH');
           return { success: false, message: 'مغایرت مبلغ پرداختی با فاکتور سفارش. تراکنش نیازمند بررسی است.' };
         }
         if (([OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP, OrderStatus.COMPLETED] as OrderStatus[]).includes(order.status)) {
+          if (!order.acceptedPaymentId) {
+            await issue('LEGACY_ALLOCATION_UNKNOWN');
+            return { success: false, message: 'تخصیص پرداخت قدیمی نیازمند بررسی است' };
+          }
           return { success: true, order, referenceId: verifyResult.referenceId, orderNumber: order.orderNumber };
         }
         if (order.status !== OrderStatus.PENDING_PAYMENT || !order.reservationId) {
+          await issue('ORDER_NOT_PAYABLE');
           return { success: false, message: 'وضعیت سفارش اجازه تکمیل پرداخت را نمی‌دهد؛ با پشتیبانی تماس بگیرید.' };
         }
         const now = new Date();
@@ -220,26 +148,26 @@ export class OrderService {
           data: { status: ReservationStatus.CONVERTED_TO_ORDER, updatedAt: now },
         });
         if (claimed.count !== 1) {
+          await issue('RESERVATION_EXPIRED');
           return { success: false, message: 'رزرو منقضی یا آزاد شده است؛ پرداخت برای بررسی و استرداد نیازمند پیگیری پشتیبانی است.' };
         }
         for (const item of order.items) {
           const sold = await inventoryService.atomicConfirmSold(item.listingId, item.quantity, tx);
           if (!sold.success) throw new Error('Reserved inventory unavailable');
         }
-        const updatedOrder = await tx.order.update({ where: { id: order.id }, data: { status: OrderStatus.READY_FOR_PICKUP, updatedAt: now } });
+        const updatedOrder = await tx.order.update({ where: { id: order.id }, data: { status: OrderStatus.READY_FOR_PICKUP, updatedAt: now, paidAt: now, acceptedPaymentId: currentPayment.id } });
         const transfers = [
           { type: FinancialTransactionType.CUSTOMER_PAYMENT, debitAccount: 'CUSTOMER_PAYMENT', creditAccount: 'PLATFORM_CLEARING', amountToman: order.totalAmountToman },
           { type: FinancialTransactionType.MERCHANT_PAYOUT, debitAccount: 'PLATFORM_CLEARING', creditAccount: 'MERCHANT_PAYABLE', amountToman: order.merchantPayoutAmountToman },
           { type: FinancialTransactionType.COMMISSION_EARNED, debitAccount: 'PLATFORM_CLEARING', creditAccount: 'PLATFORM_COMMISSION', amountToman: order.commissionAmountToman },
         ];
         for (const transfer of transfers) {
-          await tx.financialTransaction.create({ data: { ...transfer, orderId: order.id, referenceNumber: verifyResult.referenceId } });
+          await tx.financialTransaction.create({ data: { ...transfer, orderId: order.id, referenceNumber: verifyResult.referenceId, postingKey: `sale:${order.id}:${transfer.type}` } });
         }
         let savings = BigInt(0);
         for (const item of order.items) {
-          const listing = await tx.listing.findUnique({ where: { id: item.listingId }, select: { originalPriceToman: true } });
-          if (listing) {
-            const difference = listing.originalPriceToman - item.unitPriceToman;
+          if (item.originalPriceTomanSnapshot != null) {
+            const difference = item.originalPriceTomanSnapshot - item.unitPriceToman;
             if (difference > BigInt(0)) savings += difference * BigInt(item.quantity);
           }
         }
@@ -249,6 +177,11 @@ export class OrderService {
       });
     } catch {
       // Gateway verification remains recorded; a callback retry can safely resume completion.
+      const order = await prisma.order.findUnique({ where: { id: orderId }, select: { merchantId: true } });
+      if (order) await prisma.reconciliationCase.upsert({ where: { caseKey: `${verifyResult.payment.id}:COMPLETION_FAILED` }, update: {}, create: {
+        caseKey: `${verifyResult.payment.id}:COMPLETION_FAILED`, merchantId: order.merchantId, orderId,
+        paymentId: verifyResult.payment.id, reason: 'COMPLETION_FAILED',
+      } });
       return { success: false, message: 'تکمیل سفارش انجام نشد؛ پرداخت ثبت شده است و نیازمند بررسی یا تلاش مجدد است.' };
     }
     if (completedNow) {
@@ -265,7 +198,7 @@ export class OrderService {
       where: { customerId },
       include: {
         merchant: {
-          include: { locations: { take: 1 } },
+          include: { locations: true },
         },
         items: {
           include: { listing: true },
@@ -284,10 +217,10 @@ export class OrderService {
 
     return orders.map((order) => {
       const firstItem = order.items[0];
-      const primaryLoc = order.merchant.locations[0];
+      const primaryLoc = order.merchant.locations.find(l => l.id === order.merchantLocationId) ?? order.merchant.locations[0];
 
-      const pickupStart = firstItem?.listing?.pickupStart;
-      const pickupEnd = firstItem?.listing?.pickupEnd;
+      const pickupStart = (firstItem?.pickupStartSnapshot ?? firstItem?.listing?.pickupStart);
+      const pickupEnd = (firstItem?.pickupEndSnapshot ?? firstItem?.listing?.pickupEnd);
 
       let pickupWindowFa = '';
       if (pickupStart && pickupEnd) {
@@ -303,8 +236,8 @@ export class OrderService {
         orderNumber: order.orderNumber,
         merchantId: order.merchantId,
         merchantNameFa: order.merchant.businessNameFa,
-        merchantAddressFa: primaryLoc?.addressFa || '',
-        listingTitleFa: firstItem?.listing?.titleFa || 'بسته لقمه',
+        merchantAddressFa: order.pickupAddressFa ?? primaryLoc?.addressFa ?? '',
+        listingTitleFa: firstItem?.titleFaSnapshot ?? firstItem?.listing?.titleFa ?? 'بسته لقمه',
         quantity: firstItem?.quantity || 1,
         totalAmountToman: Number(order.totalAmountToman),
         status: order.status,
@@ -348,7 +281,7 @@ export class OrderService {
     if (!order) return null;
     if (customerId && order.customerId !== customerId) return null;
 
-    const primaryLoc = order.merchant.locations[0];
+    const primaryLoc = order.merchant.locations.find(l => l.id === order.merchantLocationId) ?? order.merchant.locations[0];
     const latestPayment = order.payments[0];
 
     return {
@@ -362,7 +295,7 @@ export class OrderService {
       merchant: {
         id: order.merchant.id,
         businessNameFa: order.merchant.businessNameFa,
-        addressFa: primaryLoc?.addressFa,
+        addressFa: order.pickupAddressFa ?? primaryLoc?.addressFa,
         phone: primaryLoc?.phone,
         cityNameFa: primaryLoc?.city?.nameFa,
         neighborhoodNameFa: primaryLoc?.neighborhood?.nameFa,
@@ -370,12 +303,12 @@ export class OrderService {
       items: order.items.map((i) => ({
         id: i.id,
         listingId: i.listingId,
-        titleFa: i.listing.titleFa,
+        titleFa: i.titleFaSnapshot ?? i.listing.titleFa,
         unitPriceToman: Number(i.unitPriceToman),
         quantity: i.quantity,
         subtotalToman: Number(i.subtotalToman),
-        pickupStart: i.listing.pickupStart.toISOString(),
-        pickupEnd: i.listing.pickupEnd.toISOString(),
+        pickupStart: (i.pickupStartSnapshot ?? i.listing.pickupStart).toISOString(),
+        pickupEnd: (i.pickupEndSnapshot ?? i.listing.pickupEnd).toISOString(),
         safetyStatus: i.listing.safety?.safetyStatus,
       })),
       payment: latestPayment

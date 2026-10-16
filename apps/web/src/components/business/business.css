@@ -45,9 +45,9 @@
 .business-map-shell .business-map { height: 300px; border: 0; border-radius: 0; }
 .business-map-center-pin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); pointer-events: none; color: var(--loqme-primary-700); z-index: 1; filter: drop-shadow(0 3px 3px #0003); }
 .business-map-center-pin svg { stroke: white; stroke-width: 1.5; }
-.business-map-center-pin span { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: white; top: 12px; left: 17px; }
+.business-map-center-pin span { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--deck-surface); top: 12px; left: 17px; }
 .business-map-controls { position: absolute; inset-inline-end: 12px; top: 12px; z-index: 2; display: grid; gap: 6px; }
-.business-map-controls button { width: 44px; height: 44px; display: grid; place-items: center; background: white; border: 1px solid var(--color-border-subtle); border-radius: 50%; box-shadow: 0 2px 8px #0001; color: var(--loqme-primary-800); }
+.business-map-controls button { width: 44px; height: 44px; display: grid; place-items: center; background: var(--deck-surface); border: 1px solid var(--color-border-subtle); border-radius: 50%; box-shadow: 0 2px 8px #0001; color: var(--loqme-primary-800); }
 .business-map-controls button:hover { background: var(--loqme-primary-50); }
 .business-map-confirm { display: flex; gap: 8px; align-items: center; justify-content: center; width: 100%; min-height: 46px; border-radius: 99px; background: var(--loqme-primary-700); color: white; font-size: 14px; font-weight: 700; }
 .business-manual-link { text-decoration: underline; text-underline-offset: 4px; padding-inline: 0; }
@@ -62,11 +62,11 @@
 .business-hours-row { padding-block: 12px; border-block-end: 1px solid var(--color-border-subtle); }
 .business-toggle { display: flex; align-items: center; min-height: 44px; gap: 12px; font-size: 13px; }
 .business-toggle-track { display: flex; padding: 3px; border-radius: 99px; width: 44px; background: var(--loqme-neutral-300); }
-.business-toggle-track > span { width: 18px; height: 18px; border-radius: 50%; background: white; }
+.business-toggle-track > span { width: 18px; height: 18px; border-radius: 50%; background: var(--deck-surface); }
 .business-toggle[aria-checked="true"] .business-toggle-track { background: var(--loqme-primary-700); justify-content: flex-end; }
 .business-status-icon { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: var(--loqme-primary-50); color: var(--loqme-primary-700); }
 .business-application-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid var(--color-border-subtle); border-radius: 8px; padding: 20px; }
-.header-actions .business-entry-link { background: white; color: var(--loqme-primary-700); border: 1px solid var(--loqme-primary-700); }
+.header-actions .business-entry-link { background: var(--deck-surface); color: var(--loqme-primary-700); border: 1px solid var(--loqme-primary-700); }
 @media (min-width: 1024px) {
   .auth-split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto; direction: ltr; align-items: start; }
   .auth-split-photo { direction: rtl; position: sticky; top: 0; height: 100dvh; }

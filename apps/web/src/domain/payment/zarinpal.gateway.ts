@@ -30,6 +30,7 @@ export class ZarinpalGatewayAdapter implements IPaymentGateway {
     try {
       const response = await fetch(`${this.baseUrl}/v4/payment/request.json`, {
         method: 'POST',
+        signal: AbortSignal.timeout(15000),
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
@@ -62,15 +63,17 @@ export class ZarinpalGatewayAdapter implements IPaymentGateway {
 
       return {
         success: false,
+        outcome: 'UNKNOWN', // Enable definitive retry codes only after provider reconciliation acceptance.
         authority: '',
         paymentUrl: '',
         gateway: this.gatewayType,
         errorMessage: json.errors?.message || 'خطا در ارتباط با درگاه زرین‌پال',
       };
     } catch (err: any) {
-      console.error('Zarinpal initiate payment exception:', err);
+      console.error('Zarinpal initiation unavailable');
       return {
         success: false,
+        outcome: 'UNKNOWN',
         authority: '',
         paymentUrl: '',
         gateway: this.gatewayType,
@@ -83,6 +86,7 @@ export class ZarinpalGatewayAdapter implements IPaymentGateway {
     try {
       const response = await fetch(`${this.baseUrl}/v4/payment/verify.json`, {
         method: 'POST',
+        signal: AbortSignal.timeout(15000),
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
@@ -96,25 +100,27 @@ export class ZarinpalGatewayAdapter implements IPaymentGateway {
 
       const json = await response.json();
 
-      if (response.ok && json.data && (json.data.code === 100 || json.data.code === 101)) {
+      if (response.ok && json.data && (json.data.code === 100 || json.data.code === 101) && json.data.ref_id) {
         return {
           success: true,
           referenceId: json.data.ref_id ? json.data.ref_id.toString() : undefined,
-          trackingCode: json.data.card_pan || undefined,
+          // Card-derived fields are deliberately not retained.
           feeToman: json.data.fee,
-          rawPayload: json.data,
+          rawPayload: { code: json.data.code },
         };
       }
 
       return {
         success: false,
+        outcome: 'UNKNOWN',
         errorMessage: json.errors?.message || 'تراکنش توسط درگاه بانکی تایید نشد',
-        rawPayload: json,
+        rawPayload: { code: json.errors?.code ?? null },
       };
     } catch (err: any) {
-      console.error('Zarinpal verify payment exception:', err);
+      console.error('Zarinpal verification unavailable');
       return {
         success: false,
+        outcome: 'UNKNOWN',
         errorMessage: 'خطای شبکه هنگام تایید تراکنش در درگاه زرین‌پال',
       };
     }

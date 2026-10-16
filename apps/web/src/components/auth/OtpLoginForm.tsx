@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { useSession } from "@/components/auth/SessionProvider";
 
 import React, { useState, useEffect } from "react";
@@ -187,51 +189,45 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
   const Heading = embedded ? 'h2' : 'h1';
 
   return (
-    <div className="space-y-6">
+    <div className="otp-login-form space-y-6">
       {(audience === 'customer' || embedded) && step === 'PHONE' && (
-        <div className="flex p-1 bg-loqme-neutral-100 rounded-xl border border-loqme-neutral-200/80 text-sm font-medium">
-          <button
+        <div className="otp-mode-switch flex p-1 bg-loqme-neutral-100 rounded-xl border border-loqme-neutral-200/80 text-sm font-medium">
+          <RippleButton
             type="button"
             disabled={isLoading}
             aria-pressed={mode === 'login'}
+            data-selected={mode === 'login'}
             onClick={() => {
               setMode('login');
               setError(null);
               setAccountNotFound(false);
               setAccountAlreadyExists(false);
             }}
-            className={`flex-1 py-2 rounded-lg transition-all text-center text-sm ${
-              mode === 'login'
-                ? 'bg-white text-loqme-primary-700 shadow-sm font-bold'
-                : 'text-loqme-neutral-600 hover:text-loqme-neutral-900 font-normal'
-            }`}
+            className="otp-mode-option flex-1 py-2 rounded-lg transition-all text-center text-sm"
           >
             ورود
-          </button>
-          <button
+          </RippleButton>
+          <RippleButton
             type="button"
             disabled={isLoading}
             aria-pressed={mode === 'register'}
+            data-selected={mode === 'register'}
             onClick={() => {
               setMode('register');
               setError(null);
               setAccountNotFound(false);
               setAccountAlreadyExists(false);
             }}
-            className={`flex-1 py-2 rounded-lg transition-all text-center text-sm ${
-              mode === 'register'
-                ? 'bg-white text-loqme-primary-700 shadow-sm font-bold'
-                : 'text-loqme-neutral-600 hover:text-loqme-neutral-900 font-normal'
-            }`}
+            className="otp-mode-option flex-1 py-2 rounded-lg transition-all text-center text-sm"
           >
             ثبت‌نام
-          </button>
+          </RippleButton>
         </div>
       )}
 
-      <div className="space-y-2">
-        <span className="text-xs font-bold text-loqme-primary-700">
-          به لقمه خوش آمدید
+      <div className="otp-heading space-y-2">
+        <span className="otp-welcome text-xs font-bold text-loqme-primary-700">
+          {audience === 'business' ? 'پنل همکاران لقمه' : 'به لقمه خوش آمدید'}
         </span>
         <Heading className={embedded ? 'text-xl font-bold' : 'text-2xl lg:text-3xl font-extrabold text-loqme-neutral-900'}>
           {step === "PHONE"
@@ -246,7 +242,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
                 ? 'با شماره موبایل مالک یا همکار فروشگاه وارد شوید.'
                 : (mode === 'login'
                     ? 'با شماره موبایل خود وارد شوید و به لقمه‌های ذخیره‌شده دسترسی پیدا کنید.'
-                    : 'با شماره موبایل ثبت‌نام کنید و در لذت کشف طعم‌های تازه و دوستی با طبیعت سهیم شوید.'))
+                    : 'با شماره موبایل خود ثبت‌نام کنید.'))
             : `کد ۵ رقمی به ${toPersianDigits(mobile)} ارسال شد (اعتبار: ۱۵ دقیقه).`}
         </p>
       </div>
@@ -279,7 +275,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
                 <ArrowLeft size={14} aria-hidden="true" />
               </Link>
             ) : (
-              <button
+              <RippleButton
                 type="button"
                 onClick={() => {
                   setMode('register');
@@ -290,7 +286,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
               >
                 <UserPlus size={16} aria-hidden="true" />
                 ثبت‌نام با همین شماره ({toPersianDigits(mobile)})
-              </button>
+              </RippleButton>
             )}
           </div>
         </div>
@@ -313,7 +309,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
             </div>
           </div>
           <div className="pt-1">
-            <button
+            <RippleButton
               type="button"
               onClick={() => {
                 setMode('login');
@@ -324,7 +320,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
             >
               <LogIn size={16} aria-hidden="true" />
               ورود به حساب کاربری ({toPersianDigits(mobile)})
-            </button>
+            </RippleButton>
           </div>
         </div>
       )}
@@ -410,18 +406,18 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
       </form>
 
       {!embedded && audience === 'customer' && (
-        <Link href="/" className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-loqme-primary-200 px-4 py-3 text-sm font-bold text-loqme-primary-700 transition-colors hover:bg-loqme-primary-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-loqme-primary-700">
+        <Link href="/discover" className="otp-guest-link flex min-h-12 items-center justify-center gap-2 rounded-xl border border-loqme-primary-200 px-4 py-3 text-sm font-bold text-loqme-primary-700 transition-colors hover:bg-loqme-primary-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-loqme-primary-700">
           ادامه بدون حساب کاربری
           <ArrowLeft size={18} aria-hidden="true" />
         </Link>
       )}
 
       {!embedded && audience === 'customer' && step === 'PHONE' && (
-        <div className="text-center pt-1 border-t border-loqme-neutral-100">
+        <div className="otp-mode-prompt text-center pt-1 border-t border-loqme-neutral-100">
           {mode === 'login' ? (
             <p className="text-xs text-loqme-neutral-600">
               هنوز در لقمه حساب کاربری ندارید؟{' '}
-              <button
+              <RippleButton
                 type="button"
                 onClick={() => {
                   setMode('register');
@@ -432,12 +428,12 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
                 className="text-loqme-primary-700 font-bold hover:underline underline-offset-4"
               >
                 ثبت‌نام کنید
-              </button>
+              </RippleButton>
             </p>
           ) : (
             <p className="text-xs text-loqme-neutral-600">
               قبلاً در لقمه ثبت‌نام کرده‌اید؟{' '}
-              <button
+              <RippleButton
                 type="button"
                 onClick={() => {
                   setMode('login');
@@ -448,7 +444,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
                 className="text-loqme-primary-700 font-bold hover:underline underline-offset-4"
               >
                 ورود به حساب
-              </button>
+              </RippleButton>
             </p>
           )}
         </div>

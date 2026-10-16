@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 
 import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
@@ -125,7 +127,7 @@ export function FilterModal({
             {RADIUS_OPTIONS.map((opt) => {
               const active = localFilters.radiusMeters === opt.value;
               return (
-                <button
+                <RippleButton
                   key={opt.value}
                   type="button"
                   onClick={() => handleRadiusChange(opt.value)}
@@ -136,7 +138,7 @@ export function FilterModal({
                   }`}
                 >
                   {opt.label}
-                </button>
+                </RippleButton>
               );
             })}
           </div>
@@ -151,7 +153,7 @@ export function FilterModal({
             {BUSINESS_TYPES.map((bt) => {
               const active = (localFilters.businessType || "") === bt.value;
               return (
-                <button
+                <RippleButton
                   key={bt.value}
                   type="button"
                   onClick={() => handleBusinessTypeChange(bt.value)}
@@ -162,7 +164,7 @@ export function FilterModal({
                   }`}
                 >
                   {bt.label}
-                </button>
+                </RippleButton>
               );
             })}
           </div>

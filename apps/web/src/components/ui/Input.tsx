@@ -43,7 +43,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
         <div
           className={cn(
-            "flex items-center bg-white border border-loqme-neutral-300 rounded-lg px-4 min-h-[48px] transition-colors focus-within:border-loqme-primary-600 focus-within:ring-2 focus-within:ring-teal-500/20 gap-2",
+            "loqme-input-shell flex items-center bg-white border border-loqme-neutral-300 rounded-lg px-4 min-h-[48px] transition-colors focus-within:border-loqme-primary-600 focus-within:ring-2 focus-within:ring-teal-500/20 gap-2",
             error &&
               "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20",
             disabled && "bg-loqme-neutral-100 opacity-60 cursor-not-allowed",

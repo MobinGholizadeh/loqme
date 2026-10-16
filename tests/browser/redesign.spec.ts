@@ -210,7 +210,7 @@ test("discovery error, empty and reduced-motion states", async ({ page }) => {
       json: { success: false, message: "ارتباط قطع شد" },
     }),
   );
-  await page.goto("/");
+  await page.goto("/discover");
   await expect(
     page.getByText("دریافت بسته‌ها انجام نشد", { exact: true }),
   ).toBeVisible();
@@ -238,6 +238,7 @@ test("expired reservation cannot be paid", async ({ page }) => {
 });
 
 const routes = [
+  "/discover",
   "/",
   "/explore",
   "/explore?view=map",
@@ -317,6 +318,9 @@ for (const width of [360, 390, 768, 1440, 1920]) {
       await page.waitForTimeout(500);
       for (const img of await page.locator("img:not(.leaflet-tile)").all()) {
         if (await img.isVisible()) {
+          // Offscreen lazy images only load when approached; taller page headers
+          // must not make the image-integrity check depend on viewport height.
+          await img.scrollIntoViewIfNeeded();
           await expect
             .poll(() =>
               img.evaluate(
@@ -331,6 +335,7 @@ for (const width of [360, 390, 768, 1440, 1920]) {
         () => document.documentElement.scrollWidth > innerWidth + 1,
       );
       if (problem) overflow.push(path);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
       if (width === 390 || width === 1440)
         await page.screenshot({
           path: info.outputPath(`${path.replace(/[^a-z0-9]/gi, "_")}.png`),

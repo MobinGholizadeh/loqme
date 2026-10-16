@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -142,13 +144,13 @@ export const PwaInstallPrompt: React.FC = () => {
           >
             نصب
           </Button>
-          <button
+          <RippleButton
             className="icon-button"
             aria-label="بستن اعلان"
             onClick={handleDismiss}
           >
             <X size={18} />
-          </button>
+          </RippleButton>
         </aside>
       )}
       <Modal

@@ -60,10 +60,11 @@ test('map marker opens its store products and a detail uses the full-width photo
   expect(errors).toEqual([]);
 });
 
-test('footer retains its reveal at a compact height', async ({ page }, info) => {
+test('footer keeps useful links at a compact height', async ({ page }, info) => {
   await page.setViewportSize({ width: 1440, height: 900 }); await installFixtures(page); await page.goto('/');
-  await page.locator('.footer-signature').scrollIntoViewIfNeeded();
-  await expect(page.locator('.footer-signature')).toHaveAttribute('data-revealed', 'true');
+  await page.locator('.market-footer').scrollIntoViewIfNeeded();
+  await expect(page.locator('.footer-wordmark')).toHaveCount(0);
+  await expect(page.locator('.footer-navigation')).toBeVisible();
   expect((await page.locator('.market-footer').boundingBox())!.height).toBeLessThan(500);
   await page.screenshot({ path: info.outputPath('footer-compact-desktop.png') });
 });

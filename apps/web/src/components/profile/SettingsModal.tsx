@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import {
@@ -102,14 +104,14 @@ export function SettingsModal({
       className="max-w-md"
       footer={
         <div className="flex items-center justify-between w-full">
-          <button
+          <RippleButton
             type="button"
             onClick={onClose}
             className="action-link secondary py-2 px-4 text-xs font-bold"
           >
             انصراف
-          </button>
-          <button
+          </RippleButton>
+          <RippleButton
             type="button"
             onClick={() => handleSave()}
             className="inline-flex items-center gap-1.5 py-2 px-5 rounded-xl bg-loqme-800 hover:bg-loqme-900 text-white text-xs font-bold transition-all shadow-md active:scale-95"
@@ -125,7 +127,7 @@ export function SettingsModal({
                 <span>ذخیره تغییرات</span>
               </>
             )}
-          </button>
+          </RippleButton>
         </div>
       }
     >
@@ -246,7 +248,7 @@ export function SettingsModal({
                 <p className="text-xs font-bold text-slate-800">پاک‌سازی داده‌های موقت</p>
                 <p className="text-[10px] text-slate-500">پاک کردن کش فرم‌ها و پیش‌نویس‌ها</p>
               </div>
-              <button
+              <RippleButton
                 type="button"
                 onClick={handleClearCache}
                 className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200/60 active:scale-95 transition-all"
@@ -260,7 +262,7 @@ export function SettingsModal({
                     <Trash2 size={14} /> پاک‌سازی
                   </>
                 )}
-              </button>
+              </RippleButton>
             </div>
           </div>
         </div>

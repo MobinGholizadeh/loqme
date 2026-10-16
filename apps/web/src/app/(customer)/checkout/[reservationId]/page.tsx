@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { useFeedback } from "@/components/ui/useFeedback";
 import * as RedesignIcons from "lucide-react";
 
@@ -196,14 +198,14 @@ export default function CheckoutPage() {
       <h1 className="text-2xl font-extrabold checkout-title">تکمیل سفارش</h1>
       {/* Header & Back */}
       <div className="checkout-title flex items-center justify-between">
-        <button
+        <RippleButton
           type="button"
           onClick={() => router.back()}
           className="text-xs text-loqme-neutral-500 hover:text-loqme-primary-700 font-bold transition-colors flex items-center gap-1"
         >
           <span>←</span>
           <span>انصراف و بازگشت</span>
-        </button>
+        </RippleButton>
         <Badge variant="brand" size="sm">
           {isExpired ? "رزرو منقضی شده" : "رزرو فعال"}
         </Badge>

@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+// Pin this boundary suite's two-minute policy instead of inheriting the deployment default.
+vi.hoisted(() => { process.env.OTP_EXPIRY_SECONDS = '120'; });
 const mocks = vi.hoisted(() => ({ find: vi.fn(), consume: vi.fn(), create: vi.fn(), user: vi.fn(), token: vi.fn(), send: vi.fn() }));
 vi.mock('@/lib/prisma', () => ({ prisma: { otpCode: { findFirst: mocks.find, updateMany: mocks.consume, create: mocks.create } } }));
 vi.mock('@/domain/user/user.service', () => ({ userService: { findByMobile: vi.fn().mockResolvedValue(null), findOrCreateCustomer: mocks.user } }));

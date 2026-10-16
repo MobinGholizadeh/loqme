@@ -4,6 +4,9 @@
  * Compatible with Web (CSS Custom Properties) and Native Mobile (React Native / StyleSheet)
  */
 
+import { GREEN_DECK } from "./green-deck";
+export { GREEN_DECK } from "./green-deck";
+
 export const TOKENS = {
   colors: {
     primary: {
@@ -142,14 +145,14 @@ export type LoqmeTokens = typeof TOKENS;
 /**
  * Generates CSS Custom Property declarations for Web injection
  */
-export function generateCssVariables(): Record<string, string> {
+export function generateCssVariables(theme: "classic" | "green-deck" = "classic"): Record<string, string> {
   const primitives: Record<string, string> = {};
   for (const [family, shades] of Object.entries(TOKENS.colors)) {
     for (const [shade, value] of Object.entries(shades)) {
       primitives[`--loqme-${family}-${shade}`] = value;
     }
   }
-  return {
+  const variables: Record<string, string> = {
     ...primitives,
     "--bg-canvas": TOKENS.colors.neutral[0],
     "--bg-surface": TOKENS.colors.neutral[50],
@@ -198,4 +201,36 @@ export function generateCssVariables(): Record<string, string> {
     "--duration-fast": TOKENS.motion.durations.fast,
     "--duration-normal": TOKENS.motion.durations.normal,
   };
+  if (theme === "green-deck") {
+    for (const [family, shades] of Object.entries(GREEN_DECK.colors)) {
+      for (const [shade, value] of Object.entries(shades)) {
+        variables[`--loqme-${family}-${shade}`] = value;
+        const rgb = value.slice(1).match(/.{2}/g)!.map(part => parseInt(part, 16)).join(" ");
+        variables[`--deck-${family}-${shade}-rgb`] = rgb;
+      }
+    }
+    // Rebind aliases to primitives so all legacy consumers share the active theme.
+    for (const [key, value] of Object.entries(variables)) {
+      if (key.startsWith("--loqme-") || key.startsWith("--deck-")) continue;
+      for (const [family, shades] of Object.entries(TOKENS.colors)) {
+        const match = Object.entries(shades).find(([, color]) => color === value);
+        if (match) { variables[key] = `var(--loqme-${family}-${match[0]})`; break; }
+      }
+    }
+    Object.assign(variables, {
+      "--bg-canvas": GREEN_DECK.canvas, "--color-background": GREEN_DECK.canvas,
+      "--color-canvas-warm": GREEN_DECK.canvas, "--bg-surface": GREEN_DECK.surface,
+      "--bg-surface-elevated": GREEN_DECK.surface, "--color-surface": GREEN_DECK.surface,
+      "--color-surface-muted": GREEN_DECK.raised,
+      "--deck-canvas": GREEN_DECK.canvas, "--deck-surface": GREEN_DECK.surface,
+      "--deck-raised": GREEN_DECK.raised, "--deck-overlay": GREEN_DECK.overlay,
+      "--deck-action": GREEN_DECK.primary, "--deck-action-hover": GREEN_DECK.primaryHover,
+      "--deck-on-primary": GREEN_DECK.onPrimary, "--deck-glow": "rgb(193 222 211 / 0.10)",
+      "--color-link": GREEN_DECK.primary, "--color-focus": GREEN_DECK.primary,
+      "--deck-glass": "#FFFFFF",
+      "--deck-glass-strong": "#FFFFFF",
+      "--color-danger": "#B91C1C", "--color-warning": "#92400E", "--color-success": "#2E5635",
+    });
+  }
+  return variables;
 }

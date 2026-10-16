@@ -62,7 +62,7 @@ describe("CP10.9 merchant feedback", () => {
     vi.clearAllMocks();
     mocks.session.mockResolvedValue({ userId: "user", role: "MERCHANT_OWNER" });
     mocks.authorize.mockResolvedValue({
-      merchant: { id: merchantId, locations: [] },
+      merchant: { id: merchantId, locations: [{ id: 'location' }] },
     });
     mocks.category.mockResolvedValue({ id: "category" });
     mocks.create.mockResolvedValue({
@@ -108,6 +108,7 @@ describe("CP10.9 merchant feedback", () => {
           temperatureRequirement: template.temperature,
           categoryId: "category",
         }),
+        'user',
       );
     },
   );

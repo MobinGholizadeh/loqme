@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const { db, payment, pickup, inventory } = vi.hoisted(() => ({
-  db: { reservation: { findUnique: vi.fn(), updateMany: vi.fn() }, order: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn() }, listing: { findUnique: vi.fn() }, customer: { update: vi.fn() }, financialTransaction: { create: vi.fn() }, $queryRaw: vi.fn(), $transaction: vi.fn() },
+  db: { payment: { findUnique: vi.fn() }, refund: { findFirst: vi.fn() }, reconciliationCase: { upsert: vi.fn() }, reservation: { findUnique: vi.fn(), updateMany: vi.fn() }, order: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn() }, listing: { findUnique: vi.fn() }, customer: { update: vi.fn() }, financialTransaction: { create: vi.fn() }, $queryRaw: vi.fn(), $transaction: vi.fn() },
   payment: { initiateOrderPayment: vi.fn(), verifyPayment: vi.fn() }, pickup: { getOrCreateVerification: vi.fn() }, inventory: { atomicConfirmSold: vi.fn() },
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: db }));
@@ -22,7 +22,8 @@ describe('Order lifecycle boundaries', () => {
     db.order.create.mockImplementation(async ({ data }) => ({ id: 'order', ...data })); db.order.findUnique.mockResolvedValue(order()); db.order.update.mockResolvedValue({ ...order(), status: 'READY_FOR_PICKUP' });
     db.$transaction.mockImplementation(fn => fn(db)); db.listing.findUnique.mockResolvedValue({ originalPriceToman: 200n });
     inventory.atomicConfirmSold.mockResolvedValue({ success: true }); payment.initiateOrderPayment.mockResolvedValue({ success: true, authority: 'A', paymentUrl: '/pay' });
-    payment.verifyPayment.mockResolvedValue({ success: true, payment: { amountToman: 100n }, orderId: 'order', referenceId: 'reference' });
+    db.payment.findUnique.mockResolvedValue({ id: 'payment', orderId: 'order', status: 'SUCCESS', amountToman: 100n });
+    payment.verifyPayment.mockResolvedValue({ success: true, payment: { id: 'payment', amountToman: 100n }, orderId: 'order', referenceId: 'reference' });
   });
   afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
   it.each([null, { ...{ customerId: 'other' } }, { customerId: 'customer', status: 'EXPIRED' }, { customerId: 'customer', status: 'PENDING', expiresAt: now }])('rejects absent, foreign and expired holds %o', async record => {
@@ -60,7 +61,7 @@ describe('Order lifecycle boundaries', () => {
     expect((await service.verifyAndCompleteOrder({ authority: 'A' })).success).toBe(false); expect(db.reservation.updateMany).not.toHaveBeenCalled();
   });
   it.each(['PAID', 'READY_FOR_PICKUP', 'COMPLETED'])('returns %s orders without ledger or inventory side effects', async status => {
-    db.order.findUnique.mockResolvedValue({ ...order(), status });
+    db.order.findUnique.mockResolvedValue({ ...order(), status, acceptedPaymentId: 'payment' });
     expect((await service.verifyAndCompleteOrder({ authority: 'A' })).success).toBe(true);
     expect(inventory.atomicConfirmSold).not.toHaveBeenCalled(); expect(db.financialTransaction.create).not.toHaveBeenCalled();
   });
@@ -75,7 +76,7 @@ describe('Order lifecycle boundaries', () => {
     expect((await service.verifyAndCompleteOrder({ authority: 'A' })).success).toBe(false); expect(db.financialTransaction.create).not.toHaveBeenCalled();
   });
   it.each([null, { originalPriceToman: 100n }, { originalPriceToman: 200n }])('records savings only from positive original-price differences %o', async listing => {
-    db.listing.findUnique.mockResolvedValue(listing);
+    db.order.findUnique.mockResolvedValue({ ...order(), items: [{ ...order().items[0], originalPriceTomanSnapshot: listing?.originalPriceToman ?? null }] });
     expect((await service.verifyAndCompleteOrder({ authority: 'A' })).success).toBe(true);
     expect(db.financialTransaction.create).toHaveBeenCalledTimes(3);
     expect(db.customer.update).toHaveBeenCalledTimes(listing?.originalPriceToman === 200n ? 1 : 0);

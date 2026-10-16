@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { ErrorState } from "@/components/ui/ErrorState";
 import * as RedesignIcons from "lucide-react";
 
@@ -336,12 +338,12 @@ export default function MerchantOrdersPage() {
               </span>
               <h3>تحویل با موفقیت ثبت شد!</h3>
             </div>
-            <button
+            <RippleButton
               onClick={() => setLastVerified(null)}
               className="text-emerald-600 hover:text-emerald-900 text-xs"
             >
               بستن
-            </button>
+            </RippleButton>
           </div>
           <div className="text-xs text-emerald-800 flex flex-wrap gap-4 pt-1 border-t border-emerald-200/60">
             <span>
@@ -377,13 +379,13 @@ export default function MerchantOrdersPage() {
             </span>
             <span>{errorMessage}</span>
           </div>
-          <button
+          <RippleButton
             aria-label="بستن"
             onClick={() => setErrorMessage(null)}
             className="text-rose-500 hover:text-rose-800"
           >
             ✕
-          </button>
+          </RippleButton>
         </div>
       )}
 
@@ -449,7 +451,7 @@ export default function MerchantOrdersPage() {
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 border-b border-loqme-neutral-200 pb-2 text-xs">
-        <button
+        <RippleButton
           onClick={() => setFilterTab("READY")}
           className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
             filterTab === "READY"
@@ -458,8 +460,8 @@ export default function MerchantOrdersPage() {
           }`}
         >
           در انتظار تحویل ({toPersianDigits(readyCount)})
-        </button>
-        <button
+        </RippleButton>
+        <RippleButton
           onClick={() => setFilterTab("COMPLETED")}
           className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
             filterTab === "COMPLETED"
@@ -468,8 +470,8 @@ export default function MerchantOrdersPage() {
           }`}
         >
           تحویل داده شده ({toPersianDigits(completedCount)})
-        </button>
-        <button
+        </RippleButton>
+        <RippleButton
           onClick={() => setFilterTab("NO_SHOW")}
           className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
             filterTab === "NO_SHOW"
@@ -478,8 +480,8 @@ export default function MerchantOrdersPage() {
           }`}
         >
           عدم مراجعه ({toPersianDigits(noShowCount)})
-        </button>
-        <button
+        </RippleButton>
+        <RippleButton
           onClick={() => setFilterTab("ALL")}
           className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
             filterTab === "ALL"
@@ -488,7 +490,7 @@ export default function MerchantOrdersPage() {
           }`}
         >
           همه سفارش‌ها ({toPersianDigits(queue.length)})
-        </button>
+        </RippleButton>
       </div>
 
       {/* Queue List */}
@@ -568,7 +570,7 @@ export default function MerchantOrdersPage() {
                   <div className="flex items-center gap-2 self-end sm:self-center">
                     {isReady && (
                       <>
-                        <button
+                        <RippleButton
                           onClick={() => {
                             setPickupCode(item.otpCode);
                             setOrderNumberInput(item.orderNumber);
@@ -577,7 +579,7 @@ export default function MerchantOrdersPage() {
                           title="کد ۴ رقمی ثبت شده"
                         >
                           کد: {toPersianDigits(item.otpCode)}
-                        </button>
+                        </RippleButton>
 
                         <Button
                           size="sm"

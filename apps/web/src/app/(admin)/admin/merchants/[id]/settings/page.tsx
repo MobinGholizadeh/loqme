@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -151,7 +153,7 @@ export default function MerchantAdminSettings() {
           { id: "orders", label: "سفارش‌ها", icon: ShoppingBag },
           { id: "staff", label: "همکاران", icon: Users },
         ].map((item) => (
-          <button
+          <RippleButton
             key={item.id}
             aria-pressed={tab === item.id}
             onClick={() => {
@@ -161,7 +163,7 @@ export default function MerchantAdminSettings() {
           >
             <item.icon size={17} />
             {item.label}
-          </button>
+          </RippleButton>
         ))}
       </div>
       {feedback && (

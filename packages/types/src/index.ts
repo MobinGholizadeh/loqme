@@ -1165,3 +1165,4 @@ export interface PickupDetailsDto {
   carrierBagProvided: boolean | null;
   instructionsFa: string;
 }
+export * from './merchant-data';

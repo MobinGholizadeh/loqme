@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import React, { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
@@ -52,14 +54,14 @@ export function Modal({
       <div className="dialog-content">
         <header className="dialog-header">
           <h2 id={titleId}>{title}</h2>
-          <button
+          <RippleButton
             className="icon-button"
             onClick={onClose}
             title="بستن"
             aria-label="بستن"
           >
             <X size={20} />
-          </button>
+          </RippleButton>
         </header>
         <div className="dialog-body">{children}</div>
         {footer && <footer className="dialog-footer">{footer}</footer>}

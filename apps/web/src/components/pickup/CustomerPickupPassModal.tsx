@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { DialogSurface } from "@/components/ui/DialogSurface";
 import * as RedesignIcons from "lucide-react";
 
@@ -135,13 +137,13 @@ export const CustomerPickupPassModal: React.FC<
               </span>
             </div>
           </div>
-          <button
+          <RippleButton
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-500 hover:text-loqme-neutral-700 hover:bg-loqme-neutral-100 transition-colors"
             aria-label="بستن"
           >
             ✕
-          </button>
+          </RippleButton>
         </div>
 
         {/* Content Body */}
@@ -212,14 +214,14 @@ export const CustomerPickupPassModal: React.FC<
                 <span className="text-loqme-primary-900 font-medium">
                   نمایش بارکد با کنتراست بیشتر
                 </span>
-                <button
+                <RippleButton
                   onClick={() => setHighContrast(!highContrast)}
                   role="switch"
                   aria-checked={highContrast}
                   className="px-2.5 py-1 rounded-lg bg-loqme-primary-600 text-white text-[11px] font-bold hover:bg-loqme-primary-700 transition-colors shadow-xs"
                 >
                   {highContrast ? "فعال" : "غیرفعال"}
-                </button>
+                </RippleButton>
               </div>
 
               {/* Dynamic QR Code Display */}
@@ -268,13 +270,13 @@ export const CustomerPickupPassModal: React.FC<
                   <span className="font-mono font-black text-3xl tracking-widest text-loqme-primary-800 bg-white px-5 py-2 rounded-lg border-2 border-loqme-primary-300 shadow-xs">
                     {credentials?.otpCodePersian || "----"}
                   </span>
-                  <button
+                  <RippleButton
                     onClick={copyToClipboard}
                     className="p-2.5 rounded-lg border border-loqme-neutral-200 bg-white text-xs text-loqme-neutral-600 hover:text-loqme-primary-700 hover:border-loqme-primary-300 transition-colors"
                     title="کپی کد"
                   >
                     {copiedOtp ? "کپی شد" : "کپی کد"}
-                  </button>
+                  </RippleButton>
                 </div>
                 <p className="text-[11px] text-loqme-neutral-500">
                   این کد را هنگام مراجعه حضوری به فروشنده اعلام نمایید.

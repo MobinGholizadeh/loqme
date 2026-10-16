@@ -22,7 +22,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({
   if (!data || data.length === 0) {
     return (
       <div
-        className="w-full flex items-center justify-center bg-loqme-neutral-900/50 rounded-lg border border-loqme-neutral-800 text-loqme-neutral-500 text-sm"
+        className="w-full flex items-center justify-center bg-loqme-neutral-50 rounded-lg border border-loqme-neutral-200 text-loqme-neutral-500 text-sm"
         style={{ height }}
       >
         داده‌ای برای ترسیم نمودار در این بازه زمانی یافت نشد
@@ -79,12 +79,12 @@ export const TrendChart: React.FC<TrendChartProps> = ({
       >
         <defs>
           <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0D9488" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#0D9488" stopOpacity="0.0" />
+            <stop offset="0%" stopColor="var(--deck-action)" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="var(--deck-action)" stopOpacity="0.0" />
           </linearGradient>
           <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#14B8A6" />
-            <stop offset="100%" stopColor="#2DD4BF" />
+            <stop offset="0%" stopColor="var(--deck-action)" />
+            <stop offset="100%" stopColor="var(--loqme-primary-700)" />
           </linearGradient>
         </defs>
 
@@ -99,7 +99,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({
                 y1={y}
                 x2={width - paddingX}
                 y2={y}
-                stroke="#334155"
+                stroke="var(--color-border-subtle)"
                 strokeDasharray="4 4"
                 strokeWidth="1"
                 opacity="0.4"
@@ -107,7 +107,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({
               <text
                 x={width - paddingX + 8}
                 y={y + 4}
-                fill="#94A3B8"
+                fill="var(--color-text-secondary)"
                 fontSize="11"
                 textAnchor="start"
                 className="font-vazirmatn"
@@ -146,8 +146,8 @@ export const TrendChart: React.FC<TrendChartProps> = ({
               cx={pt.x}
               cy={pt.y}
               r={hoveredPoint?.dateIso === pt.dateIso ? "6" : "4"}
-              fill="#0F172A"
-              stroke="#2DD4BF"
+              fill="var(--deck-surface)"
+              stroke="var(--loqme-primary-700)"
               strokeWidth="2.5"
             />
           </g>
@@ -164,7 +164,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({
               key={idx}
               x={pt.x}
               y={height - 12}
-              fill="#94A3B8"
+              fill="var(--color-text-secondary)"
               fontSize="11"
               textAnchor="middle"
               className="font-vazirmatn"
@@ -178,7 +178,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({
       {/* Floating Hover Tooltip */}
       {hoveredPoint && mousePos && (
         <div
-          className="absolute z-20 pointer-events-none bg-loqme-neutral-950/95 border border-teal-500/40 backdrop-blur-md rounded-lg p-3 shadow-2xl text-right text-xs"
+          className="absolute z-20 pointer-events-none bg-white/95 border border-teal-500/40 backdrop-blur-md rounded-lg p-3 shadow-2xl text-right text-xs"
           style={{
             left: `${(mousePos.x / width) * 100}%`,
             top: `${Math.max(10, mousePos.y - 80)}px`,
@@ -186,21 +186,21 @@ export const TrendChart: React.FC<TrendChartProps> = ({
             minWidth: "150px",
           }}
         >
-          <div className="font-semibold text-teal-700 border-b border-loqme-neutral-800 pb-1 mb-1.5 flex justify-between items-center">
+          <div className="font-semibold text-teal-700 border-b border-loqme-neutral-200 pb-1 mb-1.5 flex justify-between items-center">
             <span>{hoveredPoint.dateFa}</span>
             <span className="text-[10px] text-loqme-neutral-500">تاریخ</span>
           </div>
-          <div className="flex justify-between items-center text-white mb-1">
-            <span className="font-bold text-sm text-emerald-400">
+          <div className="flex justify-between items-center text-loqme-neutral-900 mb-1">
+            <span className="font-bold text-sm text-emerald-700">
               {formatToman(hoveredPoint.gmvToman)} تومان
             </span>
             <span className="text-loqme-neutral-500">حجم فروش:</span>
           </div>
-          <div className="flex justify-between items-center text-loqme-neutral-300">
+          <div className="flex justify-between items-center text-loqme-neutral-700">
             <span>{toPersianDigits(hoveredPoint.ordersCount)} سفارش</span>
             <span className="text-loqme-neutral-500">تعداد:</span>
           </div>
-          <div className="flex justify-between items-center text-loqme-neutral-300">
+          <div className="flex justify-between items-center text-loqme-neutral-700">
             <span>{toPersianDigits(hoveredPoint.soldBags)} بسته</span>
             <span className="text-loqme-neutral-500">بسته‌ها:</span>
           </div>

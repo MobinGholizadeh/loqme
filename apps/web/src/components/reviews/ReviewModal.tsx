@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { useEffect, useState } from "react";
 import { Star, X } from "lucide-react";
 import { DialogSurface } from "@/components/ui/DialogSurface";
@@ -42,7 +44,7 @@ export function ReviewModal({ isOpen, onClose, orderId, orderNumber, merchantNam
       <header className="flex items-start justify-between gap-3">
         <div><h2 className="text-lg font-bold">ثبت نظر و امتیاز خریدار</h2>
           <p className="mt-2 text-sm text-loqme-neutral-600">{merchantName} · سفارش {orderNumber}</p></div>
-        <button type="button" className="icon-button" aria-label="بستن" onClick={onClose}><X size={20}/></button>
+        <RippleButton type="button" className="icon-button" aria-label="بستن" onClick={onClose}><X size={20}/></RippleButton>
       </header>
       {success ? <div className="py-8 space-y-4 text-center" role="status">
         <h3 className="font-bold">با تشکر از ثبت نظر شما!</h3>

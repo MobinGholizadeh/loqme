@@ -29,7 +29,7 @@ describe("Milestone M10 — UX, SEO, PWA & Performance Excellence", () => {
       expect(pwaManifest.short_name).toBe("لقمه");
       expect(pwaManifest.start_url).toBe("/");
       expect(pwaManifest.display).toBe("standalone");
-      expect(pwaManifest.theme_color).toBe("#135E66");
+      expect(pwaManifest.theme_color).toBe("#FFFFFF");
       expect(pwaManifest.background_color).toBe("#FFFFFF");
       expect(pwaManifest.dir).toBe("rtl");
       expect(pwaManifest.lang).toBe("fa-IR");

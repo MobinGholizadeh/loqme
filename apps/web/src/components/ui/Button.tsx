@@ -3,6 +3,7 @@
 import React from "react";
 import { cn } from "@/lib/utils/cn";
 import { Spinner } from "./Spinner";
+import { RippleButton } from "@/components/magicui/ripple-button";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:
@@ -21,7 +22,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       className,
       variant = "primary",
       size = "md",
-      rounded = "default",
+      rounded = "pill",
       isLoading = false,
       disabled,
       leftIcon,
@@ -47,11 +48,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     // Semantic variants
     const variantStyles = {
       primary:
-        "bg-loqme-primary-600 hover:bg-[#0F4E55] text-white border border-transparent shadow-sm hover:shadow-md font-bold",
+        "bg-loqme-primary-600 hover:bg-loqme-primary-700 text-white border border-transparent shadow-sm hover:shadow-md font-bold",
       secondary:
         "bg-loqme-neutral-100 hover:bg-stone-200 text-loqme-neutral-900 border border-loqme-neutral-200 font-bold",
       accent:
-        "bg-loqme-accent-500 hover:bg-[#5FE0A4] text-loqme-primary-600 border border-transparent shadow-sm hover:shadow-md font-black",
+        "bg-loqme-accent-500 hover:bg-loqme-primary-700 text-loqme-primary-600 border border-transparent shadow-sm hover:shadow-md font-black",
       outline:
         "bg-white hover:bg-teal-50 text-loqme-primary-600 border-2 border-loqme-primary-600 font-bold",
       ghost:
@@ -61,10 +62,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     return (
-      <button
+      <RippleButton
         ref={ref}
         type={type}
         disabled={disabled || isLoading}
+        aria-busy={isLoading || undefined}
+        data-variant={variant}
         className={cn(
           "loqme-button inline-flex items-center justify-center select-none cursor-pointer transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-teal-600",
           sizeStyles[size],
@@ -94,7 +97,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         </span>
 
         {!isLoading && leftIcon && <span className="shrink-0">{leftIcon}</span>}
-      </button>
+      </RippleButton>
     );
   },
 );

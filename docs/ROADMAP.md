@@ -48,6 +48,10 @@
 
 ## 2. Detailed Milestone Specifications
 
+### M12 — Merchant data foundation (owner-authorized 2026-10-13)
+
+Implementation of [LQ-MDAI-001](plans/LQ-MDAI-001.md), tracked in [M12](milestones/M12-merchant-data.md): trustworthy merchant records, scoped reporting and evidence-based insights. Start with transactional/authorization foundations; preserve independent M11 operational gates. External integrations and advanced automation retain their documented dependencies.
+
 ### M00 — Project Discovery & Architecture
 * **Objective**: Inspect repository, establish architectural decisions, create comprehensive governance documentation, design token structure, and establish source-of-truth status tracking.
 * **Dependencies**: None.
@@ -178,3 +182,12 @@ Approved 2026-09-13. `codex/stitch-ui-redesign` adapts the 16 screens in Stitch 
 * **M-Mobile-07 — Merchant Mobile**: Barcode camera scanner for merchant staff, quick surplus drop creator.
 * **M-Mobile-08 — Production & Store Release**: EAS Build configuration, Apple App Store & Google Play / Cafe Bazaar release pipelines.
 
+
+
+## Owner-approved visual follow-up — CP-10.22 (2026-10-14/15)
+
+[Green Deck + Magic UI](GREEN_DECK.md) rebuilds the existing web UI across customer, authentication, onboarding, merchant and admin routes. This M10 presentation follow-up is explicitly authorized alongside M12; it does not add new domain scope or close production gates.
+
+Owner correction (2026-10-15): CP-10.22 now targets light-only white-and-green surfaces, white labels on deeper green buttons, logo-only customer navigation and a compact footer. The original dark reference is superseded; the hero and Magic UI interactions remain.
+
+Owner-requested CP-10.23: botanical authentication uses supplied mobile/desktop references, responsive plant artwork, a glass form and a loading gate until image decode. This is a scoped exception for login/customer registration; see [BOTANICAL_AUTH.md](BOTANICAL_AUTH.md). Existing phone/OTP authentication and light onboarding remain.

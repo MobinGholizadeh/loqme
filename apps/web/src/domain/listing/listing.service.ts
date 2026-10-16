@@ -1,6 +1,7 @@
 import { publicListingWhere } from './availability';
 import { prisma } from '@/lib/prisma';
 import { listingImageStorage } from './image-storage';
+import { setHistoryActor } from '@/domain/merchant/history-context';
 import {
   ListingType,
   ListingStatus,
@@ -106,7 +107,7 @@ export class ListingService {
   /**
    * Generic listing creation supporting both Surprise Bags and Flash Deals
    */
-  async createListing(input: CreateListingInput) {
+  async createListing(input: CreateListingInput, actorId?: string) {
     const validated = CreateListingSchema.parse(input);
     await listingImageStorage.authorize(validated.merchantId, validated.imageUrl);
     await this.requireStoreCover(validated.merchantId);
@@ -116,6 +117,7 @@ export class ListingService {
     const pickupDateObj = new Date(validated.pickupDate);
 
     return await prisma.$transaction(async (tx) => {
+      await setHistoryActor(tx, actorId, 'LISTING_CREATE');
       const listing = await tx.listing.create({
         data: {
           merchantId: validated.merchantId,
@@ -279,7 +281,7 @@ export class ListingService {
   /**
    * CP-07.3: 1-Tap Toggle between PUBLISHED and PAUSED with tenant security
    */
-  async toggleListingStatus(merchantId: string, listingId: string, targetStatus?: ListingStatus) {
+  async toggleListingStatus(merchantId: string, listingId: string, targetStatus?: ListingStatus, actorId?: string) {
     const listing = await prisma.listing.findUnique({
       where: { id: listingId },
     });
@@ -297,6 +299,10 @@ export class ListingService {
       (listing.status === ListingStatus.PUBLISHED ? ListingStatus.PAUSED : ListingStatus.PUBLISHED);
 
     if (nextStatus === ListingStatus.PUBLISHED) await this.requirePublicationImages(merchantId, listingId);
+    if (actorId) return prisma.$transaction(async tx => {
+      await setHistoryActor(tx, actorId, 'LISTING_STATUS');
+      return tx.listing.update({ where: { id: listingId, merchantId }, data: { status: nextStatus }, include: { inventory: true, safety: true, category: true } });
+    });
     return await prisma.listing.update({
       where: { id: listingId },
       data: { status: nextStatus },
@@ -310,7 +316,7 @@ export class ListingService {
   async adjustListingStock(
     merchantId: string,
     listingId: string,
-    options: { deltaQuantity?: number; totalQuantity?: number; status?: ListingStatus }
+    options: { deltaQuantity?: number; totalQuantity?: number; status?: ListingStatus }, actorId?: string
   ) {
     const listing = await prisma.listing.findUnique({
       where: { id: listingId },
@@ -348,6 +354,7 @@ export class ListingService {
 
     return await prisma.$transaction(async (tx) => {
       // 1. Update Inventory
+      await setHistoryActor(tx, actorId, 'MANUAL_STOCK_ADJUSTMENT');
       const updatedInventory = await tx.listingInventory.update({
         where: { id: currentInventory.id, version: currentInventory.version },
         data: {

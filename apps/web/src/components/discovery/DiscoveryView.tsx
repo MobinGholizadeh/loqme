@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -262,13 +264,13 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
             onChange={(e) => setDraftQuery(e.target.value)}
           />
           {draftQuery && (
-            <button
+            <RippleButton
               className="icon-button"
               aria-label="پاک کردن جستجو"
               onClick={() => setDraftQuery("")}
             >
               <X size={18} />
-            </button>
+            </RippleButton>
           )}
         </div>
         <Button
@@ -284,32 +286,32 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
           فیلترها {activeFilters > 0 && toPersianDigits(activeFilters)}
         </Button>
         <div className="segmented" aria-label="نمای بسته‌ها">
-          <button
+          <RippleButton
             aria-pressed={view === "feed"}
             onClick={() => navigate({ view: "feed" })}
           >
             <LayoutGrid size={17} />
             لیست
-          </button>
-          <button
+          </RippleButton>
+          <RippleButton
             aria-pressed={view === "map"}
             onClick={() => navigate({ view: "map" })}
           >
             <MapIcon size={17} />
             نقشه
-          </button>
+          </RippleButton>
         </div>
       </div>
       <nav className="category-nav" aria-label="دسته‌بندی بسته‌ها">
         {categories.map((c) => (
-          <button
+          <RippleButton
             key={c.slug}
             aria-pressed={category === c.slug}
             onClick={() => navigate({ category: c.slug })}
           >
             <c.icon size={18} aria-hidden="true" />
             {c.label}
-          </button>
+          </RippleButton>
         ))}
       </nav>
       {loading ? (

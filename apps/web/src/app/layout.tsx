@@ -4,6 +4,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import './about/about.css';
 import '@/components/business/business.css';
+import './green-deck.css';
+import '@/components/auth/botanical-auth.css';
 import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 
@@ -12,6 +14,12 @@ const vazirmatn = localFont({
   weight: "100 900",
   display: "swap",
   variable: "--font-vazirmatn",
+});
+const dmSans = localFont({
+  src: "../../public/fonts/DM-Sans-Variable.ttf",
+  weight: "100 1000",
+  display: "swap",
+  variable: "--font-dm-sans",
 });
 
 export const metadata: Metadata = {
@@ -73,7 +81,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#135E66",
+  themeColor: "#FFFFFF",
 };
 
 export default function RootLayout({
@@ -85,8 +93,10 @@ export default function RootLayout({
     <html
       lang="fa-IR"
       dir="rtl"
-      className={vazirmatn.variable}
-      style={generateCssVariables() as React.CSSProperties}
+      data-theme="green-deck"
+      data-scroll-behavior="smooth"
+      className={`${vazirmatn.variable} ${dmSans.variable}`}
+      style={generateCssVariables("green-deck") as React.CSSProperties}
     >
       <body className="font-sans antialiased min-h-screen">
         <SessionProvider>

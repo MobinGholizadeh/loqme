@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -112,7 +114,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                         href="/"
                         className="inline-flex items-center gap-2.5 py-1.5 px-3.5 rounded-full bg-white/10 hover:bg-white/15 ring-1 ring-white/15 backdrop-blur-md transition-all shadow-lg group shrink-0"
                     >
-                        <div className="w-8 h-8 rounded-full bg-[#135E66] flex items-center justify-center p-1.5 shadow-inner ring-1 ring-emerald-400/40 group-hover:scale-105 transition-transform overflow-hidden shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-loqme-primary-600 flex items-center justify-center p-1.5 shadow-inner ring-1 ring-emerald-400/40 group-hover:scale-105 transition-transform overflow-hidden shrink-0">
                             <LoqmeLogo variant="icon" size={20} theme="white" />
                         </div>
                         <div className="flex flex-col text-right">
@@ -140,7 +142,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                             ))}
                             <Link
                                 href={ctaButtonHref}
-                                className="mr-2 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs lg:text-sm font-bold text-[#071315] hover:bg-emerald-50 hover:shadow-md transition-all shadow-sm group"
+                                className="mr-2 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs lg:text-sm font-bold text-loqme-neutral-900 hover:bg-emerald-50 hover:shadow-md transition-all shadow-sm group"
                             >
                                 <span>{ctaButtonText}</span>
                                 <svg
@@ -163,7 +165,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                     </nav>
 
                     {/* Mobile Hamburger Toggle Button */}
-                    <button
+                    <RippleButton
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20 backdrop-blur-md active:scale-95 transition-all text-white"
                         aria-expanded={mobileMenuOpen}
@@ -181,7 +183,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                                 <line x1="4" y1="18" x2="20" y2="18" />
                             </svg>
                         )}
-                    </button>
+                    </RippleButton>
                 </div>
 
                 {/* Mobile Slide-down Drawer */}
@@ -192,7 +194,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.2 }}
-                            className="md:hidden mt-3 rounded-2xl bg-[#091C1E]/95 ring-1 ring-white/20 backdrop-blur-xl p-4 shadow-2xl flex flex-col gap-2"
+                            className="md:hidden mt-3 rounded-2xl bg-loqme-neutral-100/95 ring-1 ring-white/20 backdrop-blur-xl p-4 shadow-2xl flex flex-col gap-2"
                         >
                             {navLinks.map((link, index) => (
                                 <a
@@ -212,7 +214,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                                 <Link
                                     href={ctaButtonHref}
                                     onClick={() => setMobileMenuOpen(false)}
-                                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-[#071315] hover:bg-emerald-50 shadow-md"
+                                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-loqme-neutral-900 hover:bg-emerald-50 shadow-md"
                                 >
                                     <span>{ctaButtonText}</span>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 rtl:rotate-90">
@@ -233,7 +235,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                     <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight sm:leading-tight md:leading-tight font-black text-white tracking-tight animate-fade-slide-in-1 drop-shadow-md">
                         {title}
                         <br className="hidden sm:block" />
-                        <span className="text-[#65CF9B] drop-shadow-sm block sm:inline sm:mr-2">
+                        <span className="text-loqme-primary-600 drop-shadow-sm block sm:inline sm:mr-2">
                             {titleLine2}
                         </span>
                     </h1>
@@ -245,7 +247,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
 
                     {/* Glassmorphic Pill Badge — Safely placed between description and buttons, AWAY from the character's face/eyes */}
                     <div className="mt-5 mb-2 inline-flex items-center gap-2.5 rounded-full bg-white/20 hover:bg-white/25 px-4 py-1.5 ring-1 ring-white/30 backdrop-blur-md animate-fade-slide-in-3 shadow-lg transition-colors cursor-default text-white">
-                        <span className="inline-flex items-center text-xs font-black text-[#0B3E44] bg-[#65CF9B] rounded-full py-0.5 px-2.5 shadow-sm">
+                        <span className="inline-flex items-center text-xs font-black text-loqme-neutral-900 bg-loqme-primary-600 rounded-full py-0.5 px-2.5 shadow-sm">
                             {badgeLabel}
                         </span>
                         <span className="text-xs sm:text-sm font-bold text-white">
@@ -258,7 +260,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                         <a
                             href={primaryButtonHref}
                             onClick={(e) => handleSmoothScroll(e, primaryButtonHref)}
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-[#135E66] hover:bg-[#0F4E55] border border-teal-400/80 text-sm font-bold text-white rounded-full py-3.5 px-7 shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer group"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-loqme-primary-600 hover:bg-loqme-primary-700 border border-teal-400/80 text-sm font-bold text-white rounded-full py-3.5 px-7 shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer group"
                         >
                             <span>{primaryButtonText}</span>
                             <svg
@@ -282,7 +284,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                             onClick={(e) => handleSmoothScroll(e, secondaryButtonHref)}
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 px-6 py-3.5 text-sm font-medium text-white transition-all backdrop-blur-md cursor-pointer"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 rtl:rotate-180 text-[#65CF9B]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 rtl:rotate-180 text-loqme-primary-600">
                                 <path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" />
                             </svg>
                             <span>{secondaryButtonText}</span>
@@ -334,7 +336,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                             strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            className="w-3.5 h-3.5 animate-bounce text-[#65CF9B]"
+                            className="w-3.5 h-3.5 animate-bounce text-loqme-primary-600"
                         >
                             <path d="M12 5v14" />
                             <path d="m19 12-7 7-7-7" />
@@ -344,7 +346,7 @@ export const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
             </div>
 
             {/* Seamless Transition to White Page Foundation */}
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#FAF7F5] via-[#FAF7F5]/40 to-transparent" />
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-loqme-neutral-50 via-[#FAF7F5]/40 to-transparent" />
         </section>
     );
 };

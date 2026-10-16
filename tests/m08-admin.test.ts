@@ -177,6 +177,7 @@ describe('Milestone M08 — Admin Operations & Marketplace Governance', () => {
     });
 
     it('authorizes ADMIN users successfully', async () => {
+      vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({ role: 'ADMIN', isActive: true } as any);
       const adminPayload: SessionPayload = {
         userId: 'usr-admin-789',
         mobile: '09129999999',

@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { MarketFooter } from "./MarketFooter";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -16,6 +18,7 @@ import { LoqmeLogo } from "@/components/ui/LoqmeLogo";
 import { useSession } from "@/components/auth/SessionProvider";
 import { NotificationsModal } from "@/components/profile/NotificationsModal";
 import { SettingsModal } from "@/components/profile/SettingsModal";
+import { BlurFade } from "@/components/magicui/blur-fade";
 
 export function CustomerShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -53,7 +56,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
         : null;
 
   const items = [
-    { href: "/", label: "کشف لقمه", icon: Compass, active: pathname === "/" },
+    { href: "/discover", label: "کشف لقمه", icon: Compass, active: pathname === "/discover" },
     {
       href: "/explore",
       label: "اطراف من",
@@ -77,7 +80,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
   const isProfile = pathname === "/profile";
 
   return (
-    <div className="customer-shell" data-session={status}>
+    <div className={`customer-shell${pathname === "/" ? " landing-shell" : ""}`} data-session={status}>
       <nav aria-label="دسترسی سریع">
       <a href="#main-content" className="skip-link">
         رفتن به محتوای اصلی
@@ -91,7 +94,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
         >
           <div className="max-w-[440px] lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
             {/* Quick Action / Notification */}
-            <button
+            <RippleButton
               aria-label="اعلانات"
               className="w-10 h-10 rounded-full flex items-center justify-center text-slate-600 hover:text-loqme-800 hover:bg-slate-100/80 active:scale-95 transition-all relative"
               type="button"
@@ -103,7 +106,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
                 <span className="absolute top-2 left-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
               )}
               <span className="sr-only">پیام‌ها</span>
-            </button>
+            </RippleButton>
 
             {/* Brand Logo / Emblem (Centered Stacked Logo) */}
             <Link
@@ -111,17 +114,11 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
               className="brand-link flex flex-col items-center justify-center gap-[3px] no-underline select-none"
               aria-label="لقمه، صفحه اصلی"
             >
-              <LoqmeLogo size={38} variant="icon" />
-              <span
-                className="header-brand-name"
-                lang="en"
-              >
-                Loqme
-              </span>
+              <LoqmeLogo size={38} variant="icon" theme="teal" />
             </Link>
 
             {/* Settings Button */}
-            <button
+            <RippleButton
               aria-label="تنظیمات"
               className="w-10 h-10 rounded-full flex items-center justify-center text-slate-600 hover:text-loqme-800 hover:bg-slate-100/80 active:scale-95 transition-all"
               type="button"
@@ -130,15 +127,14 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
             >
               <Settings size={20} />
               <span className="sr-only">تنظیمات</span>
-            </button>
+            </RippleButton>
           </div>
         </header>
       ) : (
         <header className="market-header" data-scrolled={scrolled}>
           <div className="market-header-inner">
             <Link href="/" className="brand-link" aria-label="لقمه، صفحه اصلی">
-              <LoqmeLogo size={38} variant="icon" />
-              <span className="header-brand-name" lang="en">Loqme</span>
+              <LoqmeLogo size={38} variant="icon" theme="teal" />
             </Link>
             <nav aria-label="منوی اصلی" className="desktop-nav">
               {items.slice(0, 3).map((item) => (
@@ -156,7 +152,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
               {(status === "anonymous" ||
                 (authenticated && role === "CUSTOMER")) && (
                 <Link
-                  href="/business"
+                  href="/business/login"
                   className="action-link business-entry-link"
                 >
                   <span className="header-label-full">ثبت نام / ورود کسب و کار</span>
@@ -178,14 +174,14 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
                   <span className="animate-shimmer h-4 w-20 rounded" />
                 </span>
               ) : status === "unavailable" ? (
-                <button
+                <RippleButton
                   className="action-link"
                   title="بررسی دوباره حساب"
                   onClick={refresh}
                 >
                   <UserRound size={18} />
                   حساب کاربری
-                </button>
+                </RippleButton>
               ) : (
                 <Link
                   href={authenticated ? "/profile" : "/login"}
@@ -205,7 +201,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      {status === "anonymous" && !isProfile && (
+      {status === "anonymous" && !isProfile && pathname !== "/" && (
         <aside aria-label="ورود به حساب">
         <Link
           className="mobile-verification-notice"
@@ -219,7 +215,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
       )}
 
       <main id="main-content" className="customer-main" tabIndex={-1}>
-        {children}
+        <BlurFade key={pathname}>{children}</BlurFade>
       </main>
 
       <MarketFooter portal={portal} />

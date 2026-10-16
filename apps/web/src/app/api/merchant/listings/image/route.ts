@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   let merchantId: string;
   try {
     merchantId = (
-      await merchantService.resolveMerchantAndAuthorize(session.userId)
+      await merchantService.resolveMerchantAndAuthorize(session.userId, request.nextUrl.searchParams.get('merchantId') || undefined, 'MANAGER')
     ).merchant.id;
   } catch {
     return NextResponse.json(

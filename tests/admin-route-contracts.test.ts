@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-const { admin, auth } = vi.hoisted(() => ({
+const { admin, auth, liveUser } = vi.hoisted(() => ({
+  liveUser: vi.fn(),
   admin: { getDashboardKPIs: vi.fn(), listCustomers: vi.fn(), listMerchants: vi.fn(), listGlobalListings: vi.fn(), listCategories: vi.fn(), createCategory: vi.fn(), getSystemSettings: vi.fn(), updateSystemSettings: vi.fn() },
   auth: { extractSessionToken: vi.fn(), verifySessionToken: vi.fn() },
 }));
 vi.mock('@/domain/admin/admin.service', () => ({ adminService: admin }));
 vi.mock('@/lib/auth/session', () => auth);
+vi.mock('@/lib/prisma', () => ({ prisma: { user: { findUnique: liveUser } } }));
 import * as dashboard from '@/app/api/admin/dashboard/route';
 import * as customers from '@/app/api/admin/customers/route';
 import * as merchants from '@/app/api/admin/merchants/route';
@@ -21,6 +23,7 @@ const routes = [
 describe('Admin route authentication and response contracts', () => {
   beforeEach(() => {
     vi.resetAllMocks(); vi.spyOn(console, 'error').mockImplementation(() => {});
+    liveUser.mockResolvedValue({ role: 'ADMIN', isActive: true });
     auth.extractSessionToken.mockReturnValue('token'); auth.verifySessionToken.mockResolvedValue({ userId: 'admin', role: 'ADMIN' });
     for (const fn of Object.values(admin)) fn.mockReturnValue([]);
   });

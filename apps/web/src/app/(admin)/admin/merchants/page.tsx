@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { ErrorState } from "@/components/ui/ErrorState";
 import { DialogSurface } from "@/components/ui/DialogSurface";
 
@@ -182,9 +184,9 @@ export default function AdminMerchantsPage() {
           }`}
         >
           <span>{message.text}</span>
-          <button aria-label="بستن" onClick={() => setMessage(null)}>
+          <RippleButton aria-label="بستن" onClick={() => setMessage(null)}>
             ✕
-          </button>
+          </RippleButton>
         </div>
       )}
 
@@ -192,7 +194,7 @@ export default function AdminMerchantsPage() {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-lg border border-loqme-neutral-200">
         <div className="flex items-center gap-1.5 flex-wrap">
           {["ALL", "PENDING", "APPROVED", "SUSPENDED", "REJECTED"].map((st) => (
-            <button
+            <RippleButton
               key={st}
               onClick={() => setStatusFilter(st)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
@@ -210,7 +212,7 @@ export default function AdminMerchantsPage() {
                     : st === "SUSPENDED"
                       ? "معلق شده"
                       : "رد شده"}
-            </button>
+            </RippleButton>
           ))}
         </div>
 
@@ -336,13 +338,13 @@ export default function AdminMerchantsPage() {
               <h3 className="font-black text-base text-loqme-neutral-900">
                 بازرسی و تعیین وضعیت: {selectedMerchant.businessNameFa}
               </h3>
-              <button
+              <RippleButton
                 aria-label="بستن"
                 onClick={() => setSelectedMerchant(null)}
                 className="text-loqme-neutral-500 hover:text-loqme-primary-700 text-lg"
               >
                 ✕
-              </button>
+              </RippleButton>
             </div>
 
             {/* Merchant Details Preview */}

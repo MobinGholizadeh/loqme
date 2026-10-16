@@ -9,6 +9,7 @@ import {
   SessionPayload,
   ApiResponse, BusinessCityDto, BusinessPlaceDto, MerchantApplicationDto, MerchantApplicationInput,
   AdminMerchantApplicationDto, ReviewMerchantApplicationInput,
+  MerchantContextDto, MerchantDataReportDto,
 } from '@loqme/types';
 import {
   RequestOtpInput,
@@ -81,6 +82,14 @@ export function createApiClient(config: ApiClientConfig = {}) {
   };
 
   return {
+    merchantData: {
+      contexts: () => request<ApiResponse<MerchantContextDto[]>>('/api/merchant/contexts', { cache: 'no-store' }),
+      report: (input: { merchantId: string; locationId?: string; days?: '7' | '30' }) => {
+        const query = new URLSearchParams({ merchantId: input.merchantId, days: input.days ?? '7' });
+        if (input.locationId) query.set('locationId', input.locationId);
+        return request<ApiResponse<MerchantDataReportDto>>(`/api/merchant/reports?${query}`, { cache: 'no-store' });
+      },
+    },
     business: {
       cities: () => request<ApiResponse<BusinessCityDto[]>>('/api/business/cities'),
       searchPlaces: (q: string, cityId: string, signal?: AbortSignal) => request<ApiResponse<BusinessPlaceDto[]>>(`/api/business/places/search?${new URLSearchParams({ q, cityId })}`, { signal }),

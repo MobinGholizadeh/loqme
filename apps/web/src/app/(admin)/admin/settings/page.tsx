@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { ErrorState } from "@/components/ui/ErrorState";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -116,9 +118,9 @@ export default function AdminSettingsPage() {
           }`}
         >
           <span>{message.text}</span>
-          <button aria-label="بستن" onClick={() => setMessage(null)}>
+          <RippleButton aria-label="بستن" onClick={() => setMessage(null)}>
             ✕
-          </button>
+          </RippleButton>
         </div>
       )}
 
@@ -206,7 +208,7 @@ export default function AdminSettingsPage() {
                   desc: "ارسال سریع اعتباری و خدماتی با وب‌سرویس REST",
                 },
               ].map((p) => (
-                <button
+                <RippleButton
                   key={p.id}
                   type="button"
                   onClick={() => setActiveSmsProvider(p.id as any)}
@@ -222,7 +224,7 @@ export default function AdminSettingsPage() {
                   <span className="text-[10px] text-loqme-neutral-500 mt-1 block">
                     {p.desc}
                   </span>
-                </button>
+                </RippleButton>
               ))}
             </div>
           </div>

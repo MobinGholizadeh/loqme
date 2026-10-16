@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import Image from "next/image";
 import { DialogSurface } from "@/components/ui/DialogSurface";
 import * as RedesignIcons from "lucide-react";
@@ -171,13 +173,13 @@ export function ComplaintModal({
               فروشگاه {merchantName}
             </p>
           </div>
-          <button
+          <RippleButton
             aria-label="بستن"
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition"
           >
             ✕
-          </button>
+          </RippleButton>
         </div>
 
         {success ? (
@@ -216,7 +218,7 @@ export function ComplaintModal({
                 {CATEGORIES.map((cat) => {
                   const isSelected = category === cat.id;
                   return (
-                    <button
+                    <RippleButton
                       key={cat.id}
                       type="button"
                       aria-pressed={isSelected}
@@ -238,7 +240,7 @@ export function ComplaintModal({
                         </span>
                       )}
                       {cat.label}
-                    </button>
+                    </RippleButton>
                   );
                 })}
               </div>
@@ -307,19 +309,19 @@ export function ComplaintModal({
                       alt={`مدرک ${idx + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <button
+                    <RippleButton
                       type="button"
                       onClick={() => handleRemovePhoto(idx)}
                       className="absolute top-1 right-1 bg-black/70 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] hover:bg-rose-600 transition"
                       title="حذف تصویر"
                     >
                       ✕
-                    </button>
+                    </RippleButton>
                   </div>
                 ))}
 
                 {evidencePhotos.length < 4 && (
-                  <button
+                  <RippleButton
                     type="button"
                     disabled={uploading}
                     onClick={() => fileInputRef.current?.click()}
@@ -333,7 +335,7 @@ export function ComplaintModal({
                         <span className="text-[9px] mt-0.5">افزودن</span>
                       </>
                     )}
-                  </button>
+                  </RippleButton>
                 )}
 
                 <input
@@ -349,15 +351,15 @@ export function ComplaintModal({
 
             {/* Actions */}
             <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-100 flex-shrink-0">
-              <button
+              <RippleButton
                 type="button"
                 onClick={onClose}
                 disabled={submitting}
                 className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition"
               >
                 انصراف
-              </button>
-              <button
+              </RippleButton>
+              <RippleButton
                 type="submit"
                 disabled={submitting || uploading}
                 className="px-5 py-2.5 text-xs font-bold text-white bg-rose-700 hover:bg-rose-800 disabled:opacity-50 rounded-lg shadow-md shadow-rose-700/20 transition flex items-center gap-1.5"
@@ -370,7 +372,7 @@ export function ComplaintModal({
                 ) : (
                   <span>ارسال گزارش به تیم نظارت</span>
                 )}
-              </button>
+              </RippleButton>
             </div>
           </form>
         )}

@@ -94,7 +94,7 @@ export default function MerchantDashboardPage() {
       {error && (
         <div
           role="alert"
-          className="p-4 border border-rose-200 text-rose-700 rounded-lg"
+          className="p-4 border border-rose-200 text-[color:var(--color-danger)] rounded-lg"
         >
           {error}
         </div>
@@ -205,7 +205,7 @@ export default function MerchantDashboardPage() {
               <span className="text-xs text-loqme-neutral-500 font-medium">
                 امتیاز و رضایت مشتریان
               </span>
-              <div className="text-2xl font-black text-amber-700 mt-2 flex items-center gap-1.5">
+              <div className="text-2xl font-black text-[color:var(--color-warning)] mt-2 flex items-center gap-1.5">
                 <span>
                   <RedesignIcons.Star size={20} aria-hidden="true" />
                 </span>

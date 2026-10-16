@@ -1,0 +1,73 @@
+.home-landing { background: white; }
+.landing-hero { position: relative; isolation: isolate; min-height: min(760px, 85svh); display: flex; align-items: center; background: #1D616A; color: white; overflow: hidden; }
+.landing-hero-media { position: absolute; inset: 0; z-index: -2; }
+.landing-hero-media img { width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: left 55%; }
+.landing-hero-shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgb(15 50 49 / .05), rgb(17 63 66 / .7) 50%, #174F56 100%); }
+.landing-hero-copy { width: min(1440px, 100%); margin: auto; padding: 80px max(6%, 24px); }
+.landing-eyebrow { display: flex; gap: 8px; align-items: center; font-size: 13px; margin-bottom: 24px; }
+.landing-hero h1 { font-size: clamp(38px, 4.8vw, 76px); font-weight: 900; line-height: 1.6; letter-spacing: -2px; text-wrap: balance; }
+.landing-hero p { font-size: clamp(14px, 1.3vw, 19px); line-height: 2.1; margin-block: 24px 32px; color: #F2F8F5; }
+.landing-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.landing-hero .action-link { background: white; color: #1D616A; border: 1px solid white; padding: 14px 26px; }
+.landing-hero .action-link:hover { background: #E1EFEB; color: #174F56; }
+.landing-hero :focus-visible { outline-color: white; }
+.landing-photo-note { position: absolute; left: 5%; bottom: 28px; font-size: 12px; background: #174F56; padding: 8px 16px; border-radius: 99px; }
+.landing-section { padding: 88px max(6%, calc((100% - 1280px) / 2)); }
+.landing-kicker { font-size: 13px; font-weight: 700; color: #526460; display: block; margin-bottom: 16px; }
+.landing-section h2 { color: #1D616A; font-size: clamp(30px, 3.4vw, 48px); line-height: 1.65; font-weight: 900; text-wrap: balance; }
+.landing-section h2 em { font-style: normal; color: #203B3B; }
+.landing-section p { color: #526460; font-size: 15px; line-height: 2.1; }
+.landing-intro { text-align: center; }
+.landing-intro > p { max-width: 760px; margin: 24px auto 48px; }
+.landing-benefits { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; text-align: right; }
+.landing-benefits article { padding-top: 24px; border-top: 1px solid #CDDCD6; }
+.landing-benefits svg { color: #1D616A; margin-bottom: 18px; }
+.landing-section h3 { font-size: 18px; font-weight: 800; color: #203B3B; margin-bottom: 12px; }
+.landing-benefits p { font-size: 13px; }
+.food-ticker { display: flex; align-items: center; gap: 12px; background: #1D616A; color: white; padding: 20px 16px; }
+.food-ticker-window { overflow: hidden; flex: 1; direction: ltr; }
+.food-ticker-track { display: flex; width: max-content; animation: food-ticker 50s linear infinite; }
+.food-ticker-group { display: flex; flex-shrink: 0; }
+.food-ticker-group > span { display: flex; align-items: center; gap: 36px; padding-inline: 18px; white-space: nowrap; font-size: clamp(24px, 3vw, 40px); font-weight: 900; direction: rtl; }
+.food-ticker i { font-style: normal; color: #BCD8D1; }
+.food-ticker button { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid white; border-radius: 50%; color: #1D616A; background: white; }
+.food-ticker[data-paused="true"] .food-ticker-track, .food-ticker:hover .food-ticker-track, .food-ticker:focus-within .food-ticker-track { animation-play-state: paused; }
+@keyframes food-ticker { to { transform: translateX(-50%); } }
+.landing-how { display: grid; grid-template-columns: 1fr 1.2fr; gap: 64px; }
+.landing-text-link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; margin-top: 24px; color: #1D616A; font-weight: 700; }
+.landing-steps { display: grid; gap: 16px; }
+.landing-steps article { display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #CDDCD6; padding-block: 20px; }
+.landing-steps article > span { color: #526460; font-size: 13px; }
+.landing-steps svg { color: #1D616A; flex-shrink: 0; }
+.landing-steps p { font-size: 13px; }
+.landing-coverage { display: grid; grid-template-columns: .9fr 1.1fr; align-items: center; gap: 80px; background: #EFF7F4; }
+.landing-coverage p { max-width: 560px; margin-block: 20px 28px; }
+.landing-coverage-mark { width: min(100%, 340px); aspect-ratio: 1; border: 1px solid #BCD8D1; background: repeating-radial-gradient(circle, transparent 0 48px, #D7E7E1 49px 50px); border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #1D616A; justify-self: center; }
+.landing-coverage-mark span { font-weight: 900; font-size: 46px; }
+.landing-coverage-mark small { font-size: 13px; }
+.landing-business { display: flex; justify-content: space-between; gap: 32px; align-items: center; }
+.landing-business p { margin-top: 20px; max-width: 660px; }
+.landing-business .action-link { flex-shrink: 0; }
+@media(max-width: 767px) {
+ .landing-hero { min-height: 690px; align-items: flex-end; }
+ .landing-hero-media img { object-position: center 27%; }
+ .landing-hero-shade { background: linear-gradient(180deg, transparent, rgb(23 79 86 / .2) 20%, #174F56 57%); }
+ .landing-hero-copy { padding: 300px 24px 38px; margin: 0; }
+ .landing-eyebrow { font-size: 11px; margin-bottom: 12px; }
+ .landing-hero h1 { font-size: 36px; letter-spacing: -1px; }
+ .landing-hero p { font-size: 13px; margin-block: 16px 24px; }
+ .landing-photo-note { display: none; }
+ .landing-actions .action-link { font-size: 12px; padding-inline: 20px; }
+ .landing-section { padding: 52px 24px; }
+ .landing-benefits { grid-template-columns: 1fr 1fr; gap: 20px; }
+ .landing-section h3 { font-size: 15px; }
+ .landing-how, .landing-coverage { grid-template-columns: 1fr; gap: 32px; }
+ .landing-coverage-mark { width: 240px; }
+ .landing-business { flex-direction: column; align-items: flex-start; }
+}
+@media(prefers-reduced-motion: reduce) {
+ .food-ticker-track { animation: none; width: auto; }
+ .food-ticker-group { flex-wrap: wrap; gap: 12px; }
+ .food-ticker-group > span { white-space: normal; font-size: 18px; padding: 0; gap: 12px; }
+ .food-ticker-group[aria-hidden="true"], .food-ticker button { display: none; }
+}

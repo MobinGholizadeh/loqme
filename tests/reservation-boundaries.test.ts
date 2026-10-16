@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const { db, inventory } = vi.hoisted(() => ({
-  db: { listing: { findUnique: vi.fn() }, reservation: { findFirst: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), create: vi.fn(), updateMany: vi.fn() }, $transaction: vi.fn() },
+  db: { listing: { findUnique: vi.fn() }, reservation: { findFirst: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), create: vi.fn(), updateMany: vi.fn() }, $transaction: vi.fn(), $queryRaw: vi.fn() },
   inventory: { atomicReserve: vi.fn(), atomicRelease: vi.fn() },
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: db }));
@@ -34,7 +34,7 @@ describe('Reservation failure and expiry boundaries', () => {
   });
   it('returns an existing live hold without reserving again', async () => {
     db.reservation.findFirst.mockResolvedValue(hold());
-    expect(await service.createReservation({ customerId: 'customer', listingId: 'listing' })).toMatchObject({ success: true, reservation: { id: 'hold', remainingSeconds: 600, quantity: 2 } });
+    expect(await service.createReservation({ customerId: 'customer', listingId: 'listing', quantity: 2 })).toMatchObject({ success: true, reservation: { id: 'hold', remainingSeconds: 600, quantity: 2 } });
     expect(inventory.atomicReserve).not.toHaveBeenCalled();
   });
   it.each(['stock unavailable', undefined])('preserves a failed reserve message or fallback: %s', async message => {
@@ -44,12 +44,12 @@ describe('Reservation failure and expiry boundaries', () => {
   });
   it('creates a default one-unit hold with exactly ten minutes of expiry', async () => {
     expect(await service.createReservation({ customerId: 'customer', listingId: 'listing' })).toMatchObject({ success: true, reservation: { quantity: 1, remainingSeconds: 600, expiresAt: new Date(now.getTime() + 600000) } });
-    expect(inventory.atomicReserve).toHaveBeenCalledWith('listing', 1);
+    expect(inventory.atomicReserve).toHaveBeenCalledWith('listing', 1, db);
   });
-  it('releases the reserved inventory when persisting the hold fails', async () => {
+  it('does not issue a compensating release outside a rolled-back reservation transaction', async () => {
     db.reservation.create.mockRejectedValue(new Error('database write failed'));
     expect((await service.createReservation({ customerId: 'customer', listingId: 'listing', quantity: 2 })).success).toBe(false);
-    expect(inventory.atomicRelease).toHaveBeenCalledWith('listing', 2);
+    expect(inventory.atomicRelease).not.toHaveBeenCalled();
   });
   it('returns null for missing holds and computes live/finished countdowns', async () => {
     db.reservation.findUnique.mockResolvedValueOnce(null);

@@ -77,8 +77,8 @@ describe('Merchant response and mutation contracts', () => {
   });
   it('publishes with server-resolved merchant/location and category, ignoring client identities', async () => {
     expect((await listings.POST(request('listings', 'POST', { ...validListing(), merchantId: 'requested', merchantLocationId: 'foreign' }))).status).toBe(200);
-    expect(mocks.merchant.resolveMerchantAndAuthorize).toHaveBeenCalledWith('owner', 'requested');
-    expect(mocks.listing.createListing).toHaveBeenCalledWith(expect.objectContaining({ merchantId: 'store', merchantLocationId: 'location', categoryId: 'category', type: 'SURPRISE_BAG' }));
+    expect(mocks.merchant.resolveMerchantAndAuthorize).toHaveBeenCalledWith('owner', 'requested', 'MANAGER');
+    expect(mocks.listing.createListing).toHaveBeenCalledWith(expect.objectContaining({ merchantId: 'store', merchantLocationId: 'location', categoryId: 'category', type: 'SURPRISE_BAG' }), 'owner');
   });
   it('rejects invalid listing data and unknown categories without publishing', async () => {
     expect((await listings.POST(request('listings', 'POST', {}))).status).toBe(400);
@@ -91,16 +91,16 @@ describe('Merchant response and mutation contracts', () => {
   });
   it('updates image and pickup instructions independently', async () => {
     mocks.image.mockResolvedValue('/photo'); mocks.pickup.mockResolvedValue({ packaging: 'CUSTOMER_CONTAINER' });
-    expect((await listingItem.PATCH(request('listings/item', 'PATCH', { imageUrl: '/photo' }), context())).status).toBe(200); expect(mocks.image).toHaveBeenCalledWith('store', 'item', '/photo');
+    expect((await listingItem.PATCH(request('listings/item', 'PATCH', { imageUrl: '/photo' }), context())).status).toBe(200); expect(mocks.image).toHaveBeenCalledWith('store', 'item', '/photo', 'owner');
     expect((await listingItem.PATCH(request('listings/item', 'PATCH', { pickupDetails: { packaging: 'CUSTOMER_CONTAINER' } }), context())).status).toBe(200);
-    expect(mocks.pickup).toHaveBeenCalledWith('store', 'item', { packaging: 'CUSTOMER_CONTAINER' });
+    expect(mocks.pickup).toHaveBeenCalledWith('store', 'item', { packaging: 'CUSTOMER_CONTAINER' }, 'owner');
   });
   it.each([{ imageUrl: '/photo', status: 'PAUSED' }, { imageUrl: '/photo', pickupDetails: {} }, { pickupDetails: {}, totalQuantity: 5 }])('rejects ambiguous combined listing operations %o', async body => {
     expect((await listingItem.PATCH(request('listings/item', 'PATCH', body), context())).status).toBe(400); expect(mocks.image).not.toHaveBeenCalled(); expect(mocks.pickup).not.toHaveBeenCalled();
   });
   it('separates status changes, stock adjustments and archiving', async () => {
-    expect((await listingItem.PATCH(request('listings/item', 'PATCH', { status: 'PAUSED' }), context())).status).toBe(200); expect(mocks.listing.toggleListingStatus).toHaveBeenCalledWith('store', 'item', 'PAUSED');
-    expect((await listingItem.PATCH(request('listings/item', 'PATCH', { deltaQuantity: 3 }), context())).status).toBe(200); expect(mocks.listing.adjustListingStock).toHaveBeenCalledWith('store', 'item', { deltaQuantity: 3 });
-    expect((await listingItem.DELETE(request('listings/item', 'DELETE'), context())).status).toBe(200); expect(mocks.listing.toggleListingStatus).toHaveBeenLastCalledWith('store', 'item', 'EXPIRED');
+    expect((await listingItem.PATCH(request('listings/item', 'PATCH', { status: 'PAUSED' }), context())).status).toBe(200); expect(mocks.listing.toggleListingStatus).toHaveBeenCalledWith('store', 'item', 'PAUSED', 'owner');
+    expect((await listingItem.PATCH(request('listings/item', 'PATCH', { deltaQuantity: 3 }), context())).status).toBe(200); expect(mocks.listing.adjustListingStock).toHaveBeenCalledWith('store', 'item', { deltaQuantity: 3 }, 'owner');
+    expect((await listingItem.DELETE(request('listings/item', 'DELETE'), context())).status).toBe(200); expect(mocks.listing.toggleListingStatus).toHaveBeenLastCalledWith('store', 'item', 'EXPIRED', 'owner');
   });
 });

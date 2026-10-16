@@ -33,18 +33,20 @@ describe('Payment gateway response boundaries', () => {
 
   it.each([100, 101])('accepts verified/already-verified code %s and preserves receipt', async code => {
     fetchMock.mockResolvedValue(Response.json({ data: { code, ref_id: 123, card_pan: 'masked', fee: 42 } }));
-    expect(await new ZarinpalGatewayAdapter().verifyPayment({ authority: 'A', amountToman: 25000 })).toMatchObject({ success: true, referenceId: '123', trackingCode: 'masked', feeToman: 42 });
+    const result = await new ZarinpalGatewayAdapter().verifyPayment({ authority: 'A', amountToman: 25000 });
+    expect(result).toMatchObject({ success: true, referenceId: '123', feeToman: 42 });
+    expect(JSON.stringify(result)).not.toContain('masked');
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ amount: 25000, authority: 'A' });
   });
 
-  it('handles absent optional receipt fields', async () => {
+  it('does not approve a response missing its authoritative receipt', async () => {
     fetchMock.mockResolvedValue(Response.json({ data: { code: 100 } }));
-    expect(await new ZarinpalGatewayAdapter().verifyPayment({ authority: 'A', amountToman: 1 })).toMatchObject({ success: true, referenceId: undefined, trackingCode: undefined });
+    expect(await new ZarinpalGatewayAdapter().verifyPayment({ authority: 'A', amountToman: 1 })).toMatchObject({ success: false, outcome: 'UNKNOWN' });
   });
 
   it.each([{ errors: { message: 'Declined' } }, { data: { code: -21 } }, {}])('rejects unsuccessful verification: %j', async payload => {
     fetchMock.mockResolvedValue(Response.json(payload));
-    expect(await new ZarinpalGatewayAdapter().verifyPayment({ authority: 'A', amountToman: 1 })).toMatchObject({ success: false, rawPayload: payload, errorMessage: expect.any(String) });
+    expect(await new ZarinpalGatewayAdapter().verifyPayment({ authority: 'A', amountToman: 1 })).toMatchObject({ success: false, errorMessage: expect.any(String) });
   });
 
   it.each(['network', 'invalid-json'])('reports %s failures without approving a payment', async failure => {

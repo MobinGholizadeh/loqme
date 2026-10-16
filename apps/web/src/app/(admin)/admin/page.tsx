@@ -70,7 +70,7 @@ export default function AdminDashboardPage() {
       {error && (
         <div
           role="alert"
-          className="p-4 border border-rose-200 text-rose-700 rounded-lg"
+          className="p-4 border border-rose-200 text-[color:var(--color-danger)] rounded-lg"
         >
           {error}
         </div>
@@ -93,7 +93,7 @@ export default function AdminDashboardPage() {
               <div className="text-2xl font-black text-loqme-primary-700 mt-2">
                 {toPersianDigits(kpis?.activeMerchantsCount ?? 0)}
               </div>
-              <span className="text-[11px] text-amber-700 mt-1 block">
+              <span className="text-[11px] text-[color:var(--color-warning)] mt-1 block">
                 {toPersianDigits(kpis?.pendingMerchantsCount ?? 0)} فروشگاه در
                 انتظار تایید جواز
               </span>
@@ -130,7 +130,7 @@ export default function AdminDashboardPage() {
               <div
                 className={`text-3xl font-black mt-2 ${
                   (kpis?.openComplaintsCount ?? 0) > 0
-                    ? "text-rose-700 animate-pulse"
+                    ? "text-[color:var(--color-danger)] animate-pulse"
                     : "text-emerald-700"
                 }`}
               >

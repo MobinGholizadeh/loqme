@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { ErrorState } from "@/components/ui/ErrorState";
 import { useFeedback } from "@/components/ui/useFeedback";
 import { DialogSurface } from "@/components/ui/DialogSurface";
@@ -254,7 +256,7 @@ export default function AdminModerationPage() {
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-loqme-neutral-200 text-xs">
-        <button
+        <RippleButton
           onClick={() => setStatusFilter("")}
           className={`px-3 py-1.5 rounded-lg transition ${
             statusFilter === ""
@@ -263,8 +265,8 @@ export default function AdminModerationPage() {
           }`}
         >
           همه گزارش‌ها ({toPersianDigits(complaints.length)})
-        </button>
-        <button
+        </RippleButton>
+        <RippleButton
           onClick={() => setStatusFilter("PENDING")}
           className={`px-3 py-1.5 rounded-lg transition ${
             statusFilter === "PENDING"
@@ -273,8 +275,8 @@ export default function AdminModerationPage() {
           }`}
         >
           در انتظار بررسی
-        </button>
-        <button
+        </RippleButton>
+        <RippleButton
           onClick={() => setStatusFilter("RESOLVED_REFUNDED")}
           className={`px-3 py-1.5 rounded-lg transition ${
             statusFilter === "RESOLVED_REFUNDED"
@@ -283,8 +285,8 @@ export default function AdminModerationPage() {
           }`}
         >
           استرداد وجه شده
-        </button>
-        <button
+        </RippleButton>
+        <RippleButton
           onClick={() => setStatusFilter("RESOLVED_REJECTED")}
           className={`px-3 py-1.5 rounded-lg transition ${
             statusFilter === "RESOLVED_REJECTED"
@@ -293,7 +295,7 @@ export default function AdminModerationPage() {
           }`}
         >
           رد شده
-        </button>
+        </RippleButton>
       </div>
 
       {/* Complaints List */}
@@ -425,7 +427,7 @@ export default function AdminModerationPage() {
                     </span>
                     <div className="flex flex-wrap gap-2">
                       {item.evidencePhotos.map((photoUrl, pIdx) => (
-                        <button
+                        <RippleButton
                           key={pIdx}
                           type="button"
                           onClick={() => setSelectedPhoto(photoUrl)}
@@ -439,7 +441,7 @@ export default function AdminModerationPage() {
                             alt={`مدرک ${pIdx + 1}`}
                             className="w-full h-full object-cover"
                           />
-                        </button>
+                        </RippleButton>
                       ))}
                     </div>
                   </div>
@@ -683,13 +685,13 @@ export default function AdminModerationPage() {
               alt="مدرک تمام صفحه"
               className="max-w-full max-h-[80vh] object-contain rounded-lg mx-auto"
             />
-            <button
+            <RippleButton
               className="icon-button absolute top-3 left-3 bg-white"
               aria-label="بستن تصویر"
               onClick={() => setSelectedPhoto(null)}
             >
               <RedesignIcons.X size={20} />
-            </button>
+            </RippleButton>
           </div>
         </DialogSurface>
       )}

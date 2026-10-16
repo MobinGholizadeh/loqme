@@ -165,10 +165,10 @@ export default function AdminFinancePage() {
               <span className="text-xs text-loqme-neutral-500 font-medium">
                 مجموع مبالغ استرداد شده
               </span>
-              <div className="text-2xl font-black text-rose-700 mt-2">
+              <div className="text-2xl font-black text-[color:var(--color-danger)] mt-2">
                 {formatToman(report?.totalRefundsToman ?? 0)}
               </div>
-              <span className="text-[11px] text-rose-700 mt-1 block">
+              <span className="text-[11px] text-[color:var(--color-danger)] mt-1 block">
                 کسر شده از بدهی فروشندگان متخلف
               </span>
             </div>
@@ -236,7 +236,7 @@ export default function AdminFinancePage() {
                           {formatToman(m.commissionCutToman)}
                         </td>
 
-                        <td className="p-4 font-mono text-rose-700">
+                        <td className="p-4 font-mono text-[color:var(--color-danger)]">
                           {m.refundsDeductedToman > 0
                             ? formatToman(m.refundsDeductedToman)
                             : "۰ تومان"}

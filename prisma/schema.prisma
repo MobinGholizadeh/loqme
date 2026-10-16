@@ -339,6 +339,7 @@ model Category {
 }
 
 model Listing {
+  revision             Int                 @default(1)
   id                   String              @id @default(uuid())
   merchantId           String
   merchantLocationId   String?
@@ -486,6 +487,10 @@ model Reservation {
 }
 
 model Order {
+  merchantLocationId        String?
+  pickupAddressFa           String?
+  acceptedPaymentId         String?                @unique
+  paidAt                    DateTime?
   id                        String                 @id @default(uuid())
   orderNumber               String                 @unique // e.g. "LQ-10492"
   customerId                String
@@ -505,6 +510,7 @@ model Order {
   reservation               Reservation?           @relation(fields: [reservationId], references: [id], onDelete: SetNull)
   items                     OrderItem[]
   payments                  Payment[]
+  paymentAttempts           PaymentAttempt[]
   financialTransactions     FinancialTransaction[]
   refunds                   Refund[]
   pickupVerification        PickupVerification?
@@ -515,10 +521,20 @@ model Order {
   @@index([merchantId])
   @@index([status])
   @@index([merchantId, status])
+  @@index([merchantId, paidAt])
   @@index([createdAt])
 }
 
 model OrderItem {
+  termsSnapshot            Json?
+  titleFaSnapshot          String?
+  categoryIdSnapshot       String?
+  categoryNameFaSnapshot   String?
+  originalPriceTomanSnapshot BigInt?
+  pickupStartSnapshot      DateTime?
+  pickupEndSnapshot        DateTime?
+  listingRevisionSnapshot  Int?
+  snapshotCapturedAt       DateTime?
   id             String   @id @default(uuid())
   orderId        String
   listingId      String
@@ -535,6 +551,7 @@ model OrderItem {
 }
 
 model Payment {
+  verifiedAt   DateTime?
   id           String             @id @default(uuid())
   orderId      String
   gateway      PaymentGatewayType @default(MOCK)
@@ -554,6 +571,7 @@ model Payment {
   @@index([orderId])
   @@index([status])
   @@index([authority])
+  @@index([verifiedAt])
 }
 
 model PaymentEvent {
@@ -571,6 +589,7 @@ model PaymentEvent {
 }
 
 model FinancialTransaction {
+  postingKey      String?                  @unique
   id              String                   @id @default(uuid())
   orderId         String?
   type            FinancialTransactionType
@@ -588,6 +607,7 @@ model FinancialTransaction {
 }
 
 model Refund {
+  settledAt         DateTime?
   id                String       @id @default(uuid())
   paymentId         String
   orderId           String
@@ -606,6 +626,7 @@ model Refund {
   @@index([paymentId])
   @@index([orderId])
   @@index([status])
+  @@index([settledAt])
 }
 
 model PickupVerification {
@@ -688,6 +709,8 @@ model Complaint {
 }
 
 model AuditLog {
+  merchantId  String?
+  sourceKind  String?
   id          String   @id @default(uuid())
   action      String   // e.g. "SAFETY_OVERRIDE", "COMPLAINT_RESOLVED", "MERCHANT_RESTRICTED"
   entityType  String   // e.g. "ListingSafety", "Complaint", "Merchant", "Order"
@@ -704,6 +727,73 @@ model AuditLog {
   @@index([actorId])
   @@index([action])
   @@index([createdAt])
+}
+
+// Historical identifiers are retained even when source entities are removed.
+// No inferred backfill: migration-time rows are explicitly BASELINE observations.
+model ListingRevision {
+  id         String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  listingId  String
+  merchantId String
+  locationId String?
+  revision   Int
+  kind       String
+  actorId    String?
+  sourceKind String   @default("MARKETPLACE")
+  snapshot   Json
+  recordedAt DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+  @@unique([listingId, revision])
+  @@index([merchantId, recordedAt])
+}
+
+model ListingInventoryMovement {
+  id               String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  listingId        String
+  merchantId       String
+  locationId       String?
+  inventoryVersion Int
+  kind             String
+  deltaTotal       Int
+  deltaReserved    Int
+  deltaSold        Int
+  resultingTotal   Int
+  resultingReserved Int
+  resultingSold    Int
+  actorId          String?
+  reasonCode       String?
+  sourceKind       String   @default("MARKETPLACE")
+  recordedAt       DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+  @@unique([listingId, inventoryVersion])
+  @@index([merchantId, recordedAt])
+}
+
+model PaymentAttempt {
+  id          String   @id @default(uuid())
+  orderId     String
+  gateway     PaymentGatewayType
+  state       String   @default("SUBMITTING")
+  authority   String?  @unique
+  paymentUrl  String?
+  safeCode    String?
+  createdAt   DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+  updatedAt   DateTime @updatedAt
+  order       Order @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@index([orderId, createdAt])
+}
+
+model ReconciliationCase {
+  id          String   @id @default(uuid())
+  merchantId  String
+  orderId     String
+  paymentId   String?
+  caseKey     String   @unique
+  reason      String
+  status      String   @default("OPEN")
+  resolution  String?
+  resolvedBy  String?
+  createdAt   DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+  resolvedAt  DateTime?
+  @@index([merchantId, status, createdAt])
 }
 
 

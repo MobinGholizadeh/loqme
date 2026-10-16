@@ -62,8 +62,8 @@ export const TableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({
   cols = 4,
 }) => {
   return (
-    <div className="w-full space-y-3 p-4 bg-loqme-neutral-900/60 rounded-lg border border-loqme-neutral-800">
-      <div className="flex items-center justify-between pb-3 border-b border-loqme-neutral-800">
+    <div className="w-full space-y-3 p-4 bg-loqme-neutral-50 rounded-lg border border-loqme-neutral-200">
+      <div className="flex items-center justify-between pb-3 border-b border-loqme-neutral-200">
         <Skeleton height={24} width={140} />
         <Skeleton height={32} width={90} />
       </div>

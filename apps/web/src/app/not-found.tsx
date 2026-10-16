@@ -27,7 +27,7 @@ export default function NotFound() {
         <div className="w-full space-y-3">
           <Link
             href="/explore"
-            className="action-link block w-full w-full bg-loqme-primary-600 hover:bg-[#0e484e] text-white rounded-full py-2.5 text-sm font-medium shadow-sm"
+            className="action-link block w-full w-full bg-loqme-primary-600 hover:bg-loqme-primary-700 text-white rounded-full py-2.5 text-sm font-medium shadow-sm"
           >
             🔍 جستجو و کاوش بسته‌ها
           </Link>

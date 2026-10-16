@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 
 import React, { useState, useEffect } from "react";
 import {
@@ -84,7 +86,7 @@ export default function AdminAnalyticsPage() {
           {/* Timeframe selector */}
           <div className="bg-white border border-loqme-neutral-200 rounded-lg p-1 flex items-center gap-1">
             {timeframeOptions.map((opt) => (
-              <button
+              <RippleButton
                 key={opt.id}
                 onClick={() => setTimeframe(opt.id)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
@@ -94,7 +96,7 @@ export default function AdminAnalyticsPage() {
                 }`}
               >
                 {opt.label}
-              </button>
+              </RippleButton>
             ))}
           </div>
 

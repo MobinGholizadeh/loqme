@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 
 import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
@@ -160,7 +162,7 @@ export default function AdminAuditPage() {
                         )}
                       </td>
                       <td className="p-4 text-left">
-                        <button
+                        <RippleButton
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -170,7 +172,7 @@ export default function AdminAuditPage() {
                         >
                           <Eye size={13} />
                           جزئیات
-                        </button>
+                        </RippleButton>
                       </td>
                     </tr>
                   ))}
@@ -312,7 +314,7 @@ export default function AdminAuditPage() {
               </div>
               <pre
                 dir="ltr"
-                className="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-[11px] overflow-x-auto max-h-72 border border-slate-700 text-left leading-relaxed select-all"
+                className="bg-slate-50 text-slate-800 p-4 rounded-lg font-mono text-[11px] overflow-x-auto max-h-72 border border-slate-200 text-left leading-relaxed select-all"
               >
                 {typeof selectedLog.detailsJson === "object"
                   ? JSON.stringify(selectedLog.detailsJson, null, 2)

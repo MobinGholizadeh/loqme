@@ -1,4 +1,9 @@
+> **Current direction (2026-10-16, CP-10.25):** [WHITE_TEAL.md](WHITE_TEAL.md) supersedes earlier palettes below. White surfaces and navigation, logo teal feature sections, pale green canvas and a separate editorial homepage leading to `/discover`.
+
 # Brand Identity & Voice — Loqme (لقمه)
+
+> **Current web visual direction (CP-10.24, owner correction 2026-10-15):** [Teal photography and glass](TEAL_GLASS.md) supersedes the rejected cream experiment and earlier white/grass-green styling. Keep #1D616A logo teal, blurred food-shop imagery, translucent teal panels and light text. Customer login shows a Loqme-branded food pickup; business imagery is retained. Marketplace positioning, official logo artwork, typography, RTL and safety commitments remain unchanged.
+
 
 > **Official Latin Spelling**: Loqme  
 > **Persian Name**: لقمه  

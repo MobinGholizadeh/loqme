@@ -381,6 +381,7 @@ describe('Milestone M09 — Marketplace Analytics Engine & Operational Intellige
     });
 
     it('allows ADMIN users to access analytics', async () => {
+      vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({ role: 'ADMIN', isActive: true } as any);
       const adminPayload: SessionPayload = {
         userId: 'usr-admin-1',
         mobile: '09120000000',

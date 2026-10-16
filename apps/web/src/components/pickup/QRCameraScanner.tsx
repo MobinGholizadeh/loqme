@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { DialogSurface } from "@/components/ui/DialogSurface";
 import * as RedesignIcons from "lucide-react";
 
@@ -149,28 +151,28 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
 
   return (
     <DialogSurface onClose={onClose}>
-      <div className="relative w-full max-w-md bg-loqme-neutral-900 rounded-lg overflow-hidden shadow-2xl border border-loqme-neutral-800 text-white">
+      <div className="relative w-full max-w-md bg-white rounded-lg overflow-hidden shadow-2xl border border-loqme-neutral-200 text-loqme-neutral-900">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 px-6 border-b border-loqme-neutral-800 bg-black/40">
+        <div className="flex items-center justify-between p-4 px-6 border-b border-loqme-neutral-200 bg-loqme-neutral-50">
           <div className="flex items-center gap-2">
             <span className="text-lg">
               <RedesignIcons.Camera size={20} aria-hidden="true" />
             </span>
-            <h2 className="font-bold text-sm text-white">
+            <h2 className="font-bold text-sm text-loqme-neutral-900">
               اسکن بارکد تحویل حضوری
             </h2>
           </div>
-          <button
+          <RippleButton
             aria-label="بستن"
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-500 hover:text-white hover:bg-white/10 transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-500 hover:text-loqme-neutral-900 hover:bg-loqme-neutral-100 transition-colors"
           >
             ✕
-          </button>
+          </RippleButton>
         </div>
 
         {/* Viewfinder Viewport */}
-        <div className="relative aspect-square w-full bg-black flex items-center justify-center overflow-hidden">
+        <div className="relative aspect-square w-full bg-loqme-neutral-100 flex items-center justify-center overflow-hidden">
           <video
             ref={videoRef}
             className="absolute inset-0 w-full h-full object-cover"
@@ -191,7 +193,7 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
           ) : errorMessage || hasCameraPermission === false ? (
             <div className="relative z-10 p-6 text-center space-y-4">
               <div className="text-3xl">🚫</div>
-              <p className="text-xs text-loqme-neutral-300 max-w-xs mx-auto leading-relaxed">
+              <p className="text-xs text-loqme-neutral-600 max-w-xs mx-auto leading-relaxed">
                 {errorMessage || "دسترسی به دوربین مسدود شده است."}
               </p>
               <div className="space-y-2">
@@ -236,22 +238,22 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
         </div>
 
         {/* Footer controls */}
-        <div className="p-4 px-6 flex items-center justify-between bg-black/60 border-t border-loqme-neutral-800 text-xs">
+        <div className="p-4 px-6 flex items-center justify-between bg-loqme-neutral-50 border-t border-loqme-neutral-200 text-xs">
           <span className="text-loqme-neutral-500 text-[11px]">
             کادر را روی بارکد مشتری قرار دهید
           </span>
 
           <div className="flex items-center gap-2">
-            <button
+            <RippleButton
               onClick={toggleCamera}
-              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-loqme-neutral-100 hover:bg-loqme-neutral-200 text-loqme-neutral-900 text-xs font-medium transition-colors"
               title="تغییر دوربین"
             >
               چرخش دوربین
-            </button>
+            </RippleButton>
 
             {onFallbackToManual && (
-              <button
+              <RippleButton
                 onClick={() => {
                   onClose();
                   onFallbackToManual();
@@ -259,7 +261,7 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
                 className="px-3 py-1.5 rounded-lg bg-loqme-primary-600 hover:bg-loqme-primary-700 text-white text-xs font-bold transition-colors"
               >
                 کد ۴ رقمی
-              </button>
+              </RippleButton>
             )}
           </div>
         </div>

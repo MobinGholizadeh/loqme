@@ -9,9 +9,9 @@ interface CategoryDonutChartProps {
 }
 
 const PALETTE = [
-  "#0D9488", // Teal 600
-  "#10B981", // Emerald 500
-  "#06B6D4", // Cyan 500
+  "var(--deck-action)", // Logo teal
+  "var(--loqme-primary-400)", // Muted teal
+  "var(--loqme-primary-800)", // Deep teal
   "#F59E0B", // Amber 500
   "#6366F1", // Indigo 500
   "#EC4899", // Pink 500
@@ -111,7 +111,7 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({
               <span className="text-[11px] text-loqme-neutral-500">
                 تنوع عرضه
               </span>
-              <span className="text-base font-bold text-white">
+              <span className="text-base font-bold text-loqme-neutral-900">
                 {toPersianDigits(displayCategories.length)} دسته
               </span>
             </>
@@ -126,8 +126,8 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({
             key={s.categoryId}
             className={`flex items-center justify-between p-2 rounded-lg transition-colors cursor-pointer text-xs ${
               hoveredIdx === s.idx
-                ? "bg-loqme-neutral-800 border border-teal-500/30"
-                : "bg-loqme-neutral-900/40 hover:bg-loqme-neutral-900"
+                ? "bg-loqme-primary-50 border border-teal-500/30"
+                : "bg-loqme-neutral-50 hover:bg-loqme-neutral-100"
             }`}
             onMouseEnter={() => setHoveredIdx(s.idx)}
             onMouseLeave={() => setHoveredIdx(null)}
@@ -137,7 +137,7 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({
                 className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: s.color }}
               />
-              <span className="text-loqme-neutral-200 font-medium">
+              <span className="text-loqme-neutral-700 font-medium">
                 {s.categoryNameFa}
               </span>
             </div>

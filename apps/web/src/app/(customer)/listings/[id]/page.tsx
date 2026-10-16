@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { useFeedback } from "@/components/ui/useFeedback";
 import * as RedesignIcons from "lucide-react";
 
@@ -264,13 +266,13 @@ export default function ListingDetailPage() {
         <div className="detail-photo-actions">
           <Link href="/explore" className="detail-round-button" aria-label="بازگشت به کاوش"><RedesignIcons.ArrowRight size={22}/></Link>
           <Link className="detail-photo-shop" href={`/merchants/${data.merchant.id}`}>{data.merchant.businessNameFa}</Link>
-          <button type="button" className="detail-round-button" aria-label="اشتراک‌گذاری بسته" onClick={async () => {
+          <RippleButton type="button" className="detail-round-button" aria-label="اشتراک‌گذاری بسته" onClick={async () => {
             try {
               if (navigator.share) await navigator.share({ title: data.titleFa, url: window.location.href });
               else { await navigator.clipboard.writeText(window.location.href); showFeedback('پیوند بسته کپی شد'); }
             } catch (error) { if (!(error instanceof Error && error.name === 'AbortError')) showFeedback('اشتراک‌گذاری ممکن نشد؛ پیوند صفحه را از نوار آدرس کپی کنید.'); }
-          }}><RedesignIcons.Share2 size={20}/></button>
-          <button type="button" className="detail-round-button" onClick={handleToggleFavorite} disabled={favoriteLoading} aria-pressed={isFavorited} aria-label={isFavorited ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}><Heart size={22} fill={isFavorited ? "currentColor" : "none"}/></button>
+          }}><RedesignIcons.Share2 size={20}/></RippleButton>
+          <RippleButton type="button" className="detail-round-button" onClick={handleToggleFavorite} disabled={favoriteLoading} aria-pressed={isFavorited} aria-label={isFavorited ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}><Heart size={22} fill={isFavorited ? "currentColor" : "none"}/></RippleButton>
         </div>
       </div>
       <Card

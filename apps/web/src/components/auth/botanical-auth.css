@@ -1,0 +1,188 @@
+/* Food pickup photography and green glass forms; no cream surfaces. */
+.botanical-auth {
+  --auth-canvas: var(--deck-canvas);
+  --auth-ink: var(--color-text-primary);
+  --auth-muted: var(--color-text-secondary);
+  --auth-lime: var(--color-link);
+  --auth-line: var(--color-border-subtle);
+  min-height: 100svh;
+  background: var(--auth-canvas);
+  color: var(--auth-ink);
+  position: relative;
+  isolation: isolate;
+}
+.botanical-experience { min-height: 100svh; position: relative; display: flex; flex-direction: column; overflow: clip; }
+.botanical-experience[aria-hidden="true"] { visibility: hidden; height: 100svh; overflow: hidden; }
+.botanical-scene, .botanical-shade { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.botanical-scene img { height: 100%; width: 100%; object-fit: cover; object-position: left center; }
+.botanical-shade { background: linear-gradient(90deg, rgb(15 48 49 / .08) 18%, rgb(15 48 49 / .62) 45%, rgb(15 48 49 / .65) 100%); }
+.botanical-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 5%; background: rgb(23 63 68 / .76); border-bottom: 1px solid rgb(193 222 211 / .18); backdrop-filter: blur(14px); }
+.botanical-brand { display: inline-flex; align-items: center; gap: 12px; color: var(--auth-lime); }
+.botanical-auth .skip-link { color: var(--auth-ink); }
+.botanical-header nav { display: flex; align-items: center; gap: 24px; }
+.botanical-header nav > a, .botanical-header .how-it-works-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--auth-ink); font-size: 13px; }
+.botanical-header nav > a { border-inline-start: 1px solid var(--auth-line); padding-inline-start: 24px; }
+.botanical-header nav > a:hover, .botanical-header .how-it-works-link:hover { color: var(--auth-lime); }
+.botanical-layout { display: grid; direction: ltr; grid-template-columns: minmax(0, .85fr) minmax(260px, .85fr) minmax(390px, 1fr); gap: clamp(28px, 3vw, 64px); align-items: center; flex: 1; padding: 24px 5% 42px; width: 100%; max-width: 1920px; margin-inline: auto; }
+.botanical-message { grid-column: 2; direction: rtl; text-shadow: 0 2px 20px rgb(0 0 0 / .3); }
+.botanical-eyebrow { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--auth-lime); border-radius: 99px; padding: 7px 14px; font-size: 12px; color: var(--auth-lime); }
+.botanical-message h2 { font-size: clamp(38px, 3.6vw, 64px); font-weight: 800; line-height: 1.55; margin-block: 20px; letter-spacing: -1.5px; }
+.botanical-message h2 em { font-style: normal; color: var(--auth-lime); }
+.botanical-message > p { color: var(--auth-muted); font-size: 15px; line-height: 2.1; max-width: 330px; }
+.botanical-message ul { display: grid; gap: 18px; margin-top: 32px; font-size: 13px; }
+.botanical-message li { display: flex; align-items: center; gap: 12px; }
+.botanical-message li svg { box-sizing: content-box; padding: 11px; border: 1px solid var(--auth-lime); border-radius: 50%; color: var(--auth-lime); flex-shrink: 0; }
+.botanical-card { grid-column: 3; direction: rtl; padding: clamp(28px, 3vw, 48px); border: 1px solid var(--auth-line); border-radius: 28px; background: linear-gradient(145deg, rgb(43 91 86 / .86), rgb(18 55 57 / .94)); box-shadow: inset 0 1px 0 rgb(255 255 255 / .1), 0 16px 60px rgb(0 0 0 / .12); backdrop-filter: blur(18px); width: 100%; max-width: 530px; justify-self: end; }
+.botanical-card .otp-heading h1 { color: var(--auth-ink); font-size: clamp(26px, 2.3vw, 38px); line-height: 1.6; letter-spacing: -.7px; }
+.botanical-card .otp-heading > p { color: var(--auth-muted); line-height: 1.9; }
+.botanical-card .otp-welcome { color: var(--auth-lime); font-weight: 500; }
+.botanical-card .otp-mode-switch { border-color: var(--auth-line); background: var(--deck-raised); border-radius: 99px; }
+.botanical-card .otp-mode-switch .otp-mode-option { min-height: 40px; border-radius: 99px; background: transparent; color: var(--auth-muted); font-weight: 400; box-shadow: none; }
+.botanical-card .otp-mode-switch .otp-mode-option[data-selected="true"] { background: var(--auth-lime); color: #173F44; font-weight: 700; }
+.botanical-card .otp-mode-switch .otp-mode-option[data-selected="false"]:hover { background: var(--deck-raised); color: var(--auth-ink); }
+.botanical-card label { color: var(--auth-ink); font-size: 13px; font-weight: 500; }
+.botanical-card .loqme-input-shell { border-color: var(--auth-line); background: var(--deck-surface); border-radius: 16px; min-height: 56px; }
+.botanical-card .loqme-input-shell:focus-within { border-color: var(--auth-lime); box-shadow: 0 0 0 3px rgb(29 97 106 / .15); }
+.botanical-auth .botanical-card .loqme-input-shell input { color: var(--auth-ink); caret-color: var(--auth-ink); font-size: 17px; }
+.botanical-card input:autofill { -webkit-text-fill-color: var(--auth-ink); box-shadow: 0 0 0 1000px #214F54 inset; border-radius: 8px; }
+.botanical-card input::placeholder { color: var(--auth-muted); opacity: 1; }
+.botanical-card .loqme-input-shell:has([aria-invalid="true"]) { border-color: #ffb6a6; }
+.botanical-card .otp-login-form form [role="alert"] { color: var(--color-danger); }
+.botanical-card .loqme-button[data-variant="primary"] { color: #173F44; background: #F7FBF5; min-height: 52px; box-shadow: 0 6px 20px rgb(0 0 0 / .08); }
+.botanical-card .loqme-button[data-variant="primary"]:hover:not(:disabled) { background: var(--auth-lime); }
+.botanical-card .loqme-button[data-variant="ghost"] { color: var(--auth-lime); padding-inline: 8px; font-size: 12px; }
+.botanical-card .loqme-button[data-variant="ghost"]:hover:not(:disabled) { background: var(--deck-raised); }
+.botanical-card .otp-guest-link { border-color: var(--auth-line); color: var(--auth-ink); border-radius: 99px; font-size: 13px; font-weight: 500; }
+.botanical-card .otp-guest-link:hover { background: var(--deck-raised); }
+.botanical-card .otp-mode-prompt { border: 0; }
+.botanical-card .otp-mode-prompt p { color: var(--auth-muted); line-height: 2; }
+.botanical-card .otp-mode-prompt button { color: var(--auth-lime); min-height: 44px; text-decoration: underline; text-underline-offset: 5px; }
+.botanical-card-footer { border-top: 1px solid var(--auth-line); margin-top: 18px; padding-top: 14px; text-align: center; font-size: 12px; }
+.botanical-card-footer > a { display: inline-flex; align-items: center; min-height: 44px; color: var(--auth-lime); }
+.botanical-card-footer > a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.botanical-card-footer p { display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--auth-muted); font-size: 11px; margin-top: 4px; }
+.business-login-emblem { display: grid; place-items: center; width: 60px; height: 60px; margin-bottom: 24px; border: 1px solid var(--auth-line); border-radius: 20px; background: var(--deck-raised); color: var(--auth-lime); }
+.botanical-auth[data-audience="business"] .otp-heading h1 { font-size: clamp(25px, 2.1vw, 34px); }
+.botanical-auth[data-audience="business"] .botanical-message h2 { font-size: clamp(32px, 3vw, 52px); }
+.business-register-invitation { margin-top: 28px; text-align: center; }
+.business-register-invitation p { color: var(--auth-muted); font-size: 12px; line-height: 1.8; margin-bottom: 12px; }
+.business-register-invitation a { display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 50px; border: 1px solid var(--auth-line); border-radius: 99px; color: var(--auth-ink); font-size: 14px; transition: background-color 180ms ease; }
+.business-register-invitation a:hover { background: var(--deck-raised); }
+.botanical-mobile-intro { display: none; }
+.botanical-auth :focus-visible { outline: 2px solid var(--auth-lime); outline-offset: 5px; }
+.botanical-auth input:focus-visible { outline: none; }
+.botanical-loading { position: absolute; inset: 0; z-index: 5; min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; gap: 24px; background: radial-gradient(ellipse at 50% 35%, var(--deck-raised), var(--deck-canvas) 65%); text-align: center; }
+.botanical-loading [role="status"] { max-width: 390px; font-size: 13px; line-height: 2; color: var(--auth-muted); }
+.botanical-loading-title { font-size: 23px; font-weight: 700; color: var(--auth-ink); margin-bottom: 8px; }
+.botanical-loading-leaf { width: 88px; height: 88px; display: grid; place-items: center; border: 1px solid var(--auth-line); border-radius: 50%; color: var(--auth-lime); box-shadow: 0 0 0 12px rgb(29 97 106 / .06); animation: botanical-breathe 1.8s ease-in-out infinite; }
+.botanical-loading-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.botanical-loading .loqme-button[data-variant="outline"] { border-color: var(--auth-line); color: var(--auth-ink); }
+.botanical-loading .loqme-button[data-variant="outline"]:hover { background: var(--deck-raised); }
+.botanical-loading-back { min-height: 44px; display: inline-flex; align-items: center; color: var(--auth-lime); font-size: 12px; }
+.botanical-auth[data-scene="fallback"] .botanical-scene { display: none; }
+.botanical-auth[data-scene="fallback"] { background: var(--deck-canvas); }
+/* Registration shares the merchant scene with more room for maps and long forms. */
+.botanical-auth[data-mode="onboarding"] .botanical-card { max-width: 660px; min-width: 0; }
+.botanical-auth[data-mode="onboarding"] .botanical-card h1 { color: var(--auth-ink); line-height: 1.7; font-size: clamp(24px, 2vw, 32px); }
+.botanical-auth[data-mode="onboarding"] .botanical-card .text-loqme-neutral-600 { color: var(--auth-muted); }
+.botanical-auth[data-mode="onboarding"] .botanical-card .auth-inline-link,
+.botanical-auth[data-mode="onboarding"] .botanical-card .auth-text-link,
+.botanical-card .business-coordinate-editor summary { color: var(--auth-lime); }
+.botanical-card .business-progress { gap: 8px; }
+.botanical-card .business-progress span { height: 5px; background: var(--deck-raised); }
+.botanical-card .business-progress span[data-complete="true"] { background: var(--auth-lime); }
+.botanical-card .business-registration .select-wrapper { border-color: var(--auth-line); border-radius: 16px; background: var(--deck-surface); min-height: 56px; }
+.botanical-card .business-registration .select-wrapper:focus-within { border-color: var(--auth-lime); box-shadow: 0 0 0 3px rgb(29 97 106 / .15); }
+.botanical-card .business-registration .select-field { background: transparent; color: var(--auth-ink); min-height: 54px; }
+.botanical-card .business-registration .select-label { color: var(--auth-ink); }
+.botanical-card .business-registration option { color: var(--auth-ink); background: var(--deck-surface); }
+.botanical-card .business-registration .select-chevron svg,
+.botanical-card .business-registration .loqme-input-shell > div { color: var(--auth-muted); }
+.botanical-card .business-type { color: var(--auth-ink); border-color: var(--auth-line); border-radius: 16px; background: var(--deck-surface); min-height: 66px; font-size: 14px; }
+.botanical-card .business-type:hover { background: var(--deck-raised); }
+.botanical-card .business-type[data-selected="true"] { background: var(--auth-lime); color: var(--deck-on-primary); border-color: var(--auth-lime); }
+.botanical-card .business-type:focus-within { outline-color: var(--auth-lime); }
+.botanical-card .business-results { border-color: var(--auth-line); }
+.botanical-card .business-results button { color: var(--auth-ink); border-color: var(--auth-line); }
+.botanical-card .business-results button:hover { background: var(--deck-raised); }
+.botanical-card .business-results small { color: var(--auth-muted); }
+.botanical-card .business-hours-row { border-color: var(--auth-line); }
+.botanical-card .business-toggle { color: var(--auth-muted); }
+.botanical-card .business-toggle-track { background: var(--loqme-neutral-300); }
+.botanical-card .business-toggle[aria-checked="true"] .business-toggle-track { background: var(--auth-lime); }
+.botanical-card .business-toggle-track > span { background: var(--deck-surface); }
+.botanical-card input[type="time"] { color-scheme: dark; }
+.botanical-card .business-registration [role="alert"]:not(.business-error),
+.botanical-card .business-registration .text-red-700,
+.botanical-card .business-registration .text-rose-700 { color: var(--color-danger); }
+.botanical-card .business-error { background: #fff1ed; color: #8b2517; border: 1px solid #ffb6a6; border-radius: 16px; }
+.botanical-card .business-error .loqme-button[data-variant="ghost"] { color: #8b2517; }
+.botanical-card .business-error .loqme-button[data-variant="ghost"]:hover { background: #ffe0d6; }
+.botanical-card .business-info, .botanical-card .business-store-summary { background: var(--deck-raised); border: 1px solid var(--auth-line); border-radius: 16px; color: var(--auth-ink); }
+.botanical-auth[data-mode="onboarding"] .loqme-button[data-variant="outline"] { color: var(--auth-ink); border-color: var(--auth-line); }
+.botanical-auth[data-mode="onboarding"] .loqme-button[data-variant="outline"]:hover { background: var(--deck-raised); }
+@media (min-width: 1200px) {
+  .botanical-auth[data-mode="onboarding"] .botanical-layout { grid-template-columns: minmax(0, .5fr) minmax(240px, .8fr) minmax(480px, 1.3fr); align-items: start; }
+  .botanical-auth[data-mode="onboarding"] .botanical-message { position: sticky; top: 40px; padding-top: 32px; }
+}
+@media (min-width: 768px) {
+  .botanical-auth[data-mode="onboarding"] .botanical-scene, .botanical-auth[data-mode="onboarding"] .botanical-shade { position: fixed; }
+}
+@keyframes botanical-breathe { 50% { transform: scale(1.06); box-shadow: 0 0 0 20px rgb(29 97 106 / .03); } }
+@media (min-width: 768px) and (max-width: 1199px) {
+  .botanical-layout { grid-template-columns: minmax(0, 1fr) minmax(340px, 1.1fr); gap: 32px; padding-inline: 5%; }
+  .botanical-message { grid-column: 1; padding-top: 90px; }
+  .botanical-card { grid-column: 2; padding: 30px; }
+  .botanical-shade { background: rgb(15 48 49 / .55); }
+  .botanical-message h2 { font-size: 38px; }
+}
+@media (max-width: 767px) {
+  .botanical-experience { min-height: 100svh; }
+  .botanical-header { padding: max(16px, env(safe-area-inset-top)) 22px 12px; gap: 12px; }
+  .botanical-header nav { gap: 12px; }
+  .botanical-header nav > a { padding-inline-start: 12px; font-size: 11px; }
+  .botanical-header .how-it-works-link { font-size: 11px; }
+  .botanical-header .how-it-works-link svg { display: none; }
+  .botanical-scene { bottom: auto; height: auto; aspect-ratio: 2160 / 3840; }
+  .botanical-scene img { display: block; height: auto; width: 100%; aspect-ratio: 2160 / 3840; object-fit: cover; }
+  .botanical-shade { background: linear-gradient(180deg, transparent 210px, rgb(23 63 68 / .55) 300px, var(--deck-canvas) 460px); }
+  .botanical-layout { display: block; padding: clamp(234px, 63vw, 376px) 24px 24px; }
+  .botanical-message { display: none; }
+  .botanical-card { max-width: 460px; margin-inline: auto; padding: 0; border: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
+  .botanical-card .otp-heading h1 { font-size: 27px; }
+  .botanical-mobile-intro { display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--auth-lime); font-size: 11px; margin-bottom: 20px; }
+  .botanical-card .otp-heading { text-align: center; }
+  .business-login-emblem { display: none; }
+  .botanical-card .otp-heading > p { font-size: 13px; }
+  .botanical-card .otp-welcome { display: none; }
+  .botanical-card .otp-login-form > * + * { margin-top: 20px; }
+  .botanical-card .otp-mode-switch { max-width: 260px; margin-inline: auto; }
+  .botanical-card .loqme-input-shell { background: var(--deck-surface); border-radius: 99px; }
+  .botanical-card-footer { margin-top: 12px; padding-top: 8px; }
+  .botanical-auth[data-scene="fallback"] .botanical-layout { padding-top: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .botanical-loading-leaf { animation: none; }
+  .botanical-auth button, .botanical-auth a { transition: none; }
+}
+
+/* White form surfaces over the retained pickup/bakery photography. */
+.botanical-auth { --auth-canvas: #174F56; --auth-ink: #FFFFFF; --auth-muted: #E1EFEB; --auth-lime: #E1EFEB; --auth-line: #CDDCD6; --deck-canvas: #174F56; }
+.botanical-header, .botanical-card { --auth-ink: #203B3B; --auth-muted: #526460; --auth-lime: #1D616A; }
+.botanical-header { background: #FFFFFF; color: #203B3B; }
+.botanical-card { background: #FFFFFF; border-color: #CDDCD6; box-shadow: 0 16px 60px rgb(0 0 0 / .1); color: #203B3B; }
+.botanical-card .loqme-input-shell, .botanical-card .business-type, .botanical-card .business-registration .select-wrapper { background: #FFFFFF; }
+.botanical-card input:autofill { -webkit-text-fill-color: #203B3B; box-shadow: 0 0 0 1000px #FFFFFF inset; }
+.botanical-card .loqme-button[data-variant="primary"] { background: #FFFFFF; color: #1D616A; border: 1px solid #1D616A; }
+.botanical-card .loqme-button[data-variant="primary"]:hover:not(:disabled) { background: #EFF7F4; }
+.botanical-card .otp-mode-switch .otp-mode-option[data-selected="true"], .botanical-card .business-type[data-selected="true"] { background: #E1EFEB; color: #174F56; border-color: #1D616A; }
+.botanical-card input[type="time"] { color-scheme: light; }
+.botanical-card .loqme-input-shell:has([aria-invalid="true"]) { border-color: #B91C1C; }
+.botanical-loading { background: #FFFFFF; --auth-ink: #203B3B; --auth-muted: #526460; --auth-lime: #1D616A; }
+.botanical-loading .loqme-button[data-variant="outline"] { background: #FFFFFF; }
+.botanical-auth .skip-link { color: #1D616A; }
+.botanical-card :focus-visible, .botanical-header :focus-visible { outline-color: #1D616A; }
+@media(max-width: 767px) {
+ .botanical-layout { padding-inline: 16px; }
+ .botanical-card { padding: 26px 20px; border: 1px solid #CDDCD6; border-radius: 24px; background: #FFFFFF; }
+}

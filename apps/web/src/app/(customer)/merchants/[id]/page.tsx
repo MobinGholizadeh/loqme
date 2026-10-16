@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { ListingImage } from "@/components/ui/ListingImage";
 import { ListingCard } from "@/components/discovery/ListingCard";
 import type { MerchantRatingSummaryDto, ListingAvailability } from "@loqme/types";
@@ -218,14 +220,14 @@ export default function MerchantProfilePage() {
       />
 
       {/* Back button */}
-      <button
+      <RippleButton
         type="button"
         onClick={() => router.back()}
         className="flex items-center gap-1 text-xs text-loqme-neutral-500 hover:text-loqme-primary-700 font-bold transition-colors"
       >
         <span>←</span>
         <span>بازگشت به لیست</span>
-      </button>
+      </RippleButton>
 
       {data.bannerImageUrl && <div className="merchant-profile-cover"><ListingImage src={data.bannerImageUrl} alt={`نمای فروشگاه ${data.businessNameFa}`} sizes="(max-width: 768px) 100vw, 1152px" priority /></div>}
       {/* Store Header Banner */}
@@ -278,7 +280,7 @@ export default function MerchantProfilePage() {
           </div>
 
           {/* Favorite Toggle Button */}
-          <button
+          <RippleButton
             type="button"
             onClick={handleToggleFavorite}
             disabled={favoriteLoading}
@@ -295,7 +297,7 @@ export default function MerchantProfilePage() {
             <span>
               {isFavorited ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
             </span>
-          </button>
+          </RippleButton>
         </div>
       </Card>
 

@@ -354,6 +354,7 @@ describe('Milestone M06 — Trust, Safety, Verification & Moderation', () => {
             }),
           },
           order: {
+            findUniqueOrThrow: vi.fn().mockResolvedValue({ id: 'order-100', acceptedPaymentId: 'payment-100' }),
             update: vi.fn().mockImplementation((args) => {
               txOps.push({ type: 'ORDER_UPDATE', ...args });
               return args;

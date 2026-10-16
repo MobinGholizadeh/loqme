@@ -157,3 +157,6 @@ export interface INotificationService {
 ## CP-11.9 pickup clock parsing (2026-10-03)
 
 Merchant HH:mm pickup inputs represent Asia/Tehran wall-clock time, independently of host timezone. The backend `domain/listing/pickup-window.ts` resolves instants with Intl timezone data, validates calendar dates and clock ranges, requires paired start/end inputs and rejects expired or reversed windows. Explicit ISO timestamps must include an offset. Clients do not determine authoritative availability from local clock assumptions.
+# M12 implementation note — 2026-10-13
+
+[Merchant data foundation](MERCHANT_DATA.md) uses the existing modular monolith, shared DTO/schema/API packages and synchronous RepeatableRead reporting. Transactional PostgreSQL histories cover existing raw SQL writers. No external model, broker, ingestion worker or separate backend was added; asynchronous processing remains gated on an actual consumer.

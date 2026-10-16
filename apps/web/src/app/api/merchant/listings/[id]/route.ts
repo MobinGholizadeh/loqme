@@ -6,6 +6,7 @@ import { merchantService } from '@/domain/merchant/merchant.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 import { UpdateListingStockSchema } from '@loqme/validation';
 import { ListingStatus } from '@prisma/client';
+import { readMerchantJson, requireMutationOrigin } from '@/lib/http/merchant-http';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,23 +32,24 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
+    const body = await readMerchantJson(request);
     const searchParams = request.nextUrl.searchParams;
     const merchantId = searchParams.get('merchantId') || body.merchantId || undefined;
 
     const { merchant } = await merchantService.resolveMerchantAndAuthorize(
       session.userId,
-      merchantId
+      merchantId,
+      'MANAGER'
     );
 
     if (body.imageUrl !== undefined) {
       if (body.pickupDetails !== undefined || body.status !== undefined || body.deltaQuantity !== undefined || body.totalQuantity !== undefined) throw new Error('تصویر را جداگانه ذخیره کنید');
-      const imageUrl = await updateListingImage(merchant.id, id, body.imageUrl);
+      const imageUrl = await updateListingImage(merchant.id, id, body.imageUrl, session.userId);
       return NextResponse.json({ success: true, data: { id, imageUrl } });
     }
     if (body.pickupDetails !== undefined) {
       if (body.status !== undefined || body.deltaQuantity !== undefined || body.totalQuantity !== undefined) throw new Error('راهنمای دریافت را جداگانه ذخیره کنید');
-      const pickupDetails = await updatePickupDetails(merchant.id, id, body.pickupDetails);
+      const pickupDetails = await updatePickupDetails(merchant.id, id, body.pickupDetails, session.userId);
       return NextResponse.json({ success: true, data: { id, pickupDetails } });
     }
     const validated = UpdateListingStockSchema.parse(body);
@@ -57,7 +59,7 @@ export async function PATCH(
       const updated = await listingService.toggleListingStatus(
         merchant.id,
         id,
-        validated.status as ListingStatus
+        validated.status as ListingStatus, session.userId
       );
       return NextResponse.json({
         success: true,
@@ -74,7 +76,7 @@ export async function PATCH(
       deltaQuantity: validated.deltaQuantity,
       totalQuantity: validated.totalQuantity,
       status: validated.status as ListingStatus,
-    });
+    }, session.userId);
 
     return NextResponse.json({
       success: true,
@@ -102,6 +104,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    requireMutationOrigin(request);
     const { id } = await params;
     const token = extractSessionToken(request);
     if (!token) {
@@ -124,14 +127,15 @@ export async function DELETE(
 
     const { merchant } = await merchantService.resolveMerchantAndAuthorize(
       session.userId,
-      merchantId
+      merchantId,
+      'MANAGER'
     );
 
     // Archive / expire listing
     const updated = await listingService.toggleListingStatus(
       merchant.id,
       id,
-      ListingStatus.EXPIRED
+      ListingStatus.EXPIRED, session.userId
     );
 
     return NextResponse.json({

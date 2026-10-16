@@ -32,8 +32,10 @@ test('guest navbar exposes both entry points including at 360px', async ({ page 
   const customer = page.getByRole('link', { name: 'ورود و تأیید شماره همراه', exact: true });
   const business = page.getByRole('link', { name: 'کسب‌وکار', exact: true });
   await expect(customer).toBeVisible(); await expect(customer).toHaveAttribute('href', /^\/login/);
-  await expect(business).toBeVisible(); await expect(business).toHaveAttribute('href', '/business');
-  await business.click(); await expect(page.getByRole('heading', { level: 1 })).toHaveText('کسب‌وکارتان را پیدا کنید');
+  await expect(business).toBeVisible(); await expect(business).toHaveAttribute('href', '/business/login');
+  await business.click(); await expect(page.getByRole('heading', { level: 1 })).toHaveText('ورود به حساب کسب‌وکار');
+  await page.getByRole('link', { name: 'ثبت کسب‌وکار', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('کسب‌وکارتان را پیدا کنید');
 });
 
 test('manual onboarding validates, edits pin by keyboard, recovers draft, verifies OTP and submits', async ({ page }) => {
@@ -194,16 +196,51 @@ for (const width of [360, 390, 768, 1024, 1440, 1920]) test(`full-screen composi
     await page.goto(path); await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.locator('.market-header')).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    const photo = await page.locator('.auth-split-photo').boundingBox();
-    const insetBusiness = path.startsWith('/business') && width >= 1024;
-    expect(photo!.x).toBe(insetBusiness ? 16 : 0); expect(photo!.y).toBe(insetBusiness ? 16 : 0);
-    expect(Math.round(photo!.width)).toBe(width >= 1024 ? (width - (insetBusiness ? 48 : 0)) / 2 : width);
-    expect(Math.round(photo!.height)).toBe(width >= 1024 ? 900 - (insetBusiness ? 32 : 0) : 230);
-    await expect(page.locator('.auth-split-photo img').first()).toHaveJSProperty('complete', true);
-    await page.getByRole('link', { name: 'رفتن به فرم' }).focus(); await page.keyboard.press('Enter');
+    await expect(page.locator('.botanical-auth')).toHaveAttribute('data-scene', 'ready');
+    await expect(page.locator('.botanical-brand')).toHaveText('');
+    await expect(page.locator('.botanical-brand img')).toBeVisible();
+    const photo = await page.locator('.botanical-scene').boundingBox();
+    expect(photo!.x).toBe(0); expect(Math.round(photo!.width)).toBe(width);
+    await expect(page.locator('.botanical-scene img')).toHaveJSProperty('complete', true);
+    expect(await page.locator('.botanical-scene img').evaluate((image: HTMLImageElement) => image.currentSrc)).toContain(path.startsWith('/business') ? 'loqme-business-' : 'loqme-');
+    await page.getByRole('link', { name: 'رفتن به فرم' }).focus();
+    expect((await new AxeBuilder({ page }).include('.skip-link').withTags(['wcag2a', 'wcag2aa']).analyze()).violations).toEqual([]);
+    await page.keyboard.press('Enter');
     await expect(page.locator('#auth-content')).toBeFocused();
     const audit = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
     expect(audit.violations).toEqual([]);
     await page.screenshot({ path: testInfo.outputPath(`${path.replaceAll('/', '-')}-${width}.png`), fullPage: true });
+  }
+});
+
+for (const width of [390, 1440]) test(`merchant glass wizard contrast across all five steps at ${width}px`, async ({ page }, info) => {
+  await setup(page);
+  await page.setViewportSize({ width, height: 950 });
+  await page.goto('/business');
+  await expect(page.locator('.botanical-auth')).toHaveAttribute('data-scene', 'ready');
+  for (let step = 1; step <= 5; step++) {
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', String(step));
+    if (step === 3) await expect(page.getByRole('region', { name: 'نقشه موقعیت فروشگاه' })).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations, `step ${step}`).toEqual([]);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({ path: info.outputPath(`business-step-${step}-${width}.png`), fullPage: width < 768 });
+    if (step === 1) {
+      await page.getByLabel('نام کسب‌وکار', { exact: true }).fill('کافه');
+      await page.getByRole('button', { name: /کافه آزمون ارومیه/ }).click();
+    } else if (step === 2) {
+      await page.getByRole('radio', { name: 'کافه', exact: true }).check();
+      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations).toEqual([]);
+      await page.getByRole('button', { name: 'تأیید و ادامه', exact: true }).click();
+    } else if (step === 3) {
+      await page.getByRole('button', { name: 'تأیید و ادامه', exact: true }).click();
+    } else if (step === 4) {
+      await page.getByRole('switch', { name: 'شنبه باز است', exact: true }).click();
+      await page.getByLabel('شروع شنبه', { exact: true }).fill('09:00');
+      await page.getByLabel('پایان شنبه', { exact: true }).fill('18:00');
+      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations).toEqual([]);
+      await page.getByRole('button', { name: 'تأیید ساعت‌های کاری و ادامه' }).click();
+    }
   }
 });

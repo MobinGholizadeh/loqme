@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { useRef, useState } from "react";
 import { Upload, X } from "lucide-react";
 import { ListingImage } from "@/components/ui/ListingImage";
@@ -60,18 +62,18 @@ export function ListingImagePicker({
         aria-label="عکس از گالری"
         onChange={(e) => upload(e.target.files?.[0])}
       />
-      <button
+      <RippleButton
         type="button"
         className="action-link"
         onClick={() => input.current?.click()}
       >
         <Upload size={18} />
         {busy ? "در حال بارگذاری..." : "انتخاب از گالری"}
-      </button>
+      </RippleButton>
       {!cover && <><p className="text-xs text-loqme-neutral-600">عکس‌های تزئینی لقمه</p>
       <div className="grid grid-cols-3 gap-2">
         {LISTING_IMAGE_CATALOG.map((image) => (
-          <button
+          <RippleButton
             key={image.url}
             aria-label={image.label}
             type="button"
@@ -86,7 +88,7 @@ export function ListingImagePicker({
               <ListingImage src={image.url} alt={image.label} />
             </span>
             <span className="block p-2">{image.label}</span>
-          </button>
+          </RippleButton>
         ))}
       </div>
       </>}
@@ -95,14 +97,14 @@ export function ListingImagePicker({
           <div className={cover ? "merchant-profile-cover" : "relative h-20 w-28 overflow-hidden rounded-lg"}>
             <ListingImage src={value} alt="تصویر انتخاب‌شده" />
           </div>
-          <button
+          <RippleButton
             className="icon-button"
             type="button"
             aria-label="حذف تصویر"
             onClick={() => onChange("")}
           >
             <X size={18} />
-          </button>
+          </RippleButton>
         </div>
       )}
       {error && (

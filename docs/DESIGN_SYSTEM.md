@@ -1,4 +1,12 @@
+> **Current direction (2026-10-16, CP-10.25):** [WHITE_TEAL.md](WHITE_TEAL.md) supersedes earlier palettes below. White surfaces and navigation, logo teal feature sections, pale green canvas and a separate editorial homepage leading to `/discover`.
+
 # Design System & Token Architecture — Loqme (لقمه)
+
+## Current: Teal photography and glass / CP-10.24
+
+[TEAL_GLASS.md](TEAL_GLASS.md) is authoritative after the owner rejected cream. Preserve logo teal #1D616A for actions, with #174F56 hover and white labels. Use #173F44 canvas, #214F54 surfaces, #2D6266 raised states, #F7FBF5 main text, #D2E3DD secondary text and #638D8A borders. Shells have blurred local shop photography and strong translucent panels; operational tables/dialogs stay nearly opaque. Authentication returns to green-glass forms and white CTAs, retaining the new customer pickup photos and image-ready gate.
+
+The active platform-neutral GREEN_DECK export and generateCssVariables("green-deck") supply the appearance before hydration. Preserve classic API compatibility, RTL, Vazirmatn/DM Sans, layouts and reduced motion. Older white/grass-green, botanical and rejected cream details remain historical. Browser/PWA chrome follows the single teal appearance, without a theme switcher.
 
 ## CP-10.8 Stitch Web Adaptation
 

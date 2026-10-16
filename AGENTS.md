@@ -144,6 +144,15 @@ Refer to [DESIGN_SYSTEM.md](file:///C:/Users/etraab/.gemini/antigravity-ide/scra
 
 ## 9. Visual & Interaction Design
 
+> **Current owner direction (CP-10.27, 2026-10-16):** [WHITE_TEAL.md](docs/WHITE_TEAL.md) supersedes all historical treatments below: white navigation, cards, inputs and action buttons with dark/teal labels; pale green canvas; logo teal #1D616A hero/footer. `/` introduces Loqme and `/discover` preserves shopping. Authentication retains food-pickup photography with white form panels and no page-level footer. The mobile customer header contains no login or business buttons; Account in the bottom navigation is the only mobile login entry. Desktop header actions remain. No video, fabricated claims or backend changes.
+
+> **Historical owner-approved direction (CP-10.24, corrected 2026-10-15):** [TEAL_GLASS.md](docs/TEAL_GLASS.md) supersedes the rejected cream experiment and all earlier palette rules below. Keep logo teal #1D616A actions, #173F44 teal canvas, blurred local food-shop photography, translucent teal content panels and light readable text. Restore green-glass authentication with white CTAs; use the new customer food-pickup images and retain business imagery/loading gates. Preserve logo-only navigation, compact footer, existing hero, RTL, fonts, reduced motion and business behavior. One teal appearance; no theme switcher.
+
+> **Historical owner exception (CP-10.23, superseded by CP-10.24):** Login, customer registration, business registration and application status follow the supplied botanical references: green photo backgrounds, glass surfaces, white text/CTA, logo-only headers and an image-ready loading gate. See [BOTANICAL_AUTH.md](docs/BOTANICAL_AUTH.md). This does not change the rest of the application's white-and-green theme.
+
+> **Historical owner override (2026-10-14/15, CP-10.22, superseded by CP-10.24):** The entire web application now uses [Green Deck](docs/GREEN_DECK.md), based on the supplied [reference](docs/GREEN_DECK_REFERENCE.md). The owner subsequently corrected this to white backgrounds with green accents (2026-10-15): light mode only, #15803D actions with white labels, charcoal text, pale-green selection, logo-only customer navigation and a compact footer without a giant wordmark. This correction supersedes the reference document and historical dark styling. Preserve Persian RTL, Vazirmatn, accessible contrast, real marketplace data and backend authority. Magic UI components are vendored with their MIT license in `apps/web/src/components/magicui`.
+
+
 * **Brand Vibe**: Modern, Friendly, Trustworthy, Fresh, Calm, Discovery-oriented.
 * **Color Palette (White + Teal / Dark Turquoise — سبز کله‌غازی)**:
   * Pure white canvas foundation (`#FFFFFF` dominant 70–85% of visual area).

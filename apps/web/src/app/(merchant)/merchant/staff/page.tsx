@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { ErrorState } from "@/components/ui/ErrorState";
 import { DialogSurface } from "@/components/ui/DialogSurface";
 
@@ -178,18 +180,18 @@ export default function MerchantStaffPage() {
       {successMessage && (
         <div className="p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between">
           <span>✓ {successMessage}</span>
-          <button aria-label="بستن" onClick={() => setSuccessMessage(null)}>
+          <RippleButton aria-label="بستن" onClick={() => setSuccessMessage(null)}>
             ✕
-          </button>
+          </RippleButton>
         </div>
       )}
 
       {errorMessage && (
         <div className="p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center justify-between">
           <span>{errorMessage}</span>
-          <button aria-label="بستن" onClick={() => setErrorMessage(null)}>
+          <RippleButton aria-label="بستن" onClick={() => setErrorMessage(null)}>
             ✕
-          </button>
+          </RippleButton>
         </div>
       )}
 
@@ -270,13 +272,13 @@ export default function MerchantStaffPage() {
               <h3 className="font-black text-base text-loqme-neutral-900">
                 افزودن همکار جدید به فروشگاه
               </h3>
-              <button
+              <RippleButton
                 aria-label="بستن"
                 onClick={() => setIsInviteModalOpen(false)}
                 className="text-loqme-neutral-500 hover:text-loqme-neutral-700"
               >
                 ✕
-              </button>
+              </RippleButton>
             </div>
 
             <form onSubmit={handleInviteSubmit} className="space-y-4 mt-4">
@@ -305,7 +307,7 @@ export default function MerchantStaffPage() {
                   سطح دسترسی و نقش در فروشگاه:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  <button
+                  <RippleButton
                     type="button"
                     onClick={() => setInviteRole("CASHIER")}
                     className={`p-3 rounded-lg border text-right transition-all ${
@@ -320,9 +322,9 @@ export default function MerchantStaffPage() {
                     <span className="text-[10px] text-loqme-neutral-500 mt-0.5 block">
                       اسکن و تحویل حضوری سفارشات
                     </span>
-                  </button>
+                  </RippleButton>
 
-                  <button
+                  <RippleButton
                     type="button"
                     onClick={() => setInviteRole("MANAGER")}
                     className={`p-3 rounded-lg border text-right transition-all ${
@@ -337,7 +339,7 @@ export default function MerchantStaffPage() {
                     <span className="text-[10px] text-loqme-neutral-500 mt-0.5 block">
                       تعریف بسته، توقف و تنظیم موجودی
                     </span>
-                  </button>
+                  </RippleButton>
                 </div>
               </div>
 

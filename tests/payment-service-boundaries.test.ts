@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const { db, gateway } = vi.hoisted(() => ({
-  db: { payment: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() }, paymentEvent: { create: vi.fn() }, refund: { create: vi.fn(), findFirst: vi.fn(), update: vi.fn() }, order: { update: vi.fn() }, financialTransaction: { create: vi.fn() }, $transaction: vi.fn(), $queryRaw: vi.fn() },
-  gateway: { initiatePayment: vi.fn(), verifyPayment: vi.fn(), refundPayment: vi.fn() },
+  db: { paymentAttempt: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), updateMany: vi.fn() }, reconciliationCase: { upsert: vi.fn() }, payment: { findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn() }, paymentEvent: { create: vi.fn() }, refund: { create: vi.fn(), findFirst: vi.fn(), update: vi.fn() }, order: { update: vi.fn(), findUnique: vi.fn(), findUniqueOrThrow: vi.fn() }, financialTransaction: { create: vi.fn(), findFirst: vi.fn() }, $transaction: vi.fn(), $queryRaw: vi.fn() },
+  gateway: { gatewayType: 'MOCK', initiatePayment: vi.fn(), verifyPayment: vi.fn(), refundPayment: vi.fn() },
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: db }));
 vi.mock('@/domain/payment/mock.gateway', () => ({ mockPaymentGateway: gateway }));
@@ -14,6 +14,9 @@ describe('Payment persistence and refund boundaries', () => {
   const payment = () => ({ id: 'payment', orderId: 'order', gateway: 'MOCK', authority: 'A', status: 'SUCCESS', amountToman: 100n, referenceId: 'reference', order: { merchantPayoutAmountToman: 90n, totalAmountToman: 100n, commissionAmountToman: 10n } });
   beforeEach(() => {
     vi.resetAllMocks(); service = new PaymentService();
+    db.order.findUnique.mockResolvedValue({ id: 'order', status: 'PENDING_PAYMENT', totalAmountToman: 100n });
+    db.order.findUniqueOrThrow.mockResolvedValue({ id: 'order', acceptedPaymentId: 'payment' });
+    db.paymentAttempt.create.mockResolvedValue({ id: 'attempt' });
     db.payment.findUnique.mockResolvedValue(payment()); db.payment.update.mockImplementation(async ({ data }) => ({ ...payment(), ...data }));
     db.$transaction.mockImplementation(fn => fn(db)); db.refund.create.mockResolvedValue({ id: 'refund' }); db.refund.update.mockResolvedValue({ id: 'refund' });
     gateway.refundPayment.mockResolvedValue({ success: true, refundId: 'gateway-refund' });
@@ -21,7 +24,7 @@ describe('Payment persistence and refund boundaries', () => {
   it('does not persist failed initiation and sends authoritative order amounts', async () => {
     gateway.initiatePayment.mockResolvedValue({ success: false });
     const order = { id: 'order', orderNumber: 'LQ-1', totalAmountToman: 100n } as never;
-    expect(await service.initiateOrderPayment({ order, gatewayType: 'MOCK', callbackUrl: '/callback' })).toEqual({ success: false });
+    expect(await service.initiateOrderPayment({ order, gatewayType: 'MOCK', callbackUrl: '/callback' })).toMatchObject({ success: false });
     expect(db.payment.create).not.toHaveBeenCalled();
     gateway.initiatePayment.mockResolvedValue({ success: true, authority: 'A', paymentUrl: '/pay' });
     await service.initiateOrderPayment({ order, gatewayType: 'MOCK', callbackUrl: '/callback', mobile: '09121111111' });
@@ -59,16 +62,16 @@ describe('Payment persistence and refund boundaries', () => {
     expect(gateway.verifyPayment).not.toHaveBeenCalled(); expect(db.payment.update).not.toHaveBeenCalled();
   });
   it.each(['declined', undefined])('records failed verification and never marks it successful (%s)', async errorMessage => {
-    db.payment.findUnique.mockResolvedValue({ ...payment(), status: 'INITIATED' }); gateway.verifyPayment.mockResolvedValue({ success: false, errorMessage });
+    db.payment.findUnique.mockResolvedValue({ ...payment(), status: 'INITIATED' }); gateway.verifyPayment.mockResolvedValue({ success: false, outcome: 'DECLINED', errorMessage });
     expect(await service.verifyPayment({ authority: 'A', ipAddress: '127.0.0.1' })).toMatchObject({ success: false, errorMessage: expect.any(String) });
     expect(db.paymentEvent.create).toHaveBeenCalledWith({ data: expect.objectContaining({ eventType: 'VERIFY_FAILED', ipAddress: '127.0.0.1' }) });
-    expect(db.payment.update).toHaveBeenCalledWith({ where: { id: 'payment' }, data: { status: 'FAILED', errorMessage } });
+    expect(db.payment.update).toHaveBeenCalledWith({ where: { id: 'payment' }, data: { status: 'FAILED', errorMessage: 'PROVIDER_DECLINED' } });
   });
   it.each([undefined, 'caller-tracking'])('records successful verification and tracking precedence %s', async trackingCode => {
     db.payment.findUnique.mockResolvedValue({ ...payment(), status: 'INITIATED' });
     gateway.verifyPayment.mockResolvedValue({ success: true, referenceId: 'R', trackingCode: 'gateway-tracking', rawPayload: { receipt: 'R' } });
     expect(await service.verifyPayment({ authority: 'A', trackingCode })).toMatchObject({ success: true, referenceId: 'R' });
-    expect(db.payment.update).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'SUCCESS', referenceId: 'R', trackingCode: trackingCode || 'gateway-tracking' } }));
+    expect(db.payment.update).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'SUCCESS', referenceId: 'R', trackingCode: 'gateway-tracking', verifiedAt: expect.any(Date) } }));
   });
   it.each([null, { ...{ status: 'FAILED' } }])('rejects refunds of missing/unsuccessful payments', async record => {
     db.payment.findUnique.mockResolvedValue(record);
@@ -85,7 +88,7 @@ describe('Payment persistence and refund boundaries', () => {
     expect(db.refund.create).not.toHaveBeenCalled(); expect(db.financialTransaction.create).not.toHaveBeenCalled();
   });
   it.each(['provider rejected', undefined])('leaves financial state unchanged on a refund rejection %s', async errorMessage => {
-    gateway.refundPayment.mockResolvedValue({ success: false, errorMessage });
+    gateway.refundPayment.mockResolvedValue({ success: false, outcome: 'DECLINED', errorMessage });
     expect(await service.refundPayment({ paymentId: 'payment', reasonFa: 'لغو' })).toMatchObject({ success: false, errorMessage: expect.any(String) });
     expect(db.refund.update).toHaveBeenCalledWith({ where: { id: 'refund' }, data: { status: 'REJECTED' } });
     expect(db.payment.update).not.toHaveBeenCalled();

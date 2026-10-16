@@ -159,7 +159,7 @@ describe('Milestone M04 — Orders, Inventory & Payments Engine', () => {
 
       expect(orderResult.success).toBe(true);
       expect(orderResult.order).toBeDefined();
-      expect(orderResult.order.orderNumber).toMatch(/^LQ-\d{5}$/);
+      expect(orderResult.order.orderNumber).toMatch(/^LQ-[0-9A-F]{12}$/);
       expect(orderResult.order.status).toBe(OrderStatus.PENDING_PAYMENT);
 
       const totalAmount = Number(orderResult.order.totalAmountToman);

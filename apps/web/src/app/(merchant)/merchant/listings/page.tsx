@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { PickupDetailsEditor } from "@/components/merchant/PickupDetailsEditor";
 import { ListingPhotoEditor } from "@/components/merchant/ListingPhotoEditor";
 import type { PickupDetailsInput } from "@loqme/validation";
@@ -217,7 +219,7 @@ export default function MerchantListingsPage() {
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 border-b border-loqme-neutral-200 pb-2 text-xs">
-        <button
+        <RippleButton
           onClick={() => setFilterTab("ALL")}
           className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
             filterTab === "ALL"
@@ -226,8 +228,8 @@ export default function MerchantListingsPage() {
           }`}
         >
           همه ({toPersianDigits(listings.length)})
-        </button>
-        <button
+        </RippleButton>
+        <RippleButton
           onClick={() => setFilterTab("PUBLISHED")}
           className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
             filterTab === "PUBLISHED"
@@ -236,8 +238,8 @@ export default function MerchantListingsPage() {
           }`}
         >
           فعال در بازار ({toPersianDigits(publishedCount)})
-        </button>
-        <button
+        </RippleButton>
+        <RippleButton
           onClick={() => setFilterTab("PAUSED")}
           className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
             filterTab === "PAUSED"
@@ -246,8 +248,8 @@ export default function MerchantListingsPage() {
           }`}
         >
           متوقف شده ({toPersianDigits(pausedCount)})
-        </button>
-        <button
+        </RippleButton>
+        <RippleButton
           onClick={() => setFilterTab("SOLD_OUT")}
           className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
             filterTab === "SOLD_OUT"
@@ -256,7 +258,7 @@ export default function MerchantListingsPage() {
           }`}
         >
           تکمیل ظرفیت ({toPersianDigits(soldOutCount)})
-        </button>
+        </RippleButton>
       </div>
 
       {/* Listings List */}
@@ -368,7 +370,7 @@ export default function MerchantListingsPage() {
                         موجودی باقی‌مانده:
                       </span>
                       <div className="flex items-center gap-2">
-                        <button
+                        <RippleButton
                           onClick={() => handleAdjustStock(item, -1)}
                           disabled={
                             isActionLoading ||
@@ -379,18 +381,18 @@ export default function MerchantListingsPage() {
                           title="کاهش یک عدد"
                         >
                           -
-                        </button>
+                        </RippleButton>
                         <span className="w-8 text-center font-mono font-black text-base text-loqme-neutral-900">
                           {toPersianDigits(item.remainingQuantity)}
                         </span>
-                        <button
+                        <RippleButton
                           onClick={() => handleAdjustStock(item, +1)}
                           disabled={isActionLoading}
                           className="w-8 h-8 rounded-lg border border-loqme-neutral-300 bg-white font-black hover:bg-loqme-neutral-100 disabled:opacity-30"
                           title="افزایش یک عدد"
                         >
                           +
-                        </button>
+                        </RippleButton>
                       </div>
                     </div>
 

@@ -3,7 +3,7 @@
 .about-page h2 { font-size: clamp(1.25rem, 2.4vw, 1.75rem); font-weight: 800; line-height: 1.7; }
 .about-page h3 { font-size: 1.125rem; font-weight: 700; margin-block: 16px 8px; }
 .about-page p { line-height: 2.1; color: var(--loqme-neutral-600); }
-.about-hero { padding: 64px 32px; border-bottom: 1px solid var(--loqme-neutral-200); background: linear-gradient(135deg, var(--loqme-primary-50), white 70%); }
+.about-hero { padding: 64px 32px; border-bottom: 1px solid var(--loqme-neutral-200); background: linear-gradient(135deg, var(--loqme-primary-50), var(--deck-surface) 70%); }
 .about-eyebrow { color: var(--loqme-primary-700); font-size: .875rem; font-weight: 700; margin-bottom: 16px; }
 .about-hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 900; line-height: 1.5; }
 .about-hero .about-headline { color: var(--loqme-primary-700); font-size: clamp(1.25rem, 3vw, 2rem); font-weight: 700; margin-block: 12px 20px; max-width: 750px; }

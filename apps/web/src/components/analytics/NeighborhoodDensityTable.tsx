@@ -22,8 +22,8 @@ export const NeighborhoodDensityTable: React.FC<
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-right text-xs text-loqme-neutral-300">
-        <thead className="bg-loqme-neutral-950/80 text-loqme-neutral-500 border-b border-loqme-neutral-800 uppercase tracking-wider text-[11px]">
+      <table className="w-full text-right text-xs text-loqme-neutral-600">
+        <thead className="bg-loqme-neutral-50 text-loqme-neutral-500 border-b border-loqme-neutral-200 uppercase tracking-wider text-[11px]">
           <tr>
             <th className="py-3 px-4">رتبه</th>
             <th className="py-3 px-4">نام محله</th>
@@ -40,7 +40,7 @@ export const NeighborhoodDensityTable: React.FC<
             return (
               <tr
                 key={n.neighborhoodId}
-                className="hover:bg-loqme-neutral-800/40 transition-colors"
+                className="hover:bg-loqme-neutral-50 transition-colors"
               >
                 <td className="py-3 px-4 font-semibold">
                   <span
@@ -65,7 +65,7 @@ export const NeighborhoodDensityTable: React.FC<
                     {n.cityNameFa}
                   </div>
                 </td>
-                <td className="py-3 px-4 font-medium text-loqme-neutral-200">
+                <td className="py-3 px-4 font-medium text-loqme-neutral-700">
                   {toPersianDigits(n.activeMerchantsCount)} فروشگاه
                 </td>
                 <td className="py-3 px-4">
@@ -73,13 +73,13 @@ export const NeighborhoodDensityTable: React.FC<
                     className={`px-2 py-0.5 rounded text-xs font-medium ${
                       n.activeListingsCount > 0
                         ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
-                        : "bg-loqme-neutral-800 text-loqme-neutral-500"
+                        : "bg-loqme-neutral-100 text-loqme-neutral-500"
                     }`}
                   >
                     {toPersianDigits(n.activeListingsCount)} بسته
                   </span>
                 </td>
-                <td className="py-3 px-4 text-loqme-neutral-200 font-semibold">
+                <td className="py-3 px-4 text-loqme-neutral-700 font-semibold">
                   {toPersianDigits(n.totalOrdersCount)} سفارش
                 </td>
                 <td className="py-3 px-4 font-bold text-emerald-400">
@@ -87,7 +87,7 @@ export const NeighborhoodDensityTable: React.FC<
                 </td>
                 <td className="py-3 px-4 text-center">
                   <div className="flex flex-col items-center gap-1">
-                    <div className="w-24 bg-loqme-neutral-800 rounded-full h-1.5 overflow-hidden">
+                    <div className="w-24 bg-loqme-neutral-100 rounded-full h-1.5 overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
                           n.unmetDemandScore > 75

@@ -44,7 +44,7 @@ export default function ErrorBoundary({
         <div className="w-full space-y-3">
           <Button
             onClick={() => reset()}
-            className="w-full bg-loqme-primary-600 hover:bg-[#0e484e] text-white rounded-full py-2.5 text-sm font-medium shadow-sm transition-all"
+            className="w-full bg-loqme-primary-600 hover:bg-loqme-primary-700 text-white rounded-full py-2.5 text-sm font-medium shadow-sm transition-all"
           >
             تلاش مجدد
           </Button>

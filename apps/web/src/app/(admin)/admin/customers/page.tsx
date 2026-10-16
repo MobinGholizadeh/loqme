@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { ErrorState } from "@/components/ui/ErrorState";
 import { DialogSurface } from "@/components/ui/DialogSurface";
 
@@ -129,9 +131,9 @@ export default function AdminCustomersPage() {
           }`}
         >
           <span>{message.text}</span>
-          <button aria-label="بستن" onClick={() => setMessage(null)}>
+          <RippleButton aria-label="بستن" onClick={() => setMessage(null)}>
             ✕
-          </button>
+          </RippleButton>
         </div>
       )}
 

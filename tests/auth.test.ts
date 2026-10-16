@@ -52,7 +52,7 @@ describe('Authentication & OTP Security Domain', () => {
   });
 
   it('executes end-to-end OTP request and verification flow', async () => {
-    const testMobile = '09129999999';
+    const testMobile = `09${Math.floor(Math.random() * 1_000_000_000).toString().padStart(9, '0')}`;
 
     // 1. Request OTP
     const requestResult = await authService.requestOtp(testMobile, { mode: 'register' });

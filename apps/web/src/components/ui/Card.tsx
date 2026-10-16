@@ -2,6 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils/cn";
+import { MagicCard } from "@/components/magicui/magic-card";
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "elevated" | "outlined" | "flat";
@@ -22,7 +23,7 @@ export const Card: React.FC<CardProps> = ({
   };
 
   return (
-    <div
+    <MagicCard
       className={cn(
         "loqme-card rounded-lg p-5 relative transition-colors duration-200",
         variantStyles[variant],
@@ -32,6 +33,6 @@ export const Card: React.FC<CardProps> = ({
       {...props}
     >
       {children}
-    </div>
+    </MagicCard>
   );
 };

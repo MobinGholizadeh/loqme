@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { PickupDetailsFields, emptyPickupDetails } from "./PickupDetailsFields";
 import { DialogSurface } from "@/components/ui/DialogSurface";
 import * as RedesignIcons from "lucide-react";
@@ -332,13 +334,13 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
               </h2>
             </div>
           </div>
-          <button
+          <RippleButton
             aria-label="بستن"
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center text-loqme-neutral-500 hover:bg-loqme-neutral-100 text-lg transition-colors"
           >
             ✕
-          </button>
+          </RippleButton>
         </div>
 
         {errorMessage && (
@@ -349,9 +351,9 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
             className="mt-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center justify-between"
           >
             <span>{errorMessage}{errorMessage.includes('عکس جلد') && <a href="/merchant/settings" className="block mt-2 underline">بارگذاری عکس جلد در تنظیمات فروشگاه</a>}</span>
-            <button aria-label="بستن" onClick={() => setErrorMessage(null)}>
+            <RippleButton aria-label="بستن" onClick={() => setErrorMessage(null)}>
               ✕
-            </button>
+            </RippleButton>
           </div>
         )}
 
@@ -370,7 +372,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
               {PRESET_TEMPLATES.map((tmpl) => {
                 const isSelected = selectedTemplateId === tmpl.id;
                 return (
-                  <button
+                  <RippleButton
                     key={tmpl.id}
                     type="button"
                     onClick={() => handleSelectTemplate(tmpl)}
@@ -390,7 +392,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                         {tmpl.titleFa}
                       </h4>
                     </div>
-                  </button>
+                  </RippleButton>
                 );
               })}
             </div>
@@ -566,25 +568,25 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                   تعداد بسته مازاد موجود:
                 </label>
                 <div className="flex items-center gap-2">
-                  <button
+                  <RippleButton
                     aria-label="کاهش تعداد"
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     className="w-9 h-9 rounded-lg border border-loqme-neutral-300 bg-white font-black text-lg hover:bg-loqme-neutral-100"
                   >
                     -
-                  </button>
+                  </RippleButton>
                   <span className="flex-1 text-center font-mono font-black text-lg text-loqme-neutral-900">
                     {toPersianDigits(quantity)}
                   </span>
-                  <button
+                  <RippleButton
                     aria-label="افزایش تعداد"
                     type="button"
                     onClick={() => setQuantity((q) => Math.min(50, q + 1))}
                     className="w-9 h-9 rounded-lg border border-loqme-neutral-300 bg-white font-black text-lg hover:bg-loqme-neutral-100"
                   >
                     +
-                  </button>
+                  </RippleButton>
                 </div>
                 {fieldErrors.quantity && (
                   <p className="text-xs text-red-600 mt-1" role="alert">

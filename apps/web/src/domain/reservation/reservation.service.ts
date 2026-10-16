@@ -57,69 +57,27 @@ export class ReservationService {
       return { success: false, message: 'زمان تحویل حضوری این بسته سپری شده است' };
     }
 
-    // 2. Check for existing active pending reservation by this customer for this listing (idempotent hold)
-    const existingActive = await prisma.reservation.findFirst({
-      where: {
-        customerId,
-        listingId,
-        status: ReservationStatus.PENDING,
-        expiresAt: { gt: now },
-      },
-    });
-
-    if (existingActive) {
-      const remainingSeconds = Math.max(0, Math.floor((existingActive.expiresAt.getTime() - now.getTime()) / 1000));
-      return {
-        success: true,
-        reservation: {
-          id: existingActive.id,
-          listingId: existingActive.listingId,
-          quantity: existingActive.quantity,
-          expiresAt: existingActive.expiresAt,
-          remainingSeconds,
-        },
-      };
-    }
-
-    // 3. Atomically reserve inventory
-    const reserveResult = await inventoryService.atomicReserve(listingId, quantity);
-    if (!reserveResult.success) {
-      return {
-        success: false,
-        message: reserveResult.message || 'متاسفانه موجودی این بسته به پایان رسیده است',
-      };
-    }
-
-    // 4. Create reservation record with 10-minute expiry
-    const expiresAt = new Date(now.getTime() + RESERVATION_HOLD_MINUTES * 60 * 1000);
-
     try {
-      const reservation = await prisma.reservation.create({
-        data: {
-          customerId,
-          listingId,
-          quantity,
-          expiresAt,
-          status: ReservationStatus.PENDING,
-        },
+      return await prisma.$transaction(async tx => {
+        // Serialize same-customer retries across processes. The lock is released on rollback.
+        await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${customerId + ':' + listingId}, 0))`;
+        const existing = await tx.reservation.findFirst({ where: {
+          customerId, listingId, status: ReservationStatus.PENDING, expiresAt: { gt: new Date() },
+        } });
+        if (existing) {
+          if (existing.quantity !== quantity) return { success: false, message: 'برای تغییر تعداد، ابتدا رزرو قبلی را لغو کنید' };
+          return { success: true, reservation: { id: existing.id, listingId, quantity: existing.quantity,
+            expiresAt: existing.expiresAt, remainingSeconds: Math.max(0, Math.floor((existing.expiresAt.getTime() - Date.now()) / 1000)) } };
+        }
+        const reserved = await inventoryService.atomicReserve(listingId, quantity, tx);
+        if (!reserved.success) return { success: false, message: reserved.message || 'موجودی کافی نیست' };
+        const expiresAt = new Date(Date.now() + RESERVATION_HOLD_MINUTES * 60 * 1000);
+        const reservation = await tx.reservation.create({ data: { customerId, listingId, quantity, expiresAt, status: ReservationStatus.PENDING } });
+        return { success: true, reservation: { id: reservation.id, listingId, quantity, expiresAt,
+          remainingSeconds: RESERVATION_HOLD_MINUTES * 60 } };
       });
-
-      const remainingSeconds = Math.floor((expiresAt.getTime() - now.getTime()) / 1000);
-
-      return {
-        success: true,
-        reservation: {
-          id: reservation.id,
-          listingId: reservation.listingId,
-          quantity: reservation.quantity,
-          expiresAt: reservation.expiresAt,
-          remainingSeconds,
-        },
-      };
-    } catch (err) {
-      // Rollback atomic reserve if database record creation failed
-      await inventoryService.atomicRelease(listingId, quantity);
-      console.error('Failed to create reservation record:', err);
+    } catch {
+      // The counter, its history and the hold all roll back together.
       return { success: false, message: 'خطا در ثبت رزرو بسته' };
     }
   }

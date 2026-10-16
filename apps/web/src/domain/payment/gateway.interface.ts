@@ -10,6 +10,7 @@ export interface InitiatePaymentParams {
 }
 
 export interface InitiatePaymentResult {
+  outcome?: 'DECLINED' | 'UNKNOWN';
   success: boolean;
   authority: string;
   paymentUrl: string;
@@ -23,6 +24,7 @@ export interface VerifyPaymentParams {
 }
 
 export interface VerifyPaymentResult {
+  outcome?: 'DECLINED' | 'UNKNOWN';
   success: boolean;
   referenceId?: string;
   trackingCode?: string;
@@ -38,6 +40,7 @@ export interface RefundPaymentParams {
 }
 
 export interface RefundPaymentResult {
+  outcome?: 'DECLINED' | 'UNKNOWN';
   success: boolean;
   refundId?: string;
   errorMessage?: string;
@@ -50,4 +53,3 @@ export interface IPaymentGateway {
   verifyPayment(params: VerifyPaymentParams): Promise<VerifyPaymentResult>;
   refundPayment?(params: RefundPaymentParams): Promise<RefundPaymentResult>;
 }
-

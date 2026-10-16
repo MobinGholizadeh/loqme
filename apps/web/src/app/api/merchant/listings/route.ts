@@ -8,6 +8,7 @@ import { FastCreateListingSchema } from "@loqme/validation";
 import { prisma } from "@/lib/prisma";
 import { ListingType } from "@prisma/client";
 import { ZodError } from "zod";
+import { readMerchantJson } from '@/lib/http/merchant-http';
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const body = await readMerchantJson(request);
     const searchParams = request.nextUrl.searchParams;
     const merchantId =
       searchParams.get("merchantId") || body.merchantId || undefined;
@@ -120,6 +121,7 @@ export async function POST(request: NextRequest) {
     const { merchant } = await merchantService.resolveMerchantAndAuthorize(
       session.userId,
       merchantId,
+      'MANAGER',
     );
 
     const validated = FastCreateListingSchema.parse(body);
@@ -144,7 +146,9 @@ export async function POST(request: NextRequest) {
 
     const { pickupDate: pickupDateObj, pickupStart: startDate, pickupEnd: endDate } = resolvePickupWindow(validated);
 
-    const primaryLocation = merchant.locations[0];
+    const locationId = searchParams.get('locationId');
+    const primaryLocation = locationId ? merchant.locations.find(l => l.id === locationId) : merchant.locations.length === 1 ? merchant.locations[0] : undefined;
+    if (!primaryLocation) throw new Error('عدم دسترسی: شعبه معتبر فروشگاه را انتخاب کنید');
 
     const newListing = await listingService.createListing({
       pickupDetails: validated.pickupDetails,
@@ -165,7 +169,7 @@ export async function POST(request: NextRequest) {
       dietaryTags: validated.dietaryTags,
       storageInstructionsFa: validated.storageInstructionsFa,
       temperatureRequirement: validated.temperatureRequirement,
-    });
+    }, session.userId);
 
     return NextResponse.json({
       success: true,

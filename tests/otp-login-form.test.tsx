@@ -25,10 +25,10 @@ async function verify() {
 describe('OTP form authentication flow', () => {
   it.each(['login', 'register'] as const)('offers guest browsing in %s on both steps without creating a session', async initialMode => {
     render(<OtpLoginForm initialMode={initialMode} />);
-    expect(screen.getByRole('link', { name: 'ادامه بدون حساب کاربری' }).getAttribute('href')).toBe('/');
+    expect(screen.getByRole('link', { name: 'ادامه بدون حساب کاربری' }).getAttribute('href')).toBe('/discover');
     expect(fetchMock).not.toHaveBeenCalled();
     await phone();
-    expect(screen.getByRole('link', { name: 'ادامه بدون حساب کاربری' }).getAttribute('href')).toBe('/');
+    expect(screen.getByRole('link', { name: 'ادامه بدون حساب کاربری' }).getAttribute('href')).toBe('/discover');
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(state.setUser).not.toHaveBeenCalled();
   });

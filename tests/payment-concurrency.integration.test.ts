@@ -62,7 +62,7 @@ describe('Payment completion atomicity and replay', () => {
   it('allows a new refund only after an explicit provider rejection', async () => {
     const { order } = await checkout(); await orderService.verifyAndCompleteOrder({ authority: order.authority! });
     const payment = await prisma.payment.findUniqueOrThrow({ where: { authority: order.authority! } });
-    const provider = vi.spyOn(mockPaymentGateway, 'refundPayment').mockResolvedValueOnce({ success: false }).mockResolvedValueOnce({ success: true });
+    const provider = vi.spyOn(mockPaymentGateway, 'refundPayment').mockResolvedValueOnce({ success: false, outcome: 'DECLINED' } as never).mockResolvedValueOnce({ success: true });
     try {
       expect((await paymentService.refundPayment({ paymentId: payment.id, reasonFa: 'رد درگاه' })).success).toBe(false);
       expect((await paymentService.refundPayment({ paymentId: payment.id, reasonFa: 'تلاش مجدد' })).success).toBe(true);

@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { ListingImagePicker } from "@/components/merchant/ListingImagePicker";
 import { ErrorState } from "@/components/ui/ErrorState";
 import * as RedesignIcons from "lucide-react";
@@ -174,9 +176,9 @@ export default function MerchantSettingsPage() {
           }`}
         >
           <span>{message.text}</span>
-          <button aria-label="بستن" onClick={() => setMessage(null)}>
+          <RippleButton aria-label="بستن" onClick={() => setMessage(null)}>
             ✕
-          </button>
+          </RippleButton>
         </div>
       )}
 
@@ -345,13 +347,13 @@ export default function MerchantSettingsPage() {
                 {hours.some(day => day.isOpen && (!day.defaultPickupStart || !day.defaultPickupEnd)) && <p className="text-sm text-loqme-primary-700 mt-2">بازه تحویل بعضی روزها هنوز تنظیم نشده است؛ ساعت شروع و پایان تحویل را با هم وارد کنید.</p>}
               </div>
 
-              <button
+              <RippleButton
                 type="button"
                 onClick={handleApplyToAllDays}
                 className="text-xs font-bold text-loqme-primary-700 hover:text-loqme-primary-900 underline self-start sm:self-auto"
               >
                 اعمال بازه شنبه به تمام روزهای هفته
-              </button>
+              </RippleButton>
             </div>
 
             <div className="overflow-x-auto">

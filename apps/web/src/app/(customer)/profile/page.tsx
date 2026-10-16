@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -111,7 +113,7 @@ export default function ProfilePage() {
               <Link href="/login?redirect=/profile" className="action-link">
                 ورود / ثبت‌نام
               </Link>
-              <Link href="/business" className="action-link secondary">
+              <Link href="/business/login" className="action-link secondary">
                 <Store size={18} aria-hidden="true" />
                 ورود / ثبت‌نام کسب‌وکار
               </Link>
@@ -162,7 +164,7 @@ export default function ProfilePage() {
             titleHover: "group-hover:text-indigo-800",
           }
         : {
-            href: "/business",
+            href: "/business/login",
             icon: Store,
             title: "ورود کسب‌وکار",
             subtitle: "پنل ویژه فروشندگان",
@@ -217,7 +219,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Edit Profile Quick Action */}
-            <button
+            <RippleButton
               aria-label="ویرایش مشخصات"
               className="shrink-0 w-9 h-9 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-center text-slate-500 hover:text-loqme-800 hover:bg-slate-100 active:scale-95 transition-all"
               type="button"
@@ -227,7 +229,7 @@ export default function ProfilePage() {
               }}
             >
               <Pencil className="w-4 h-4" />
-            </button>
+            </RippleButton>
           </div>
 
           {/* Mini Stats Summary */}
@@ -312,7 +314,7 @@ export default function ProfilePage() {
             </Link>
 
             {/* Action 4: Logout */}
-            <button
+            <RippleButton
               aria-label="خروج از حساب"
               className="group bg-white p-3.5 rounded-2xl border border-slate-200/70 shadow-card hover:border-rose-200 hover:bg-rose-50/20 text-right transition-all flex flex-col justify-between active:scale-[0.98] w-full"
               type="button"
@@ -329,7 +331,7 @@ export default function ProfilePage() {
                 </h3>
                 <p className="text-[11px] text-loqme-neutral-600 mt-0.5">پایان نشست فعلی</p>
               </div>
-            </button>
+            </RippleButton>
           </div>
         </section>
         {/* END: QuickActionsGrid */}
@@ -372,7 +374,7 @@ export default function ProfilePage() {
                   ? "/admin"
                   : user.role === "MERCHANT_OWNER" || user.role === "MERCHANT_STAFF"
                     ? "/merchant"
-                    : "/business"
+                    : "/business/login"
               }
               className="w-full mt-2 inline-flex items-center justify-center gap-2 bg-loqme-800 hover:bg-loqme-900 text-white font-bold text-sm py-3 px-5 rounded-2xl shadow-lg shadow-loqme-900/20 active:scale-[0.98] transition-all group"
             >

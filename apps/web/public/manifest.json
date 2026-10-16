@@ -7,7 +7,7 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#FFFFFF",
-  "theme_color": "#135E66",
+  "theme_color": "#FFFFFF",
   "dir": "rtl",
   "lang": "fa-IR",
   "scope": "/",

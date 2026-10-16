@@ -1,3 +1,4 @@
+import { initiatePaymentOnce } from './payment-attempt.service';
 import { prisma } from '@/lib/prisma';
 import { IPaymentGateway, InitiatePaymentResult, VerifyPaymentResult } from './gateway.interface';
 import { mockPaymentGateway } from './mock.gateway';
@@ -80,44 +81,7 @@ export class PaymentService {
     if (!Number.isSafeInteger(amountToman) || amountToman <= 0) {
       return { success: false, authority: '', paymentUrl: '', gateway: gatewayType, errorMessage: 'مبلغ پرداخت معتبر نیست' };
     }
-    const description = `خرید بسته از سامانه لقمه - شماره سفارش ${order.orderNumber}`;
-
-    const initResult = await gateway.initiatePayment({
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      amountToman,
-      callbackUrl,
-      mobile,
-      description,
-    });
-
-    if (!initResult.success) {
-      return initResult;
-    }
-
-    // Persist Payment record
-    const payment = await prisma.payment.create({
-      data: {
-        orderId: order.id,
-        gateway: gatewayType,
-        authority: initResult.authority,
-        amountToman: BigInt(amountToman),
-        status: PaymentStatus.INITIATED,
-        events: {
-          create: {
-            eventType: 'INITIATED',
-            payloadJson: {
-              gatewayType,
-              callbackUrl,
-              amountToman,
-              authority: initResult.authority,
-            },
-          },
-        },
-      },
-    });
-
-    return initResult;
+    return initiatePaymentOnce(order, gateway, callbackUrl, mobile);
   }
 
   /**
@@ -134,7 +98,7 @@ export class PaymentService {
     referenceId?: string;
     errorMessage?: string;
   }> {
-    const { authority, trackingCode, ipAddress } = params;
+    const { authority, ipAddress } = params;
 
     const payment = await prisma.payment.findUnique({
       where: { authority },
@@ -164,10 +128,10 @@ export class PaymentService {
       return { success: false, errorMessage: 'مبلغ پرداخت معتبر نیست' };
     }
     const gateway = this.getGateway(payment.gateway);
-    const verifyResult = await gateway.verifyPayment({
-      authority,
-      amountToman: verifiedAmountToman,
-    });
+    let verifyResult: VerifyPaymentResult;
+    try { verifyResult = await gateway.verifyPayment({ authority, amountToman: verifiedAmountToman }); }
+    catch { verifyResult = { success: false, outcome: 'UNKNOWN' }; }
+    if (verifyResult.success && !verifyResult.referenceId) verifyResult = { success: false, outcome: 'UNKNOWN' };
 
     // Provider calls happen outside the lock. Persist their result only after
     // rechecking state, so a delayed failure cannot overwrite success or a refund.
@@ -185,17 +149,24 @@ export class PaymentService {
         data: {
           paymentId: payment.id,
           eventType: verifyResult.success ? 'VERIFY_SUCCESS' : 'VERIFY_FAILED',
-          payloadJson: verifyResult.rawPayload || { errorMessage: verifyResult.errorMessage },
+          payloadJson: { outcome: verifyResult.success ? 'VERIFIED' : verifyResult.outcome ?? 'UNKNOWN', referenceId: verifyResult.referenceId ?? null },
           ipAddress,
         },
       });
 
       if (!verifyResult.success) {
+        if (verifyResult.outcome === 'DECLINED') await tx.paymentAttempt.updateMany({ where: { authority }, data: { state: 'DECLINED' } });
+        if (verifyResult.outcome !== 'DECLINED') await tx.reconciliationCase.upsert({
+          where: { caseKey: `${payment.id}:VERIFICATION_UNKNOWN` }, update: {}, create: {
+            caseKey: `${payment.id}:VERIFICATION_UNKNOWN`, merchantId: current.order.merchantId, orderId: payment.orderId,
+            paymentId: payment.id, reason: 'VERIFICATION_UNKNOWN',
+          },
+        });
         await tx.payment.update({
           where: { id: payment.id },
           data: {
-            status: PaymentStatus.FAILED,
-            errorMessage: verifyResult.errorMessage,
+            status: verifyResult.outcome === 'DECLINED' ? PaymentStatus.FAILED : current.status,
+            errorMessage: verifyResult.outcome === 'DECLINED' ? 'PROVIDER_DECLINED' : 'PROVIDER_UNKNOWN',
           },
         });
 
@@ -213,11 +184,13 @@ export class PaymentService {
         data: {
           status: PaymentStatus.SUCCESS,
           referenceId: verifyResult.referenceId,
-          trackingCode: trackingCode || verifyResult.trackingCode,
+          verifiedAt: new Date(),
+          trackingCode: verifyResult.trackingCode,
         },
         include: { order: true },
     });
 
+    await tx.paymentAttempt.updateMany({ where: { authority }, data: { state: 'VERIFIED' } });
     return {
       success: true,
       payment: updatedPayment,
@@ -270,6 +243,7 @@ export class PaymentService {
     // Persist the claim before contacting the provider. A crash or uncertain
     // provider response must not permit a second transfer on an automatic retry.
     const pendingRefund = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Order" WHERE id=${payment.orderId} FOR UPDATE`;
       await tx.$queryRaw`SELECT "id" FROM "Payment" WHERE "id" = ${payment.id} FOR UPDATE`;
       const current = await tx.payment.findUnique({ where: { id: payment.id } });
       if (current?.status !== PaymentStatus.SUCCESS) return null;
@@ -284,17 +258,23 @@ export class PaymentService {
     if (!pendingRefund) {
       return { success: false, errorMessage: 'استرداد این پرداخت قبلاً ثبت شده یا در حال بررسی است' };
     }
+    const recordUnknownRefund = () => prisma.reconciliationCase.upsert({ where: { caseKey: `${pendingRefund.id}:REFUND_UNKNOWN` }, update: {}, create: {
+      caseKey: `${pendingRefund.id}:REFUND_UNKNOWN`, merchantId: payment.order.merchantId, orderId: payment.orderId,
+      paymentId: payment.id, reason: 'REFUND_UNKNOWN',
+    } });
     let refundResult;
     try {
       refundResult = await gateway.refundPayment({
         authority: payment.authority, amountToman: refundAmount, reason: reasonFa,
       });
     } catch {
+      await recordUnknownRefund();
       return { success: false, errorMessage: 'نتیجه استرداد نامشخص است و نیاز به بررسی دارد؛ درخواست مجدد ارسال نشد' };
     }
 
     if (!refundResult.success) {
-      await prisma.refund.update({ where: { id: pendingRefund.id }, data: { status: RefundStatus.REJECTED } });
+      if (refundResult.outcome === 'DECLINED') await prisma.refund.update({ where: { id: pendingRefund.id }, data: { status: RefundStatus.REJECTED } });
+      else await recordUnknownRefund();
       return {
         success: false,
         errorMessage: refundResult.errorMessage || 'درخواست استرداد وجه توسط درگاه بانکی رد شد',
@@ -303,7 +283,13 @@ export class PaymentService {
 
     const now = new Date();
     const refund = await prisma.$transaction(async (tx) => {
-      const refundRecord = await tx.refund.update({ where: { id: pendingRefund.id }, data: { status: RefundStatus.SETTLED } });
+      await tx.$queryRaw`SELECT id FROM "Order" WHERE id=${payment.orderId} FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM "Payment" WHERE id=${payment.id} FOR UPDATE`;
+      const liveOrder = await tx.order.findUniqueOrThrow({ where: { id: payment.orderId } });
+      const allocated = liveOrder.acceptedPaymentId === payment.id || (!liveOrder.acceptedPaymentId && Boolean(await tx.financialTransaction.findFirst({
+        where: { orderId: liveOrder.id, type: 'CUSTOMER_PAYMENT', referenceNumber: payment.referenceId },
+      })));
+      const refundRecord = await tx.refund.update({ where: { id: pendingRefund.id }, data: { status: RefundStatus.SETTLED, settledAt: now } });
 
       // Update Payment status to REFUNDED
       await tx.payment.update({
@@ -325,7 +311,7 @@ export class PaymentService {
       });
 
       // Update Order status to REFUNDED
-      await tx.order.update({
+      if (allocated) await tx.order.update({
         where: { id: payment.orderId },
         data: {
           status: OrderStatus.REFUNDED,
@@ -339,7 +325,7 @@ export class PaymentService {
       const totalOrderAmount = BigInt(payment.order.totalAmountToman);
       const platformCommissionRefund = BigInt(payment.order.commissionAmountToman);
 
-      await tx.financialTransaction.create({
+      if (allocated) await tx.financialTransaction.create({
         data: {
           orderId: payment.orderId,
           type: FinancialTransactionType.CUSTOMER_REFUND,
@@ -347,6 +333,7 @@ export class PaymentService {
           creditAccount: 'PLATFORM_CLEARING',
           amountToman: merchantPayoutRefund,
           referenceNumber: refundRecord.id,
+          postingKey: `refund:${refundRecord.id}:merchant`,
         },
       });
 
@@ -357,13 +344,14 @@ export class PaymentService {
           type: FinancialTransactionType.CUSTOMER_REFUND,
           debitAccount: 'PLATFORM_CLEARING',
           creditAccount: 'CUSTOMER_PAYMENT',
-          amountToman: totalOrderAmount,
+          amountToman: payment.amountToman,
           referenceNumber: refundRecord.id,
+          postingKey: `refund:${refundRecord.id}:customer`,
         },
       });
 
       // C. Platform commission reversal
-      if (platformCommissionRefund > BigInt(0)) {
+      if (allocated && platformCommissionRefund > BigInt(0)) {
         await tx.financialTransaction.create({
           data: {
             orderId: payment.orderId,
@@ -372,6 +360,7 @@ export class PaymentService {
             creditAccount: 'PLATFORM_CLEARING',
             amountToman: platformCommissionRefund,
             referenceNumber: refundRecord.id,
+          postingKey: `refund:${refundRecord.id}:commission`,
           },
         });
       }

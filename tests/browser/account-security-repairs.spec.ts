@@ -32,14 +32,14 @@ test('account header logo keeps the same dimensions as discovery', async ({ page
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
     const size = await page.locator('header .brand-link img').boundingBox();
-    const font = await page.locator('header .header-brand-name').evaluate(e => getComputedStyle(e).fontSize);
+    await expect(page.locator('header .header-brand-name')).toHaveCount(0);
     await page.goto('/profile');
     await expect(page.locator('header .brand-link img')).toBeVisible();
     await page.locator('header .brand-link').hover();
     const account = await page.locator('header .brand-link img').boundingBox();
     expect(account!.width).toBe(size!.width);
     expect(account!.height).toBe(size!.height);
-    expect(await page.locator('header .header-brand-name').evaluate(e => getComputedStyle(e).fontSize)).toBe(font);
+    await expect(page.locator('header .header-brand-name')).toHaveCount(0);
     await page.screenshot({ path: `test-results/account-header-${width}.png`, fullPage: true });
   }
 });

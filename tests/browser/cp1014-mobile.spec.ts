@@ -17,24 +17,24 @@ for (const width of [360, 390, 768, 1440]) {
     await expect(page.getByText('به صندوق مراجعه کنید.')).toBeVisible();
     await page.locator('.pickup-information').scrollIntoViewIfNeeded();
     await page.screenshot({ path: info.outputPath(`packaging-${width}.png`) });
-    await page.locator('.footer-signature').scrollIntoViewIfNeeded();
-    await expect(page.locator('.footer-signature')).toHaveAttribute('data-revealed', 'true');
-    await expect(page.locator('.footer-wordmark')).toHaveText('Loqme');
+    await page.locator('.market-footer').scrollIntoViewIfNeeded();
+    await expect(page.locator('.footer-navigation')).toBeVisible();
+    await expect(page.locator('.footer-wordmark')).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect((await new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
     await page.screenshot({ path: info.outputPath(`footer-${width}.png`) });
   });
 }
 
-test('login help dismisses for the session and remains available in footer', async ({ page }) => {
+test('login help is available in the botanical header and marketplace footer', async ({ page }) => {
   await installFixtures(page); await page.context().clearCookies();
   await page.route('**/api/auth/session', route => route.fulfill({ json: { authenticated: false, user: null } }));
   await page.goto('/login');
-  const opener = page.locator('.guide-notice .how-it-works-link');
+  const opener = page.locator('.botanical-header .how-it-works-link');
   await opener.click(); await expect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape'); await expect(opener).toBeFocused();
-  await page.getByRole('button', { name: 'بستن پیشنهاد راهنما' }).click(); await page.reload();
-  await expect(page.locator('.guide-notice')).toHaveCount(0);
+  await page.reload();
+  await expect(opener).toBeVisible();
   await page.goto('/'); await expect(page.locator('.how-it-works-card')).toHaveCount(0);
   await page.locator('.market-footer .how-it-works-link').click(); await expect(page.getByRole('dialog')).toBeVisible();
 });
@@ -53,8 +53,8 @@ test('mobile session refresh replaces authenticated chrome with a phone verifica
 test('reduced motion footer stays static and legacy packaging stays unknown', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' }); await installFixtures(page); await page.goto('/listings/ui-listing-0');
   await expect(page.locator('.packaging-option[data-provided="unknown"]')).toHaveCount(2);
-  expect(await page.locator('.footer-wordmark').evaluate(el => parseFloat(getComputedStyle(el).transitionDuration))).toBeLessThan(0.001);
-  await expect(page.locator('.footer-wordmark')).toHaveCSS('opacity', '1');
+  expect(await page.locator('.market-footer').evaluate(el => parseFloat(getComputedStyle(el).transitionDuration))).toBeLessThan(0.001);
+  await expect(page.locator('.market-footer')).toHaveCSS('opacity', '1');
 });
 
 test('merchant can save packaging choices without changing stock', async ({ page }) => {

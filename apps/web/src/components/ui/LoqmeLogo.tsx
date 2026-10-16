@@ -35,22 +35,22 @@ export const LoqmeLogo: React.FC<LoqmeLogoProps> = ({
   // Colors
   const colorMap = {
     teal: {
-      fill: "#135E66",
+      fill: "#1D616A",
       primaryText: "text-loqme-primary-600",
       secondaryText: "text-loqme-primary-700",
-      sub: "text-[#64748B]",
+      sub: "text-loqme-neutral-500",
     },
     white: {
       fill: "#FFFFFF",
       primaryText: "text-white",
-      secondaryText: "text-teal-100",
+      secondaryText: "text-white/80",
       sub: "text-white/80",
     },
     dark: {
       fill: "#222026",
       primaryText: "text-loqme-neutral-900",
       secondaryText: "text-loqme-primary-600",
-      sub: "text-[#64748B]",
+      sub: "text-loqme-neutral-500",
     },
   };
 
@@ -136,7 +136,7 @@ export const LoqmeLogo: React.FC<LoqmeLogoProps> = ({
           </span>
           <span
             className={cn(
-              "text-[10px] font-extrabold tracking-wider uppercase opacity-85",
+              "text-[10px] font-extrabold tracking-wider uppercase",
               colors.primaryText,
             )}
           >

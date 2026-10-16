@@ -13,7 +13,7 @@ export default function OfflinePage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-loqme-neutral-25 flex flex-col items-center justify-center p-6 text-center">
       <div className="max-w-md w-full bg-white rounded-lg p-8 shadow-sm border border-stone-100 flex flex-col items-center">
         <LoqmeLogo size="md" variant="stacked" theme="dark" />
 
@@ -33,7 +33,7 @@ export default function OfflinePage() {
         <div className="w-full space-y-3">
           <Button
             onClick={handleRetry}
-            className="w-full bg-loqme-primary-600 hover:bg-[#0e484e] text-white rounded-full py-3 text-sm font-medium shadow-sm transition-all"
+            className="w-full bg-loqme-primary-600 hover:bg-loqme-primary-700 text-white rounded-full py-3 text-sm font-medium shadow-sm transition-all"
           >
             تلاش مجدد
           </Button>

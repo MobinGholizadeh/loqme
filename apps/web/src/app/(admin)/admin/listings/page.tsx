@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { ErrorState } from "@/components/ui/ErrorState";
 import { DialogSurface } from "@/components/ui/DialogSurface";
 
@@ -198,15 +200,15 @@ export default function AdminListingsPage() {
           }`}
         >
           <span>{message.text}</span>
-          <button aria-label="بستن" onClick={() => setMessage(null)}>
+          <RippleButton aria-label="بستن" onClick={() => setMessage(null)}>
             ✕
-          </button>
+          </RippleButton>
         </div>
       )}
 
       {/* Navigation Tabs */}
       <div className="flex items-center gap-3 border-b border-loqme-neutral-200 pb-2">
-        <button
+        <RippleButton
           onClick={() => setActiveTab("LISTINGS")}
           className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
             activeTab === "LISTINGS"
@@ -215,9 +217,9 @@ export default function AdminListingsPage() {
           }`}
         >
           بسته‌های مازاد پلتفرم ({toPersianDigits(listings.length)})
-        </button>
+        </RippleButton>
 
-        <button
+        <RippleButton
           onClick={() => setActiveTab("CATEGORIES")}
           className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
             activeTab === "CATEGORIES"
@@ -226,7 +228,7 @@ export default function AdminListingsPage() {
           }`}
         >
           مدیریت دسته‌بندی‌ها ({toPersianDigits(categories.length)})
-        </button>
+        </RippleButton>
       </div>
 
       {/* TAB 1: Global Listings Moderation */}
@@ -236,7 +238,7 @@ export default function AdminListingsPage() {
             <div className="flex items-center gap-1.5 flex-wrap">
               {["ALL", "PUBLISHED", "PAUSED", "SOLD_OUT", "EXPIRED"].map(
                 (st) => (
-                  <button
+                  <RippleButton
                     key={st}
                     onClick={() => setStatusFilter(st)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
@@ -254,7 +256,7 @@ export default function AdminListingsPage() {
                           : st === "SOLD_OUT"
                             ? "تکمیل ظرفیت"
                             : "منقضی شده"}
-                  </button>
+                  </RippleButton>
                 ),
               )}
             </div>
@@ -340,14 +342,14 @@ export default function AdminListingsPage() {
                             </Badge>
                           </td>
                           <td className="p-4 text-left">
-                            <button
+                            <RippleButton
                               type="button"
                               onClick={() => setSelectedListing(l)}
                               className="px-2.5 py-1 text-xs font-bold text-loqme-primary-700 bg-loqme-primary-50 hover:bg-loqme-primary-100 rounded-md transition-colors inline-flex items-center gap-1"
                             >
                               <Eye size={13} />
                               جزئیات
-                            </button>
+                            </RippleButton>
                           </td>
                         </tr>
                       );
@@ -463,13 +465,13 @@ export default function AdminListingsPage() {
               <h3 className="font-black text-base text-loqme-neutral-900">
                 تعریف دسته‌بندی محصول جدید
               </h3>
-              <button
+              <RippleButton
                 aria-label="بستن"
                 onClick={() => setIsNewCategoryModalOpen(false)}
                 className="text-loqme-neutral-500 hover:text-loqme-primary-700"
               >
                 ✕
-              </button>
+              </RippleButton>
             </div>
 
             <form onSubmit={handleCreateCategory} className="space-y-4">

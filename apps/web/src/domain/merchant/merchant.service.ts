@@ -217,6 +217,12 @@ export class MerchantService {
       throw new Error('عدم دسترسی: فروشگاهی برای این حساب کاربری یافت نشد');
     }
 
+    if (!merchantId) {
+      const other = await prisma.merchant.findFirst({ where: { id: { not: targetMerchantId },
+        OR: [{ ownerUserId: merchantUserId }, { staff: { some: { userId: merchantUserId } } }] }, select: { id: true } });
+      if (other && other.id !== targetMerchantId) throw new Error('عدم دسترسی: برای این حساب چند فروشگاه وجود دارد؛ فروشگاه را انتخاب کنید');
+    }
+
     // 2. Load merchant with staff membership
     const merchant = await prisma.merchant.findUnique({
       where: { id: targetMerchantId },
@@ -709,7 +715,7 @@ export class MerchantService {
     const orders = await prisma.order.findMany({
       where: {
         merchantId: merchant.id,
-        status: { in: ['COMPLETED', 'PAID', 'READY_FOR_PICKUP'] },
+        status: { in: ['COMPLETED', 'PAID', 'READY_FOR_PICKUP', 'NO_SHOW'] },
       },
       orderBy: { createdAt: 'desc' },
     });

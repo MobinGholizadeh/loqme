@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { useEffect, useState } from "react";
 import { Search, MapPin, ShoppingBag, Check, QrCode, Star, Play, Pause, RotateCcw, X, ArrowRight, ArrowLeft, CreditCard, Clock3 } from "lucide-react";
 import { DialogSurface } from "@/components/ui/DialogSurface";
@@ -70,23 +72,23 @@ export default function LoqmeExplainer({ onClose }: { onClose: () => void }) {
   return <DialogSurface onClose={onClose} label="لقمه چطور کار می‌کند؟">
     <div className="explainer-panel" data-playing={playing && !reducedMotion}>
       <header className="explainer-header"><div><span className="eyebrow">راهنمای خرید از لقمه</span><h2>لقمه چطور کار می‌کند؟</h2></div>
-        <button type="button" className="icon-button" aria-label="بستن راهنما" onClick={onClose}><X size={21}/></button></header>
+        <RippleButton type="button" className="icon-button" aria-label="بستن راهنما" onClick={onClose}><X size={21}/></RippleButton></header>
       <Illustration key={scene} scene={scene}/>
       <div className="explainer-caption" aria-live="polite" aria-atomic="true">
         <span className="eyebrow">مرحله {toPersianDigits(scene + 1)} از ۴</span><h3>{scenes[scene].title}</h3><p>{scenes[scene].text}</p>
       </div>
       <div className="explainer-controls">
-        <div className="explainer-steps" aria-label="مراحل راهنما">{scenes.map((item, index) => <button key={item.label} type="button"
-          aria-current={index === scene ? "step" : undefined} onClick={() => goTo(index)}><span>{toPersianDigits(index + 1)}</span>{item.label}</button>)}</div>
+        <div className="explainer-steps" aria-label="مراحل راهنما">{scenes.map((item, index) => <RippleButton key={item.label} type="button"
+          aria-current={index === scene ? "step" : undefined} onClick={() => goTo(index)}><span>{toPersianDigits(index + 1)}</span>{item.label}</RippleButton>)}</div>
         <label className="sr-only" htmlFor="explainer-progress">پیشرفت راهنما</label>
         <input id="explainer-progress" type="range" min={0} max={DURATION} step={100} value={elapsed} aria-valuetext={`مرحله ${scene + 1} از ۴`}
           onChange={event => { setPlaying(false); setElapsed(Number(event.target.value)); }}/>
         <div className="explainer-playback">
-          <button type="button" className="icon-button" aria-label="مرحله قبل" disabled={scene === 0} onClick={() => goTo(scene - 1)}><ArrowRight size={20}/></button>
-          {!reducedMotion && <button type="button" className="action-link" onClick={() => { if (elapsed >= DURATION) setElapsed(0); setPlaying(!playing); }}>
-            {playing ? <Pause size={18}/> : <Play size={18}/>} {playing ? "توقف" : "پخش راهنما"}</button>}
-          <button type="button" className="icon-button" aria-label="مرحله بعد" disabled={scene === 3} onClick={() => goTo(scene + 1)}><ArrowLeft size={20}/></button>
-          <button type="button" className="icon-button" aria-label="شروع دوباره" onClick={() => { setElapsed(0); setPlaying(!reducedMotion); }}><RotateCcw size={19}/></button>
+          <RippleButton type="button" className="icon-button" aria-label="مرحله قبل" disabled={scene === 0} onClick={() => goTo(scene - 1)}><ArrowRight size={20}/></RippleButton>
+          {!reducedMotion && <RippleButton type="button" className="action-link" onClick={() => { if (elapsed >= DURATION) setElapsed(0); setPlaying(!playing); }}>
+            {playing ? <Pause size={18}/> : <Play size={18}/>} {playing ? "توقف" : "پخش راهنما"}</RippleButton>}
+          <RippleButton type="button" className="icon-button" aria-label="مرحله بعد" disabled={scene === 3} onClick={() => goTo(scene + 1)}><ArrowLeft size={20}/></RippleButton>
+          <RippleButton type="button" className="icon-button" aria-label="شروع دوباره" onClick={() => { setElapsed(0); setPlaying(!reducedMotion); }}><RotateCcw size={19}/></RippleButton>
           <span className="text-xs text-loqme-neutral-600">{reducedMotion ? "نمایش بدون حرکت" : `${toPersianDigits(Math.floor(elapsed / 1000))} / ۳۰ ثانیه`}</span>
         </div>
       </div>

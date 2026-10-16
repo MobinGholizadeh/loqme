@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import React, { useState } from "react";
 import { useSession } from "@/components/auth/SessionProvider";
 import Link from "next/link";
@@ -20,11 +22,13 @@ import {
 } from "lucide-react";
 import { LoqmeLogo } from "@/components/ui/LoqmeLogo";
 import { Modal } from "@/components/ui/Modal";
+import { BlurFade } from "@/components/magicui/blur-fade";
 const merchantItems = [
   { href: "/merchant", label: "نمای کلی", icon: LayoutDashboard },
   { href: "/merchant/listings", label: "بسته‌های فروشگاه", icon: Package },
   { href: "/merchant/orders", label: "سفارش‌ها و تحویل", icon: ScanLine },
   { href: "/merchant/finance", label: "مالی و تسویه", icon: Wallet },
+  { href: "/merchant/insights", label: "گزارش و بینش فروش", icon: ChartNoAxesCombined },
   { href: "/merchant/staff", label: "همکاران", icon: Users },
   { href: "/merchant/settings", label: "تنظیمات فروشگاه", icon: Settings },
 ];
@@ -40,6 +44,7 @@ const adminItems = [
     icon: MessageSquareWarning,
   },
   { href: "/admin/finance", label: "مالی و تسویه", icon: Wallet },
+  { href: "/admin/reconciliation", label: "پیگیری پرداخت", icon: ShieldCheck },
   { href: "/admin/audit", label: "گزارش حسابرسی", icon: ShieldCheck },
   { href: "/admin/settings", label: "تنظیمات سامانه", icon: Settings },
 ];
@@ -97,7 +102,7 @@ export function PortalShell({
       </a>
       <aside className="portal-sidebar">
         <Link href={`/${role}`} className="portal-brand">
-          <LoqmeLogo size="md" variant="horizontal" />
+          <LoqmeLogo size={38} variant="icon" theme="teal" />
         </Link>
         <p className="portal-label">{title}</p>
         {navigation}
@@ -105,23 +110,23 @@ export function PortalShell({
           <Link href="/">
             نمای مشتری <ArrowUpLeft size={17} />
           </Link>
-          <button onClick={logout}>
+          <RippleButton onClick={logout}>
             <LogOut size={17} />
             خروج از حساب
-          </button>
+          </RippleButton>
           {logoutError && <p role="alert">خروج انجام نشد. دوباره تلاش کنید.</p>}
         </div>
       </aside>
       <div className="portal-workspace">
         <header className="portal-header">
           <div className="flex items-center gap-3">
-            <button
+            <RippleButton
               className="icon-button portal-menu-button"
               onClick={() => setMenuOpen(true)}
               aria-label="باز کردن منو"
             >
               <Menu size={22} />
-            </button>
+            </RippleButton>
             <span>
               {items.find((item) => isActive(item.href))?.label || title}
             </span>
@@ -134,7 +139,7 @@ export function PortalShell({
           </div>
         </header>
         <main id="main-content" className="portal-main" tabIndex={-1}>
-          {children}
+          <BlurFade key={pathname}>{children}</BlurFade>
         </main>
       </div>
       <Modal isOpen={menuOpen} onClose={() => setMenuOpen(false)} title={title}>
@@ -142,9 +147,9 @@ export function PortalShell({
         <Link href="/" className="action-link secondary">
           نمای مشتری
         </Link>
-        <button className="action-link secondary mt-3" onClick={logout}>
+        <RippleButton className="action-link secondary mt-3" onClick={logout}>
           خروج از حساب
-        </button>
+        </RippleButton>
       </Modal>
     </div>
   );

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractSessionToken, verifySessionToken, SessionPayload } from '@/lib/auth/session';
+import { prisma } from '@/lib/prisma';
 
 export async function requireAdminSession(
   request: NextRequest
@@ -33,5 +34,9 @@ export async function requireAdminSession(
     };
   }
 
+  const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { role: true, isActive: true } });
+  if (!user?.isActive || user.role !== 'ADMIN') {
+    return { errorResponse: NextResponse.json({ success: false, message: 'دسترسی مدیریت دیگر فعال نیست' }, { status: 403, headers: { 'Cache-Control': 'private, no-store' } }) };
+  }
   return { session };
 }

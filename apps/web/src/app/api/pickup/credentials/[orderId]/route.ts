@@ -3,6 +3,7 @@ import { pickupService } from '@/domain/pickup/pickup.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
+import { requireAdminSession } from '@/lib/auth/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,6 +42,10 @@ export async function GET(
     });
 
     const isPlatformAdmin = session.role === Role.ADMIN;
+    if (isPlatformAdmin) {
+      const admin = await requireAdminSession(request);
+      if ('errorResponse' in admin) return admin.errorResponse;
+    }
     if (!isPlatformAdmin && !customer) {
       return NextResponse.json(
         { success: false, message: 'حساب مشتری یافت نشد' },

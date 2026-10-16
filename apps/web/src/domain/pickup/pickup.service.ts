@@ -139,7 +139,6 @@ export class PickupService {
         merchant: {
           include: {
             locations: {
-              take: 1,
               include: { city: true, neighborhood: true },
             },
           },
@@ -163,10 +162,10 @@ export class PickupService {
 
     const firstItem = order.items[0];
     const listing = firstItem?.listing;
-    const primaryLoc = order.merchant.locations[0];
+    const primaryLoc = order.merchant.locations.find(l => l.id === order.merchantLocationId) ?? order.merchant.locations[0];
 
-    const pickupStart = listing?.pickupStart;
-    const pickupEnd = listing?.pickupEnd;
+    const pickupStart = firstItem?.pickupStartSnapshot ?? listing?.pickupStart;
+    const pickupEnd = firstItem?.pickupEndSnapshot ?? listing?.pickupEnd;
     const now = new Date();
     const isPastPickupEnd = pickupEnd ? pickupEnd.getTime() < now.getTime() : false;
 
@@ -231,13 +230,13 @@ export class PickupService {
       pickupStartIso: pickupStart ? pickupStart.toISOString() : '',
       pickupEndIso: pickupEnd ? pickupEnd.toISOString() : '',
       isPastPickupEnd,
-      listingTitleFa: listing?.titleFa || 'بسته لقمه',
+      listingTitleFa: firstItem?.titleFaSnapshot ?? listing?.titleFa ?? 'بسته لقمه',
       quantity: firstItem?.quantity || 1,
       totalAmountToman: Number(order.totalAmountToman),
       merchant: {
         id: order.merchant.id,
         businessNameFa: order.merchant.businessNameFa,
-        addressFa: primaryLoc?.addressFa,
+        addressFa: order.pickupAddressFa ?? primaryLoc?.addressFa,
         phone: primaryLoc?.phone || undefined,
         latitude: primaryLoc?.latitude,
         longitude: primaryLoc?.longitude,
@@ -565,7 +564,7 @@ export class PickupService {
     const targetMerchantId = merchant.id;
 
     // Automatically trigger background sweep for elapsed orders
-    await this.sweepNoShows().catch((err) => {
+    await this.sweepNoShows(targetMerchantId).catch((err) => {
       console.warn('Silent no-show sweep error:', err);
     });
 
@@ -597,8 +596,8 @@ export class PickupService {
     return orders.map((order) => {
       const firstItem = order.items[0];
       const listing = firstItem?.listing;
-      const pickupStart = listing?.pickupStart;
-      const pickupEnd = listing?.pickupEnd;
+      const pickupStart = firstItem?.pickupStartSnapshot ?? listing?.pickupStart;
+      const pickupEnd = firstItem?.pickupEndSnapshot ?? listing?.pickupEnd;
       const isPastPickupEnd = pickupEnd ? pickupEnd.getTime() < now.getTime() : false;
 
       let pickupWindowFa = 'امروز در ساعات کاری';
@@ -643,18 +642,20 @@ export class PickupService {
    * Sweeps uncollected orders whose pickup window has closed without verification.
    * Transitions their status to NO_SHOW.
    */
-  async sweepNoShows(): Promise<NoShowSweepResultDto> {
+  async sweepNoShows(merchantId?: string): Promise<NoShowSweepResultDto> {
     const now = new Date();
 
     // Find orders where status is PAID / READY_FOR_PICKUP and pickupEnd < now
     const expiredOrders = await prisma.order.findMany({
       where: {
+        ...(merchantId ? { merchantId } : {}),
         status: { in: [OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP] },
         items: {
           some: {
-            listing: {
-              pickupEnd: { lt: now },
-            },
+            OR: [
+              { pickupEndSnapshot: { lt: now } },
+              { pickupEndSnapshot: null, listing: { pickupEnd: { lt: now } } },
+            ],
           },
         },
         OR: [
@@ -674,6 +675,7 @@ export class PickupService {
     const swept = await prisma.order.updateManyAndReturn({
       where: {
         id: { in: orderIds },
+        ...(merchantId ? { merchantId } : {}),
         status: { in: [OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP] },
         OR: [{ pickupVerification: null }, { pickupVerification: { isVerified: false } }],
       },

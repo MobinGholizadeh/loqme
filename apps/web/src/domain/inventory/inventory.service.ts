@@ -44,13 +44,13 @@ export class InventoryService {
   /**
    * Atomically reserves stock using database-level locking conditions to prevent overselling
    */
-  async atomicReserve(listingId: string, quantity: number): Promise<{ success: boolean; message?: string }> {
+  async atomicReserve(listingId: string, quantity: number, tx?: Prisma.TransactionClient): Promise<{ success: boolean; message?: string }> {
     if (!Number.isInteger(quantity) || quantity <= 0) {
       return { success: false, message: 'تعداد درخواستی باید بزرگتر از صفر باشد' };
     }
 
     // Atomic update only succeeds if available stock is sufficient
-    const count = await prisma.$executeRaw`
+    const count = await (tx ?? prisma).$executeRaw`
       UPDATE "ListingInventory"
       SET "reservedQuantity" = "reservedQuantity" + ${quantity},
           "version" = "version" + 1,

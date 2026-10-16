@@ -1,3 +1,9 @@
+// Compatibility palettes keep existing page utilities on the shared Green Deck tokens.
+const shades = [50,100,200,300,400,500,600,700,800,900,950];
+const palette = family => Object.fromEntries(shades.map(shade => [shade,
+  `rgb(var(--deck-${family}-${family === 'primary' && shade === 950 ? 900 : shade}-rgb) / <alpha-value>)`]));
+const neutral = palette('neutral');
+const primary = palette('primary');
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -6,17 +12,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        slate: neutral, gray: neutral, zinc: neutral, neutral, stone: neutral,
+        teal: primary, emerald: primary, green: primary,
         loqme: {
-          50: '#F0FDF9',
-          100: '#CCFBF1',
-          200: '#99F6E4',
-          300: '#5EEAD4',
-          500: '#14B8A6',
-          600: '#0D9488',
-          700: '#0F766E',
-          800: '#115E59',
-          900: '#0E4E49',
-          950: '#062E2B',
+          ...primary,
           primary: {
             50: 'var(--loqme-primary-50)',
             100: 'var(--loqme-primary-100)',
@@ -81,7 +80,7 @@ module.exports = {
         'floating': '0 12px 30px -4px rgba(14, 78, 73, 0.16)',
       },
       fontFamily: {
-        sans: ['IranYekanDigits', 'var(--font-vazirmatn)', 'Vazirmatn', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['var(--font-vazirmatn)', 'Vazirmatn', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       keyframes: {
         fadeSlideIn: {

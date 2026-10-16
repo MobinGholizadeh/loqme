@@ -24,7 +24,7 @@ export const Badge: React.FC<BadgeProps> = ({
 
   const variantStyles = {
     brand:
-      "bg-[#F0FDFA] text-loqme-primary-600 border border-teal-200 font-bold",
+      "bg-loqme-primary-50 text-loqme-primary-600 border border-teal-200 font-bold",
     success:
       "bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold",
     warning: "bg-amber-50 text-amber-800 border border-amber-200 font-medium",

@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import * as RedesignIcons from "lucide-react";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -228,7 +230,7 @@ export function MarketplaceMap({
 
       {/* Floating City & Quick Action Controls */}
       <div className="absolute top-4 left-4 z-[400] flex flex-col gap-2">
-        <button
+        <RippleButton
           type="button"
           className="icon-button bg-white border border-loqme-neutral-200"
           title="بازگشت به محله انتخاب‌شده"
@@ -236,9 +238,9 @@ export function MarketplaceMap({
           onClick={() => handleRecenter(center, zoom)}
         >
           <RedesignIcons.RotateCcw size={18} />
-        </button>
+        </RippleButton>
 
-        <button
+        <RippleButton
           type="button"
           onClick={handleLocateMe}
           title="نمایش موقعیت من روی نقشه"
@@ -246,7 +248,7 @@ export function MarketplaceMap({
           className="w-11 h-11 bg-white/95 backdrop-blur-md rounded-lg shadow-dropdown border border-loqme-neutral-200 text-loqme-neutral-700 hover:text-loqme-primary-600 flex items-center justify-center transition-colors self-start"
         >
           <RedesignIcons.LocateFixed size={20} aria-hidden="true" />
-        </button>
+        </RippleButton>
       </div>
 
       {locationError && (
@@ -286,14 +288,14 @@ export function MarketplaceMap({
                 </p>
               </div>
 
-              <button
+              <RippleButton
                 type="button"
                 onClick={() => setActivePin(null)}
                 className="icon-button"
                 aria-label="بستن جزئیات فروشگاه"
               >
                 ✕
-              </button>
+              </RippleButton>
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-loqme-neutral-100">

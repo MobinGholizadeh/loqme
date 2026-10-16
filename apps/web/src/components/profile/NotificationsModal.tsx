@@ -1,4 +1,6 @@
 "use client";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
@@ -87,7 +89,7 @@ export function NotificationsModal({
       className="max-w-md"
       footer={
         <div className="flex items-center justify-between w-full">
-          <button
+          <RippleButton
             type="button"
             onClick={handleMarkAllRead}
             disabled={unreadCount === 0}
@@ -95,21 +97,21 @@ export function NotificationsModal({
           >
             <CheckCheck size={16} />
             <span>علامت‌گذاری همه به عنوان خوانده‌شده</span>
-          </button>
-          <button
+          </RippleButton>
+          <RippleButton
             type="button"
             onClick={onClose}
             className="action-link secondary py-1.5 px-4 text-xs font-bold"
           >
             بستن
-          </button>
+          </RippleButton>
         </div>
       }
     >
       <div className="space-y-4">
         {/* Filter Chips */}
         <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
-          <button
+          <RippleButton
             type="button"
             onClick={() => setFilter("all")}
             className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all ${
@@ -119,8 +121,8 @@ export function NotificationsModal({
             }`}
           >
             همه ({notifications.length})
-          </button>
-          <button
+          </RippleButton>
+          <RippleButton
             type="button"
             onClick={() => setFilter("order")}
             className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all ${
@@ -130,8 +132,8 @@ export function NotificationsModal({
             }`}
           >
             سفارش‌ها
-          </button>
-          <button
+          </RippleButton>
+          <RippleButton
             type="button"
             onClick={() => setFilter("discount")}
             className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all ${
@@ -141,8 +143,8 @@ export function NotificationsModal({
             }`}
           >
             تخفیف‌ها
-          </button>
-          <button
+          </RippleButton>
+          <RippleButton
             type="button"
             onClick={() => setFilter("system")}
             className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all ${
@@ -152,7 +154,7 @@ export function NotificationsModal({
             }`}
           >
             کسب‌وکار
-          </button>
+          </RippleButton>
         </div>
 
         {/* Notifications List */}
