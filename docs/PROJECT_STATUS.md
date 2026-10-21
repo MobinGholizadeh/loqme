@@ -8,6 +8,14 @@
 
 ## 1. Project Health & Current State
 
+### Lenis smooth scrolling, GSAP animation orchestration, and React Bits integration (2026-10-16)
+
+Installed `lenis`, `gsap`, `@gsap/react`, and introduced the `react-bits` package/vendored library for Loqme:
+1. **Lenis (`lenis` + `lenis/react`)**: Added [SmoothScrollProvider](file:///d:/AiProjects/loqme/apps/web/src/components/lenis/SmoothScrollProvider.tsx) integrated into root [layout.tsx](file:///d:/AiProjects/loqme/apps/web/src/app/layout.tsx), synchronizing Lenis's smooth momentum scroll raf loop with GSAP's ticker, with full SSR safety and `prefers-reduced-motion` accessibility support.
+2. **GSAP (`gsap` + `@gsap/react`)**: Integrated GSAP 3 and official `@gsap/react` `useGSAP` hook, registering `ScrollTrigger` in harmony with Lenis and powering smooth text reveals.
+3. **React Bits (`react-bits`)**: Vendored and configured React Bits components ([SplitText](file:///d:/AiProjects/loqme/packages/react-bits/src/SplitText.tsx), [SpotlightCard](file:///d:/AiProjects/loqme/packages/react-bits/src/SpotlightCard.tsx), [ShinyText](file:///d:/AiProjects/loqme/packages/react-bits/src/ShinyText.tsx), [Magnet](file:///d:/AiProjects/loqme/packages/react-bits/src/Magnet.tsx), [CountUp](file:///d:/AiProjects/loqme/packages/react-bits/src/CountUp.tsx)) in both a dedicated monorepo workspace package (`packages/react-bits`) and `apps/web/src/components/reactbits`. Active on the homepage ([HomeLanding.tsx](file:///d:/AiProjects/loqme/apps/web/src/components/home/HomeLanding.tsx)): SplitText hero title entrance, ShinyText location eyebrow, Magnet magnetic CTA buttons, and interactive SpotlightCards for value props.
+4. **Validation**: Zero-warning ESLint, clean workspace typecheck (`tsc --noEmit`), 6/6 dedicated unit tests passing in [lenis-gsap-reactbits.test.tsx](file:///d:/AiProjects/loqme/tests/lenis-gsap-reactbits.test.tsx), and full Next.js production build (`next build --webpack`) generating 37/37 static pages cleanly.
+
 ### Full release validation for Git publication (2026-10-16)
 
 The complete pending M12 and CP-10.22–CP-10.27 working tree was validated before the owner-requested Git publication. A fresh disposable PostgreSQL database named with the guarded `loqme_onboarding_test_release_20261016_*` prefix accepted all 15 checked-in migrations and fresh seed data. The complete serial Vitest suite passed **984/984 tests across 80 files**. Workspace typecheck, zero-warning ESLint, Prisma schema validation, the standard `.next` production build, focused optimized-build mobile/desktop navigation checks and diff whitespace checks passed. The ordinary developer database and production were not migrated or seeded; ignored build/test artifacts are excluded from source control.

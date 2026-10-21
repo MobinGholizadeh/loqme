@@ -37,6 +37,12 @@
       ],
       "@loqme/api": [
         "../../packages/api/src"
+      ],
+      "react-bits": [
+        "../../packages/react-bits/src"
+      ],
+      "react-bits/*": [
+        "../../packages/react-bits/src/*"
       ]
     }
   },

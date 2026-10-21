@@ -19,8 +19,8 @@
 .landing-section p { color: #526460; font-size: 15px; line-height: 2.1; }
 .landing-intro { text-align: center; }
 .landing-intro > p { max-width: 760px; margin: 24px auto 48px; }
-.landing-benefits { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; text-align: right; }
-.landing-benefits article { padding-top: 24px; border-top: 1px solid #CDDCD6; }
+.landing-benefits { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: right; }
+.landing-benefits article, .landing-benefits .benefit-card { padding: 24px; border: 1px solid #D6E4DF; border-radius: 20px; background: white; text-align: right; }
 .landing-benefits svg { color: #1D616A; margin-bottom: 18px; }
 .landing-section h3 { font-size: 18px; font-weight: 800; color: #203B3B; margin-bottom: 12px; }
 .landing-benefits p { font-size: 13px; }

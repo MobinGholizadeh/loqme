@@ -23,6 +23,7 @@ export default defineConfig({
       '@loqme/validation': path.resolve(__dirname, './packages/validation/src'),
       '@loqme/design-tokens': path.resolve(__dirname, './packages/design-tokens/src'),
       '@loqme/api': path.resolve(__dirname, './packages/api/src'),
+      'react-bits': path.resolve(__dirname, './packages/react-bits/src'),
     },
   },
 });

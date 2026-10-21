@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, MapPin, Compass, ShoppingBag, Store, Heart, BadgeCheck, Wallet } from "lucide-react";
 import { CategoryTicker } from "./CategoryTicker";
+import { SplitText, ShinyText, SpotlightCard, Magnet } from "react-bits";
 import "./home-landing.css";
 
 export function HomeLanding() {
@@ -25,12 +26,23 @@ export function HomeLanding() {
       </picture>
       <div className="landing-hero-shade" />
       <div className="landing-hero-copy">
-        <span className="landing-eyebrow"><MapPin size={17} aria-hidden="true" /> از محله‌های ارومیه شروع می‌کنیم</span>
-        <h1 id="home-title">یک کشف خوشمزه.<br />یک خرید هوشمندانه.</h1>
+        <span className="landing-eyebrow">
+          <MapPin size={17} aria-hidden="true" />
+          <ShinyText text="از محله‌های ارومیه شروع می‌کنیم" color="#C7E5DC" shineColor="#FFFFFF" speed={3.5} />
+        </span>
+        <h1 id="home-title">
+          <SplitText text="یک کشف خوشمزه." splitBy="words" delay={100} duration={0.8} />
+          <br />
+          <SplitText text="یک خرید هوشمندانه." splitBy="words" delay={350} duration={0.8} />
+        </h1>
         <p>خوراکی‌های خوبِ فروشگاه‌های محله، با قیمتی بهتر.<br />با لقمه کشف کن، رزرو کن و حضوری تحویل بگیر.</p>
         <div className="landing-actions">
-          <Link href="/discover" className="action-link">کشف خوراکی‌ها <ArrowLeft size={20} aria-hidden="true" /></Link>
-          <Link href="#why-loqme" className="action-link secondary">چرا لقمه؟</Link>
+          <Magnet padding={30} magnetStrength={3}>
+            <Link href="/discover" className="action-link">کشف خوراکی‌ها <ArrowLeft size={20} aria-hidden="true" /></Link>
+          </Magnet>
+          <Magnet padding={30} magnetStrength={3}>
+            <Link href="#why-loqme" className="action-link secondary">چرا لقمه؟</Link>
+          </Magnet>
         </div>
       </div>
       <span className="landing-photo-note">از فروشگاه محله، به دست تو.</span>
@@ -46,7 +58,13 @@ export function HomeLanding() {
           { Icon: Compass, title: "کشف طعم‌های نزدیک", text: "از نانوایی آشنا تا کافه‌ای که هنوز امتحانش نکرده‌ای." },
           { Icon: BadgeCheck, title: "خرید با خیال روشن", text: "جزئیات بسته، شرایط نگهداری و بازه دریافت را پیش از خرید ببین." },
           { Icon: Heart, title: "یک انتخاب، اثر بهتر", text: "با خرید خوراکی‌های سالمِ مازاد، به کمتر شدن هدررفت کمک کن." },
-        ].map(({ Icon, title, text }) => <article key={title}><Icon size={30} aria-hidden="true" /><h3>{title}</h3><p>{text}</p></article>)}
+        ].map(({ Icon, title, text }) => (
+          <SpotlightCard key={title} className="benefit-card" spotlightColor="rgba(29, 97, 106, 0.12)">
+            <Icon size={30} aria-hidden="true" />
+            <h3>{title}</h3>
+            <p>{text}</p>
+          </SpotlightCard>
+        ))}
       </div>
     </section>
 

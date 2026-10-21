@@ -8,6 +8,7 @@ import './green-deck.css';
 import '@/components/auth/botanical-auth.css';
 import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
 import { SessionProvider } from "@/components/auth/SessionProvider";
+import { SmoothScrollProvider } from "@/components/lenis";
 
 const vazirmatn = localFont({
   src: "../../public/fonts/Vazirmatn-Variable.woff2",
@@ -100,8 +101,10 @@ export default function RootLayout({
     >
       <body className="font-sans antialiased min-h-screen">
         <SessionProvider>
-          {children}
-          <PwaInstallPrompt />
+          <SmoothScrollProvider>
+            {children}
+            <PwaInstallPrompt />
+          </SmoothScrollProvider>
         </SessionProvider>
       </body>
     </html>
