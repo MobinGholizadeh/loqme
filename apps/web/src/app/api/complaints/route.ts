@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { moderationService } from '@/domain/moderation/moderation.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -6,7 +7,7 @@ import { CreateComplaintSchema } from '@loqme/validation';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
@@ -68,3 +69,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withDatabaseRequest(handlePOST);

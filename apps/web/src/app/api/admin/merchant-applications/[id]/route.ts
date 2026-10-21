@@ -1,8 +1,9 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest } from 'next/server';
 import { reviewApplication } from '@/domain/business/application.service';
 import { businessFailure, businessJson, businessUser, readBusinessBody } from '@/lib/business/http';
 export const dynamic = 'force-dynamic';
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+async function handlePATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const user = await businessUser(request);
@@ -11,3 +12,5 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return businessFailure(e);
   }
 }
+
+export const PATCH = withDatabaseRequest(handlePATCH);

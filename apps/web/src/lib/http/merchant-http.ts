@@ -11,3 +11,9 @@ export async function readMerchantJson(request: NextRequest) {
   requireMutationOrigin(request);
   return JSON.parse(await readBoundedBody(request.body, 32_768));
 }
+
+export function extractMerchantId(request: NextRequest, fallbackMerchantId?: string): string | undefined {
+  return request.nextUrl.searchParams.get('merchantId') || fallbackMerchantId || request.cookies.get('loqme_active_merchant')?.value || undefined;
+}
+
+

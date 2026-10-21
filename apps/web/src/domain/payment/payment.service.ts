@@ -1,3 +1,4 @@
+import { withDatabaseService } from '@/lib/db/context';
 import { initiatePaymentOnce } from './payment-attempt.service';
 import { prisma } from '@/lib/prisma';
 import { IPaymentGateway, InitiatePaymentResult, VerifyPaymentResult } from './gateway.interface';
@@ -98,6 +99,7 @@ export class PaymentService {
     referenceId?: string;
     errorMessage?: string;
   }> {
+    return withDatabaseService('payment', params.authority, async () => {
     const { authority, ipAddress } = params;
 
     const payment = await prisma.payment.findUnique({
@@ -197,6 +199,8 @@ export class PaymentService {
       orderId: payment.orderId,
       referenceId: verifyResult.referenceId,
     };
+    });
+  
     });
   }
 

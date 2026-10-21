@@ -1,3 +1,4 @@
+import { withDatabaseService } from '@/lib/db/context';
 import { prisma } from '@/lib/prisma';
 import { listingImageStorage } from '@/domain/listing/image-storage';
 import { BusinessType, VerificationStatus, StaffRole, Prisma } from '@prisma/client';
@@ -603,7 +604,7 @@ export class MerchantService {
 
     const normalizedMobile = data.mobile;
 
-    return prisma.$transaction(async (tx) => {
+    return withDatabaseService('invite', merchant.id, () => prisma.$transaction(async (tx) => {
       // 1. Find or create the user
       let user = await tx.user.findUnique({
         where: { mobile: normalizedMobile },
@@ -669,7 +670,7 @@ export class MerchantService {
         canScanPickup: staffRecord.canScanPickup,
         createdAt: staffRecord.createdAt.toISOString(),
       };
-    });
+    }), normalizedMobile);
   }
 
   /**

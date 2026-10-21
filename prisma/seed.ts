@@ -442,31 +442,56 @@ async function main() {
         include: { locations: true },
       });
       locationId = merchant.locations[0].id;
-    } else if (!locationId) {
-      const newLoc = await prisma.merchantLocation.create({
-        data: {
-          merchantId: merchant.id,
-          cityId: neighborhoodRef.cityId,
-          neighborhoodId: neighborhoodRef.id,
-          addressFa: m.address,
-          latitude: m.lat,
-          longitude: m.lng,
-          phone: m.phone,
-          hours: {
-            createMany: {
-              data: [0, 1, 2, 3, 4, 5, 6].map((day) => ({
-                dayOfWeek: day,
-                isOpen: true,
-                storeOpenTime: '08:00',
-                storeCloseTime: '23:00',
-                defaultPickupStart: '19:30',
-                defaultPickupEnd: '22:00',
-              })),
+    } else {
+      await prisma.merchant.update({
+        where: { id: merchant.id },
+        data: { ownerUserId: ownerUser.id },
+      });
+      const ownerStaff = await prisma.merchantStaff.findFirst({
+        where: { merchantId: merchant.id, role: StaffRole.OWNER },
+      });
+      if (ownerStaff) {
+        await prisma.merchantStaff.update({
+          where: { id: ownerStaff.id },
+          data: { userId: ownerUser.id, canScanPickup: true },
+        });
+      } else {
+        await prisma.merchantStaff.create({
+          data: {
+            merchantId: merchant.id,
+            userId: ownerUser.id,
+            role: StaffRole.OWNER,
+            canScanPickup: true,
+          },
+        });
+      }
+
+      if (!locationId) {
+        const newLoc = await prisma.merchantLocation.create({
+          data: {
+            merchantId: merchant.id,
+            cityId: neighborhoodRef.cityId,
+            neighborhoodId: neighborhoodRef.id,
+            addressFa: m.address,
+            latitude: m.lat,
+            longitude: m.lng,
+            phone: m.phone,
+            hours: {
+              createMany: {
+                data: [0, 1, 2, 3, 4, 5, 6].map((day) => ({
+                  dayOfWeek: day,
+                  isOpen: true,
+                  storeOpenTime: '08:00',
+                  storeCloseTime: '23:00',
+                  defaultPickupStart: '19:30',
+                  defaultPickupEnd: '22:00',
+                })),
+              },
             },
           },
-        },
-      });
-      locationId = newLoc.id;
+        });
+        locationId = newLoc.id;
+      }
     }
 
     merchantIds[m.idKey] = {

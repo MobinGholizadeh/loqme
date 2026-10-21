@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { reservationService } from '@/domain/reservation/reservation.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -6,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     // 1. Authenticate customer
     const token = extractSessionToken(request);
@@ -79,3 +80,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withDatabaseRequest(handlePOST);

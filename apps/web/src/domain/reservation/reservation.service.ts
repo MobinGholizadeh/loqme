@@ -1,3 +1,4 @@
+import { withDatabaseService, withReservationWrite } from '@/lib/db/context';
 import { prisma } from '@/lib/prisma';
 import { inventoryService } from '@/domain/inventory/inventory.service';
 import { ReservationStatus, ListingStatus, SafetyStatus } from '@prisma/client';
@@ -26,6 +27,7 @@ export class ReservationService {
     listingId: string;
     quantity?: number;
   }): Promise<CreateReservationResult> {
+    return withReservationWrite(params.listingId, async () => {
     const { customerId, listingId, quantity = 1 } = params;
 
     if (!Number.isInteger(quantity) || quantity <= 0 || quantity > 5) {
@@ -80,6 +82,8 @@ export class ReservationService {
       // The counter, its history and the hold all roll back together.
       return { success: false, message: 'خطا در ثبت رزرو بسته' };
     }
+  
+    });
   }
 
   /**
@@ -128,6 +132,7 @@ export class ReservationService {
    * Called by periodic cron or on-demand before checkout queries.
    */
   async sweepExpiredReservations(listingId?: string): Promise<number> {
+    return withDatabaseService('expiry', listingId ?? '', async () => {
     const now = new Date();
 
     const expiredList = await prisma.reservation.findMany({
@@ -144,9 +149,12 @@ export class ReservationService {
       if (await this.releasePending(res.id, ReservationStatus.EXPIRED)) released++;
     }
     return released;
+  
+    });
   }
 
   private async releasePending(id: string, status: 'EXPIRED' | 'RELEASED') {
+    return withReservationWrite(id, async () => {
     return prisma.$transaction(async (tx) => {
       const reservation = await tx.reservation.findUnique({ where: { id } });
       if (!reservation) return false;
@@ -159,6 +167,8 @@ export class ReservationService {
       const result = await inventoryService.atomicRelease(reservation.listingId, reservation.quantity, tx);
       if (!result.success) throw new Error('موجودی رزرو با سفارش مطابقت ندارد');
       return true;
+    });
+  
     });
   }
 

@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextResponse } from 'next/server';
 import { checkDatabaseHealth } from '@/lib/prisma';
 
@@ -7,7 +8,7 @@ export const dynamic = 'force-dynamic';
  * Readiness Probe (/api/health/ready)
  * Verifies that the server and backing services (PostgreSQL/PostGIS) are ready to serve requests.
  */
-export async function GET() {
+async function handleGET() {
   const dbHealth = await checkDatabaseHealth();
 
   const isReady = dbHealth.healthy;
@@ -34,3 +35,5 @@ export async function GET() {
     }
   );
 }
+
+export const GET = withDatabaseRequest(handleGET);

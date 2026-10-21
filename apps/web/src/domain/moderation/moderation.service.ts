@@ -1,3 +1,4 @@
+import { withDatabaseService } from '@/lib/db/context';
 import { CreateReviewSchema } from '@loqme/validation';
 import { MerchantRatingSummaryDto } from '@loqme/types';
 import { prisma } from '@/lib/prisma';
@@ -48,7 +49,7 @@ export class ModerationService {
     }
 
     const validated = CreateReviewSchema.parse({ ...input, orderId });
-    const review = await prisma.$transaction(async (tx) => {
+    const review = await withDatabaseService('review', order.merchantId, () => prisma.$transaction(async (tx) => {
       // Serialize review writers per merchant before inserting or aggregating.
       await tx.$queryRaw`SELECT id FROM "Merchant" WHERE id = ${order.merchantId} FOR UPDATE`;
       const created = await tx.review.create({
@@ -75,7 +76,7 @@ export class ModerationService {
         },
       });
       return created;
-    });
+    }));
 
     await auditService.logAction({
       action: 'REVIEW_SUBMITTED',
@@ -175,32 +176,17 @@ export class ModerationService {
           id: true, merchantId: true, overallRating: true, qualityRating: true,
           valueRating: true, collectionRating: true, varietyRating: true, quantityRating: true,
           commentFa: true, merchantReplyFa: true, merchantReplyAt: true, createdAt: true,
-          customer: {
-            select: {
-              fullName: true,
-            },
-          },
-          order: {
-            select: {
-              items: {
-                select: {
-                  listing: {
-                    select: {
-                      titleFa: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
+
         },
       }),
       prisma.review.count({ where: { merchantId } }),
       this.getMerchantRatings(merchantId),
     ]);
 
+    const details = await prisma.$queryRaw<{ id: string; fullName: string | null; titles: { listing: { titleFa: string } }[] }[]>`SELECT * FROM loqme_rls.review_details(${merchantId})`;
+    const byId = new Map(details.map(row => [row.id, row]));
     return {
-      items,
+      items: items.map(item => ({ ...item, customer: { fullName: byId.get(item.id)?.fullName ?? null }, order: { items: byId.get(item.id)?.titles ?? [] } })),
       total,
       ratings,
       limit,
@@ -246,6 +232,7 @@ export class ModerationService {
       input.category === ComplaintCategory.SPOILED_FOOD;
 
     if (isCriticalSafety) {
+      await withDatabaseService('safety', order.merchantId, async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const safetyComplaintsCount = await prisma.complaint.count({
         where: {
@@ -290,6 +277,7 @@ export class ModerationService {
           },
         });
       }
+      });
     }
 
     await auditService.logAction({

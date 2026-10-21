@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { resolvePickupWindow } from '@/domain/listing/pickup-window';
 import { readPickupDetails } from '@/domain/listing/pickup-details';
 import { NextRequest, NextResponse } from "next/server";
@@ -8,11 +9,11 @@ import { FastCreateListingSchema } from "@loqme/validation";
 import { prisma } from "@/lib/prisma";
 import { ListingType } from "@prisma/client";
 import { ZodError } from "zod";
-import { readMerchantJson } from '@/lib/http/merchant-http';
+import { readMerchantJson, extractMerchantId } from '@/lib/http/merchant-http';
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
@@ -30,8 +31,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const searchParams = request.nextUrl.searchParams;
-    const merchantId = searchParams.get("merchantId") || undefined;
+    const merchantId = extractMerchantId(request);
 
     const { merchant } = await merchantService.resolveMerchantAndAuthorize(
       session.userId,
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
@@ -115,8 +115,7 @@ export async function POST(request: NextRequest) {
 
     const body = await readMerchantJson(request);
     const searchParams = request.nextUrl.searchParams;
-    const merchantId =
-      searchParams.get("merchantId") || body.merchantId || undefined;
+    const merchantId = extractMerchantId(request, body.merchantId);
 
     const { merchant } = await merchantService.resolveMerchantAndAuthorize(
       session.userId,
@@ -203,3 +202,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);
+export const POST = withDatabaseRequest(handlePOST);

@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminSession } from "@/lib/auth/admin-auth";
@@ -27,7 +28,7 @@ function failure(error: unknown) {
     },
   );
 }
-export async function GET(
+async function handleGET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -53,7 +54,7 @@ export async function GET(
     return failure(error);
   }
 }
-export async function PATCH(
+async function handlePATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -73,3 +74,6 @@ export async function PATCH(
     return failure(error);
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);
+export const PATCH = withDatabaseRequest(handlePATCH);

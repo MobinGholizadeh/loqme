@@ -1,9 +1,10 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { VerifyOtpSchema } from '@loqme/validation';
 import { authService } from '@/domain/auth/auth.service';
 import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS } from '@/lib/auth/session';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json();
     const parseResult = VerifyOtpSchema.safeParse(body);
@@ -44,3 +45,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withDatabaseRequest(handlePOST);

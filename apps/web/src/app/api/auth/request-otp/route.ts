@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { RequestOtpSchema } from '@/domain/auth/auth.schema';
 import { guardOtpRequest } from '@/lib/auth/request-guard';
@@ -8,7 +9,7 @@ function authJson(data: unknown, init: { status: number }) {
   return NextResponse.json(data, { ...init, headers: { 'Cache-Control': 'private, no-store' } });
 }
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   const blocked = guardOtpRequest(request);
   if (blocked) return blocked;
   try {
@@ -51,3 +52,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withDatabaseRequest(handlePOST);

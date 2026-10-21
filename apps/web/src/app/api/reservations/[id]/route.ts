@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { reservationService } from '@/domain/reservation/reservation.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -5,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
+async function handleGET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -70,7 +71,7 @@ export async function GET(
   }
 }
 
-export async function DELETE(
+async function handleDELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -107,3 +108,6 @@ export async function DELETE(
     return NextResponse.json({ success: false, message: 'خطا در لغو رزرو' }, { status: 500 });
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);
+export const DELETE = withDatabaseRequest(handleDELETE);

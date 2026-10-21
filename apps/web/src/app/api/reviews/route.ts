@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { moderationService } from '@/domain/moderation/moderation.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -6,7 +7,7 @@ import { CreateReviewSchema } from '@loqme/validation';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const merchantId = searchParams.get('merchantId');
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
@@ -96,3 +97,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);
+export const POST = withDatabaseRequest(handlePOST);

@@ -1,10 +1,11 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { BusinessError } from '@/domain/business/application.service';
 import { limitMapir, searchMapir } from '@/lib/business/mapir';
 import { businessFailure, businessJson } from '@/lib/business/http';
 export const dynamic = 'force-dynamic';
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     limitMapir(request.headers.get('x-forwarded-for')?.split(',')[0]?.trim().slice(0, 80) || 'anonymous');
     const query = request.nextUrl.searchParams.get('q')?.trim() || '';
@@ -15,3 +16,5 @@ export async function GET(request: NextRequest) {
     return businessJson(await searchMapir(query, city.nameFa));
   } catch (e) { return businessFailure(e); }
 }
+
+export const GET = withDatabaseRequest(handleGET);

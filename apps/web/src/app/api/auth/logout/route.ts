@@ -1,7 +1,8 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextResponse } from 'next/server';
 import { SESSION_COOKIE_NAME } from '@/lib/auth/session';
 
-export async function POST() {
+async function handlePOST() {
   const response = NextResponse.json(
     { success: true, message: 'با موفقیت خارج شدید' },
     { status: 200 }
@@ -15,3 +16,5 @@ export async function POST() {
 
   return response;
 }
+
+export const POST = withDatabaseRequest(handlePOST);

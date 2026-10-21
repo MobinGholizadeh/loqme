@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { orderService } from '@/domain/order/order.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -7,7 +8,7 @@ import { PaymentGatewayType } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     // 1. Authenticate user
     const token = extractSessionToken(request);
@@ -94,3 +95,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withDatabaseRequest(handlePOST);

@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { updatePickupDetails } from '@/domain/listing/pickup-details';
 import { updateListingImage } from '@/domain/listing/update-image';
 import { NextRequest, NextResponse } from 'next/server';
@@ -6,11 +7,11 @@ import { merchantService } from '@/domain/merchant/merchant.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 import { UpdateListingStockSchema } from '@loqme/validation';
 import { ListingStatus } from '@prisma/client';
-import { readMerchantJson, requireMutationOrigin } from '@/lib/http/merchant-http';
+import { readMerchantJson, requireMutationOrigin, extractMerchantId } from '@/lib/http/merchant-http';
 
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(
+async function handlePATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -33,8 +34,7 @@ export async function PATCH(
     }
 
     const body = await readMerchantJson(request);
-    const searchParams = request.nextUrl.searchParams;
-    const merchantId = searchParams.get('merchantId') || body.merchantId || undefined;
+    const merchantId = extractMerchantId(request, body.merchantId);
 
     const { merchant } = await merchantService.resolveMerchantAndAuthorize(
       session.userId,
@@ -99,7 +99,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
+async function handleDELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -122,8 +122,7 @@ export async function DELETE(
       );
     }
 
-    const searchParams = request.nextUrl.searchParams;
-    const merchantId = searchParams.get('merchantId') || undefined;
+    const merchantId = extractMerchantId(request);
 
     const { merchant } = await merchantService.resolveMerchantAndAuthorize(
       session.userId,
@@ -152,3 +151,6 @@ export async function DELETE(
     );
   }
 }
+
+export const PATCH = withDatabaseRequest(handlePATCH);
+export const DELETE = withDatabaseRequest(handleDELETE);

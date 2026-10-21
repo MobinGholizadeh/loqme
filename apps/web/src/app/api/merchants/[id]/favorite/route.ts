@@ -1,10 +1,11 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(
+async function handlePOST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -94,3 +95,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withDatabaseRequest(handlePOST);

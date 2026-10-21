@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { orderService } from '@/domain/order/order.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -5,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
+async function handleGET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -40,3 +41,5 @@ export async function GET(
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

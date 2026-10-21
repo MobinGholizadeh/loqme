@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { moderationService } from '@/domain/moderation/moderation.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -6,7 +7,7 @@ import { Role } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(
+async function handlePATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -62,3 +63,5 @@ export async function PATCH(
     );
   }
 }
+
+export const PATCH = withDatabaseRequest(handlePATCH);

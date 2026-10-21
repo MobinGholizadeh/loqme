@@ -1,10 +1,12 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { merchantService } from '@/domain/merchant/merchant.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
+import { extractMerchantId } from '@/lib/http/merchant-http';
 
 export const dynamic = 'force-dynamic';
 
-export async function DELETE(
+async function handleDELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -26,8 +28,7 @@ export async function DELETE(
       );
     }
 
-    const searchParams = request.nextUrl.searchParams;
-    const merchantId = searchParams.get('merchantId') || undefined;
+    const merchantId = extractMerchantId(request);
 
     const result = await merchantService.removeStaffMember(
       session.userId,
@@ -48,3 +49,5 @@ export async function DELETE(
     );
   }
 }
+
+export const DELETE = withDatabaseRequest(handleDELETE);

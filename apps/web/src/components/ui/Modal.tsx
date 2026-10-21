@@ -43,6 +43,7 @@ export function Modal({
       aria-labelledby={title ? titleId : undefined}
       aria-label={title ? undefined : "جزئیات"}
       className={cn("loqme-dialog", className)}
+      data-lenis-prevent
       onCancel={(e) => {
         e.preventDefault();
         onClose();

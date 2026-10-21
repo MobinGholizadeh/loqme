@@ -1,7 +1,7 @@
 "use client";
 import { RippleButton } from "@/components/magicui/ripple-button";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession } from "@/components/auth/SessionProvider";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -60,6 +60,42 @@ export function PortalShell({
   const { user, setUser } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutError, setLogoutError] = useState(false);
+  const [contexts, setContexts] = useState<Array<{ id: string; nameFa: string; role: string }>>([]);
+  const [activeMerchantId, setActiveMerchantId] = useState<string>('');
+
+  useEffect(() => {
+    if (role !== 'merchant') return;
+    const controller = new AbortController();
+    fetch('/api/merchant/contexts', { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+          setContexts(res.data);
+          const cookieMatch = typeof document !== 'undefined'
+            ? document.cookie
+                .split('; ')
+                .find((row) => row.startsWith('loqme_active_merchant='))
+            : null;
+          const currentCookie = cookieMatch ? cookieMatch.split('=')[1] : '';
+          const valid = res.data.some((c: any) => c.id === currentCookie);
+          const chosen = valid ? currentCookie : res.data[0].id;
+          setActiveMerchantId(chosen);
+          if (typeof document !== 'undefined' && chosen !== currentCookie) {
+            document.cookie = `loqme_active_merchant=${chosen}; path=/; max-age=2592000; SameSite=Lax`;
+          }
+        }
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [role]);
+
+  const handleSwitchStore = (newId: string) => {
+    setActiveMerchantId(newId);
+    if (typeof document !== 'undefined') {
+      document.cookie = `loqme_active_merchant=${newId}; path=/; max-age=2592000; SameSite=Lax`;
+      window.location.reload();
+    }
+  };
   const items = (role === "admin" ? adminItems : merchantItems).filter(
     (item) =>
       user?.role !== "MERCHANT_STAFF" ||
@@ -131,8 +167,27 @@ export function PortalShell({
               {items.find((item) => isActive(item.href))?.label || title}
             </span>
           </div>
-          <div className="portal-user">
-            <span>{user?.fullName || title}</span>
+          <div className="portal-user flex items-center gap-2">
+            {role === "merchant" && contexts.length > 1 ? (
+              <select
+                value={activeMerchantId}
+                onChange={(e) => handleSwitchStore(e.target.value)}
+                className="text-xs font-bold bg-white text-slate-800 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-600 shadow-sm cursor-pointer"
+                aria-label="انتخاب فروشگاه"
+              >
+                {contexts.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nameFa}
+                  </option>
+                ))}
+              </select>
+            ) : role === "merchant" && contexts.length === 1 ? (
+              <span className="text-xs font-bold text-slate-700 bg-teal-50 px-2 py-1 rounded-md border border-teal-100">
+                {contexts[0].nameFa}
+              </span>
+            ) : (
+              <span>{user?.fullName || title}</span>
+            )}
             <span className="avatar">
               <Store size={18} />
             </span>

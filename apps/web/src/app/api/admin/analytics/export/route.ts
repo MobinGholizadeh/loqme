@@ -1,9 +1,10 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth/admin-auth';
 import { analyticsService } from '@/domain/analytics/analytics.service';
 import { AnalyticsQuerySchema } from '@loqme/validation';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   const authResult = await requireAdminSession(request);
   if ('errorResponse' in authResult) {
     return authResult.errorResponse;
@@ -52,3 +53,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

@@ -1,7 +1,8 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { prisma } from '@/lib/prisma';
 import { businessFailure, businessJson } from '@/lib/business/http';
 export const dynamic = 'force-dynamic';
-export async function GET() {
+async function handleGET() {
   try {
     const cities = await prisma.city.findMany({ include: { province: true, neighborhoods: { select: { centerLat: true, centerLng: true }, take: 1, orderBy: { nameFa: 'asc' } }, merchantLocations: { select: { latitude: true, longitude: true }, take: 1, orderBy: { createdAt: 'asc' } } }, orderBy: { nameFa: 'asc' } });
     return businessJson(cities.map(c => ({ id: c.id, nameFa: c.nameFa, provinceNameFa: c.province.nameFa, slug: c.slug,
@@ -10,3 +11,5 @@ export async function GET() {
     })));
   } catch (e) { return businessFailure(e); }
 }
+
+export const GET = withDatabaseRequest(handleGET);

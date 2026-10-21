@@ -1,7 +1,8 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
-export async function GET() {
+async function handleGET() {
   try {
     const data = await prisma.category.findMany({
       select: { id: true, slug: true, nameFa: true },
@@ -15,3 +16,5 @@ export async function GET() {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

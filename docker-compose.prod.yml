@@ -18,7 +18,7 @@ services:
       NODE_ENV: production
       PORT: 3000
       HOSTNAME: "0.0.0.0"
-      DATABASE_URL: postgresql://${POSTGRES_USER:-loqme_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-loqme}?schema=public
+      DATABASE_URL: postgresql://loqme_runtime:${DATABASE_RUNTIME_PASSWORD:?Restricted runtime password required}@postgres:5432/${POSTGRES_DB:-loqme}?schema=public
       REDIS_URL: redis://redis:6379
       SESSION_SECRET: ${SESSION_SECRET}
       NEXT_PUBLIC_APP_URL: https://loqme.shop
@@ -43,6 +43,16 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    networks:
+      - loqme_prod_net
+
+  migrate:
+    profiles: ["migrations"]
+    image: ${LOQME_IMAGE:-ghcr.io/mobingholizadeh/loqme:latest}
+    command: ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node scripts/provision-rls-runtime.cjs"]
+    environment:
+      DATABASE_MIGRATION_URL: postgresql://${POSTGRES_USER:-loqme_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-loqme}?schema=public
+      DATABASE_RUNTIME_PASSWORD: ${DATABASE_RUNTIME_PASSWORD:?Restricted runtime password required}
     networks:
       - loqme_prod_net
 

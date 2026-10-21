@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { orderService } from '@/domain/order/order.service';
 import { PaymentVerifySchema } from '@loqme/validation';
@@ -7,7 +8,7 @@ export const dynamic = 'force-dynamic';
 /**
  * GET Handler: Handles browser redirects from payment gateways (e.g. Shaparak / Zarinpal callback)
  */
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const authority =
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
 /**
  * POST Handler: Handles server-to-server webhook callbacks or direct API clients (Mobile / headless)
  */
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json();
     const validated = PaymentVerifySchema.safeParse(body);
@@ -111,3 +112,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);
+export const POST = withDatabaseRequest(handlePOST);

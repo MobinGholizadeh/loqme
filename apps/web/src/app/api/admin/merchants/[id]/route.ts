@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { adminService } from '@/domain/admin/admin.service';
 import { requireAdminSession } from '@/lib/auth/admin-auth';
@@ -5,7 +6,7 @@ import { AdminUpdateMerchantSchema } from '@loqme/validation';
 
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(
+async function handlePATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -32,3 +33,5 @@ export async function PATCH(
     );
   }
 }
+
+export const PATCH = withDatabaseRequest(handlePATCH);

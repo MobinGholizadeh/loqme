@@ -1,3 +1,4 @@
+import { withDatabaseService } from '@/lib/db/context';
 import { prisma } from '@/lib/prisma';
 import { generateOtpCode, hashOtp } from '@/lib/auth/crypto';
 import { createSessionToken } from '@/lib/auth/session';
@@ -59,6 +60,7 @@ export class AuthService {
    * Initiates OTP generation and SMS dispatch
    */
   async requestOtp(mobile: string, options?: RequestOtpOptions): Promise<RequestOtpResult> {
+    return withDatabaseService('auth', mobile, async () => {
     const rateCheck = this.checkRateLimit(mobile);
     if (!rateCheck.allowed) {
       return {
@@ -132,12 +134,15 @@ export class AuthService {
       cooldownSeconds: OTP_RESEND_COOLDOWN_SECONDS,
       mobile,
     };
+  
+    });
   }
 
   /**
    * Verifies OTP code, generates session cookie payload
    */
   async verifyOtp(mobile: string, code: string): Promise<VerifyOtpResult> {
+    return withDatabaseService('auth', mobile, async () => {
     const inputHash = await hashOtp(code);
     let isValid = false;
 
@@ -197,6 +202,8 @@ export class AuthService {
       },
       token,
     };
+  
+    });
   }
 }
 

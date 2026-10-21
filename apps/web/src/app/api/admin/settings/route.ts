@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { adminService } from '@/domain/admin/admin.service';
 import { requireAdminSession } from '@/lib/auth/admin-auth';
@@ -5,7 +6,7 @@ import { UpdateSystemSettingsSchema } from '@loqme/validation';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   const auth = await requireAdminSession(request);
   if ('errorResponse' in auth) return auth.errorResponse;
 
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+async function handlePUT(request: NextRequest) {
   const auth = await requireAdminSession(request);
   if ('errorResponse' in auth) return auth.errorResponse;
 
@@ -50,3 +51,6 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);
+export const PUT = withDatabaseRequest(handlePUT);

@@ -1,3 +1,4 @@
+import { withDatabaseService } from '@/lib/db/context';
 import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { inventoryService } from '@/domain/inventory/inventory.service';
@@ -39,6 +40,7 @@ export class OrderService {
     callbackUrl: string;
     mobile?: string;
   }): Promise<CreateOrderResult> {
+    return withDatabaseService('reservation', params.reservationId, async () => {
     const { customerId, reservationId, notesFa, callbackUrl, mobile } = params;
     const gateway = params.gateway ?? (process.env.NODE_ENV === 'production' ? PaymentGatewayType.ZARINPAL : PaymentGatewayType.MOCK);
     const prepared = await prisma.$transaction(async tx => {
@@ -71,6 +73,8 @@ export class OrderService {
     const initiation = await paymentService.initiateOrderPayment({ order: prepared.order, gatewayType: gateway, callbackUrl, mobile });
     if (!initiation.success) return { success: false, message: initiation.errorMessage || 'درخواست پرداخت در حال بررسی است' };
     return { success: true, order: prepared.order, paymentUrl: initiation.paymentUrl, authority: initiation.authority };
+  
+    });
   }
 
   /**
@@ -81,6 +85,7 @@ export class OrderService {
     trackingCode?: string;
     ipAddress?: string;
   }): Promise<VerifyOrderPaymentResult> {
+    return withDatabaseService('payment', params.authority, async () => {
     const { authority, trackingCode, ipAddress } = params;
 
     // 1. Verify with payment gateway
@@ -189,6 +194,8 @@ export class OrderService {
       catch { console.warn('Failed to pre-initialize pickup verification'); }
     }
     return result;
+  
+    });
   }
   /**
    * Retrieves all orders for a customer with merchant and listing relations

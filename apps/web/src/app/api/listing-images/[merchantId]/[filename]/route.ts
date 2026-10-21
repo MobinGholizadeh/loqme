@@ -1,7 +1,8 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from "next/server";
 import { listingImageStorage } from "@/domain/listing/image-storage";
 export const dynamic = "force-dynamic";
-export async function GET(
+async function handleGET(
   _request: NextRequest,
   { params }: { params: Promise<{ merchantId: string; filename: string }> },
 ) {
@@ -22,3 +23,5 @@ export async function GET(
     return new NextResponse(null, { status: 404 });
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

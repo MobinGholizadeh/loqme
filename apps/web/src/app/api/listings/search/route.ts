@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { reservationService } from "@/domain/reservation/reservation.service";
 import { listingAvailability, publicListingWhere } from "@/domain/listing/availability";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,7 +9,7 @@ import { ListingSummaryDto } from "@loqme/types";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const searchParams = Object.fromEntries(
       request.nextUrl.searchParams.entries(),
@@ -134,3 +135,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

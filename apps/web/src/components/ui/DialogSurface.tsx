@@ -32,6 +32,7 @@ export function DialogSurface({
       ref={ref}
       aria-label={label}
       className="dialog-surface"
+      data-lenis-prevent
       onCancel={(e) => {
         e.preventDefault();
         onClose();

@@ -1,10 +1,11 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { adminService } from '@/domain/admin/admin.service';
 import { requireAdminSession } from '@/lib/auth/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   const auth = await requireAdminSession(request);
   if ('errorResponse' in auth) return auth.errorResponse;
 
@@ -33,3 +34,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

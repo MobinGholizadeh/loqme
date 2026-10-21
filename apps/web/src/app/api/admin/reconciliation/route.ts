@@ -1,8 +1,9 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth/admin-auth';
 import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   const auth = await requireAdminSession(request);
   if ('errorResponse' in auth) return auth.errorResponse;
   const [cases, stalled, pendingRefunds, unallocated] = await Promise.all([
@@ -20,3 +21,5 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ success: true, data: { cases, stalled, pendingRefunds: pendingRefunds.map(r => ({ ...r, state: 'REFUND_PENDING' })),
     unallocated: unallocated.map(p => ({ ...p, reason: 'UNALLOCATED_PAYMENT' })), limit: 100 } }, { headers: { 'Cache-Control': 'private, no-store' } });
 }
+
+export const GET = withDatabaseRequest(handleGET);

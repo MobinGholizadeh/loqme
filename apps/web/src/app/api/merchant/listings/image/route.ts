@@ -1,13 +1,15 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from "next/server";
 import { extractSessionToken, verifySessionToken } from "@/lib/auth/session";
 import { merchantService } from "@/domain/merchant/merchant.service";
+import { extractMerchantId } from "@/lib/http/merchant-http";
 import {
   listingImageStorage,
   MAX_LISTING_IMAGE_BYTES,
 } from "@/domain/listing/image-storage";
 
 export const dynamic = "force-dynamic";
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   const token = extractSessionToken(request);
   const session = token ? await verifySessionToken(token) : null;
   if (!session)
@@ -23,7 +25,7 @@ export async function POST(request: NextRequest) {
   let merchantId: string;
   try {
     merchantId = (
-      await merchantService.resolveMerchantAndAuthorize(session.userId, request.nextUrl.searchParams.get('merchantId') || undefined, 'MANAGER')
+      await merchantService.resolveMerchantAndAuthorize(session.userId, extractMerchantId(request), 'MANAGER')
     ).merchant.id;
   } catch {
     return NextResponse.json(
@@ -74,3 +76,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withDatabaseRequest(handlePOST);

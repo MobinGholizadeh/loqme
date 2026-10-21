@@ -1,10 +1,11 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { MerchantReportQuerySchema } from '@loqme/validation';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 import { getMerchantDataReport } from '@/domain/merchant/merchant-report.service';
 export const dynamic = 'force-dynamic';
 const headers = { 'Cache-Control': 'private, no-store' };
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   const token = extractSessionToken(request);
   const session = token ? await verifySessionToken(token) : null;
   if (!session) return NextResponse.json({ success: false }, { status: 401, headers });
@@ -18,3 +19,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, message: denied ? 'این گزارش مخصوص مالک فروشگاه است' : 'گزارش دریافت نشد؛ دوباره تلاش کنید' }, { status: denied ? 403 : 500, headers });
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

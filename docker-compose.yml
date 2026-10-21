@@ -33,7 +33,7 @@ services:
       NODE_ENV: production
       PORT: 3000
       LISTING_IMAGE_STORAGE_DIR: /app/.data/listing-images
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/loqme?schema=public
+      DATABASE_URL: postgresql://loqme_runtime:${DATABASE_RUNTIME_PASSWORD:?Restricted runtime password required}@postgres:5432/loqme?schema=public
       SESSION_SECRET: ${SESSION_SECRET:-loqme-development-session-super-secret-key-change-in-production-32c}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
       SMS_PROVIDER: ${SMS_PROVIDER:-console}

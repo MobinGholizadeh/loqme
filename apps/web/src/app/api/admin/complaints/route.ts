@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { moderationService } from '@/domain/moderation/moderation.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -5,7 +6,7 @@ import { ComplaintCategory, ComplaintStatus, Role } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
@@ -50,3 +51,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

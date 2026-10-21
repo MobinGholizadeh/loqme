@@ -1,10 +1,13 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { merchantService } from '@/domain/merchant/merchant.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 
+import { extractMerchantId } from '@/lib/http/merchant-http';
+
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
@@ -22,8 +25,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const searchParams = request.nextUrl.searchParams;
-    const merchantId = searchParams.get('merchantId') || undefined;
+    const merchantId = extractMerchantId(request);
 
     const financeSummary = await merchantService.getFinanceSummary(
       session.userId,
@@ -43,3 +45,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

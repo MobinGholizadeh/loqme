@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { pickupService } from '@/domain/pickup/pickup.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
@@ -8,7 +9,7 @@ import { requireMutationOrigin } from '@/lib/http/merchant-http';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     requireMutationOrigin(request);
     const token = extractSessionToken(request);
@@ -45,3 +46,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withDatabaseRequest(handlePOST);

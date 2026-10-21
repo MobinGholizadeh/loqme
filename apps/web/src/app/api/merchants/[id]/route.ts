@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { reservationService } from "@/domain/reservation/reservation.service";
 import { moderationService } from "@/domain/moderation/moderation.service";
 import { listingAvailability, publicListingWhere } from "@/domain/listing/availability";
@@ -8,7 +9,7 @@ import { ListingStatus, SafetyStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
+async function handleGET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -158,3 +159,5 @@ export async function GET(
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

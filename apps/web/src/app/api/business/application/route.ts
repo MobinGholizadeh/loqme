@@ -1,10 +1,11 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest } from 'next/server';
 import { getApplication, submitApplication } from '@/domain/business/application.service';
 import { businessFailure, businessJson, businessUser, readBusinessBody } from '@/lib/business/http';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const user = await businessUser(request);
     return businessJson(await getApplication(user.id));
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const user = await businessUser(request);
     const body = await readBusinessBody(request);
@@ -23,3 +24,6 @@ export async function POST(request: NextRequest) {
     return businessFailure(e);
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);
+export const POST = withDatabaseRequest(handlePOST);

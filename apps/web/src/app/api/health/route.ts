@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextResponse } from 'next/server';
 import * as net from 'net';
 import { checkDatabaseHealth } from '@/lib/prisma';
@@ -110,7 +111,7 @@ async function checkRedisHealth(timeoutMs = 1500): Promise<{
  * Evaluates PostgreSQL database connectivity, Redis ping roundtrip latency,
  * process uptime, and memory usage.
  */
-export async function GET() {
+async function handleGET() {
   const [dbHealth, redisHealth] = await Promise.all([
     checkDatabaseHealth(),
     checkRedisHealth(),
@@ -164,3 +165,5 @@ export async function GET() {
     }
   );
 }
+
+export const GET = withDatabaseRequest(handleGET);

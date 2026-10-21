@@ -26,6 +26,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
+    "db:provision-runtime": "node scripts/provision-rls-runtime.cjs",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {

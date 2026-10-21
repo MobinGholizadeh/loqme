@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { readPickupDetails } from '@/domain/listing/pickup-details';
 import { reservationService } from "@/domain/reservation/reservation.service";
 import { listingAvailability } from "@/domain/listing/availability";
@@ -8,7 +9,7 @@ import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
+async function handleGET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -151,3 +152,5 @@ export async function GET(
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);

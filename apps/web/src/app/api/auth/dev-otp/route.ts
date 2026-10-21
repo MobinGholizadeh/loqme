@@ -1,9 +1,10 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { ConsoleMockNotificationService } from '@/lib/notifications/console-mock';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   // Only accessible in non-production
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Not available in production' }, { status: 403 });
@@ -19,3 +20,5 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({ records: ConsoleMockNotificationService.getAllRecentOtps() });
 }
+
+export const GET = withDatabaseRequest(handleGET);

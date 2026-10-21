@@ -243,7 +243,7 @@ jobs:
             docker compose -f docker-compose.prod.yml exec -T postgres pg_restore --list < "$BACKUP" > /dev/null
             sha256sum "$BACKUP" > "$BACKUP.sha256"
             sha256sum -c "$BACKUP.sha256"
-            docker compose -f docker-compose.prod.yml run --rm --no-deps app ./node_modules/.bin/prisma migrate deploy
+            docker compose -f docker-compose.prod.yml --profile migrations run --rm --no-deps migrate
 
             rollback() {
               restore_environment

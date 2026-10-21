@@ -1,3 +1,4 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -6,7 +7,7 @@ export const dynamic = 'force-dynamic';
  * Liveness Probe (/api/health/live)
  * Verifies that the Next.js Node process is alive and accepting HTTP traffic.
  */
-export async function GET() {
+async function handleGET() {
   const uptimeSeconds = Math.floor(typeof process.uptime === 'function' ? process.uptime() : 0);
   const memoryUsage = typeof process.memoryUsage === 'function' ? process.memoryUsage() : null;
 
@@ -33,3 +34,5 @@ export async function GET() {
     }
   );
 }
+
+export const GET = withDatabaseRequest(handleGET);

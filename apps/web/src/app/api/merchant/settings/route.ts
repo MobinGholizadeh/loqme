@@ -1,11 +1,13 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { merchantService } from '@/domain/merchant/merchant.service';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 import { UpdateStoreSettingsSchema } from '@loqme/validation';
+import { extractMerchantId } from '@/lib/http/merchant-http';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
@@ -23,8 +25,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const searchParams = request.nextUrl.searchParams;
-    const merchantId = searchParams.get('merchantId') || undefined;
+    const merchantId = extractMerchantId(request);
 
     const settings = await merchantService.getStoreSettings(session.userId, merchantId);
 
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+async function handlePUT(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
@@ -61,8 +62,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const searchParams = request.nextUrl.searchParams;
-    const merchantId = searchParams.get('merchantId') || body.merchantId || undefined;
+    const merchantId = extractMerchantId(request, body.merchantId);
 
     const validated = UpdateStoreSettingsSchema.parse(body);
 
@@ -85,3 +85,6 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);
+export const PUT = withDatabaseRequest(handlePUT);

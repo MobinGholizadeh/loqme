@@ -1,9 +1,10 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest } from 'next/server';
 import { BusinessError } from '@/domain/business/application.service';
 import { limitMapir, reverseMapir } from '@/lib/business/mapir';
 import { businessFailure, businessJson } from '@/lib/business/http';
 export const dynamic = 'force-dynamic';
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     limitMapir(request.headers.get('x-forwarded-for')?.split(',')[0]?.trim().slice(0, 80) || 'anonymous');
     const latitude = Number(request.nextUrl.searchParams.get('latitude'));
@@ -12,3 +13,5 @@ export async function GET(request: NextRequest) {
     return businessJson(await reverseMapir(latitude, longitude));
   } catch (e) { return businessFailure(e); }
 }
+
+export const GET = withDatabaseRequest(handleGET);

@@ -1,10 +1,11 @@
+import { withDatabaseRequest } from '@/lib/db/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
@@ -36,3 +37,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ authenticated: false, user: null }, { status: 500, headers: { 'Cache-Control': 'private, no-store' } });
   }
 }
+
+export const GET = withDatabaseRequest(handleGET);
