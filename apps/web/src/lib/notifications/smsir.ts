@@ -98,7 +98,7 @@ export class SmsIrNotificationService implements INotificationService {
     pickupWindow: string
   ): Promise<boolean> {
     const normalizedMobile = normalizeIranianMobile(mobile);
-    const messageText = `سفارش ${orderNumber} شما در لقمه با موفقیت ثبت شد.\nبازه تحویل حضوری: ${pickupWindow}\nبا تشکر از شما - لقمه`;
+    const messageText = `سفارش ${orderNumber} شما در لقمه با موفقیت ثبت شد؛\nبازه تحویل حضوری: ${pickupWindow}\nبا تشکر از شما - لقمه`;
     return this.sendBulk(normalizedMobile, messageText);
   }
 
@@ -111,7 +111,7 @@ export class SmsIrNotificationService implements INotificationService {
     remainingMinutes: number
   ): Promise<boolean> {
     const normalizedMobile = normalizeIranianMobile(mobile);
-    const messageText = `یادآوری لقمه: تنها ${remainingMinutes} دقیقه تا پایان زمان تحویل سفارش ${orderNumber} باقی مانده است.`;
+    const messageText = `یادآوری لقمه: تنها ${remainingMinutes} دقیقه تا پایان زمان تحویل سفارش ${orderNumber} باقی مانده است`;
     return this.sendBulk(normalizedMobile, messageText);
   }
 

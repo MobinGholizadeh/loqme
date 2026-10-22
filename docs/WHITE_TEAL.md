@@ -24,3 +24,9 @@ Owner direction, 2026-10-16. This supersedes CP-10.24 teal-glass and the rejecte
 
 ## Validation
 The base CP-10.25 release passed 65 focused tests and 23 distinct production browser scenarios. The CP-10.26 refinement passed 35 focused tests and seven optimized-build browser scenarios, plus typecheck, zero-warning lint and production build. CP-10.27 reran both optimized-build homepage/navigation scenarios, typecheck, zero-warning lint and production build. See PROJECT_STATUS.md for scope and `.artifacts/white-teal/` for logs, desktop/mobile screenshots and route-wide axe evidence. Screenshots use test fixture inventory; no backend changes or deployment.
+
+## CP-10.28 motion, hero typography and copy punctuation
+- Animated hero title lines must render as inline spans and inherit the `h1` font size and line height. React Bits text animation must not introduce paragraph elements beneath headings.
+- Lenis remains the shared document scroll provider and respects reduced-motion preferences. Responsive homepage browser coverage verifies its document-level initialization.
+- Persian product copy omits ASCII full stops at sentence endings. Use `؛` where two complete thoughts remain in one text block and `…` for progress/loading copy. Preserve decimal points, version numbers, domains and technical identifiers.
+- Validation passed with 1,011 tests against a disposable RLS-enabled PostgreSQL database, two responsive homepage browser scenarios, workspace typecheck, zero-warning lint and the optimized production build.

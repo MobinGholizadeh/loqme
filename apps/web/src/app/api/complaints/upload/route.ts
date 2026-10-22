@@ -55,7 +55,7 @@ async function handlePOST(request: NextRequest) {
     for (const file of files) {
       if (!ALLOWED_MIME_TYPES.has(file.type)) {
         return NextResponse.json(
-          { success: false, message: 'فرمت تصویر نامعتبر است. فرمت‌های مجاز: JPG, PNG, WEBP' },
+          { success: false, message: 'فرمت تصویر نامعتبر است؛ فرمت‌های مجاز: JPG, PNG, WEBP' },
           { status: 400 }
         );
       }

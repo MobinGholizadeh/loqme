@@ -116,7 +116,7 @@ export default function AdminAnalyticsPage() {
         <div className="min-h-[400px] flex flex-col items-center justify-center gap-3">
           <Spinner size="lg" />
           <span className="text-sm text-loqme-neutral-500">
-            در حال محاسبه شاخص‌های بازار...
+            در حال محاسبه شاخص‌های بازار…
           </span>
         </div>
       ) : error || !report ? (

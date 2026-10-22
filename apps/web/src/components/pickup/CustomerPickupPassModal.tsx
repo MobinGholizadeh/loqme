@@ -152,7 +152,7 @@ export const CustomerPickupPassModal: React.FC<
             <div className="py-16 text-center space-y-3">
               <Spinner size="lg" variant="primary" className="mx-auto" />
               <p className="text-xs text-loqme-neutral-500">
-                در حال تولید بارکد امن و دریافت اطلاعات...
+                در حال تولید بارکد امن و دریافت اطلاعات…
               </p>
             </div>
           ) : errorMsg ? (
@@ -185,8 +185,8 @@ export const CustomerPickupPassModal: React.FC<
                   نوش جان!
                 </h3>
                 <p className="text-xs text-loqme-neutral-600 leading-relaxed max-w-xs mx-auto">
-                  امیدواریم از لقمه‌تان لذت ببرید. از همراهی شما در نجات خوراکی‌های خوشمزه
-                  و مراقبت از طبیعت و محله سپاسگزاریم.
+                  امیدواریم از لقمه‌تان لذت ببرید؛ از همراهی شما در نجات خوراکی‌های خوشمزه
+                  و مراقبت از طبیعت و محله سپاسگزاریم
                 </p>
               </div>
 
@@ -279,7 +279,7 @@ export const CustomerPickupPassModal: React.FC<
                   </RippleButton>
                 </div>
                 <p className="text-[11px] text-loqme-neutral-500">
-                  این کد را هنگام مراجعه حضوری به فروشنده اعلام نمایید.
+                  این کد را هنگام مراجعه حضوری به فروشنده اعلام نمایید
                 </p>
               </div>
 

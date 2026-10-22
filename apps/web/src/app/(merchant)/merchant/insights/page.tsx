@@ -70,7 +70,7 @@ export default function MerchantInsightsPage() {
     </div></Card>
     {error && <Card role="alert"><p className="text-red-700">{error}</p><Button className="mt-4" onClick={() => setRefresh(v => v+1)}>تلاش دوباره</Button></Card>}
     {loading && <Card role="status" aria-live="polite"><p>در حال دریافت گزارش…</p><div className="h-24 mt-4 rounded-lg bg-teal-50 animate-pulse"/></Card>}
-    {!loading && !error && !merchantId && <Card className="text-center py-12"><ChartNoAxesCombined className="mx-auto text-teal-700 mb-4"/><h2 className="font-bold">گزارش فروشگاه خود را ببینید</h2><p className="mt-2 text-slate-600">برای شروع، یک فروشگاه را انتخاب کنید.</p></Card>}
+    {!loading && !error && !merchantId && <Card className="text-center py-12"><ChartNoAxesCombined className="mx-auto text-teal-700 mb-4"/><h2 className="font-bold">گزارش فروشگاه خود را ببینید</h2><p className="mt-2 text-slate-600">برای شروع، یک فروشگاه را انتخاب کنید</p></Card>}
     {report && !loading && !error && <>
       <p className="text-sm text-slate-600">{date(report.startIso)} تا {date(new Date(new Date(report.endExclusiveIso).getTime()-1).toISOString())} · روزهای کامل به وقت تهران · به‌روز در {new Date(report.computedAtIso).toLocaleTimeString('fa-IR', { timeZone: 'Asia/Tehran', hour: '2-digit', minute: '2-digit' })}</p>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -82,22 +82,22 @@ export default function MerchantInsightsPage() {
         ].map(([label, value, note]) => <Card key={label}><p className="text-sm text-slate-600">{label}</p><p className="text-xl font-bold my-3 text-teal-800">{value}</p><p className="text-xs text-slate-500">{note}</p></Card>)}
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card><h2 className="font-bold text-lg mb-4">از این داده‌ها چه می‌دانیم؟</h2><p className="text-sm text-slate-600 mb-4">جمع‌بندی با قواعد ثابت و داده ثبت‌شده؛ بدون پیش‌بینی یا تغییر خودکار قیمت.</p>
+        <Card><h2 className="font-bold text-lg mb-4">از این داده‌ها چه می‌دانیم؟</h2><p className="text-sm text-slate-600 mb-4">جمع‌بندی با قواعد ثابت و داده ثبت‌شده؛ بدون پیش‌بینی یا تغییر خودکار قیمت</p>
           <ul className="space-y-4">{report.insights.map(insight => <li key={insight.code} className="border-r-2 border-teal-600 pr-3"><p className="text-sm leading-7">{insight.textFa}</p><details className="text-xs text-slate-500 mt-1"><summary className="cursor-pointer p-1">مبنای این نکته</summary><p className="mt-2">{insight.evidence.map(key => evidenceLabel(report, key)).join(' · ')}</p></details></li>)}</ul>
         </Card>
         <Card><h2 className="font-bold text-lg mb-4 flex items-center gap-2"><ShieldCheck size={20} className="text-teal-700"/>دامنه و کیفیت داده</h2>
-          <p className="text-sm leading-7 text-slate-600">فقط معاملات لقمه در این گزارش محاسبه شده‌اند. این اعداد نشان‌دهنده کل فروش حضوری، سود خالص یا میزان دورریز فروشگاه نیستند.</p>
+          <p className="text-sm leading-7 text-slate-600">فقط معاملات لقمه در این گزارش محاسبه شده‌اند؛ این اعداد نشان‌دهنده کل فروش حضوری، سود خالص یا میزان دورریز فروشگاه نیستند</p>
           <p className="text-sm text-slate-600 mt-3">شروع ثبت سابقه بسته‌ها: {report.historyCoverageStartIso ? date(report.historyCoverageStartIso) : 'هنوز سابقه‌ای ثبت نشده است'}</p>
           <dl className="text-sm space-y-3 mt-4">{[
             ['پرداخت با زمان نامشخص (تمام سابقه)', report.quality.unknownPaymentTimes], ['استرداد با زمان نامشخص (تمام سابقه)', report.quality.unknownRefundTimes],
             ['سفارش با شعبه نامشخص (کل فروشگاه)', report.quality.unknownLocations], ['پرونده باز پرداخت (کل فروشگاه)', report.quality.openReconciliations], ['تحویل تأییدشده در بازه', report.pickupCount],
           ].map(([label, value]) => <div className="flex justify-between gap-3" key={label}><dt>{label}</dt><dd className="font-bold">{Number(value).toLocaleString('fa-IR')}</dd></div>)}</dl>
-          {report.quality.baselineOnly && <p className="text-sm mt-4 text-slate-600">هنوز سابقه تغییر جدیدی برای بسته‌ها ثبت نشده است؛ روند موجودی قابل نتیجه‌گیری نیست.</p>}
+          {report.quality.baselineOnly && <p className="text-sm mt-4 text-slate-600">هنوز سابقه تغییر جدیدی برای بسته‌ها ثبت نشده است؛ روند موجودی قابل نتیجه‌گیری نیست</p>}
         </Card>
       </div>
       <Card><h2 className="font-bold mb-3">ارزش سفارش‌های تخصیص‌یافته</h2><dl className="grid gap-5 md:grid-cols-3">{[
         ['فروش ثبت‌شده', report.bookedSalesToman], ['کارمزد ثبت‌شده در خرید', report.bookedCommissionToman], ['سهم ثبت‌شده فروشگاه', report.bookedMerchantPayableToman],
-      ].map(([label, value]) => <div key={label}><dt className="text-sm text-slate-600">{label}</dt><dd className="mt-2 font-bold">{money(value)}</dd></div>)}</dl><p className="text-xs text-slate-500 mt-4">مبالغ ثبت‌شده هنگام خرید، پیش از استرداد؛ این بخش مانده قابل تسویه یا واریز بانکی نیست.</p></Card>
+      ].map(([label, value]) => <div key={label}><dt className="text-sm text-slate-600">{label}</dt><dd className="mt-2 font-bold">{money(value)}</dd></div>)}</dl><p className="text-xs text-slate-500 mt-4">مبالغ ثبت‌شده هنگام خرید، پیش از استرداد؛ این بخش مانده قابل تسویه یا واریز بانکی نیست</p></Card>
     </>}
   </div>;
 }

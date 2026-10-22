@@ -61,7 +61,7 @@ function BotanicalAuthLayout({ children, business, onboarding }: { children: Rea
       <div className="botanical-loading-leaf" aria-hidden="true"><SceneIcon size={42} strokeWidth={1.4} /></div>
       <div role="status" aria-live="polite">
         <p className="botanical-loading-title">{business ? "فرصت تازه‌ای برای فروشگاه شما" : "یک شروع تازه با لقمه"}</p>
-        <p>{scene === "error" ? "تصویر بارگیری نشد. دوباره تلاش کنید یا بدون تصویر ادامه دهید." : scene === "slow" ? "بارگیری کمی طول کشیده؛ هنوز در حال آماده‌سازی تصویر هستیم." : business ? "در حال آماده‌سازی ورودی فروشگاه…" : "در حال آماده‌سازی تجربه لقمه…"}</p>
+        <p>{scene === "error" ? "تصویر بارگیری نشد؛ دوباره تلاش کنید یا بدون تصویر ادامه دهید" : scene === "slow" ? "بارگیری کمی طول کشیده؛ هنوز در حال آماده‌سازی تصویر هستیم" : business ? "در حال آماده‌سازی ورودی فروشگاه…" : "در حال آماده‌سازی تجربه لقمه…"}</p>
       </div>
       {(scene === "slow" || scene === "error") && <div className="botanical-loading-actions">
         <Button onClick={() => { restoredFocus.current = true; setScene("loading"); setAttempt(value => value + 1); }}>تلاش دوباره</Button>
@@ -89,8 +89,8 @@ function BotanicalAuthLayout({ children, business, onboarding }: { children: Rea
       <div className="botanical-layout">
         <aside className="botanical-message">
           <span className="botanical-eyebrow"><SceneIcon size={16} aria-hidden="true" />{business ? "همراه کسب‌وکارهای محلی" : "کشف تازه‌ای از محله"}</span>
-          <h2>{business ? <>خوراکی‌های<br />خوب شما،<br /><em>کشف بعدی محله.</em></> : <>خوراکی‌های خوب،<br />قیمت‌های بهتر،<br /><em>همین نزدیکی.</em></>}</h2>
-          <p>{business ? "با لقمه، خوراکی‌های فروشگاهتان را به کشف تازه‌ای برای اهالی محله تبدیل کنید." : "طعم‌های تازه را کشف کن، به‌صرفه‌تر خرید کن و با کمتر هدر دادن غذا، سهمی در مراقبت از زمین داشته باش."}</p>
+          <h2>{business ? <>خوراکی‌های<br />خوب شما،<br /><em>کشف بعدی محله</em></> : <>خوراکی‌های خوب،<br />قیمت‌های بهتر،<br /><em>همین نزدیکی</em></>}</h2>
+          <p>{business ? "با لقمه، خوراکی‌های فروشگاهتان را به کشف تازه‌ای برای اهالی محله تبدیل کنید" : "طعم‌های تازه را کشف کن، به‌صرفه‌تر خرید کن و با کمتر هدر دادن غذا، سهمی در مراقبت از زمین داشته باش"}</p>
           <ul>{features.map(({ icon: Icon, label }) => <li key={label}><Icon size={20} aria-hidden="true" /><span>{label}</span></li>)}</ul>
         </aside>
         <main id="auth-content" ref={mainRef} className="botanical-card" tabIndex={-1}>
@@ -98,7 +98,7 @@ function BotanicalAuthLayout({ children, business, onboarding }: { children: Rea
           {children}
           <div className="botanical-card-footer">
             <Link href={business ? "/login" : "/business/login"}>{business ? "ورود مشتری" : "ثبت‌نام / ورود کسب‌وکار"}</Link>
-            <p><SceneIcon size={15} aria-hidden="true" />{business ? "از موجودی امروز، فرصت تازه بسازید." : "یک خرید خوش‌طعم، با دورریز کمتر."}</p>
+            <p><SceneIcon size={15} aria-hidden="true" />{business ? "از موجودی امروز، فرصت تازه بسازید" : "یک خرید خوش‌طعم، با دورریز کمتر"}</p>
           </div>
         </main>
       </div>

@@ -107,7 +107,7 @@ export default function ProfilePage() {
       <div className="w-full max-w-[440px] lg:max-w-6xl xl:max-w-7xl mx-auto px-4 py-8">
         <EmptyState
           title="حساب شما در لقمه"
-          description="برای دیدن حساب و سفارش‌ها وارد شوید."
+          description="برای دیدن حساب و سفارش‌ها وارد شوید"
           action={
             <div className="flex flex-col sm:flex-row gap-3 items-center justify-center mt-3">
               <Link href="/login?redirect=/profile" className="action-link">
@@ -359,10 +359,10 @@ export default function ProfilePage() {
                 </h2>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                   {user.role === "ADMIN"
-                    ? "بررسی و تأیید درخواست‌های ثبت کسب‌وکار، نظارت بر تراکنش‌ها و تنظیمات سامانه."
+                    ? "بررسی و تأیید درخواست‌های ثبت کسب‌وکار، نظارت بر تراکنش‌ها و تنظیمات سامانه"
                     : user.role === "MERCHANT_OWNER" || user.role === "MERCHANT_STAFF"
-                      ? "مدیریت بسته‌های مازاد، بررسی سفارش‌های آماده تحویل و تأیید کدهای تحویل حضوری."
-                      : "فروشگاه یا رستوران خود را در لقمه ثبت کنید و بسته‌های مازاد باکیفیت را به مشتریان محله بفروشید."}
+                      ? "مدیریت بسته‌های مازاد، بررسی سفارش‌های آماده تحویل و تأیید کدهای تحویل حضوری"
+                      : "فروشگاه یا رستوران خود را در لقمه ثبت کنید و بسته‌های مازاد باکیفیت را به مشتریان محله بفروشید"}
                 </p>
               </div>
             </div>
@@ -424,7 +424,7 @@ export default function ProfilePage() {
             </div>
           </div>
           <p className="text-xs text-slate-600 leading-relaxed">
-            با خرید بسته‌های مازاد باکیفیت، علاوه بر خریدی هوشمندانه و اقتصادی به رونق کسب‌وکارهای محلی و کاهش هدررفت غذا در شهر کمک می‌کنید.
+            با خرید بسته‌های مازاد باکیفیت، علاوه بر خریدی هوشمندانه و اقتصادی به رونق کسب‌وکارهای محلی و کاهش هدررفت غذا در شهر کمک می‌کنید
           </p>
           <div className="mt-4 pt-3.5 border-t border-emerald-100/60 flex items-center justify-between text-[11px] font-semibold text-emerald-800">
             <span className="flex items-center gap-1.5">
@@ -505,7 +505,7 @@ export default function ProfilePage() {
           ) : (
             <EmptyState
               title="اولین لقمه شما در راه است"
-              description="بسته‌های محله را ببینید و طعم تازه‌ای کشف کنید."
+              description="بسته‌های محله را ببینید و طعم تازه‌ای کشف کنید"
               action={
                 <Link href="/" className="action-link">
                   کشف بسته‌ها

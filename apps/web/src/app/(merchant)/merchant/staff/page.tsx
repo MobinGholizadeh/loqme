@@ -51,7 +51,7 @@ export default function MerchantStaffPage() {
         setStaffList(json.data);
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       setIsLoading(false);
     }
@@ -200,13 +200,13 @@ export default function MerchantStaffPage() {
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
-            در حال دریافت لیست کادر فروشگاه...
+            در حال دریافت لیست کادر فروشگاه…
           </p>
         </div>
       ) : staffList.length === 0 ? (
         <EmptyState
           title="همکاری در این فروشگاه ثبت نشده است"
-          description="با دعوت همکاران، امکان اسکن سریع بارکدهای تحویل حضوری بدون نیاز به اشتراک‌گذاری رمز اصلی فراهم می‌شود."
+          description="با دعوت همکاران، امکان اسکن سریع بارکدهای تحویل حضوری بدون نیاز به اشتراک‌گذاری رمز اصلی فراهم می‌شود"
         />
       ) : (
         <div className="space-y-3">

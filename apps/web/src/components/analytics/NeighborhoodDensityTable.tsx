@@ -15,7 +15,7 @@ export const NeighborhoodDensityTable: React.FC<
   if (!data || data.length === 0) {
     return (
       <div className="p-8 text-center text-loqme-neutral-500 text-sm">
-        اطلاعات تراکم جغرافیایی برای این محدوده زمانی یافت نشد.
+        اطلاعات تراکم جغرافیایی برای این محدوده زمانی یافت نشد
       </div>
     );
   }

@@ -9,6 +9,21 @@ test("editorial homepage leads to shopping and the ticker can be paused", async 
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.locator(".landing-hero h1")).toHaveCount(1);
+    const titleLines = page.locator(".landing-hero h1 > .landing-title-line");
+    await expect(titleLines).toHaveCount(2);
+    expect(await titleLines.evaluateAll(lines => lines.map(line => ({
+      tag: line.tagName,
+      size: getComputedStyle(line).fontSize,
+      headingSize: getComputedStyle(line.parentElement!).fontSize,
+    })))).toEqual([
+      expect.objectContaining({ tag: "SPAN" }),
+      expect.objectContaining({ tag: "SPAN" }),
+    ]);
+    for (const line of await titleLines.evaluateAll(lines => lines.map(line => ({
+      size: getComputedStyle(line).fontSize,
+      headingSize: getComputedStyle(line.parentElement!).fontSize,
+    })))) expect(line.size).toBe(line.headingSize);
+    await expect(page.locator("html")).toHaveClass(/\blenis\b/);
     await expect(page.locator(".listing-card")).toHaveCount(0);
     await expect(page.locator(".market-header")).toHaveCSS("background-color", "rgb(255, 255, 255)");
     await expect(page.locator("video")).toHaveCount(0);

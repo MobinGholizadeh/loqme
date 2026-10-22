@@ -21,7 +21,7 @@ import {
 // In-memory system settings with production defaults
 let systemSettings: SystemSettingsDto = {
   maintenanceMode: false,
-  announcementBannerFa: 'سامانه عرضه هوشمند و ایمن مازاد غذایی لقمه در شهر ارومیه فعال است.',
+  announcementBannerFa: 'سامانه عرضه هوشمند و ایمن مازاد غذایی لقمه در شهر ارومیه فعال است',
   activeSmsProvider: 'MOCK',
 };
 

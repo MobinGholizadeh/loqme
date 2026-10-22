@@ -72,7 +72,7 @@ export default function AdminListingsPage() {
         setListings(json.data);
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       setIsLoadingListings(false);
     }
@@ -264,7 +264,7 @@ export default function AdminListingsPage() {
             <div className="w-full sm:w-72">
               <input
                 type="text"
-                placeholder="جستجو در عنوان بسته یا فروشگاه..."
+                placeholder="جستجو در عنوان بسته یا فروشگاه…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-3 py-1.5 text-xs bg-white border border-loqme-neutral-200 rounded-lg text-loqme-neutral-900 placeholder-loqme-neutral-500 focus:outline-none focus:border-loqme-primary-500"
@@ -276,14 +276,14 @@ export default function AdminListingsPage() {
             <div className="py-20 text-center space-y-2">
               <Spinner size="lg" variant="primary" className="mx-auto" />
               <p className="text-xs text-loqme-neutral-500">
-                در حال دریافت بسته‌ها...
+                در حال دریافت بسته‌ها…
               </p>
             </div>
           ) : listings.length === 0 ? (
             <EmptyState
               icon="📦"
               title="بسته‌ای یافت نشد"
-              description="در حال حاضر بسته‌ای با فیلترهای انتخابی در سیستم وجود ندارد."
+              description="در حال حاضر بسته‌ای با فیلترهای انتخابی در سیستم وجود ندارد"
             />
           ) : (
             <div className="rounded-lg bg-white border border-loqme-neutral-200 overflow-hidden shadow-card">
@@ -424,7 +424,7 @@ export default function AdminListingsPage() {
             <div className="py-20 text-center space-y-2">
               <Spinner size="lg" variant="primary" className="mx-auto" />
               <p className="text-xs text-loqme-neutral-500">
-                در حال دریافت دسته‌بندی‌ها...
+                در حال دریافت دسته‌بندی‌ها…
               </p>
             </div>
           ) : (

@@ -8,6 +8,12 @@
 
 ## 1. Project Health & Current State
 
+### Homepage motion, hero type and Persian punctuation — CP-10.28 (2026-10-22)
+
+The homepage animation regression is repaired: React Bits `SplitText` now renders each hero line as a `<span>` that inherits the `h1` typography, preventing the generic hero paragraph rule from shrinking «یک کشف خوشمزه» and «یک خرید هوشمندانه». Browser coverage verifies both lines inherit the computed heading size and that Lenis initializes on the document. User-facing Persian copy across the web application no longer ends sentences with ASCII full stops; internal sentence boundaries use Persian semicolons and loading copy uses the single ellipsis glyph. A source-level regression test enforces this copy rule without changing URLs, version numbers or decimal values.
+
+Local validation passed: **1,011/1,011 tests across 83 files** against a freshly migrated, seeded disposable PostgreSQL database with the restricted RLS runtime; workspace typecheck, zero-warning lint, optimized production build and both responsive homepage browser scenarios also passed. The browser run produced reviewed 390px and 1440px captures.
+
 ### Database row-level security — CP-12.6 (2026-10-22)
 
 Activation follow-up: owner authorized both local setup and live production activation; **both are complete**. Local backup restore/migration rehearsal and actual migration preserved model row counts; 34 tables enforce RLS, `loqme_runtime` is provisioned, environment files updated and development server restarted. Production source `13b32b0` deployed in [run 39744132807](https://github.com/MobinGholizadeh/loqme/actions/runs/39744132807) at 08:05 UTC on 2026-10-22. Server backup checksum/restore rehearsal, migration, restricted-login verification (`34` enforced tables; anonymous private access denied) and readiness passed. External public routes returned 200; protected customer/merchant/admin APIs returned 401 without sessions. First-run password setup and runtime verification are automated. The dependency lockfile and Docker workspace dependency copying were repaired. Final Linux CI passed 1,010 tests and 15 deployment/Android policy tests; image build and web deployment succeeded. See DATABASE_RLS.md for image digest and backup/evidence paths. Existing live-provider/device/performance gates remain independent.

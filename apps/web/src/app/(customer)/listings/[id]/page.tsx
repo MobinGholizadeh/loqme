@@ -175,7 +175,7 @@ export default function ListingDetailPage() {
         setIsFavorited(json.isFavorited);
       } else if (res.status === 401) {
         showFeedback(
-          "برای ثبت فروشگاه در علاقه‌مندی‌ها، لطفاً ابتدا وارد حساب کاربری خود شوید.",
+          "برای ثبت فروشگاه در علاقه‌مندی‌ها، لطفاً ابتدا وارد حساب کاربری خود شوید",
         );
       }
     } catch (err) {
@@ -212,7 +212,7 @@ export default function ListingDetailPage() {
           title="آگهی مورد نظر یافت نشد"
           message={
             errorMsg ||
-            "ممکن است این بسته حذف شده باشد یا آدرس اشتباه وارد شده باشد."
+            "ممکن است این بسته حذف شده باشد یا آدرس اشتباه وارد شده باشد"
           }
           secondaryAction={
             <Button
@@ -254,7 +254,7 @@ export default function ListingDetailPage() {
       {/* Schema.org Product Structured Data for SEO */}
       {feedbackDialog}
       {data.canReserve === false && <p role="status" className="rounded-lg bg-loqme-neutral-100 p-4 text-sm">
-        ناموجود · {data.availability === "RESERVED" ? "همه بسته‌ها فعلاً در حال رزرو هستند؛ ممکن است دوباره موجود شوند." : data.isExpired ? "زمان دریافت این بسته پایان یافته است." : "این بسته اکنون قابل رزرو نیست."}
+        ناموجود · {data.availability === "RESERVED" ? "همه بسته‌ها فعلاً در حال رزرو هستند؛ ممکن است دوباره موجود شوند" : data.isExpired ? "زمان دریافت این بسته پایان یافته است" : "این بسته اکنون قابل رزرو نیست"}
       </p>}
       <script
         type="application/ld+json"
@@ -270,7 +270,7 @@ export default function ListingDetailPage() {
             try {
               if (navigator.share) await navigator.share({ title: data.titleFa, url: window.location.href });
               else { await navigator.clipboard.writeText(window.location.href); showFeedback('پیوند بسته کپی شد'); }
-            } catch (error) { if (!(error instanceof Error && error.name === 'AbortError')) showFeedback('اشتراک‌گذاری ممکن نشد؛ پیوند صفحه را از نوار آدرس کپی کنید.'); }
+            } catch (error) { if (!(error instanceof Error && error.name === 'AbortError')) showFeedback('اشتراک‌گذاری ممکن نشد؛ پیوند صفحه را از نوار آدرس کپی کنید'); }
           }}><RedesignIcons.Share2 size={20}/></RippleButton>
           <RippleButton type="button" className="detail-round-button" onClick={handleToggleFavorite} disabled={favoriteLoading} aria-pressed={isFavorited} aria-label={isFavorited ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}><Heart size={22} fill={isFavorited ? "currentColor" : "none"}/></RippleButton>
         </div>
@@ -392,22 +392,22 @@ export default function ListingDetailPage() {
           </div>
           <p className="text-xs text-loqme-neutral-600 leading-relaxed">
             این بسته شامل دستچینی از تازه‌ترین اقلام روز تولیدشده در این فروشگاه
-            است که به پایان ساعت کاری نزدیک شده‌اند. محتویات دقیق بسته بر اساس
+            است که به پایان ساعت کاری نزدیک شده‌اند؛ محتویات دقیق بسته بر اساس
             موجودی روزانه متغیر است، اما ارزش محتوای آن تضمین‌شده و معادل حداقل{" "}
-            {formatToman(data.originalPriceToman)} ارزش بازار خواهد بود.
+            {formatToman(data.originalPriceToman)} ارزش بازار خواهد بود
           </p>
         </Card>
       ) : null}
 
       <Card variant="outlined" className="pickup-information">
-        <section><h2>راهنمای دریافت</h2><p>در بازه دریافت به فروشگاه مراجعه کنید و کد QR یا رمز تحویل سفارش را به مسئول فروشگاه نشان دهید.</p>
+        <section><h2>راهنمای دریافت</h2><p>در بازه دریافت به فروشگاه مراجعه کنید و کد QR یا رمز تحویل سفارش را به مسئول فروشگاه نشان دهید</p>
         {data.pickupDetails?.instructionsFa && <p>{data.pickupDetails.instructionsFa}</p>}</section>
         <section><h2>بسته‌بندی</h2><div className="packaging-options">
           {([{ key: 'containerProvided', label: 'ظرف غذا', Icon: RedesignIcons.Package }, { key: 'carrierBagProvided', label: 'کیسه حمل', Icon: RedesignIcons.ShoppingBag }] as const).map(({ key, label, Icon }) => {
             const provided = data.pickupDetails?.[key];
             return <div key={key} className="packaging-option" data-provided={provided == null ? 'unknown' : String(provided)}><Icon size={36} aria-hidden="true"/><h3>{label}</h3><p>{provided === true ? 'ارائه می‌شود' : provided === false ? 'ارائه نمی‌شود' : 'مشخص نشده'}</p></div>;
           })}
-        </div><p className="packaging-advice"><RedesignIcons.Info size={18} aria-hidden="true"/>پیشنهاد می‌کنیم کیسه خودتان را همراه بیاورید.</p></section>
+        </div><p className="packaging-advice"><RedesignIcons.Info size={18} aria-hidden="true"/>پیشنهاد می‌کنیم کیسه خودتان را همراه بیاورید</p></section>
       </Card>
 
       {/* Food Safety & Dietary Clearance */}
@@ -433,7 +433,7 @@ export default function ListingDetailPage() {
                 ))
               ) : (
                 <span className="text-loqme-neutral-500">
-                  اطلاعاتی ثبت نشده است.
+                  اطلاعاتی ثبت نشده است
                 </span>
               )}
             </div>
@@ -452,7 +452,7 @@ export default function ListingDetailPage() {
                 ))
               ) : (
                 <span className="text-loqme-neutral-500">
-                  اطلاعاتی ثبت نشده؛ از فروشگاه بپرسید.
+                  اطلاعاتی ثبت نشده؛ از فروشگاه بپرسید
                 </span>
               )}
             </div>
@@ -472,8 +472,8 @@ export default function ListingDetailPage() {
 
         <div className="p-3 rounded-lg bg-emerald-50/70 border border-emerald-200 text-[11px] text-emerald-900 leading-relaxed">
           <strong>تضمین اصالت سلامت لقمه:</strong> کلیه محصولات ثبت‌شده در لقمه
-          دارای تاریخ مصرف معتبر، بهداشتی و مورد تایید استاندارد غذایی هستند.
-          فروش هرگونه ماده غذایی تاریخ‌گذشته در لقمه اکیداً ممنوع است.
+          دارای تاریخ مصرف معتبر، بهداشتی و مورد تایید استاندارد غذایی هستند؛
+          فروش هرگونه ماده غذایی تاریخ‌گذشته در لقمه اکیداً ممنوع است
         </div>
       </Card>
 

@@ -79,7 +79,7 @@ export class PickupService {
 
       // Allow up to 180 seconds (3 minutes) validity
       if (delta > 180) {
-        return { valid: false, reason: 'کد QR منقضی شده است. لطفاً صفحه را تازه‌سازی کنید.' };
+        return { valid: false, reason: 'کد QR منقضی شده است؛ لطفاً صفحه را تازه‌سازی کنید' };
       }
 
       // Rejection for future timestamps beyond 30s clock skew
@@ -447,7 +447,7 @@ export class PickupService {
         response: {
           success: false,
           alreadyVerified: true,
-          message: `این سفارش قبلاً در ساعت ${verifiedTimeFa} تحویل داده شده است! تحویل مجدد مجاز نمی‌باشد.`,
+          message: `این سفارش قبلاً در ساعت ${verifiedTimeFa} تحویل داده شده است! تحویل مجدد مجاز نمی‌باشد`,
           orderId: order.id,
           orderNumber: order.orderNumber,
           status: OrderStatus.COMPLETED,
@@ -488,8 +488,8 @@ export class PickupService {
           response: {
             success: false,
             message: willLock
-              ? 'کد وارد شده اشتباه است. سفارش به مدت ۱۵ دقیقه مسدود شد.'
-              : `کد ۴ رقمی تحویل نادرست است. (${toPersianDigits(remainingAttempts)} تلاش باقی‌مانده)`,
+              ? 'کد وارد شده اشتباه است؛ سفارش به مدت ۱۵ دقیقه مسدود شد'
+              : `کد ۴ رقمی تحویل نادرست است؛ (${toPersianDigits(remainingAttempts)} تلاش باقی‌مانده)`,
             orderId: order.id,
             orderNumber: order.orderNumber,
             status: order.status,
@@ -528,7 +528,7 @@ export class PickupService {
     if (!completed) {
       return {
         statusCode: 409,
-        response: { success: false, message: 'وضعیت سفارش تغییر کرده است. لطفاً فهرست سفارش‌ها را تازه‌سازی کنید.',
+        response: { success: false, message: 'وضعیت سفارش تغییر کرده است؛ لطفاً فهرست سفارش‌ها را تازه‌سازی کنید',
           orderId: order.id, orderNumber: order.orderNumber, status: order.status, verifiedAt: '',
           customerNameFa: '', listingTitleFa: '', quantity: 0, totalAmountToman: 0 },
       };
@@ -539,7 +539,7 @@ export class PickupService {
       statusCode: 200,
       response: {
         success: true,
-        message: 'تحویل حضوری با موفقیت تایید و سفارش تکمیل گردید. نوش جان!',
+        message: 'تحویل حضوری با موفقیت تایید و سفارش تکمیل گردید؛ نوش جان!',
         orderId: order.id,
         orderNumber: order.orderNumber,
         status: OrderStatus.COMPLETED,

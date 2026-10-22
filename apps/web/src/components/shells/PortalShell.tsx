@@ -150,7 +150,7 @@ export function PortalShell({
             <LogOut size={17} />
             خروج از حساب
           </RippleButton>
-          {logoutError && <p role="alert">خروج انجام نشد. دوباره تلاش کنید.</p>}
+          {logoutError && <p role="alert">خروج انجام نشد؛ دوباره تلاش کنید</p>}
         </div>
       </aside>
       <div className="portal-workspace">

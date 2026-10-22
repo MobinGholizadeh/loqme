@@ -16,7 +16,7 @@ async function handlePATCH(
     const token = extractSessionToken(request);
     if (!token) {
       return NextResponse.json(
-        { success: false, message: 'دسترسی غیرمجاز. لطفاً وارد شوید.' },
+        { success: false, message: 'دسترسی غیرمجاز؛ لطفاً وارد شوید' },
         { status: 401 }
       );
     }

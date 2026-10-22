@@ -6,7 +6,7 @@ import { generateBrandSchema } from "@/lib/seo/structured-data";
 
 export const metadata: Metadata = {
   title: { absolute: "لقمه (Loqme) | کشف خوشمزه، خرید هوشمندانه" },
-  description: "خوراکی‌های خوب فروشگاه‌های محله را با قیمت بهتر کشف کن. رزرو آنلاین و دریافت حضوری؛ شروع از ارومیه.",
+  description: "خوراکی‌های خوب فروشگاه‌های محله را با قیمت بهتر کشف کن؛ رزرو آنلاین و دریافت حضوری؛ شروع از ارومیه",
   alternates: { canonical: "/" },
 };
 

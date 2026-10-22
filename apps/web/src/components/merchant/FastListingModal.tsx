@@ -31,7 +31,7 @@ export const PRESET_TEMPLATES = [
     titleFa: "بسته نان تازه سنتی و فانتزی",
     categorySlug: "bakery",
     descriptionFa:
-      "شامل چند نوع نان تازه پخت امروز (سنگک، بربری و باگت فرانسوی) با کیفیت عالی و کاملاً تازه.",
+      "شامل چند نوع نان تازه پخت امروز (سنگک، بربری و باگت فرانسوی) با کیفیت عالی و کاملاً تازه",
     suggestedOriginal: 80000,
     suggestedDiscounted: 40000,
     defaultQuantity: 6,
@@ -45,7 +45,7 @@ export const PRESET_TEMPLATES = [
     titleFa: "بسته شیرینی تر و کیک عصرانه",
     categorySlug: "bakery",
     descriptionFa:
-      "مجموعه دست‌چین از رولت، شیرینی دانمارکی و کیک‌های تازه عصرانه تولید کارگاه امروز.",
+      "مجموعه دست‌چین از رولت، شیرینی دانمارکی و کیک‌های تازه عصرانه تولید کارگاه امروز",
     suggestedOriginal: 160000,
     suggestedDiscounted: 75000,
     defaultQuantity: 4,
@@ -59,7 +59,7 @@ export const PRESET_TEMPLATES = [
     titleFa: "بسته غذای پخته روز",
     categorySlug: "restaurant",
     descriptionFa:
-      "غذای پخته امروز، سرو نشده و نگهداری‌شده در یخچال؛ پیش از مصرف کاملاً گرم شود.",
+      "غذای پخته امروز، سرو نشده و نگهداری‌شده در یخچال؛ پیش از مصرف کاملاً گرم شود",
     suggestedOriginal: 220000,
     suggestedDiscounted: 110000,
     defaultQuantity: 5,
@@ -73,7 +73,7 @@ export const PRESET_TEMPLATES = [
     titleFa: "بسته سالاد تازه، دسر و نوشیدنی کافه",
     categorySlug: "cafe",
     descriptionFa:
-      "سالاد سزار تازه آماده‌شده، کروسان شکلاتی و اسموتی یا آبمیوه طبیعی روز.",
+      "سالاد سزار تازه آماده‌شده، کروسان شکلاتی و اسموتی یا آبمیوه طبیعی روز",
     suggestedOriginal: 140000,
     suggestedDiscounted: 65000,
     defaultQuantity: 3,
@@ -87,7 +87,7 @@ export const PRESET_TEMPLATES = [
     titleFa: "بسته خواربار بسته‌بندی‌شده",
     categorySlug: "supermarket",
     descriptionFa:
-      "اقلام پلمب و تاریخ‌دار؛ نام اقلام و تاریخ مصرف هر کدام را درج کنید.",
+      "اقلام پلمب و تاریخ‌دار؛ نام اقلام و تاریخ مصرف هر کدام را درج کنید",
     suggestedOriginal: 150000,
     suggestedDiscounted: 75000,
     defaultQuantity: 3,
@@ -101,7 +101,7 @@ export const PRESET_TEMPLATES = [
     titleFa: "بسته میوه و سبزیجات تازه",
     categorySlug: "produce",
     descriptionFa:
-      "میوه و سبزی سالم؛ نوع اقلام و وزن تقریبی هر بسته را درج کنید.",
+      "میوه و سبزی سالم؛ نوع اقلام و وزن تقریبی هر بسته را درج کنید",
     suggestedOriginal: 120000,
     suggestedDiscounted: 60000,
     defaultQuantity: 4,
@@ -115,7 +115,7 @@ export const PRESET_TEMPLATES = [
     titleFa: "بسته پروتئینی پلمب و تاریخ‌دار",
     categorySlug: "deli",
     descriptionFa:
-      "محصول پروتئینی با بسته‌بندی مجاز و زنجیره سرد معتبر؛ نام، وزن و تاریخ مصرف را درج کنید.",
+      "محصول پروتئینی با بسته‌بندی مجاز و زنجیره سرد معتبر؛ نام، وزن و تاریخ مصرف را درج کنید",
     suggestedOriginal: 200000,
     suggestedDiscounted: 100000,
     defaultQuantity: 2,
@@ -163,7 +163,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
   const [titleFa, setTitleFa] = useState<string>("بسته شیرینی تر و کیک عصرانه");
   const [categorySlug, setCategorySlug] = useState<string>("bakery");
   const [descriptionFa, setDescriptionFa] = useState<string>(
-    "مجموعه دست‌چین از رولت، شیرینی دانمارکی و کیک‌های تازه عصرانه تولید کارگاه امروز.",
+    "مجموعه دست‌چین از رولت، شیرینی دانمارکی و کیک‌های تازه عصرانه تولید کارگاه امروز",
   );
   const [originalPrice, setOriginalPrice] = useState<number>(160000);
   const [discountedPrice, setDiscountedPrice] = useState<number>(75000);
@@ -489,7 +489,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
           <div className="p-4 rounded-lg bg-loqme-neutral-50 border border-loqme-neutral-200 space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-loqme-neutral-800">
-                ۲. تعیین قیمت و تعداد موجودی مازاد امروز:
+                ۲؛ تعیین قیمت و تعداد موجودی مازاد امروز:
               </label>
               {discountPercent > 0 && (
                 <Badge variant="brand" size="md">
@@ -663,7 +663,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
               <span className="text-[11px] leading-relaxed font-medium">
                 <strong>تعهد سلامت و کیفیت لقمه:</strong> تایید می‌نمایم محتویات
                 این بسته کاملاً تازه، بهداشتی، تاریخ‌دار و مازاد مصرف روز بوده و
-                به هیچ وجه شامل غذای دست‌خورده یا منقضی‌شده نمی‌باشد.
+                به هیچ وجه شامل غذای دست‌خورده یا منقضی‌شده نمی‌باشد
               </span>
             </label>
           </div>
@@ -694,7 +694,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
               {isSubmitting ? (
                 <>
                   <Spinner size="sm" variant="white" />
-                  <span>در حال انتشار در بازار...</span>
+                  <span>در حال انتشار در بازار…</span>
                 </>
               ) : (
                 <>

@@ -134,7 +134,7 @@ export class OrderService {
 
         if (BigInt(currentPayment.amountToman) !== order.totalAmountToman) {
           await issue('AMOUNT_MISMATCH');
-          return { success: false, message: 'مغایرت مبلغ پرداختی با فاکتور سفارش. تراکنش نیازمند بررسی است.' };
+          return { success: false, message: 'مغایرت مبلغ پرداختی با فاکتور سفارش؛ تراکنش نیازمند بررسی است' };
         }
         if (([OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP, OrderStatus.COMPLETED] as OrderStatus[]).includes(order.status)) {
           if (!order.acceptedPaymentId) {
@@ -145,7 +145,7 @@ export class OrderService {
         }
         if (order.status !== OrderStatus.PENDING_PAYMENT || !order.reservationId) {
           await issue('ORDER_NOT_PAYABLE');
-          return { success: false, message: 'وضعیت سفارش اجازه تکمیل پرداخت را نمی‌دهد؛ با پشتیبانی تماس بگیرید.' };
+          return { success: false, message: 'وضعیت سفارش اجازه تکمیل پرداخت را نمی‌دهد؛ با پشتیبانی تماس بگیرید' };
         }
         const now = new Date();
         const claimed = await tx.reservation.updateMany({
@@ -154,7 +154,7 @@ export class OrderService {
         });
         if (claimed.count !== 1) {
           await issue('RESERVATION_EXPIRED');
-          return { success: false, message: 'رزرو منقضی یا آزاد شده است؛ پرداخت برای بررسی و استرداد نیازمند پیگیری پشتیبانی است.' };
+          return { success: false, message: 'رزرو منقضی یا آزاد شده است؛ پرداخت برای بررسی و استرداد نیازمند پیگیری پشتیبانی است' };
         }
         for (const item of order.items) {
           const sold = await inventoryService.atomicConfirmSold(item.listingId, item.quantity, tx);
@@ -187,7 +187,7 @@ export class OrderService {
         caseKey: `${verifyResult.payment.id}:COMPLETION_FAILED`, merchantId: order.merchantId, orderId,
         paymentId: verifyResult.payment.id, reason: 'COMPLETION_FAILED',
       } });
-      return { success: false, message: 'تکمیل سفارش انجام نشد؛ پرداخت ثبت شده است و نیازمند بررسی یا تلاش مجدد است.' };
+      return { success: false, message: 'تکمیل سفارش انجام نشد؛ پرداخت ثبت شده است و نیازمند بررسی یا تلاش مجدد است' };
     }
     if (completedNow) {
       try { await pickupService.getOrCreateVerification(orderId); }

@@ -21,7 +21,7 @@ export default function NotFound() {
 
         <p className="text-sm text-loqme-neutral-600 leading-relaxed mb-6">
           نشانی وارد شده معتبر نیست یا ممکن است این بسته یا فروشگاه تغییر یافته
-          باشد.
+          باشد
         </p>
 
         <div className="w-full space-y-3">

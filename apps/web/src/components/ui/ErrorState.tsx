@@ -16,7 +16,7 @@ export interface ErrorStateProps {
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
   title = "خطایی در ارتباط با سرور رخ داد",
-  message = "امکان دریافت اطلاعات وجود ندارد. لطفاً ارتباط اینترنت خود را بررسی نموده و مجدداً تلاش کنید.",
+  message = "امکان دریافت اطلاعات وجود ندارد؛ لطفاً ارتباط اینترنت خود را بررسی نموده و مجدداً تلاش کنید",
   onRetry,
   retryText = "تلاش مجدد",
   secondaryAction,

@@ -29,7 +29,7 @@ export default function MerchantFinancePage() {
         setFinance(json.data);
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +82,7 @@ export default function MerchantFinancePage() {
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
-            در حال محاسبه صورت‌حساب مالی...
+            در حال محاسبه صورت‌حساب مالی…
           </p>
         </div>
       ) : (
@@ -188,7 +188,7 @@ export default function MerchantFinancePage() {
             {!finance?.transactions || finance.transactions.length === 0 ? (
               <EmptyState
                 title="تراکنشی یافت نشد"
-                description="پس از پرداخت سفارش‌ها توسط مشتریان، اسناد بستانکاری فروشگاه در این بخش ثبت می‌گردند."
+                description="پس از پرداخت سفارش‌ها توسط مشتریان، اسناد بستانکاری فروشگاه در این بخش ثبت می‌گردند"
               />
             ) : (
               <div className="overflow-x-auto rounded-lg border border-loqme-neutral-200 bg-white">

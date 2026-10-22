@@ -9,7 +9,7 @@ export function HeartbeatLoading() {
         <LoqmeLogo size={56} variant="icon" />
       </div>
       <span className="text-sm text-loqme-neutral-600">
-        در حال آماده‌سازی لقمه‌ها...
+        در حال آماده‌سازی لقمه‌ها…
       </span>
     </div>
   );

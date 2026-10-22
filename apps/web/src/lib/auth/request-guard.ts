@@ -64,7 +64,7 @@ export function isValidOrigin(request: NextRequest): boolean {
 
 export function guardOtpRequest(request: NextRequest) {
   if (!isValidOrigin(request)) {
-    return NextResponse.json({ success: false, message: 'درخواست نامعتبر است.' }, { status: 403, headers: { 'Cache-Control': 'private, no-store' } });
+    return NextResponse.json({ success: false, message: 'درخواست نامعتبر است' }, { status: 403, headers: { 'Cache-Control': 'private, no-store' } });
   }
   // The production proxy overwrites X-Real-IP; keep the app port private.
   // Missing IPs share a restrictive bucket instead of bypassing throttling.
@@ -74,7 +74,7 @@ export function guardOtpRequest(request: NextRequest) {
   const bucket = attempts.get(key) || { count: 0, expires: now + WINDOW };
   if (bucket.count >= 10 || (!attempts.has(key) && attempts.size >= 10000)) {
     const seconds = Math.max(1, Math.ceil((bucket.expires - now) / 1000));
-    return NextResponse.json({ success: false, message: 'تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.', cooldownSeconds: seconds },
+    return NextResponse.json({ success: false, message: 'تعداد درخواست‌ها بیش از حد مجاز است؛ کمی بعد دوباره تلاش کنید', cooldownSeconds: seconds },
       { status: 429, headers: { 'Cache-Control': 'private, no-store', 'Retry-After': String(seconds) } });
   }
   bucket.count++;

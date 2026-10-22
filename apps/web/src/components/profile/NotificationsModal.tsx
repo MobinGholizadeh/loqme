@@ -237,7 +237,7 @@ export function NotificationsModal({
               <Bell className="w-10 h-10 mx-auto text-slate-300 mb-2" />
               <p className="text-xs font-bold text-slate-600">اعلانی وجود ندارد</p>
               <p className="text-[11px] text-slate-400 mt-1">
-                پیام‌ها و وضعیت سفارش‌های شما اینجا نمایش داده می‌شوند.
+                پیام‌ها و وضعیت سفارش‌های شما اینجا نمایش داده می‌شوند
               </p>
             </div>
           )}

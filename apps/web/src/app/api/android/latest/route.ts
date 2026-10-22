@@ -9,7 +9,7 @@ async function handleGET() {
   try {
     return NextResponse.json(await latestAndroidRelease(), { headers: { 'Cache-Control': 'no-store' } });
   } catch {
-    return NextResponse.json({ message: 'به‌روزرسانی در حال حاضر در دسترس نیست.' }, {
+    return NextResponse.json({ message: 'به‌روزرسانی در حال حاضر در دسترس نیست' }, {
       status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '3600' },
     });
   }

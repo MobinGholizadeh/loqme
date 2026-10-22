@@ -59,7 +59,7 @@ export default function MerchantSettingsPage() {
         setHours(data.hours || []);
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +130,7 @@ export default function MerchantSettingsPage() {
       if (res.ok && json.success) {
         setMessage({
           type: "success",
-          text: "تنظیمات فروشگاه با موفقیت ذخیره گردید.",
+          text: "تنظیمات فروشگاه با موفقیت ذخیره گردید",
         });
       } else {
         setMessage({
@@ -186,12 +186,12 @@ export default function MerchantSettingsPage() {
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
-            در حال بارگذاری تنظیمات...
+            در حال بارگذاری تنظیمات…
           </p>
         </div>
       ) : (
         <form onSubmit={handleSave} className="space-y-6">
-          <Card className="p-6"><ListingImagePicker cover value={bannerImageUrl} onChange={setBannerImageUrl} onBusyChange={setImageBusy}/><p className="mt-3 text-sm text-loqme-neutral-600">این تصویر در بالای صفحه فروشگاه شما نمایش داده می‌شود. پیش از انتشار بسته، عکس جلد را ذخیره کنید.</p></Card>
+          <Card className="p-6"><ListingImagePicker cover value={bannerImageUrl} onChange={setBannerImageUrl} onBusyChange={setImageBusy}/><p className="mt-3 text-sm text-loqme-neutral-600">این تصویر در بالای صفحه فروشگاه شما نمایش داده می‌شود؛ پیش از انتشار بسته، عکس جلد را ذخیره کنید</p></Card>
           {/* Business Profile Card */}
           <Card
             variant="elevated"
@@ -270,7 +270,7 @@ export default function MerchantSettingsPage() {
             <div className="p-4 rounded-lg bg-loqme-primary-50/50 border border-loqme-primary-200 space-y-3">
               <p className="text-xs text-loqme-neutral-700 leading-relaxed">
                 مشتریان لقمه بر اساس فاصله و شعاع جغرافیایی، فروشگاه شما را در
-                نقشه کشف می‌کنند. لطفاً طول و عرض جغرافیایی محل ورود به مغازه را
+                نقشه کشف می‌کنند؛ لطفاً طول و عرض جغرافیایی محل ورود به مغازه را
                 به دقت بررسی فرمایید:
               </p>
 
@@ -342,9 +342,9 @@ export default function MerchantSettingsPage() {
                 </h2>
                 <p className="text-[11px] text-loqme-neutral-500 mt-0.5">
                   بسته‌های روز به صورت پیش‌فرض در بازه تعیین‌شده در این جدول به
-                  خریداران عرضه خواهند شد.
+                  خریداران عرضه خواهند شد
                 </p>
-                {hours.some(day => day.isOpen && (!day.defaultPickupStart || !day.defaultPickupEnd)) && <p className="text-sm text-loqme-primary-700 mt-2">بازه تحویل بعضی روزها هنوز تنظیم نشده است؛ ساعت شروع و پایان تحویل را با هم وارد کنید.</p>}
+                {hours.some(day => day.isOpen && (!day.defaultPickupStart || !day.defaultPickupEnd)) && <p className="text-sm text-loqme-primary-700 mt-2">بازه تحویل بعضی روزها هنوز تنظیم نشده است؛ ساعت شروع و پایان تحویل را با هم وارد کنید</p>}
               </div>
 
               <RippleButton
@@ -487,7 +487,7 @@ export default function MerchantSettingsPage() {
               {isSaving ? (
                 <>
                   <Spinner size="sm" variant="white" />
-                  <span>در حال ذخیره‌سازی...</span>
+                  <span>در حال ذخیره‌سازی…</span>
                 </>
               ) : (
                 "ذخیره کلیه تغییرات فروشگاه"

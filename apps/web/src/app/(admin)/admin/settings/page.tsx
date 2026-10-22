@@ -42,7 +42,7 @@ export default function AdminSettingsPage() {
         setActiveSmsProvider(data.activeSmsProvider || "MOCK");
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +72,7 @@ export default function AdminSettingsPage() {
       if (res.ok && json.success) {
         setMessage({
           type: "success",
-          text: "تنظیمات سراسری سامانه با موفقیت ذخیره گردید.",
+          text: "تنظیمات سراسری سامانه با موفقیت ذخیره گردید",
         });
       } else {
         setMessage({
@@ -128,7 +128,7 @@ export default function AdminSettingsPage() {
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
-            در حال بارگذاری تنظیمات...
+            در حال بارگذاری تنظیمات…
           </p>
         </div>
       ) : (
@@ -143,7 +143,7 @@ export default function AdminSettingsPage() {
                 </h3>
                 <p className="text-xs text-loqme-neutral-500 mt-1">
                   در صورت فعال‌سازی، دسترسی عمومی مشتریان به رزرو موقتاً مسدود
-                  شده و صفحه «در حال بروزرسانی» نمایش داده می‌شود.
+                  شده و صفحه «در حال بروزرسانی» نمایش داده می‌شود
                 </p>
               </div>
 
@@ -161,8 +161,8 @@ export default function AdminSettingsPage() {
 
             {maintenanceMode && (
               <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-700 text-xs">
-                هشدار: حالت تعمیر هم‌اکنون فعال است. کلیه تراکنش‌های جدید در
-                بازار موقتاً متوقف خواهند بود.
+                هشدار: حالت تعمیر هم‌اکنون فعال است؛ کلیه تراکنش‌های جدید در
+                بازار موقتاً متوقف خواهند بود
               </div>
             )}
           </div>
@@ -181,7 +181,7 @@ export default function AdminSettingsPage() {
             <textarea
               value={announcementBannerFa}
               onChange={(e) => setAnnouncementBannerFa(e.target.value)}
-              placeholder="مثال: به دلیل برودت هوا و یخبندان معابر ارومیه، بازه تحویل امروز تا ساعت ۲۲:۳۰ تمدید شد."
+              placeholder="مثال: به دلیل برودت هوا و یخبندان معابر ارومیه، بازه تحویل امروز تا ساعت ۲۲:۳۰ تمدید شد"
               className="w-full px-3 py-2.5 text-xs bg-white border border-loqme-neutral-200 rounded-lg text-loqme-neutral-900 placeholder-loqme-neutral-500 h-24 focus:outline-none focus:border-loqme-primary-500"
             />
           </div>

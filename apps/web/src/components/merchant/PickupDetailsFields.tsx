@@ -12,6 +12,6 @@ export function PickupDetailsFields({ value, onChange }: { value: PickupDetailsI
           <option value="">مشخص نشده</option><option value="true">ارائه می‌شود</option><option value="false">ارائه نمی‌شود</option>
         </Select>)}
     </div>
-    <label>راهنمای دریافت از فروشگاه<textarea className="pickup-instructions-input" rows={3} maxLength={500} value={value.instructionsFa} onChange={event => onChange({ ...value, instructionsFa: event.target.value })} placeholder="مثلاً به صندوق مراجعه کنید."/></label>
+    <label>راهنمای دریافت از فروشگاه<textarea className="pickup-instructions-input" rows={3} maxLength={500} value={value.instructionsFa} onChange={event => onChange({ ...value, instructionsFa: event.target.value })} placeholder="مثلاً به صندوق مراجعه کنید"/></label>
   </fieldset>;
 }

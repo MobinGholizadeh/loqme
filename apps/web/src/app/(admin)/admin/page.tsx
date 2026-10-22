@@ -79,7 +79,7 @@ export default function AdminDashboardPage() {
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
-            در حال دریافت آمار کلان بازار...
+            در حال دریافت آمار کلان بازار…
           </p>
         </div>
       ) : kpis ? (
@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
                 </h3>
                 <p className="text-xs text-loqme-neutral-500 mt-1">
                   بررسی مدارک صنفی و بهداشتی، تغییر وضعیت تایید، تعلیق متخلفین و
-                  تنظیم کارمزد اختصاصی.
+                  تنظیم کارمزد اختصاصی
                 </p>
               </div>
             </Link>
@@ -171,7 +171,7 @@ export default function AdminDashboardPage() {
                 </h3>
                 <p className="text-xs text-loqme-neutral-500 mt-1">
                   مشاهده گزارش‌های فساد غذا، بازرسی عکس‌های ارسالی خریدار و
-                  استرداد با یک کلیک.
+                  استرداد با یک کلیک
                 </p>
               </div>
             </Link>
@@ -186,7 +186,7 @@ export default function AdminDashboardPage() {
                 </h3>
                 <p className="text-xs text-loqme-neutral-500 mt-1">
                   مشاهده مانده بستانکاری کلیه فروشگاه‌ها، محاسبه سهم پلتفرم و
-                  خروجی اکسل تسویه حساب.
+                  خروجی اکسل تسویه حساب
                 </p>
               </div>
             </Link>

@@ -26,7 +26,7 @@ export default function AdminFinancePage() {
         setReport(json.data);
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +130,7 @@ export default function AdminFinancePage() {
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
-            در حال محاسبه مانده حساب‌ها...
+            در حال محاسبه مانده حساب‌ها…
           </p>
         </div>
       ) : (
@@ -195,7 +195,7 @@ export default function AdminFinancePage() {
             {!report?.merchants || report.merchants.length === 0 ? (
               <EmptyState
                 title="تراکنشی برای تسویه موجود نیست"
-                description="با ثبت و تکمیل سفارش‌ها، تراز مالی هر فروشگاه در این بخش محاسبه می‌گردد."
+                description="با ثبت و تکمیل سفارش‌ها، تراز مالی هر فروشگاه در این بخش محاسبه می‌گردد"
               />
             ) : (
               <div className="rounded-lg bg-white border border-loqme-neutral-200 overflow-hidden shadow-card">

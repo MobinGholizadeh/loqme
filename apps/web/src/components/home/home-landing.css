@@ -6,6 +6,7 @@
 .landing-hero-copy { width: min(1440px, 100%); margin: auto; padding: 80px max(6%, 24px); }
 .landing-eyebrow { display: flex; gap: 8px; align-items: center; font-size: 13px; margin-bottom: 24px; }
 .landing-hero h1 { font-size: clamp(38px, 4.8vw, 76px); font-weight: 900; line-height: 1.6; letter-spacing: -2px; text-wrap: balance; }
+.landing-title-line { display: inline-block; font: inherit; line-height: inherit; }
 .landing-hero p { font-size: clamp(14px, 1.3vw, 19px); line-height: 2.1; margin-block: 24px 32px; color: #F2F8F5; }
 .landing-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 .landing-hero .action-link { background: white; color: #1D616A; border: 1px solid white; padding: 14px 26px; }

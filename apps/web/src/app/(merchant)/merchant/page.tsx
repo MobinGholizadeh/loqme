@@ -103,7 +103,7 @@ export default function MerchantDashboardPage() {
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
-            در حال دریافت وضعیت فروشگاه...
+            در حال دریافت وضعیت فروشگاه…
           </p>
         </div>
       ) : stats ? (
@@ -135,7 +135,7 @@ export default function MerchantDashboardPage() {
                   </h3>
                   <p className="text-xs text-loqme-neutral-600">
                     لطفاً بسته‌های رزرو شده را از قبل تفکیک کنید تا هنگام مراجعه
-                    مشتریان، تحویل با اسکن QR یا کد تحویل بدون معطلی انجام شود.
+                    مشتریان، تحویل با اسکن QR یا کد تحویل بدون معطلی انجام شود
                   </p>
                 </div>
 
@@ -238,7 +238,7 @@ export default function MerchantDashboardPage() {
                 </h3>
                 <p className="text-xs text-loqme-neutral-500 mt-1">
                   توقف موقت (Pause)، افزودن یا کاهش موجودی، و مشاهده وضعیت
-                  لحظه‌ای بسته‌ها.
+                  لحظه‌ای بسته‌ها
                 </p>
               </Card>
             </Link>
@@ -256,7 +256,7 @@ export default function MerchantDashboardPage() {
                 </h3>
                 <p className="text-xs text-loqme-neutral-500 mt-1">
                   اسکن بارکد QR خریدار با دوربین یا ثبت کد ۴ رقمی جهت تایید آنی
-                  سفارش.
+                  سفارش
                 </p>
               </Card>
             </Link>

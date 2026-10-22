@@ -15,7 +15,7 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 describe('Admin dashboard loading and refresh', () => {
   it.each([{}, { activeMerchantsCount: 12, pendingMerchantsCount: 3, gmv24hToman: 1234000, commission24hToman: 123400, activeListingsCount: 24, openComplaintsCount: 1 }])('renders only API metrics and refreshes them (%o)', async data => {
-    fetchMock.mockResolvedValue(response(data)); render(<Dashboard />); expect(screen.getByText('در حال دریافت آمار کلان بازار...')).toBeTruthy();
+    fetchMock.mockResolvedValue(response(data)); render(<Dashboard />); expect(screen.getByText('در حال دریافت آمار کلان بازار…')).toBeTruthy();
     await screen.findByRole('link', { name: /صورت‌حساب و تسویه/ }); expect(fetchMock).toHaveBeenCalledWith('/api/admin/dashboard');
     expect(screen.getAllByText(data.activeMerchantsCount ? '۱۲' : '۰')[0]).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /بروزرسانی/ })); await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
@@ -67,9 +67,9 @@ describe('Admin settings editing', () => {
     fetchMock.mockResolvedValue(response({ maintenanceMode: false, announcementBannerFa: null, activeSmsProvider: null })); const view = render(<Settings />);
     await screen.findByRole('button', { name: 'ذخیره تنظیمات سیستم' }); fireEvent.click(screen.getByRole('checkbox')); expect(screen.getByText(/هشدار: حالت تعمیر/)).toBeTruthy();
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '  اطلاعیه آزمایش  ' } }); fireEvent.click(screen.getByRole('button', { name: /سامانه پیامک SMS.ir/ })); fireEvent.submit(view.container.querySelector('form')!);
-    await screen.findByText('تنظیمات سراسری سامانه با موفقیت ذخیره گردید.');
+    await screen.findByText('تنظیمات سراسری سامانه با موفقیت ذخیره گردید');
     expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ maintenanceMode: true, announcementBannerFa: 'اطلاعیه آزمایش', activeSmsProvider: 'SMS_IR' });
-    fireEvent.click(screen.getByRole('button', { name: 'بستن' })); expect(screen.queryByText('تنظیمات سراسری سامانه با موفقیت ذخیره گردید.')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'بستن' })); expect(screen.queryByText('تنظیمات سراسری سامانه با موفقیت ذخیره گردید')).toBeNull();
   });
   it.each(['http', 'business', 'network'])('preserves editable settings after save %s failure', async failure => {
     fetchMock.mockResolvedValueOnce(response({ maintenanceMode: true, announcementBannerFa: 'saved', activeSmsProvider: 'SMS_IR' }));

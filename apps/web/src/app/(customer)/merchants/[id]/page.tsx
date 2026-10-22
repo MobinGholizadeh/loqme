@@ -148,7 +148,7 @@ export default function MerchantProfilePage() {
         setIsFavorited(json.isFavorited);
       } else if (res.status === 401) {
         showFeedback(
-          "برای ثبت فروشگاه در علاقه‌مندی‌ها، لطفاً ابتدا وارد حساب کاربری خود شوید.",
+          "برای ثبت فروشگاه در علاقه‌مندی‌ها، لطفاً ابتدا وارد حساب کاربری خود شوید",
         );
       }
     } catch (err) {
@@ -176,7 +176,7 @@ export default function MerchantProfilePage() {
       <div className="py-12 max-w-md mx-auto">
         <ErrorState
           title="فروشگاه مورد نظر یافت نشد"
-          message={errorMsg || "اطلاعات این فروشگاه در دسترس نیست."}
+          message={errorMsg || "اطلاعات این فروشگاه در دسترس نیست"}
           secondaryAction={
             <Button
               variant="primary"
@@ -362,7 +362,7 @@ export default function MerchantProfilePage() {
               در حال حاضر بسته‌ای برای این فروشگاه موجود نیست
             </h3>
             <p className="text-xs text-loqme-neutral-500 max-w-sm mx-auto leading-relaxed">
-              بسته‌های این فروشگاه را در زمان دیگری بررسی کنید.
+              بسته‌های این فروشگاه را در زمان دیگری بررسی کنید
             </p>
             <div className="pt-2">
               <Button
@@ -432,7 +432,7 @@ export default function MerchantProfilePage() {
             </h3>
             <p className="text-[11px] text-loqme-neutral-500 max-w-sm mx-auto">
               پس از خرید و تحویل حضوری بسته، نظر شما با نشان «خریدار تایید شده»
-              در این بخش نمایش داده خواهد شد.
+              در این بخش نمایش داده خواهد شد
             </p>
           </Card>
         ) : (

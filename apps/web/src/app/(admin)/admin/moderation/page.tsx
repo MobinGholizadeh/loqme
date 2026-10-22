@@ -106,7 +106,7 @@ export default function AdminModerationPage() {
         setComplaints(data.items || []);
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       setLoading(false);
     }
@@ -179,7 +179,7 @@ export default function AdminModerationPage() {
       setSafetyListingId("");
       setSafetyReason("");
       showFeedback(
-        "وضعیت سلامت بسته با موفقیت تغییر کرد و در لاگ امنیتی ثبت شد.",
+        "وضعیت سلامت بسته با موفقیت تغییر کرد و در لاگ امنیتی ثبت شد",
       );
     } catch (err: any) {
       showFeedback(err.message || "خطا در تغییر وضعیت");
@@ -244,7 +244,7 @@ export default function AdminModerationPage() {
               </h3>
               <p className="text-xs text-rose-700 mt-0.5">
                 طبق آیین‌نامه ایمنی لقمه، گزارش‌های فساد غذا باید ظرف حداکثر ۲
-                ساعت تعیین تکلیف گردند.
+                ساعت تعیین تکلیف گردند
               </p>
             </div>
           </div>
@@ -310,7 +310,7 @@ export default function AdminModerationPage() {
             شکایتی با این فیلتر یافت نشد
           </h3>
           <p className="text-xs text-loqme-neutral-500">
-            گزارشی مطابق فیلتر انتخاب‌شده وجود ندارد.
+            گزارشی مطابق فیلتر انتخاب‌شده وجود ندارد
           </p>
         </div>
       ) : (
@@ -556,7 +556,7 @@ export default function AdminModerationPage() {
                 rows={3}
                 value={resolutionNotes}
                 onChange={(e) => setResolutionNotes(e.target.value)}
-                placeholder="علت تایید یا رد درخواست..."
+                placeholder="علت تایید یا رد درخواست…"
                 className="w-full p-2.5 text-xs bg-white border border-loqme-neutral-200 rounded-lg text-loqme-neutral-900 outline-none focus:border-loqme-primary-500"
               />
             </div>
@@ -576,7 +576,7 @@ export default function AdminModerationPage() {
                 disabled={actionLoading}
                 onClick={handleResolve}
               >
-                {actionLoading ? "در حال ثبت..." : "تایید نهایی اقدام"}
+                {actionLoading ? "در حال ثبت…" : "تایید نهایی اقدام"}
               </Button>
             </div>
           </div>
@@ -608,7 +608,7 @@ export default function AdminModerationPage() {
                   required
                   value={safetyListingId}
                   onChange={(e) => setSafetyListingId(e.target.value)}
-                  placeholder="UUID بسته مورد نظر..."
+                  placeholder="UUID بسته مورد نظر…"
                   className="w-full p-2 bg-white border border-loqme-neutral-200 rounded-lg text-loqme-neutral-900 font-mono"
                 />
               </div>
@@ -645,7 +645,7 @@ export default function AdminModerationPage() {
                   rows={2}
                   value={safetyReason}
                   onChange={(e) => setSafetyReason(e.target.value)}
-                  placeholder="گزارش بازرس بهداشت یا شکایت‌های مکرر..."
+                  placeholder="گزارش بازرس بهداشت یا شکایت‌های مکرر…"
                   className="w-full p-2 bg-white border border-loqme-neutral-200 rounded-lg text-loqme-neutral-900 outline-none"
                 />
               </div>
@@ -665,7 +665,7 @@ export default function AdminModerationPage() {
                   variant="primary"
                   disabled={safetyLoading}
                 >
-                  {safetyLoading ? "در حال اعمال..." : "اعمال و ثبت لاگ بازرسی"}
+                  {safetyLoading ? "در حال اعمال…" : "اعمال و ثبت لاگ بازرسی"}
                 </Button>
               </div>
             </form>

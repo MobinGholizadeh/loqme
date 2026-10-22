@@ -60,7 +60,7 @@ describe('Admin complaint decisions and safety operations', () => {
     fireEvent.change(screen.getByLabelText('وضعیت سلامت جدید:'), { target: { value: 'UNSAFE' } });
     fireEvent.change(screen.getByLabelText('دلیل بازرسی / مستندات:'), { target: { value: '  فساد  ' } });
     fireEvent.submit(screen.getByLabelText('شناسه بسته (Listing ID):').closest('form')!);
-    await screen.findByText(outcome === 'success' ? 'وضعیت سلامت بسته با موفقیت تغییر کرد و در لاگ امنیتی ثبت شد.' : outcome === 'network' ? 'offline' : 'safety failed');
+    await screen.findByText(outcome === 'success' ? 'وضعیت سلامت بسته با موفقیت تغییر کرد و در لاگ امنیتی ثبت شد' : outcome === 'network' ? 'offline' : 'safety failed');
     const write = fetchMock.mock.calls.find(c => c[1]?.method)!; expect(write[0]).toBe('/api/admin/listings/listing/safety'); expect(JSON.parse(write[1].body)).toEqual({ safetyStatus: 'UNSAFE', reasonFa: 'فساد' });
     expect(Boolean(screen.queryByLabelText('شناسه بسته (Listing ID):'))).toBe(outcome !== 'success');
   });

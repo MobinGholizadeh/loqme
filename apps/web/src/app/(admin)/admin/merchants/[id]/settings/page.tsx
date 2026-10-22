@@ -207,8 +207,8 @@ export default function MerchantAdminSettings() {
             </div>
             {data.owner.ownedStoreCount > 1 && (
               <p className="text-amber-800">
-                این حساب مشترک است؛ تغییر اطلاعات آن بر چند فروشگاه اثر دارد.
-                حساب مستقل لازم است.
+                این حساب مشترک است؛ تغییر اطلاعات آن بر چند فروشگاه اثر دارد؛
+                حساب مستقل لازم است
               </p>
             )}
           </dl>
@@ -288,7 +288,7 @@ export default function MerchantAdminSettings() {
           </h2>
           {data.orders.length === 0 ? (
             <p className="py-10 text-loqme-neutral-500">
-              سفارشی برای این فروشگاه ثبت نشده است.
+              سفارشی برای این فروشگاه ثبت نشده است
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -358,7 +358,7 @@ export default function MerchantAdminSettings() {
         <section className="space-y-3">
           <h2 className="font-bold">حساب‌های همکار این فروشگاه</h2>
           {data.staff.length === 0 ? (
-            <p>همکاری ثبت نشده است.</p>
+            <p>همکاری ثبت نشده است</p>
           ) : (
             data.staff.map((staff) => (
               <div
@@ -398,17 +398,17 @@ export default function MerchantAdminSettings() {
               انصراف
             </Button>
             <Button disabled={saving} onClick={save}>
-              {saving ? "در حال ثبت..." : "تأیید و ذخیره"}
+              {saving ? "در حال ثبت…" : "تأیید و ذخیره"}
             </Button>
           </>
         }
       >
         <p className="text-sm leading-7">
           {pending?.action === "ASSIGN_OWNER"
-            ? `حساب ${toPersianDigits(pending.mobile)} مالک ${data.businessNameFa} می‌شود و دسترسی حساب مالک قبلی به این فروشگاه حذف می‌شود.`
+            ? `حساب ${toPersianDigits(pending.mobile)} مالک ${data.businessNameFa} می‌شود و دسترسی حساب مالک قبلی به این فروشگاه حذف می‌شود`
             : pending?.isActive
-              ? "اطلاعات حساب فروشنده به‌روزرسانی می‌شود."
-              : "ورود و دسترسی فروشنده به پنل فروشگاه غیرفعال می‌شود."}
+              ? "اطلاعات حساب فروشنده به‌روزرسانی می‌شود"
+              : "ورود و دسترسی فروشنده به پنل فروشگاه غیرفعال می‌شود"}
         </p>
       </Modal>
     </div>

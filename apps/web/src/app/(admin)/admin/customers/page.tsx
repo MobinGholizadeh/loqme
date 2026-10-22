@@ -39,7 +39,7 @@ export default function AdminCustomersPage() {
         setCustomers(json.data);
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +69,7 @@ export default function AdminCustomersPage() {
       if (res.ok && json.success) {
         setMessage({
           type: "success",
-          text: `وضعیت حساب کاربر به ${!c.isActive ? "فعال" : "مسدود"} تغییر یافت.`,
+          text: `وضعیت حساب کاربر به ${!c.isActive ? "فعال" : "مسدود"} تغییر یافت`,
         });
         setSelectedCustomer(null);
         fetchCustomers();
@@ -148,7 +148,7 @@ export default function AdminCustomersPage() {
         <div className="w-full sm:w-80">
           <input
             type="text"
-            placeholder="جستجو بر اساس نام خریدار یا شماره موبایل..."
+            placeholder="جستجو بر اساس نام خریدار یا شماره موبایل…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full px-3 py-1.5 text-xs bg-white border border-loqme-neutral-200 rounded-lg text-loqme-neutral-900 placeholder-loqme-neutral-500 focus:outline-none focus:border-loqme-primary-500"
@@ -161,13 +161,13 @@ export default function AdminCustomersPage() {
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
-            در حال دریافت فهرست کاربران...
+            در حال دریافت فهرست کاربران…
           </p>
         </div>
       ) : customers.length === 0 ? (
         <EmptyState
           title="کاربری با این مشخصات یافت نشد"
-          description="با تغییر عبارت جستجو می‌توانید سایر خریداران را پیدا کنید."
+          description="با تغییر عبارت جستجو می‌توانید سایر خریداران را پیدا کنید"
         />
       ) : (
         <div className="rounded-lg bg-white border border-loqme-neutral-200 overflow-hidden shadow-card">

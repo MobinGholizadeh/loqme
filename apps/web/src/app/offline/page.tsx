@@ -27,7 +27,7 @@ export default function OfflinePage() {
 
         <p className="text-sm text-loqme-neutral-600 leading-relaxed mb-8">
           برای دسترسی به بسته‌های شگفت‌انگیز روزانه و رزرو لقمه‌ها، نیاز به
-          اتصال اینترنت دارید. لطفاً اتصال دستگاه خود را بررسی فرمایید.
+          اتصال اینترنت دارید؛ لطفاً اتصال دستگاه خود را بررسی فرمایید
         </p>
 
         <div className="w-full space-y-3">

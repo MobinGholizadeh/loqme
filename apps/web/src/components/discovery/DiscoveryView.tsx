@@ -158,7 +158,7 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
           setError(
             e instanceof Error && e.message
               ? e.message
-              : "ارتباط با سرور برقرار نشد.",
+              : "ارتباط با سرور برقرار نشد",
           );
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -228,7 +228,7 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
       <div className="discovery-heading">
         {!home && <div>
           <h1>کشف طعم‌های محله</h1>
-          <p>بسته‌های روزانه فروشگاه‌های محله، با قیمت کمتر و دریافت حضوری.</p>
+          <p>بسته‌های روزانه فروشگاه‌های محله، با قیمت کمتر و دریافت حضوری</p>
         </div>}
         <div className="discovery-location">
           <Select
@@ -369,7 +369,7 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
                 </Link>
               ))
             ) : (
-              <p>در این محدوده بسته‌ای پیدا نشد.</p>
+              <p>در این محدوده بسته‌ای پیدا نشد</p>
             )}
           </aside>
         </div>
@@ -377,7 +377,7 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
         <div className="py-12">
           <EmptyState
             title="فعلاً بسته‌ای در این محدوده نیست"
-            description="محله یا فیلترها را تغییر دهید و دوباره جستجو کنید."
+            description="محله یا فیلترها را تغییر دهید و دوباره جستجو کنید"
             action={
               <Button
                 variant="secondary"
@@ -438,8 +438,8 @@ export function DiscoveryView({ home = false }: { home?: boolean }) {
       <div className="discovery-note">
         <ShieldCheck size={26} strokeWidth={1.5} />
         <p>
-          زمان دریافت و اطلاعات حساسیت‌زا را پیش از رزرو بررسی کنید. بسته شما در
-          بازه اعلام‌شده در فروشگاه تحویل داده می‌شود.
+          زمان دریافت و اطلاعات حساسیت‌زا را پیش از رزرو بررسی کنید؛ بسته شما در
+          بازه اعلام‌شده در فروشگاه تحویل داده می‌شود
         </p>
       </div>
       <Modal

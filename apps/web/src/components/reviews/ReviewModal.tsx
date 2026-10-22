@@ -25,7 +25,7 @@ export function ReviewModal({ isOpen, onClose, orderId, orderNumber, merchantNam
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (Object.values(scores).some(score => score === 0)) {
-      setError("لطفاً برای هر پنج بخش امتیاز انتخاب کنید."); return;
+      setError("لطفاً برای هر پنج بخش امتیاز انتخاب کنید"); return;
     }
     setLoading(true); setError("");
     try {
@@ -48,10 +48,10 @@ export function ReviewModal({ isOpen, onClose, orderId, orderNumber, merchantNam
       </header>
       {success ? <div className="py-8 space-y-4 text-center" role="status">
         <h3 className="font-bold">با تشکر از ثبت نظر شما!</h3>
-        <p>امتیاز شما در نظرات خریداران تاییدشده ثبت شد.</p>
+        <p>امتیاز شما در نظرات خریداران تاییدشده ثبت شد</p>
         <Button onClick={onClose}>بستن</Button>
       </div> : <form onSubmit={submit} className="mt-5 space-y-5">
-        <p className="text-sm text-loqme-neutral-600">برای هر بخش، از یک تا پنج ستاره انتخاب کنید.</p>
+        <p className="text-sm text-loqme-neutral-600">برای هر بخش، از یک تا پنج ستاره انتخاب کنید</p>
         {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
         <div className="divide-y divide-loqme-neutral-100">
           {Object.entries(RATING_LABELS).map(([key, label]) => {
@@ -72,7 +72,7 @@ export function ReviewModal({ isOpen, onClose, orderId, orderNumber, merchantNam
         <div><label htmlFor="reviewComment" className="block text-sm font-semibold mb-2">توضیحات و بازخورد شما (اختیاری)</label>
           <textarea id="reviewComment" rows={3} maxLength={500} value={commentFa} onChange={e => setCommentFa(e.target.value)}
             className="w-full rounded-lg border border-loqme-neutral-300 p-3 text-sm"/>
-          <p className="text-xs text-loqme-neutral-600 mt-2">نظر شما عمومی است و به انتخاب سایر خریداران کمک می‌کند.</p></div>
+          <p className="text-xs text-loqme-neutral-600 mt-2">نظر شما عمومی است و به انتخاب سایر خریداران کمک می‌کند</p></div>
         <div className="flex justify-end gap-3"><Button type="button" variant="secondary" onClick={onClose}>انصراف</Button>
           <Button type="submit" disabled={loading}>{loading ? "در حال ثبت…" : "ثبت امتیاز و نظر"}</Button></div>
       </form>}

@@ -191,8 +191,8 @@ export function ComplaintModal({
               گزارش شما با موفقیت ثبت شد
             </h4>
             <p className="text-xs text-gray-500 mt-1 max-w-sm">
-              گزارش برای بررسی به تیم نظارت ارسال شد. نتیجه بررسی و وضعیت
-              استرداد وجه مطابق مقررات سفارش تعیین می‌شود.
+              گزارش برای بررسی به تیم نظارت ارسال شد؛ نتیجه بررسی و وضعیت
+              استرداد وجه مطابق مقررات سفارش تعیین می‌شود
             </p>
           </div>
         ) : (
@@ -257,8 +257,8 @@ export function ComplaintModal({
                     خط‌مشی صفر مسامحه در سلامت غذا:{" "}
                   </span>
                   لقمه هرگز اجازه فروش اقلام تاریخ انقضا گذشته یا فاسد را
-                  نمی‌دهد. در صورت تایید این مورد، بسته فوراً مسدود و حساب
-                  فروشگاه جریمه خواهد شد.
+                  نمی‌دهد؛ در صورت تایید این مورد، بسته فوراً مسدود و حساب
+                  فروشگاه جریمه خواهد شد
                 </div>
               </div>
             )}
@@ -278,7 +278,7 @@ export function ComplaintModal({
                 onChange={(e) => setDescriptionFa(e.target.value)}
                 maxLength={1000}
                 required
-                placeholder="لطفاً جزییات مشکل پیش آمده را به صورت شفاف بنویسید (مثلاً تاریخ روی برچسب، وضعیت اقلام تحویلی و ...)"
+                placeholder="لطفاً جزییات مشکل پیش آمده را به صورت شفاف بنویسید (مثلاً تاریخ روی برچسب، وضعیت اقلام تحویلی و …)"
                 className="w-full px-3.5 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-100 outline-none transition placeholder:text-gray-400 text-gray-800 resize-none"
               />
               <div className="flex justify-between items-center mt-1 text-[11px] text-gray-600">
@@ -367,7 +367,7 @@ export function ComplaintModal({
                 {submitting ? (
                   <>
                     <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    <span>در حال ثبت گزارش...</span>
+                    <span>در حال ثبت گزارش…</span>
                   </>
                 ) : (
                   <span>ارسال گزارش به تیم نظارت</span>

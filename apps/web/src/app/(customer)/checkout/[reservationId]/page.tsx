@@ -111,14 +111,14 @@ export default function CheckoutPage() {
   const handlePay = async () => {
     if (!termsAccepted) {
       showFeedback(
-        "لطفاً پیش از پرداخت، تایید تعهد تحویل حضوری را علامت بزنید.",
+        "لطفاً پیش از پرداخت، تایید تعهد تحویل حضوری را علامت بزنید",
       );
       return;
     }
 
     if (remainingSeconds <= 0) {
       showFeedback(
-        "مهلت ۱۰ دقیقه‌ای این رزرو منقضی شده است. لطفاً بسته را مجدداً رزرو نمایید.",
+        "مهلت ۱۰ دقیقه‌ای این رزرو منقضی شده است؛ لطفاً بسته را مجدداً رزرو نمایید",
       );
       return;
     }
@@ -173,7 +173,7 @@ export default function CheckoutPage() {
           title="مهلت رزرو به پایان رسیده است"
           message={
             errorMsg ||
-            "مهلت ۱۰ دقیقه‌ای برای ثبت سفارش منقضی شده و موجودی این بسته جهت حفظ عدالت در دسترس سایر خریداران قرار گرفته است."
+            "مهلت ۱۰ دقیقه‌ای برای ثبت سفارش منقضی شده و موجودی این بسته جهت حفظ عدالت در دسترس سایر خریداران قرار گرفته است"
           }
           secondaryAction={
             <Button
@@ -233,8 +233,8 @@ export default function CheckoutPage() {
             </div>
             <div className="text-[11px] text-loqme-neutral-500 mt-0.5">
               {isExpired
-                ? "موجودی این بسته آزاد شد."
-                : "در این مدت این بسته برای شخص دیگری رزرو نخواهد شد."}
+                ? "موجودی این بسته آزاد شد"
+                : "در این مدت این بسته برای شخص دیگری رزرو نخواهد شد"}
             </div>
           </div>
         </div>
@@ -384,7 +384,7 @@ export default function CheckoutPage() {
           <span className="text-xs text-loqme-neutral-700 leading-relaxed">
             متعهد می‌شوم در بازه زمانی تعیین‌شده ({data.listing.pickupWindowFa})
             جهت دریافت حضوری به فروشگاه مراجعه نمایم و از شرایط نگهداری مواد
-            فاسدشدنی مطلع هستم.
+            فاسدشدنی مطلع هستم
           </span>
         </label>
       </div>

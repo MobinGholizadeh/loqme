@@ -41,13 +41,13 @@ export function BusinessRegistration() {
   const loadCities = useCallback(async () => {
     setCityError('');
     try { const response = await apiClient.business.cities(); const items = response.data || []; setCities(items);
-      if (!items.length) setCityError('هنوز شهری برای ثبت کسب‌وکار فعال نشده است.');
+      if (!items.length) setCityError('هنوز شهری برای ثبت کسب‌وکار فعال نشده است');
       setDraft(d => {
         if (items.some(c => c.id === d.cityId)) return d;
         const city = items.find(c => c.slug === 'urmia' || c.nameFa === 'ارومیه') || items[0];
         return city ? { ...d, cityId: city.id, ...(city.center || {}), locationConfirmed: false } : d;
       });
-    } catch { setCityError('دریافت شهرها ممکن نشد. دوباره تلاش کنید.'); }
+    } catch { setCityError('دریافت شهرها ممکن نشد؛ دوباره تلاش کنید'); }
   }, []);
   useEffect(() => { const saved = readBusinessDraft(); if (saved) { draftRestored.current = true; setDraft(saved.draft); setStep(saved.step); } setReady(true); void loadCities(); }, [loadCities]);
   useEffect(() => { if (ready) saveBusinessDraft(draft, step); }, [draft, step, ready]);
@@ -128,19 +128,19 @@ export function BusinessRegistration() {
   }
   const selectedCity = cities.find(c => c.id === draft.cityId);
   if (!ready) return <HeartbeatLoading />;
-  if (session.status === 'authenticated' && session.user?.role !== 'CUSTOMER') return <div className="space-y-6"><h1 className="text-2xl font-bold">حساب کسب‌وکار شما آماده است</h1><p>برای مدیریت فروشگاه، وارد پنل خود شوید.</p><Link className="action-link" href={session.user?.role === 'ADMIN' ? '/admin' : '/business/login'}>ورود به پنل</Link></div>;
+  if (session.status === 'authenticated' && session.user?.role !== 'CUSTOMER') return <div className="space-y-6"><h1 className="text-2xl font-bold">حساب کسب‌وکار شما آماده است</h1><p>برای مدیریت فروشگاه، وارد پنل خود شوید</p><Link className="action-link" href={session.user?.role === 'ADMIN' ? '/admin' : '/business/login'}>ورود به پنل</Link></div>;
   return <div className="business-registration space-y-7">
     <div className="flex items-center justify-between gap-3"><span className="text-xs text-loqme-neutral-600">مرحله {toPersianDigits(step + 1)} از ۵</span><Link href="/business/login" className="auth-inline-link text-sm">قبلاً ثبت‌نام کرده‌اید؟ ورود</Link></div>
     <div className="business-progress" role="progressbar" aria-label="پیشرفت ثبت‌نام" aria-valuemin={1} aria-valuemax={5} aria-valuenow={step + 1}>{titles.map((title, i) => <span key={title} data-complete={i <= step} />)}</div>
-    <div className="space-y-3">{step > 0 && <Button type="button" variant="ghost" size="sm" onClick={() => moveStep(step - 1)} rightIcon={<ArrowRight size={18} />}>مرحله قبل</Button>}<h1 ref={heading} tabIndex={-1} className="text-2xl sm:text-3xl font-extrabold outline-none">{titles[step]}</h1><p className="text-sm text-loqme-neutral-600">{['نام فروشگاه را جست‌وجو کنید یا اطلاعات آن را دستی وارد کنید.', 'دسته‌ای را انتخاب کنید که به فعالیت فروشگاه نزدیک‌تر است.', 'نشانی و نقطه روی نقشه را با محل دقیق ورودی فروشگاه تطبیق دهید.', 'ساعت‌ها را خودتان وارد و تأیید کنید؛ این اطلاعات از نقشه دریافت نشده‌اند.', 'شماره موبایل تأییدشده، راه ورود شما به پنل فروشگاه خواهد بود.'][step]}</p></div>
+    <div className="space-y-3">{step > 0 && <Button type="button" variant="ghost" size="sm" onClick={() => moveStep(step - 1)} rightIcon={<ArrowRight size={18} />}>مرحله قبل</Button>}<h1 ref={heading} tabIndex={-1} className="text-2xl sm:text-3xl font-extrabold outline-none">{titles[step]}</h1><p className="text-sm text-loqme-neutral-600">{['نام فروشگاه را جست‌وجو کنید یا اطلاعات آن را دستی وارد کنید', 'دسته‌ای را انتخاب کنید که به فعالیت فروشگاه نزدیک‌تر است', 'نشانی و نقطه روی نقشه را با محل دقیق ورودی فروشگاه تطبیق دهید', 'ساعت‌ها را خودتان وارد و تأیید کنید؛ این اطلاعات از نقشه دریافت نشده‌اند', 'شماره موبایل تأییدشده، راه ورود شما به پنل فروشگاه خواهد بود'][step]}</p></div>
     {(Object.keys(errors).length > 0 || message) && <div ref={summary} tabIndex={-1} role="alert" className="business-error"><strong>اطلاعات را بررسی کنید</strong>{message && <p>{message}</p>}{Object.entries(errors).map(([key, value]) => <a key={key} href={`#business-${key}`} onClick={() => document.getElementById(`business-${key}`)?.focus()}>{value}</a>)}</div>}
     {step === 0 && <div className="space-y-5">
       <Select id="business-cityId" label="شهر کسب‌وکار" value={draft.cityId} options={cities.map(c => ({ value: c.id, label: `${c.nameFa} — ${c.provinceNameFa}` }))} onChange={e => { const city = cities.find(c => c.id === e.target.value); patch({ cityId: e.target.value, ...(city?.center || {}), locationConfirmed: false, mapirPlaceId: null }); }} />
       {cityError && <div role="alert" className="business-error"><p>{cityError}</p><Button variant="ghost" onClick={loadCities}>تلاش دوباره</Button></div>}
       <Input label="نام کسب‌وکار" placeholder="مثلاً نانوایی یا کافه شما" value={query} onChange={e => setQuery(e.target.value)} maxLength={100} prefixElement={<Search size={18} aria-hidden="true" />} />
-      <div aria-live="polite" className="text-sm text-loqme-neutral-600">{searching ? 'در حال جست‌وجو…' : searchError || (query.trim().length >= 2 && !results.length ? 'نتیجه‌ای پیدا نشد. می‌توانید اطلاعات را دستی وارد کنید.' : '')}</div>
+      <div aria-live="polite" className="text-sm text-loqme-neutral-600">{searching ? 'در حال جست‌وجو…' : searchError || (query.trim().length >= 2 && !results.length ? 'نتیجه‌ای پیدا نشد؛ می‌توانید اطلاعات را دستی وارد کنید' : '')}</div>
       {results.length > 0 && <><ul aria-label="نتایج جست‌وجوی کسب‌وکار" className="business-results">{results.map(p => <li key={p.id}><RippleButton type="button" onClick={() => selectPlace(p)}><MapPin size={20} aria-hidden="true" /><span><strong>{p.name}</strong><small>{p.address}</small></span><ArrowRight size={18} className="rotate-180" aria-hidden="true" /></RippleButton></li>)}</ul></>}
-      <Button variant="ghost" className="business-manual-link" disabled={!draft.cityId || !!cityError} onClick={() => { patch({ businessNameFa: query.trim(), mapirPlaceId: null, locationConfirmed: false }); moveStep(1); }}>کسب‌وکارم را پیدا نکردم</Button><p className="text-xs text-loqme-neutral-600">می‌توانید موقعیت دقیق فروشگاه را دستی روی نقشه انتخاب کنید.</p>
+      <Button variant="ghost" className="business-manual-link" disabled={!draft.cityId || !!cityError} onClick={() => { patch({ businessNameFa: query.trim(), mapirPlaceId: null, locationConfirmed: false }); moveStep(1); }}>کسب‌وکارم را پیدا نکردم</Button><p className="text-xs text-loqme-neutral-600">می‌توانید موقعیت دقیق فروشگاه را دستی روی نقشه انتخاب کنید</p>
     </div>}
     {step === 1 && <fieldset id="business-businessType" tabIndex={-1} className="business-types" aria-describedby={errors.businessType ? 'business-type-error' : undefined}><legend className="sr-only">نوع کسب‌وکار</legend>{Object.entries(BUSINESS_TYPES_FA).map(([key, label]) => { const Icon = icons[key as BusinessType]; return <label key={key} className="business-type" data-selected={draft.businessType === key}><input type="radio" name="businessType" value={key} checked={draft.businessType === key} onChange={() => patch({ businessType: key as BusinessType })} /><Icon size={22} aria-hidden="true" /><span>{label}</span><Check size={18} className={draft.businessType === key ? '' : 'invisible'} aria-hidden="true" /></label>; })}{errors.businessType && <p id="business-type-error" className="text-sm text-red-700">{errors.businessType}</p>}</fieldset>}
     {step === 2 && <div className="space-y-5">
@@ -160,7 +160,7 @@ export function BusinessRegistration() {
     </div>}
     {step === 4 && <div className="space-y-6">
       <Input id="business-ownerName" label="نام و نام خانوادگی مالک" autoComplete="name" value={ownerName} onChange={e => setOwnerName(e.target.value)} error={errors.ownerName} maxLength={100} />
-      {session.status === 'loading' ? <HeartbeatLoading /> : session.status === 'authenticated' ? <div className="business-info"><p>شماره تأییدشده: <bdi>{toPersianDigits(session.user?.mobile || '')}</bdi></p><p className="text-sm mt-2">درخواست با همین حساب ثبت می‌شود. پس از بررسی و تأیید لقمه، دسترسی فروشگاه فعال خواهد شد.</p></div> : <Suspense fallback={<HeartbeatLoading />}><OtpLoginForm audience="business" embedded preventRedirect initialMode="register" /></Suspense>}
+      {session.status === 'loading' ? <HeartbeatLoading /> : session.status === 'authenticated' ? <div className="business-info"><p>شماره تأییدشده: <bdi>{toPersianDigits(session.user?.mobile || '')}</bdi></p><p className="text-sm mt-2">درخواست با همین حساب ثبت می‌شود؛ پس از بررسی و تأیید لقمه، دسترسی فروشگاه فعال خواهد شد</p></div> : <Suspense fallback={<HeartbeatLoading />}><OtpLoginForm audience="business" embedded preventRedirect initialMode="register" /></Suspense>}
       {session.status === 'authenticated' && <Button className="w-full" size="lg" isLoading={saving} onClick={submit}>تأیید و ارسال درخواست</Button>}
     </div>}
     {step > 0 && step < 4 && <Button className="w-full" size="lg" onClick={next}>{step === 3 ? 'تأیید ساعت‌های کاری و ادامه' : 'تأیید و ادامه'}</Button>}

@@ -94,10 +94,10 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
       if (!res.ok || !data?.success) {
         if (data?.code === 'ACCOUNT_NOT_FOUND') {
           setAccountNotFound(true);
-          setError(data?.message || "حسابی با این شماره موبایل یافت نشد.");
+          setError(data?.message || "حسابی با این شماره موبایل یافت نشد");
         } else if (data?.code === 'ACCOUNT_ALREADY_EXISTS') {
           setAccountAlreadyExists(true);
-          setError(data?.message || "این شماره موبایل قبلاً در لقمه ثبت شده است.");
+          setError(data?.message || "این شماره موبایل قبلاً در لقمه ثبت شده است");
         } else {
           setError(data?.message || "خطا در ارسال کد تایید");
         }
@@ -153,7 +153,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
 
       if (!persisted?.authenticated || !persisted?.user) {
         session.setUser(null);
-        setError('ورود ذخیره نشد. کوکی‌های مرورگر را فعال کنید و دوباره وارد شوید.');
+        setError('ورود ذخیره نشد؛ کوکی‌های مرورگر را فعال کنید و دوباره وارد شوید');
         return;
       }
 
@@ -239,10 +239,10 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
         <p className="text-sm text-loqme-neutral-600">
           {step === "PHONE"
             ? (audience === 'business'
-                ? 'با شماره موبایل مالک یا همکار فروشگاه وارد شوید.'
+                ? 'با شماره موبایل مالک یا همکار فروشگاه وارد شوید'
                 : (mode === 'login'
-                    ? 'با شماره موبایل خود وارد شوید و به لقمه‌های ذخیره‌شده دسترسی پیدا کنید.'
-                    : 'با شماره موبایل خود ثبت‌نام کنید.'))
+                    ? 'با شماره موبایل خود وارد شوید و به لقمه‌های ذخیره‌شده دسترسی پیدا کنید'
+                    : 'با شماره موبایل خود ثبت‌نام کنید'))
             : `کد ۵ رقمی به ${toPersianDigits(mobile)} ارسال شد (اعتبار: ۱۵ دقیقه).`}
         </p>
       </div>
@@ -260,8 +260,8 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
               <h3 className="font-bold text-sm text-amber-900">حساب کاربری با این شماره یافت نشد</h3>
               <p className="text-xs text-amber-800 leading-relaxed">
                 {audience === 'business'
-                  ? 'این شماره موبایل در سیستم همکاران لقمه ثبت نشده است. برای ثبت فروشگاه، از بخش ثبت کسب‌وکار اقدام فرمایید.'
-                  : 'هنوز با این شماره در لقمه حساب ندارید. برای ادامه، ثبت‌نام کنید.'}
+                  ? 'این شماره موبایل در سیستم همکاران لقمه ثبت نشده است؛ برای ثبت فروشگاه، از بخش ثبت کسب‌وکار اقدام فرمایید'
+                  : 'هنوز با این شماره در لقمه حساب ندارید؛ برای ادامه، ثبت‌نام کنید'}
               </p>
             </div>
           </div>
@@ -304,7 +304,7 @@ export const OtpLoginForm: React.FC<OtpLoginFormProps> = ({
             <div className="space-y-1">
               <h3 className="font-bold text-sm text-teal-900">حساب کاربری از قبل وجود دارد</h3>
               <p className="text-xs text-teal-800 leading-relaxed">
-                این شماره موبایل قبلاً در لقمه ثبت شده است. نیازی به ثبت‌نام مجدد ندارید و می‌توانید مستقیماً وارد شوید.
+                این شماره موبایل قبلاً در لقمه ثبت شده است؛ نیازی به ثبت‌نام مجدد ندارید و می‌توانید مستقیماً وارد شوید
               </p>
             </div>
           </div>

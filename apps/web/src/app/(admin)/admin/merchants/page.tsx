@@ -50,7 +50,7 @@ export default function AdminMerchantsPage() {
         setMerchants(json.data);
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +88,7 @@ export default function AdminMerchantsPage() {
       if (res.ok && json.success) {
         setMessage({
           type: "success",
-          text: `وضعیت فروشگاه با موفقیت به ${newStatus} تغییر یافت.`,
+          text: `وضعیت فروشگاه با موفقیت به ${newStatus} تغییر یافت`,
         });
         setSelectedMerchant(null);
         fetchMerchants();
@@ -219,7 +219,7 @@ export default function AdminMerchantsPage() {
         <div className="w-full sm:w-72">
           <input
             type="text"
-            placeholder="جستجو بر اساس نام، جواز یا موبایل..."
+            placeholder="جستجو بر اساس نام، جواز یا موبایل…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full px-3 py-1.5 text-xs bg-white border border-loqme-neutral-200 rounded-lg text-loqme-neutral-900 placeholder-loqme-neutral-500 focus:outline-none focus:border-loqme-primary-500"
@@ -232,13 +232,13 @@ export default function AdminMerchantsPage() {
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
-            در حال دریافت اطلاعات فروشگاه‌ها...
+            در حال دریافت اطلاعات فروشگاه‌ها…
           </p>
         </div>
       ) : merchants.length === 0 ? (
         <EmptyState
           title="فروشگاهی در این وضعیت یافت نشد"
-          description="با تغییر فیلترها یا عبارت جستجو، فروشگاه‌های دیگر را بررسی فرمایید."
+          description="با تغییر فیلترها یا عبارت جستجو، فروشگاه‌های دیگر را بررسی فرمایید"
         />
       ) : (
         <div className="rounded-lg bg-white border border-loqme-neutral-200 overflow-hidden shadow-card">
@@ -413,7 +413,7 @@ export default function AdminMerchantsPage() {
                 id="merchants-field-1"
                 value={modalReason}
                 onChange={(e) => setModalReason(e.target.value)}
-                placeholder="مثال: پروانه کسب در اتحادیه صنفی تایید شد / به دلیل ۲ گزارش خرابی غذا معلق شد."
+                placeholder="مثال: پروانه کسب در اتحادیه صنفی تایید شد / به دلیل ۲ گزارش خرابی غذا معلق شد"
                 className="w-full px-3 py-2 text-xs bg-white border border-loqme-neutral-200 rounded-lg text-loqme-neutral-900 placeholder-loqme-neutral-500 h-20"
               />
             </div>

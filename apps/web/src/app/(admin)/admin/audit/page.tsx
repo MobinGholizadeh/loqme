@@ -91,7 +91,7 @@ export default function AdminAuditPage() {
     return (
       <ErrorState
         title="دریافت گزارش انجام نشد"
-        message="دوباره تلاش کنید."
+        message="دوباره تلاش کنید"
         onRetry={() => window.location.reload()}
       />
     );
@@ -117,7 +117,7 @@ export default function AdminAuditPage() {
           </div>
         ) : logs.length === 0 ? (
           <div className="py-16 text-center text-loqme-neutral-500 text-sm">
-            هیچ رویدادی در سامانه ثبت نشده است.
+            هیچ رویدادی در سامانه ثبت نشده است
           </div>
         ) : (
           <>

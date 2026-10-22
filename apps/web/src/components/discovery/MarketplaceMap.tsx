@@ -214,7 +214,7 @@ export function MarketplaceMap({
         },
         (err) => {
           setLocationError(
-            "موقعیت شما در دسترس نیست. دسترسی مکان را در مرورگر بررسی کنید.",
+            "موقعیت شما در دسترس نیست؛ دسترسی مکان را در مرورگر بررسی کنید",
           );
         },
       );
@@ -264,7 +264,7 @@ export function MarketplaceMap({
           role="status"
           className="absolute top-28 inset-x-4 z-[400] bg-white p-3 text-xs text-rose-700"
         >
-          تصویر نقشه بارگذاری نشد. فهرست فروشگاه‌ها همچنان در دسترس است.
+          تصویر نقشه بارگذاری نشد؛ فهرست فروشگاه‌ها همچنان در دسترس است
         </p>
       )}
       {/* Selected Store Bottom Drawer Preview */}

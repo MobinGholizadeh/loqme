@@ -162,11 +162,11 @@ export const PwaInstallPrompt: React.FC = () => {
         <ol className="space-y-5 text-sm">
           <li className="flex gap-3">
             <Share size={22} className="shrink-0" />
-            در سافاری، منوی اشتراک‌گذاری (Share) را باز کنید.
+            در سافاری، منوی اشتراک‌گذاری (Share) را باز کنید
           </li>
           <li className="flex gap-3">
             <PlusSquare size={22} className="shrink-0" />
-            گزینه «افزودن به صفحه اصلی» (Add to Home Screen) را انتخاب کنید.
+            گزینه «افزودن به صفحه اصلی» (Add to Home Screen) را انتخاب کنید
           </li>
         </ol>
       </Modal>

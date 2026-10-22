@@ -65,7 +65,7 @@ export class AuthService {
     if (!rateCheck.allowed) {
       return {
         success: false,
-        message: `تعداد دفعات ارسال بیش از حد مجاز است. لطفاً ${rateCheck.cooldownSeconds} ثانیه دیگر دوباره امتحان کنید.`,
+        message: `تعداد دفعات ارسال بیش از حد مجاز است؛ لطفاً ${rateCheck.cooldownSeconds} ثانیه دیگر دوباره امتحان کنید`,
         expiresInSeconds: 0,
         mobile,
         cooldownSeconds: rateCheck.cooldownSeconds,
@@ -79,7 +79,7 @@ export class AuthService {
       const existingUser = await userService.findByMobile(mobile);
 
       if (existingUser && !existingUser.isActive) {
-        return { success: false, code: 'ACCOUNT_UNAVAILABLE', message: 'ورود به این حساب امکان‌پذیر نیست. با پشتیبانی لقمه تماس بگیرید.', expiresInSeconds: 0, mobile };
+        return { success: false, code: 'ACCOUNT_UNAVAILABLE', message: 'ورود به این حساب امکان‌پذیر نیست؛ با پشتیبانی لقمه تماس بگیرید', expiresInSeconds: 0, mobile };
       }
 
       if (shouldCheckExists && !existingUser) {
@@ -87,8 +87,8 @@ export class AuthService {
           success: false,
           code: 'ACCOUNT_NOT_FOUND',
           message: options?.audience === 'business'
-            ? 'حساب کاربری با این شماره یافت نشد. برای ثبت فروشگاه، لطفاً ثبت کسب‌وکار را انجام دهید.'
-            : 'حساب کاربری با این شماره یافت نشد. می‌توانید از بخش ثبت‌نام، حساب جدید بسازید.',
+            ? 'حساب کاربری با این شماره یافت نشد؛ برای ثبت فروشگاه، لطفاً ثبت کسب‌وکار را انجام دهید'
+            : 'حساب کاربری با این شماره یافت نشد؛ می‌توانید از بخش ثبت‌نام، حساب جدید بسازید',
           expiresInSeconds: 0,
           mobile,
         };
@@ -98,7 +98,7 @@ export class AuthService {
         return {
           success: false,
           code: 'ACCOUNT_ALREADY_EXISTS',
-          message: 'این شماره موبایل قبلاً در لقمه ثبت شده است. لطفاً وارد حساب خود شوید.',
+          message: 'این شماره موبایل قبلاً در لقمه ثبت شده است؛ لطفاً وارد حساب خود شوید',
           expiresInSeconds: 0,
           mobile,
         };
@@ -124,7 +124,7 @@ export class AuthService {
     if (!sent) {
       // Keep the latest record as consumed so an older OTP cannot become valid.
       await prisma.otpCode.updateMany({ where: { id: issued.id }, data: { isUsed: true } });
-      return { success: false, message: 'ارسال پیامک انجام نشد. لطفاً کمی بعد دوباره تلاش کنید.', expiresInSeconds: 0, mobile };
+      return { success: false, message: 'ارسال پیامک انجام نشد؛ لطفاً کمی بعد دوباره تلاش کنید', expiresInSeconds: 0, mobile };
     }
 
     return {

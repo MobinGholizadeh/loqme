@@ -187,14 +187,14 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
             <div className="relative z-10 text-center space-y-2 p-6">
               <Spinner size="lg" variant="white" className="mx-auto" />
               <p className="text-xs text-loqme-neutral-500">
-                در حال فعال‌سازی دوربین...
+                در حال فعال‌سازی دوربین…
               </p>
             </div>
           ) : errorMessage || hasCameraPermission === false ? (
             <div className="relative z-10 p-6 text-center space-y-4">
               <div className="text-3xl">🚫</div>
               <p className="text-xs text-loqme-neutral-600 max-w-xs mx-auto leading-relaxed">
-                {errorMessage || "دسترسی به دوربین مسدود شده است."}
+                {errorMessage || "دسترسی به دوربین مسدود شده است"}
               </p>
               <div className="space-y-2">
                 <Button

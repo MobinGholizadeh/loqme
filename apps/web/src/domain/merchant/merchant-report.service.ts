@@ -49,14 +49,14 @@ export async function getMerchantDataReport(userId: string, merchantId: string, 
 
 export function buildMerchantInsights(report: MerchantDataReportDto): MerchantDataReportDto['insights'] {
   const insights: MerchantDataReportDto['insights'] = [];
-  if (report.quality.openReconciliations) insights.push({ code: 'RECONCILIATION', textFa: 'پرداخت‌هایی در سطح فروشگاه نیازمند بررسی پشتیبانی هستند؛ پیش از تصمیم مالی آن‌ها را پیگیری کنید.', evidence: ['quality.openReconciliations'] });
-  if (report.quality.unknownPaymentTimes || report.quality.unknownRefundTimes) insights.push({ code: 'INCOMPLETE_HISTORY', textFa: 'زمان برخی پرداخت‌ها یا استردادهای قدیمی مشخص نیست؛ مبالغ آن‌ها در این بازه جمع نشده است.', evidence: ['quality.unknownPaymentTimes', 'quality.unknownRefundTimes'] });
-  if (report.paidOrderCount < 5) insights.push({ code: 'LOW_SAMPLE', textFa: 'برای پیشنهاد تغییر قیمت یا تعداد بسته‌ها، داده کافی در این بازه نداریم. ثبت منظم بسته‌ها و تحویل‌ها را ادامه دهید.', evidence: ['paidOrderCount'] });
-  else insights.push({ code: 'OBSERVED_ACTIVITY', textFa: `${report.paidOrderCount.toLocaleString('fa-IR')} سفارش در این بازه پرداخت و تخصیص داده شده است. این عدد فقط فروش لقمه را نشان می‌دهد.`, evidence: ['paidOrderCount', 'startIso', 'endExclusiveIso'] });
+  if (report.quality.openReconciliations) insights.push({ code: 'RECONCILIATION', textFa: 'پرداخت‌هایی در سطح فروشگاه نیازمند بررسی پشتیبانی هستند؛ پیش از تصمیم مالی آن‌ها را پیگیری کنید', evidence: ['quality.openReconciliations'] });
+  if (report.quality.unknownPaymentTimes || report.quality.unknownRefundTimes) insights.push({ code: 'INCOMPLETE_HISTORY', textFa: 'زمان برخی پرداخت‌ها یا استردادهای قدیمی مشخص نیست؛ مبالغ آن‌ها در این بازه جمع نشده است', evidence: ['quality.unknownPaymentTimes', 'quality.unknownRefundTimes'] });
+  if (report.paidOrderCount < 5) insights.push({ code: 'LOW_SAMPLE', textFa: 'برای پیشنهاد تغییر قیمت یا تعداد بسته‌ها، داده کافی در این بازه نداریم؛ ثبت منظم بسته‌ها و تحویل‌ها را ادامه دهید', evidence: ['paidOrderCount'] });
+  else insights.push({ code: 'OBSERVED_ACTIVITY', textFa: `${report.paidOrderCount.toLocaleString('fa-IR')} سفارش در این بازه پرداخت و تخصیص داده شده است؛ این عدد فقط فروش لقمه را نشان می‌دهد`, evidence: ['paidOrderCount', 'startIso', 'endExclusiveIso'] });
   if (report.paidOrderCount >= 5 && report.previousPaidOrderCount >= 5) {
     const difference = report.paidOrderCount-report.previousPaidOrderCount;
-    insights.push({ code: 'ORDER_COMPARISON', textFa: difference === 0 ? 'تعداد سفارش‌های پرداخت‌شده با بازه هم‌اندازه قبلی برابر است.' : `تعداد سفارش‌های پرداخت‌شده نسبت به بازه هم‌اندازه قبلی ${Math.abs(difference).toLocaleString('fa-IR')} سفارش ${difference > 0 ? 'بیشتر' : 'کمتر'} است؛ علت این تغییر از این داده‌ها مشخص نیست.`, evidence: ['paidOrderCount', 'previousPaidOrderCount'] });
+    insights.push({ code: 'ORDER_COMPARISON', textFa: difference === 0 ? 'تعداد سفارش‌های پرداخت‌شده با بازه هم‌اندازه قبلی برابر است' : `تعداد سفارش‌های پرداخت‌شده نسبت به بازه هم‌اندازه قبلی ${Math.abs(difference).toLocaleString('fa-IR')} سفارش ${difference > 0 ? 'بیشتر' : 'کمتر'} است؛ علت این تغییر از این داده‌ها مشخص نیست`, evidence: ['paidOrderCount', 'previousPaidOrderCount'] });
   }
-  if (BigInt(report.refundsToman) > BigInt(0)) insights.push({ code: 'REFUNDS', textFa: 'استرداد تسویه‌شده در این بازه ثبت شده است. تاریخ استرداد ممکن است با تاریخ خرید متفاوت باشد.', evidence: ['refundsToman'] });
+  if (BigInt(report.refundsToman) > BigInt(0)) insights.push({ code: 'REFUNDS', textFa: 'استرداد تسویه‌شده در این بازه ثبت شده است؛ تاریخ استرداد ممکن است با تاریخ خرید متفاوت باشد', evidence: ['refundsToman'] });
   return insights;
 }

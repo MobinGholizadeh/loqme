@@ -43,7 +43,7 @@ async function handlePOST(request: NextRequest) {
     return authJson(result, { status: 200 });
   } catch (error) {
     if (error instanceof SyntaxError || error instanceof RangeError) {
-      return authJson({ success: false, message: 'اطلاعات ارسالی نامعتبر است.' }, { status: error instanceof RangeError ? 413 : 400 });
+      return authJson({ success: false, message: 'اطلاعات ارسالی نامعتبر است' }, { status: error instanceof RangeError ? 413 : 400 });
     }
     console.error('[Auth] OTP request failed');
     return authJson(

@@ -62,7 +62,7 @@ export default function MerchantListingsPage() {
         setListings(json.data);
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       setIsLoading(false);
     }
@@ -266,14 +266,14 @@ export default function MerchantListingsPage() {
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
-            در حال دریافت بسته‌ها...
+            در حال دریافت بسته‌ها…
           </p>
         </div>
       ) : filteredListings.length === 0 ? (
         <EmptyState
           icon="📦"
           title="بسته‌ای در این بخش یافت نشد"
-          description="با کلیک روی دکمه ثبت سریع، بسته مازاد امروز خود را در کمتر از ۶۰ ثانیه به مشتریان محله عرضه کنید."
+          description="با کلیک روی دکمه ثبت سریع، بسته مازاد امروز خود را در کمتر از ۶۰ ثانیه به مشتریان محله عرضه کنید"
           action={
             <Button
               size="sm"

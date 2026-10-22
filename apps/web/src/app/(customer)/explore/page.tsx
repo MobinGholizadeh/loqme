@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "کشف خوراکی‌های محله",
-  description: "پیشنهادهای نانوایی‌ها، کافه‌ها و فروشگاه‌های محله را در لقمه پیدا کنید؛ با قیمت و زمان دریافت حضوری مشخص.",
+  description: "پیشنهادهای نانوایی‌ها، کافه‌ها و فروشگاه‌های محله را در لقمه پیدا کنید؛ با قیمت و زمان دریافت حضوری مشخص",
   alternates: { canonical: "/explore" },
 };
 export default function ExplorePage() {

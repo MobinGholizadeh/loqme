@@ -107,7 +107,7 @@ export default function OrdersPage() {
     return (
       <ErrorState
         title="دریافت سفارش‌ها انجام نشد"
-        message="دوباره تلاش کنید."
+        message="دوباره تلاش کنید"
         onRetry={() => window.location.reload()}
       />
     );
@@ -118,7 +118,7 @@ export default function OrdersPage() {
         <EmptyState
           icon="🔐"
           title="ورود به حساب کاربری برای مشاهده سفارشات"
-          description="با شماره موبایل خود وارد شوید تا به تاریخچه سفارش‌ها و کدهای تحویل حضوری دسترسی داشته باشید."
+          description="با شماره موبایل خود وارد شوید تا به تاریخچه سفارش‌ها و کدهای تحویل حضوری دسترسی داشته باشید"
           action={
             <Link className="action-link" href="/login?redirect=/orders">
               ورود به حساب کاربری
@@ -149,7 +149,7 @@ export default function OrdersPage() {
       {orders.length === 0 ? (
         <EmptyState
           title="هنوز سفارشی ثبت نکرده‌اید"
-          description="با رزرو بسته‌های شگفت‌انگیز محله خود، هم در هزینه‌ها صرفه‌جویی کنید و هم در نجات خوراکی‌های تازه و مراقبت از طبیعت سهیم شوید."
+          description="با رزرو بسته‌های شگفت‌انگیز محله خود، هم در هزینه‌ها صرفه‌جویی کنید و هم در نجات خوراکی‌های تازه و مراقبت از طبیعت سهیم شوید"
           action={
             <Link className="action-link" href="/explore">
               کاوش بسته‌های شگفت‌انگیز محله

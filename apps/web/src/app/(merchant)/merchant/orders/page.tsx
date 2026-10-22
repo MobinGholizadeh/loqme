@@ -63,7 +63,7 @@ export default function MerchantOrdersPage() {
         setQueue(json.data || []);
       }
     } catch (err) {
-      setLoadError("دریافت اطلاعات ممکن نشد. دوباره تلاش کنید.");
+      setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
     } finally {
       if (!silent) setIsLoading(false);
     }
@@ -323,7 +323,7 @@ export default function MerchantOrdersPage() {
               : "پیش‌تر ثبت گردیده است"}
           </div>
           <p className="text-[11px] text-rose-600">
-            تحویل مجدد امکان‌پذیر نیست و از تکرار تحویل بسته جلوگیری به عمل آمد.
+            تحویل مجدد امکان‌پذیر نیست و از تکرار تحویل بسته جلوگیری به عمل آمد
           </p>
         </div>
       )}
@@ -499,13 +499,13 @@ export default function MerchantOrdersPage() {
           <div className="py-12 text-center space-y-2">
             <Spinner size="lg" variant="primary" className="mx-auto" />
             <p className="text-xs text-loqme-neutral-500">
-              در حال دریافت صف سفارشات...
+              در حال دریافت صف سفارشات…
             </p>
           </div>
         ) : filteredQueue.length === 0 ? (
           <EmptyState
             title="سفارشی در این وضعیت موجود نیست"
-            description="سفارش‌های جدید ثبت‌شده توسط مشتریان بلافاصله در این بخش نمایان می‌شوند."
+            description="سفارش‌های جدید ثبت‌شده توسط مشتریان بلافاصله در این بخش نمایان می‌شوند"
           />
         ) : (
           filteredQueue.map((item) => {

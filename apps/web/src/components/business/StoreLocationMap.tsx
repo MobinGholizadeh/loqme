@@ -67,7 +67,7 @@ export default function StoreLocationMap({ latitude, longitude, editable = false
     }, () => setLocationError('دسترسی به موقعیت ممکن نشد؛ نقشه را دستی جابه‌جا کنید'), { timeout: 10000 });
   }
   return <div className="space-y-3">
-    {editable && <p className="text-sm text-loqme-neutral-600">نقشه را حرکت دهید تا نشانگر روی ورودی فروشگاه قرار بگیرد.</p>}
+    {editable && <p className="text-sm text-loqme-neutral-600">نقشه را حرکت دهید تا نشانگر روی ورودی فروشگاه قرار بگیرد</p>}
     <div className="business-map-shell">
       <div ref={container} className="business-map" role="region" aria-label="نقشه موقعیت فروشگاه" />
       {editable && <div className="business-map-center-pin" aria-hidden="true"><MapPin size={42} fill="currentColor"/><span/></div>}
@@ -75,6 +75,6 @@ export default function StoreLocationMap({ latitude, longitude, editable = false
     </div>
     {editable && <RippleButton type="button" className="business-map-confirm" onClick={confirm}><Check size={18}/>{confirmed ? 'موقعیت فروشگاه تأیید شد' : 'تأیید این موقعیت'}</RippleButton>}
     {locationError && <p role="alert" className="text-sm text-rose-700">{locationError}</p>}
-    {failed && <p className="text-xs text-loqme-neutral-600" role="status">تصویر نقشه بارگذاری نشد. می‌توانید مختصات را دستی وارد کنید.</p>}
+    {failed && <p className="text-xs text-loqme-neutral-600" role="status">تصویر نقشه بارگذاری نشد؛ می‌توانید مختصات را دستی وارد کنید</p>}
   </div>;
 }
