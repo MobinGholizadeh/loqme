@@ -456,6 +456,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
           <div data-field="imageUrl">
             <ListingImagePicker
               value={imageUrl}
+              categorySlug={categorySlug}
               onChange={(val) => {
                 setImageUrl(val);
                 if (val) {
