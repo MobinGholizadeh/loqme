@@ -26,11 +26,12 @@ export default function StoreLocationMap({ latitude, longitude, editable = false
     const point = initial.current;
     const map = L.map(container.current, { center: [point.latitude, point.longitude], zoom: 16, scrollWheelZoom: false, zoomControl: false });
     mapRef.current = map;
-    const key = process.env.NEXT_PUBLIC_MAP_API_KEY || '';
-    const tiles = L.tileLayer(`https://map.ir/shiveh/xyz/1.0.0/Shiveh:Shiveh@EPSG:3857@png/{z}/{x}/{y}.png?x-api-key=${encodeURIComponent(key)}`, {
-      attribution: '&copy; <a href="https://map.ir">Map.ir</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 20,
+    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+      maxZoom: 19,
     }).addTo(map);
-    tiles.on('tileerror', () => setFailed(true)); tiles.on('tileload', () => setFailed(false));
+    tiles.on('tileerror', () => setFailed(true));
+    tiles.on('tileload', () => setFailed(false));
     layer.current = L.layerGroup().addTo(map);
     if (point.editable) map.on('movestart', () => { if (!syncing.current) setConfirmed(false); });
     const observer = new ResizeObserver(() => map.invalidateSize()); observer.observe(container.current);

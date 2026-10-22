@@ -8,7 +8,7 @@ async function guest(page: import('@playwright/test').Page) {
   await page.route('**/api/auth/session', r => r.fulfill({ json: { authenticated: false, user: null } }));
   await page.route('**/api/business/cities', r => r.fulfill({ json: { success: true, data: [{ id: 'city', nameFa: 'ارومیه', slug: 'urmia', provinceNameFa: 'آذربایجان غربی', center: { latitude: 37.55, longitude: 45.07 } }] } }));
   await page.route('**/api/business/places/search?**', r => r.fulfill({ json: { success: true, data: [] } }));
-  await page.route('https://map.ir/**', r => r.abort());
+  await page.route(/(map\.ir|tile\.openstreetmap\.org)/, r => r.abort());
 }
 
 for (const width of [360, 390, 768, 1440]) {
@@ -49,7 +49,7 @@ test('SMS failure remains on phone form with a visible retryable error', async (
 
 test('map marker opens its store products and a detail uses the full-width photo', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
-  await installFixtures(page); await page.route('https://map.ir/**', r => r.abort());
+  await installFixtures(page); await page.route(/(map\.ir|tile\.openstreetmap\.org)/, r => r.abort());
   await page.goto('/?view=map');
   await page.locator('.leaflet-marker-icon').first().click();
   await page.getByRole('link', { name: 'مشاهده بسته‌ها', exact: true }).click();
