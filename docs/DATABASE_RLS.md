@@ -1,6 +1,6 @@
 # Database row-level security
 
-Owner-authorized CP-12.6, implemented and tested on 2026-10-22. The owner subsequently authorized local activation and live production rollout. Local activation is complete; production rollout is in progress. This supersedes earlier deferral of RLS in the merchant-data plan.
+Owner-authorized CP-12.6, implemented and tested on 2026-10-22. The owner subsequently authorized local activation and live production rollout. Both are complete. This supersedes earlier deferral of RLS in the merchant-data plan.
 
 ## Coverage and authority
 
@@ -87,6 +87,10 @@ Prefer a forward repair. If a database restore is necessary, retain the failed d
 `node scripts/verify-rls-runtime.cjs` performs read-only checks using `DATABASE_URL`: safe role/membership/ownership, ENABLE/FORCE on every generated model, no anonymous private rows, and public category access. It logs no private data or credentials and is executed by CI and production deployment.
 
 Local activation (2026-10-22): existing `loqme` data backed up under ignored `.artifacts/rls/local-before-activation`, backup restored into a separate review database, migration rehearsed there and then applied to `loqme`. All 34 model row counts were preserved. Root/web local environment files now use `loqme_runtime`; the root migration URL remains separate. The development server was restarted and readiness/public/protected endpoint checks passed. Never commit the ignored backup or recovery environment files.
+
+Production activation (2026-10-22 08:05 UTC): [deployment run 39744132807](https://github.com/MobinGholizadeh/loqme/actions/runs/39744132807), application source `13b32b06062ab3145b005e6e55f5f883b4f28ceb`, image digest `sha256:6772745f2c89b4cfe414bab36d51b953795360137236c178bd9509e71579e295`. Database backup checksum and restore rehearsal passed, the RLS migration applied, and the restricted login was provisioned. Actual production runtime verification returned `runtimeRole=loqme_runtime`, `enforcedTables=34`, `anonymousPrivateAccess=false`. Application readiness passed. External checks returned 200 for home/discovery/login/readiness/categories/search and 401 for signed-out customer/merchant/admin private APIs. Logs are retained under ignored `.artifacts/rls/production-*`; the database backup remains on the server under `/opt/loqme/backups/`.
+
+The rollout also repaired a previously inconsistent `react-bits` lockfile entry and preserved workspace-local dependencies in the Docker builder so Lenis resolves in a clean Linux build. The final CI run passed all 1,010 tests on PostgreSQL 16 plus 15 deployment/Android policy tests; the Docker build and production deployment jobs succeeded. The disposable local restore database was removed after verification. Real SMS/payment transactions and physical-device testing were not part of this RLS activation.
 
 Run these read-only checks on the target after migration:
 

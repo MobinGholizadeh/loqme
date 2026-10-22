@@ -20,7 +20,7 @@ The original plan remains the design baseline. The implementation may use Postgr
 
 ## Deferred gates
 
-CP-12.6 activation follow-up (2026-10-22): owner authorized live rollout. Local backup restored and migration rehearsed before applying to the ordinary development database; row counts preserved, 34 tables enforced, restricted credentials active and HTTP readiness verified. Production rollout is in progress; final evidence will be recorded after deployment. First-use secret setup and read-only runtime acceptance are now automated, with four additional setup tests.
+CP-12.6 activation follow-up (2026-10-22): owner authorized live rollout, now complete. Local backup restored and migration rehearsed before applying to the ordinary development database; row counts preserved, 34 tables enforced, restricted credentials active and HTTP readiness verified. Production source `13b32b0` deployed in run `39744132807`: backup restore rehearsal, migration, restricted-role verification of all 34 tables and readiness passed. Public web/API checks return 200 and signed-out private APIs return 401. CI passed 1,010 tests plus 15 deployment/Android policy tests. See DATABASE_RLS.md for immutable image digest and evidence. This follow-up supersedes the initial no-deployment scope for this authorized RLS release only.
 
 POS/Windows/terminal adapters require exact provider/hardware/SDK details. OCR/private document ingestion, physical stock/batches, voice, externally hosted model processing and consequential assistant automation remain separately gated in LQ-MDAI-001. Do not label these delivered or fabricate integrations.
 
