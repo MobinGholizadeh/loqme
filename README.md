@@ -58,11 +58,13 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-The default `.env` is pre-configured for local Docker development:
+The example `.env` provides local Docker settings. Replace its password placeholders and keep the runtime password identical in `DATABASE_URL` and `DATABASE_RUNTIME_PASSWORD` before starting:
 
 `npm run dev` loads this repository-root `.env` for the web app as well as Prisma/Docker. Environment variables provided by the shell or Doppler take precedence. Use the root command so app-local configuration does not leave provider keys behind.
 
-* `DATABASE_URL`: `postgresql://postgres:postgres@localhost:5432/loqme?schema=public`
+* `DATABASE_URL`: restricted `loqme_runtime` connection used by the application.
+* `DATABASE_MIGRATION_URL`: administrator connection used only by migration, provisioning and seed commands.
+* `DATABASE_RUNTIME_PASSWORD`: random URL-safe password (at least 24 characters). See [database RLS setup](docs/DATABASE_RLS.md).
 * `SESSION_SECRET`: Default 32+ character development secret
 * `SMS_PROVIDER`: `console` (prints verification codes to the console without sending actual SMS)
 
@@ -71,7 +73,7 @@ The default `.env` is pre-configured for local Docker development:
 ### Step 3: Start the PostgreSQL Database
 Start PostgreSQL 15 with the PostGIS extension using Docker Compose:
 ```bash
-docker compose up -d
+docker compose up -d postgres
 ```
 
 Verify that the container is healthy:
@@ -94,6 +96,9 @@ Initialize database schema and populate initial test accounts:
 ```bash
 # Apply Prisma migrations
 npm run db:migrate
+
+# Provision the restricted runtime login after migrations
+npm run db:provision-runtime
 
 # Seed demo users (Customer, Merchant, Admin)
 npm run db:seed

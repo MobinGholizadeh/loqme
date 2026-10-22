@@ -71,7 +71,7 @@ $$;
 CREATE FUNCTION loqme_rls.listing_read(lid text) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER
 SET search_path = pg_catalog AS $$
   SELECT loqme_rls.admin() OR EXISTS (SELECT 1 FROM public."Listing" l WHERE l.id=lid AND (
-    loqme_rls.member(l."merchantId") OR (l.status='PUBLISHED' AND loqme_rls.public_merchant(l."merchantId")
+    loqme_rls.member(l."merchantId") OR (l.status IN ('PUBLISHED','SOLD_OUT') AND loqme_rls.public_merchant(l."merchantId")
       AND EXISTS (SELECT 1 FROM public."ListingSafety" s WHERE s."listingId"=l.id AND s."safetyStatus"='APPROVED'))
     OR EXISTS (SELECT 1 FROM public."Reservation" r WHERE r."listingId"=l.id AND loqme_rls.customer(r."customerId"))
     OR EXISTS (SELECT 1 FROM public."OrderItem" i WHERE i."listingId"=l.id AND loqme_rls.order_access(i."orderId"))
@@ -379,7 +379,7 @@ CREATE POLICY insert_access ON public."ListingInventoryMovement" FOR INSERT TO l
 ALTER TABLE public."ReconciliationCase" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public."ReconciliationCase" FORCE ROW LEVEL SECURITY;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public."ReconciliationCase" TO loqme_app;
-CREATE POLICY select_access ON public."ReconciliationCase" FOR SELECT TO loqme_app USING ((loqme_rls.admin()) OR (loqme_rls.callback_order("orderId") OR loqme_rls.own_order("orderId")));
+CREATE POLICY select_access ON public."ReconciliationCase" FOR SELECT TO loqme_app USING ((loqme_rls.admin()) OR (loqme_rls.callback_order("orderId") OR loqme_rls.own_order("orderId") OR loqme_rls.member("merchantId",'owner')));
 CREATE POLICY insert_access ON public."ReconciliationCase" FOR INSERT TO loqme_app WITH CHECK ((loqme_rls.admin()) OR (loqme_rls.callback_order("orderId") OR loqme_rls.own_order("orderId")));
 CREATE POLICY update_access ON public."ReconciliationCase" FOR UPDATE TO loqme_app USING ((loqme_rls.admin()) OR (loqme_rls.callback_order("orderId") OR loqme_rls.own_order("orderId"))) WITH CHECK ((loqme_rls.admin()) OR (loqme_rls.callback_order("orderId") OR loqme_rls.own_order("orderId")));
 CREATE POLICY delete_access ON public."ReconciliationCase" FOR DELETE TO loqme_app USING (loqme_rls.admin());
@@ -491,12 +491,12 @@ DO $$ DECLARE t text; BEGIN
 END $$;
 -- Existing integrity triggers must inspect financial facts hidden from cashiers.
 -- These read-only trigger functions cannot be called as ordinary SQL functions.
-DO $ DECLARE f text; BEGIN
+DO $$ DECLARE f text; BEGIN
   FOREACH f IN ARRAY ARRAY['loqme_order_allocation','loqme_order_pickup_immutable','loqme_payment_fact_immutable','loqme_refund_identity'] LOOP
     EXECUTE format('ALTER FUNCTION public.%I() SECURITY DEFINER',f);
     EXECUTE format('ALTER FUNCTION public.%I() SET search_path = pg_catalog, public, pg_temp',f);
     EXECUTE format('ALTER FUNCTION public.%I() OWNER TO loqme_rls_reader',f);
     EXECUTE format('REVOKE ALL ON FUNCTION public.%I() FROM PUBLIC',f);
   END LOOP;
-END $;
+END $$;
 COMMIT;

@@ -1,3 +1,5 @@
+import { useDatabaseAdmin } from './helpers/database-admin';
+useDatabaseAdmin();
 import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { NextRequest } from 'next/server';

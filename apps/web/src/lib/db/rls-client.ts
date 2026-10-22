@@ -13,7 +13,7 @@ export function createRlsClient(base: PrismaClient): PrismaClient {
   async function verifyRuntime() {
     verified ??= (async () => {
       const [role] = await base.$queryRaw<{ safe: boolean }[]>`
-        SELECT NOT r.rolsuper AND NOT r.rolbypassrls
+        SELECT NOT r.rolsuper AND NOT r.rolbypassrls AND NOT r.rolcreaterole AND NOT r.rolcreatedb AND NOT r.rolreplication
           AND pg_has_role(current_user, 'loqme_app', 'MEMBER')
           AND NOT pg_has_role(current_user, 'loqme_rls_reader', 'MEMBER')
           AND NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace

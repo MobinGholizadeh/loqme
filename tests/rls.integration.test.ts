@@ -17,7 +17,9 @@ import { moderationService } from '@/domain/moderation/moderation.service';
 import { authService } from '@/domain/auth/auth.service';
 import { ConsoleMockNotificationService } from '@/lib/notifications/console-mock';
 import { submitApplication, reviewApplication } from '@/domain/business/application.service';
-import { getMerchantDataReport, merchantReportWindow } from '@/domain/merchant/merchant-report.service';
+import { getMerchantDataReport } from '@/domain/merchant/merchant-report.service';
+import { GET as orderRoute } from '@/app/api/orders/[id]/route';
+import { GET as reconciliationRoute } from '@/app/api/admin/reconciliation/route';
 
 /** Real PostgreSQL, real policies, real restricted login. No Prisma/auth mocks. */
 describe('PostgreSQL RLS acceptance', () => {
@@ -116,6 +118,9 @@ describe('PostgreSQL RLS acceptance', () => {
     await as(manager,async()=>{
       expect(await prisma.listing.update({where:{id:privateListing},data:{titleFa:'تغییر مدیر'}})).toHaveProperty('titleFa','تغییر مدیر');
       expect(await prisma.financialTransaction.count()).toBe(0);
+      const created=await prisma.listing.create({data:{merchantId:merchant,categoryId:category,titleFa:'پیش‌نویس مدیر',originalPriceToman:200,discountedPriceToman:100,
+        pickupDate:new Date(),pickupStart:new Date(),pickupEnd:new Date(Date.now()+3600000),inventory:{create:{totalQuantity:5}},safety:{create:{allergens:[],dietaryTags:[]}}}});
+      expect(created.status).toBe('DRAFT');
       const foreign=await db.listing.findFirstOrThrow({where:{merchantId:otherMerchant}});
       await expect(prisma.listing.update({where:{id:foreign.id},data:{titleFa:'forged'}})).rejects.toThrow();
       await expect(prisma.merchant.update({where:{id:merchant},data:{commissionPercent:0}})).rejects.toThrow();
@@ -169,6 +174,11 @@ describe('PostgreSQL RLS acceptance', () => {
       expect((await handler(new NextRequest('http://localhost/test',{headers}))).map(o=>o.id)).toEqual([ownOrder]);
     }
     expect(await handler(new NextRequest('http://localhost/test',{headers:{'x-user-id':admin,'x-role':'ADMIN',authorization:'Bearer fake'}}))).toEqual([]);
+    const request=new NextRequest('http://localhost/api/orders/'+ownOrder,{headers:{authorization:`Bearer ${token}`}});
+    expect((await orderRoute(request,{params:Promise.resolve({id:ownOrder})})).status).toBe(200);
+    expect((await orderRoute(request,{params:Promise.resolve({id:foreignOrder})})).status).toBe(404);
+    expect((await reconciliationRoute(request)).status).toBe(403);
+    expect((await orderRoute(new NextRequest('http://localhost/api/orders/'+ownOrder),{params:Promise.resolve({id:ownOrder})})).status).toBe(401);
   });
   it('keeps authentication scoped to one phone and completes real OTP registration',async()=>{
     const mobile=`09${String(Date.now()).slice(-9)}`;
@@ -225,6 +235,23 @@ describe('PostgreSQL RLS acceptance', () => {
     await as(owner,()=>moderationService.replyToReview(owner,review.id,'ممنون'));
     await expect(as(owner,()=>prisma.review.update({where:{id:review.id},data:{overallRating:1}}))).rejects.toThrow();
   });
+  it('preserves safety aggregation across customers and only an admin can lift a restriction',async()=>{
+    const first=await as(user,()=>moderationService.submitComplaint(customer,ownOrder,{category:'EXPIRED_FOOD',descriptionFa:'گزارش ایمنی برای آزمون',evidencePhotos:[]}));
+    const secondOrder=await db.order.create({data:{orderNumber:`RLS-SAFETY-${run}`,customerId:otherCustomer,merchantId:merchant,totalAmountToman:100,status:'COMPLETED',
+      items:{create:{listingId:publicListing,unitPriceToman:100,quantity:1,subtotalToman:100}}}});
+    await as(otherUser,()=>moderationService.submitComplaint(otherCustomer,secondOrder.id,{category:'SPOILED_FOOD',descriptionFa:'گزارش دوم ایمنی برای آزمون',evidencePhotos:[]}));
+    expect((await db.listing.findUniqueOrThrow({where:{id:publicListing}})).status).toBe('PAUSED');
+    expect((await db.listingSafety.findUniqueOrThrow({where:{listingId:publicListing}})).safetyStatus).toBe('RESTRICTED');
+    expect(await as(otherUser,()=>prisma.complaint.findUnique({where:{id:first.id}}))).toBeNull();
+    await expect(as(owner,()=>prisma.listingSafety.update({where:{listingId:publicListing},data:{safetyStatus:'APPROVED'}}))).rejects.toThrow();
+    await as(admin,()=>prisma.listingSafety.update({where:{listingId:publicListing},data:{safetyStatus:'APPROVED'}}));
+  });
+  it('supports owner reports without exposing another store or granting cashier financial access',async()=>{
+    const report=await as(owner,()=>getMerchantDataReport(owner,merchant,location));
+    expect(report.merchantId).toBe(merchant);
+    await expect(as(cashier,()=>getMerchantDataReport(cashier,merchant))).rejects.toThrow();
+    await expect(as(owner,()=>getMerchantDataReport(owner,otherMerchant))).rejects.toThrow();
+  });
   it('keeps application approval admin-only and permits onboarding',async()=>{
     const applicant=await db.user.create({data:{mobile:`applicant-${run}`}});
     const input={ownerName:'مالک آزمون',businessNameFa:'فروشگاه جدید',businessType:'BAKERY' as const,cityId:city,addressFa:'آدرس کامل برای آزمون فروشگاه',latitude:37.55,longitude:45.07,
@@ -232,8 +259,8 @@ describe('PostgreSQL RLS acceptance', () => {
     const application=await as(applicant.id,()=>submitApplication(applicant.id,input));
     await expect(as(applicant.id,()=>prisma.merchantApplication.update({where:{id:application.id},data:{status:'APPROVED'}}))).rejects.toThrow();
     expect(await as(otherUser,()=>prisma.merchantApplication.findUnique({where:{id:application.id}}))).toBeNull();
-    // The admin approval contract is exercised by the established onboarding suite;
-    // this acceptance also verifies that the live admin can read this applicant.
     expect(await as(admin,()=>prisma.merchantApplication.findUnique({where:{id:application.id}}))).not.toBeNull();
+    await as(admin,()=>reviewApplication(admin,application.id,{decision:'APPROVED',expectedRevision:application.revision,reasonFa:'تایید برای آزمون پذیرش'}));
+    expect((await db.user.findUniqueOrThrow({where:{id:applicant.id}})).role).toBe('MERCHANT_OWNER');
   });
 });

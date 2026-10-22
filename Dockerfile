@@ -21,6 +21,7 @@ COPY packages/validation/package.json ./packages/validation/
 COPY packages/design-tokens/package.json ./packages/design-tokens/
 COPY packages/api/package.json ./packages/api/
 COPY packages/config/package.json ./packages/config/
+COPY packages/react-bits/package.json ./packages/react-bits/
 COPY prisma ./prisma/
 
 RUN npm ci --include=dev
@@ -57,6 +58,7 @@ RUN npm run build
 # Stage 3: Runner (Minimal Hardened Runtime)
 # ------------------------------------------------------------------------------
 FROM node:24-alpine AS runner
+LABEL shop.loqme.database-rls="1"
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -92,6 +94,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/provision-rls-runtime.cjs ./scripts/provision-rls-runtime.cjs
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/verify-rls-runtime.cjs ./scripts/verify-rls-runtime.cjs
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 # Switch to non-root user

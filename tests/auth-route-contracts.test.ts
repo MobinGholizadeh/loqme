@@ -1,3 +1,5 @@
+// Unit-test route contracts independently; real JWT-to-RLS binding is covered in rls.integration.test.ts.
+vi.mock('@/lib/db/request', () => ({ withDatabaseRequest: (handler: unknown) => handler }));
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 const { auth } = vi.hoisted(() => ({ auth: { requestOtp: vi.fn(), verifyOtp: vi.fn() } }));

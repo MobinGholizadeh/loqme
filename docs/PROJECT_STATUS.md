@@ -8,6 +8,14 @@
 
 ## 1. Project Health & Current State
 
+### Database row-level security — CP-12.6 (2026-10-22)
+
+Activation follow-up: owner authorized both local setup and live production activation. Local backup restore/migration rehearsal and actual migration completed with unchanged model row counts; all 34 tables enforce RLS, `loqme_runtime` is provisioned, environment files updated and development server restarted successfully. Production release is being prepared through GitHub Actions. First-run password setup, backup restore rehearsal and read-only runtime RLS verification are automated. The previously failing release dependency lockfile and Docker workspace manifest were repaired. Four environment-setup tests pass. Production activation is not yet confirmed.
+
+Owner explicitly requested role-specific RLS after the repository audit found application RBAC but no PostgreSQL RLS. Implemented ENABLE/FORCE policies for all 34 model tables, a restricted runtime login, verified request identity with transaction-local scope, live owner/staff/admin checks, narrow service capabilities, protected financial/history writes and a public-review projection. Migration/provisioning credentials are separated from production web credentials. Deployment pauses writers before backup and refuses automatic rollback to a pre-RLS image. See [DATABASE_RLS.md](DATABASE_RLS.md) for the exact role matrix, trust boundary, setup and recovery procedure.
+
+Fresh disposable PostgreSQL 15/PostGIS accepted all 16 migrations and seed; **1,010/1,010 tests across 82 files passed**, including 20 real restricted-role RLS tests. Workspace typecheck, zero-warning lint, Prisma validation, production build, Compose configuration checks and 11 deployment/Android policy tests passed. Ordinary developer and production databases were not migrated; no deployment was performed. Production requires provisioning the runtime password and applying the matching release during maintenance. Existing coverage/provider/device and production performance/restore gates remain open.
+
 ### Lenis smooth scrolling, GSAP animation orchestration, and React Bits integration (2026-10-16)
 
 Installed `lenis`, `gsap`, `@gsap/react`, and introduced the `react-bits` package/vendored library for Loqme:

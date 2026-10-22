@@ -1,3 +1,5 @@
+import { useDatabaseAdmin } from './helpers/database-admin';
+useDatabaseAdmin();
 import { describe, it, beforeAll, afterAll, expect } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';

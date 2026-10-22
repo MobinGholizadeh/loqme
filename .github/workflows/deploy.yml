@@ -36,7 +36,9 @@ jobs:
           --health-cmd "pg_isready -U postgres -d loqme_onboarding_test_ci"
           --health-interval 5s --health-timeout 5s --health-retries 12
     env:
-      DATABASE_URL: postgresql://postgres:test-only@localhost:5432/loqme_onboarding_test_ci?schema=public
+      DATABASE_URL: postgresql://loqme_runtime:ci-runtime-test-only-password-123456@localhost:5432/loqme_onboarding_test_ci?schema=public
+      DATABASE_MIGRATION_URL: postgresql://postgres:test-only@localhost:5432/loqme_onboarding_test_ci?schema=public
+      DATABASE_RUNTIME_PASSWORD: ci-runtime-test-only-password-123456
       SESSION_SECRET: ci-only-session-secret-not-for-production-123456789
       SMS_PROVIDER: console
     steps:
@@ -48,10 +50,13 @@ jobs:
       - run: npm ci
       - run: npm run db:generate
       - run: npm run db:migrate:deploy
+      - run: npm run db:provision-runtime
+      - run: node scripts/verify-rls-runtime.cjs
       - name: Seed only the disposable acceptance database
         run: npm run db:seed
       - run: npm test
       - run: python3 scripts/test-release-safety.py
+      - run: python3 scripts/test-rls-env.py
       - run: python3 scripts/test-android-release.py
 
   build-and-push:
@@ -127,6 +132,7 @@ jobs:
         run: |
           echo "manifest=$(base64 -w0 docker-compose.prod.yml)" >> "$GITHUB_OUTPUT"
           echo "cleanup=$(base64 -w0 scripts/prune-deployment-images.py)" >> "$GITHUB_OUTPUT"
+          echo "rls_setup=$(base64 -w0 scripts/prepare-rls-env.py)" >> "$GITHUB_OUTPUT"
 
       - name: Verify Deployment Secrets Configuration
         env:
@@ -143,6 +149,7 @@ jobs:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           COMPOSE_FILE_B64: ${{ steps.compose.outputs.manifest }}
           CLEANUP_SCRIPT_B64: ${{ steps.compose.outputs.cleanup }}
+          RLS_SETUP_SCRIPT_B64: ${{ steps.compose.outputs.rls_setup }}
         if: env.SERVER_HOST != ''
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -150,7 +157,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           command_timeout: 15m
-          envs: DOPPLER_TOKEN,COMPOSE_FILE_B64,CLEANUP_SCRIPT_B64
+          envs: DOPPLER_TOKEN,COMPOSE_FILE_B64,CLEANUP_SCRIPT_B64,RLS_SETUP_SCRIPT_B64
           script: |
             set -eu
             umask 077
@@ -170,7 +177,11 @@ jobs:
             PREVIOUS_COMPOSE=$(mktemp /opt/loqme/.compose.previous.XXXXXX)
             cp docker-compose.prod.yml "$PREVIOUS_COMPOSE"
             DOPPLER_ENV=""
+            RLS_MIGRATION_STARTED=0
             restore_environment() {
+              # Once the security migration starts, never restore a manifest that
+              # reconnects the old application using the PostgreSQL administrator.
+              if [ "$RLS_MIGRATION_STARTED" = 1 ]; then return; fi
               if [ -n "$PREVIOUS_ENV" ]; then cp "$PREVIOUS_ENV" .env; fi
               cp "$PREVIOUS_COMPOSE" docker-compose.prod.yml
             }
@@ -182,6 +193,13 @@ jobs:
               rm -f "$PREVIOUS_COMPOSE"
             }
             trap cleanup_environment EXIT
+
+            # First RLS rollout creates its own server-owned password. Retain it
+            # on later releases; never print it or replace initialized DB secrets.
+            test -f .env
+            PREVIOUS_ENV=$(mktemp /opt/loqme/.env.previous.XXXXXX)
+            cp .env "$PREVIOUS_ENV"
+            printf '%s' "$RLS_SETUP_SCRIPT_B64" | base64 -d | python3 - .env
 
             # Deploy the manifest from this revision, not a stale server-side copy.
             test -n "$COMPOSE_FILE_B64"
@@ -201,22 +219,18 @@ jobs:
               if [ -f .env ]; then
                 awk '
                   FILENAME == ARGV[1] {
-                    if ($0 ~ /^(POSTGRES_USER|POSTGRES_PASSWORD|POSTGRES_DB|DATABASE_URL)=/) {
+                    if ($0 ~ /^(POSTGRES_USER|POSTGRES_PASSWORD|POSTGRES_DB|DATABASE_URL|DATABASE_RUNTIME_PASSWORD)=/) {
                       key=$0; sub(/=.*/, "", key); database[key]=$0
                     }
                     next
                   }
-                  $0 !~ /^(POSTGRES_USER|POSTGRES_PASSWORD|POSTGRES_DB|DATABASE_URL)=/ { print }
+                  $0 !~ /^(POSTGRES_USER|POSTGRES_PASSWORD|POSTGRES_DB|DATABASE_URL|DATABASE_RUNTIME_PASSWORD)=/ { print }
                   END { for (key in database) print database[key] }
                 ' .env "$DOPPLER_ENV" > "$DOPPLER_ENV.merged"
                 mv "$DOPPLER_ENV.merged" "$DOPPLER_ENV"
               fi
               docker compose --env-file "$DOPPLER_ENV" -f docker-compose.prod.yml config --quiet
               chmod 600 "$DOPPLER_ENV"
-              if [ -f .env ]; then
-                PREVIOUS_ENV=$(mktemp /opt/loqme/.env.previous.XXXXXX)
-                cp .env "$PREVIOUS_ENV"
-              fi
               mv "$DOPPLER_ENV" .env
             fi
 
@@ -225,6 +239,7 @@ jobs:
             export LOQME_IMAGE="ghcr.io/$REPOSITORY@${{ needs.build-and-push.outputs.digest }}"
             docker compose -f docker-compose.prod.yml pull app
             # Verify secret wiring before migration or replacing the running app.
+            docker compose -f docker-compose.prod.yml --profile migrations run --rm --no-deps migrate node -e 'const p=process.env.DATABASE_RUNTIME_PASSWORD || ""; if(!/^[A-Za-z0-9_-]{24,}$/.test(p) || p.startsWith("REPLACE_")) { console.error("A random URL-safe runtime database password of at least 24 characters is required; refusing deployment"); process.exit(1); }'
             docker compose -f docker-compose.prod.yml run --rm --no-deps app node -e 'if(process.env.SMS_PROVIDER!=="smsir" || !process.env.SMSIR_API_KEY?.trim()) { console.error("Production SMS configuration is missing; refusing deployment"); process.exit(1); } if(process.env.NEXT_PUBLIC_APP_URL!=="https://loqme.shop") { console.error("Production application URL must be https://loqme.shop"); process.exit(1); } console.log("Production SMS and canonical URL configuration verified");'
 
             # Keep the exact previous image available for application rollback.
@@ -235,7 +250,11 @@ jobs:
               docker tag "$PREVIOUS_IMAGE" "loqme-rollback:${{ github.sha }}"
             fi
 
-            # Backup and validate before migration; errors leave the running app intact.
+            # Stop writers before the backup so restoration cannot lose writes
+            # accepted between the backup snapshot and the security migration.
+            # From this point, failures stay stopped for operator repair/restore.
+            docker compose -f docker-compose.prod.yml stop app
+            RLS_MIGRATION_STARTED=1
             mkdir -p backups
             BACKUP="backups/pre-${{ github.sha }}-$(date +%Y%m%d%H%M%S).dump"
             docker compose -f docker-compose.prod.yml exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$BACKUP"
@@ -243,11 +262,24 @@ jobs:
             docker compose -f docker-compose.prod.yml exec -T postgres pg_restore --list < "$BACKUP" > /dev/null
             sha256sum "$BACKUP" > "$BACKUP.sha256"
             sha256sum -c "$BACKUP.sha256"
+            # Rehearse restoration into a separate database before changing the live
+            # schema. A failed rehearsal is retained for operator investigation.
+            RESTORE_DB="loqme_restorecheck_${{ github.run_number }}"
+            docker compose -f docker-compose.prod.yml exec -T postgres sh -c 'createdb -U "$POSTGRES_USER" "$1"' sh "$RESTORE_DB"
+            docker compose -f docker-compose.prod.yml exec -T postgres sh -c 'pg_restore -U "$POSTGRES_USER" -d "$1" --exit-on-error' sh "$RESTORE_DB" < "$BACKUP"
+            docker compose -f docker-compose.prod.yml exec -T postgres sh -c 'dropdb -U "$POSTGRES_USER" "$1"' sh "$RESTORE_DB"
             docker compose -f docker-compose.prod.yml --profile migrations run --rm --no-deps migrate
+            docker compose -f docker-compose.prod.yml run --rm --no-deps app node scripts/verify-rls-runtime.cjs
 
             rollback() {
               restore_environment
               if [ -n "$PREVIOUS_IMAGE" ]; then
+                PREVIOUS_RLS=$(docker inspect --format '{{ index .Config.Labels "shop.loqme.database-rls" }}' "$PREVIOUS_IMAGE")
+                if [ "$PREVIOUS_RLS" != 1 ]; then
+                  docker compose -f docker-compose.prod.yml stop app
+                  echo "Previous image predates RLS; automatic rollback refused. Restore the verified backup under the documented maintenance procedure."
+                  return 1
+                fi
                 export LOQME_IMAGE="$PREVIOUS_IMAGE"
                 docker compose -f docker-compose.prod.yml up -d --no-deps app
                 echo "Previous app image restored; compatible migration retained."

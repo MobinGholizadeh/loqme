@@ -5,8 +5,8 @@ const { Client } = require('pg');
 async function main() {
   const connectionString = process.env.DATABASE_MIGRATION_URL;
   const password = process.env.DATABASE_RUNTIME_PASSWORD;
-  if (!connectionString || !password || password.length < 24) {
-    throw new Error('DATABASE_MIGRATION_URL and a DATABASE_RUNTIME_PASSWORD of at least 24 characters are required');
+  if (!connectionString || !password || !/^[A-Za-z0-9_-]{24,}$/.test(password) || password.startsWith('REPLACE_')) {
+    throw new Error('DATABASE_MIGRATION_URL and a random URL-safe DATABASE_RUNTIME_PASSWORD of at least 24 characters are required');
   }
   const client = new Client({ connectionString, connectionTimeoutMillis: 10000 });
   try {
@@ -16,7 +16,8 @@ async function main() {
     if (existing.rows.some(row => Object.values(row).some(Boolean))) throw new Error('Refusing to reuse an elevated loqme_runtime role');
     // PostgreSQL role DDL does not accept bind parameters. Quote only this secret literal;
     // do not print SQL, URLs, credentials, or driver errors (which can contain SQL).
-    const literal = "'" + password.replaceAll("'", "''") + "'";
+    const quoted = await client.query('SELECT quote_literal($1::text) AS literal', [password]);
+    const literal = quoted.rows[0].literal;
     if (!existing.rowCount) await client.query('CREATE ROLE loqme_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS');
     await client.query(`ALTER ROLE loqme_runtime PASSWORD ${literal}`);
     await client.query('GRANT loqme_app TO loqme_runtime');

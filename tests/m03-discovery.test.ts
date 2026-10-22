@@ -1,3 +1,5 @@
+import { useDatabaseAdmin } from './helpers/database-admin';
+useDatabaseAdmin();
 import { describe, it, expect, beforeAll } from 'vitest';
 import { prisma } from '@/lib/prisma';
 import { GET as getNearbyListings } from '@/app/api/listings/nearby/route';

@@ -1,3 +1,5 @@
+import { useDatabaseAdmin } from './helpers/database-admin';
+useDatabaseAdmin();
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { prisma } from '@/lib/prisma';
 import { merchantService } from '@/domain/merchant/merchant.service';

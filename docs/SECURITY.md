@@ -133,3 +133,9 @@ Refund requests now claim a REQUESTED refund under a payment-row lock before ext
 # M12 implementation note — 2026-10-13
 
 [Merchant data authority and recovery](MERCHANT_DATA.md) documents live administrator/membership checks, owner-only scoped reports, manager-only listing writes, bounded bodies/origin checks, durable uncertain payment attempts and evidence-gated reconciliation. Report JSON contains decimal money strings and no customer identity/provider payload. Unknown provider outcomes never authorize an automatic second money transfer.
+
+## CP-12.6 PostgreSQL RLS — 2026-10-22
+
+[DATABASE_RLS.md](DATABASE_RLS.md) is the implementation and rollout contract. All 34 model tables have ENABLE/FORCE policies; the web runtime uses a non-owner, NOBYPASSRLS login. Every query receives transaction-local verified identity, and policies resolve active roles and memberships from live database rows. Narrow server-only service contexts support authentication, callbacks, reservations/expiry, invitations and moderation without a general runtime bypass. A NOLOGIN read-only helper role handles policy recursion and financial integrity checks. Existing backend authorization, DTO projections, financial validation and immutable history remain required.
+
+RLS limits rows, not fields within an allowed row, and trusts the backend's context binding. It does not authenticate arbitrary SQL clients or protect against stolen runtime credentials/SQL injection. Never expose context setters to clients or pass migration credentials to the production web process. The implementation passed 20 dedicated real PostgreSQL RLS acceptance tests within a complete 1,010-test run; it has not been deployed to production.

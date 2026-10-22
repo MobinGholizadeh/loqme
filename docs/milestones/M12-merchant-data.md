@@ -16,8 +16,11 @@ The original plan remains the design baseline. The implementation may use Postgr
 - [x] CP-12.3 — Immutable purchase facts/terms, listing/child revisions, append-only inventory history and attributable merchant edits.
 - [x] CP-12.4 — Owner-scoped synchronous marketplace reports, exact money, quality disclosures, deterministic weekly insights and Persian RTL UI.
 - [x] CP-12.5 — Automated validation, migration/profile checks, compatibility documentation and local handoff; production release gates remain open below.
+- [x] CP-12.6 — Owner-authorized RLS extension (2026-10-22): ENABLE/FORCE on all 34 model tables, restricted runtime credentials, verified transaction-local identity, role/tenant policies and scoped service flows. See [DATABASE_RLS.md](../DATABASE_RLS.md). Fresh disposable PostgreSQL 15/PostGIS applied all 16 migrations and seed; 1,010 tests across 82 files (including 20 real RLS acceptance tests) and production build passed. Production migration/provisioning and operational acceptance remain pending; no deployment was performed.
 
 ## Deferred gates
+
+CP-12.6 activation follow-up (2026-10-22): owner authorized live rollout. Local backup restored and migration rehearsed before applying to the ordinary development database; row counts preserved, 34 tables enforced, restricted credentials active and HTTP readiness verified. Production rollout is in progress; final evidence will be recorded after deployment. First-use secret setup and read-only runtime acceptance are now automated, with four additional setup tests.
 
 POS/Windows/terminal adapters require exact provider/hardware/SDK details. OCR/private document ingestion, physical stock/batches, voice, externally hosted model processing and consequential assistant automation remain separately gated in LQ-MDAI-001. Do not label these delivered or fabricate integrations.
 
@@ -26,6 +29,8 @@ POS/Windows/terminal adapters require exact provider/hardware/SDK details. OCR/p
 Scoped authorization, database concurrency/integrity tests, accurate money and event-time reporting, explicit unknown legacy history, Persian RTL report states, typecheck/lint/build and affected browser coverage. Record actual results below. Existing CP-11.9 coverage and live provider/device gates remain open.
 
 ## Validation
+
+CP-12.6 follow-up (2026-10-22): workspace typecheck, zero-warning lint, Prisma validation, production build, Compose configuration checks, diff whitespace validation and 11 deployment/Android policy tests also passed. See the RLS guide for acceptance evidence and production limitations. Test data remained confined to a disposable container.
 
 2026-10-13, local Windows/WSL PostgreSQL 18 with PostGIS. Only explicitly named disposable `loqme_onboarding_test_mdai_*` databases were used. Docker was unavailable. No real merchant/provider data was used.
 

@@ -19,7 +19,8 @@ export function withDatabaseActor<T>(userId: string | undefined, work: () => T):
 export function withDatabaseService<T>(
   service: NonNullable<DatabaseContext['service']>, scope: string, work: () => T, subject?: string,
 ): T {
-  return contexts.run(Object.freeze({ userId: databaseContext().userId, service, scope, subject }), work);
+  const userId = ['auth', 'payment', 'expiry'].includes(service) ? undefined : databaseContext().userId;
+  return contexts.run(Object.freeze({ userId, service, scope, subject }), work);
 }
 
 export function withReservationWrite<T>(scope: string, work: () => T): T {

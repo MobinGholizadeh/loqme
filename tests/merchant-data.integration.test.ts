@@ -1,3 +1,6 @@
+import { databaseContext } from '@/lib/db/context';
+import { useDatabaseAdmin } from './helpers/database-admin';
+useDatabaseAdmin();
 import { beforeAll, afterAll, describe, it, expect, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
@@ -129,7 +132,7 @@ describe('LQ-MDAI-001 real database acceptance', () => {
     const moves = await prisma.listingInventoryMovement.findMany({ where: { listingId: l.id }, orderBy: { inventoryVersion: 'asc' } });
     expect(moves.map(m => m.inventoryVersion)).toEqual([1,2,3]);
     expect(moves.map(m => m.deltaTotal)).toEqual([5,4,1]);
-    expect(moves[1].actorId).toBe(owner); expect(moves[2].actorId).toBeNull();
+    expect(moves[1].actorId).toBe(owner); expect(moves[2].actorId).toBe(databaseContext().userId);
     const before = await prisma.listingRevision.count({ where: { listingId: l.id } });
     await prisma.listing.upsert({ where: { id: l.id }, create: { ...l, titleFa: 'نباید ثبت شود' }, update: { titleFa: 'عنوان نهایی' } });
     expect(await prisma.listingRevision.count({ where: { listingId: l.id } })).toBe(before+1);
