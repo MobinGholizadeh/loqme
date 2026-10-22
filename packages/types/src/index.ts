@@ -858,6 +858,8 @@ export interface QuickListingTemplateDto {
 }
 
 export interface FastCreateListingDto {
+  imageUrl: string;
+  images?: string[];
   categoryId?: string;
   categorySlug?: string;
   titleFa: string;

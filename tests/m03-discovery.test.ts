@@ -18,7 +18,7 @@ describe('Milestone M03 — Marketplace Discovery & Proximity Verification', () 
   beforeAll(async () => {
     // 1. Fetch sample merchant and active listing from seed
     const merchant = await prisma.merchant.findFirst({
-      where: { businessNameFa: { contains: 'هما' } },
+      where: { businessNameFa: { contains: 'دیاکو' } },
       include: { locations: true, listings: true },
     });
     expect(merchant).toBeDefined();
@@ -93,16 +93,16 @@ describe('Milestone M03 — Marketplace Discovery & Proximity Verification', () 
       }
     });
 
-    it('filters listings by businessType (BAKERY vs CAFE)', async () => {
-      const reqBakery = new NextRequest(
-        'http://localhost:3000/api/listings/nearby?latitude=37.5342&longitude=45.0681&radiusMeters=10000&businessType=BAKERY'
+    it('filters listings by businessType (RESTAURANT)', async () => {
+      const reqRestaurant = new NextRequest(
+        'http://localhost:3000/api/listings/nearby?latitude=37.5342&longitude=45.0681&radiusMeters=10000&businessType=RESTAURANT'
       );
-      const resBakery = await getNearbyListings(reqBakery);
-      const dataBakery = await resBakery.json();
+      const resRestaurant = await getNearbyListings(reqRestaurant);
+      const dataRestaurant = await resRestaurant.json();
 
-      expect(dataBakery.success).toBe(true);
-      expect(dataBakery.data.length).toBeGreaterThan(0);
-      expect(dataBakery.data.every((item: any) => item.businessType === 'BAKERY')).toBe(true);
+      expect(dataRestaurant.success).toBe(true);
+      expect(dataRestaurant.data.length).toBeGreaterThan(0);
+      expect(dataRestaurant.data.every((item: any) => item.businessType === 'RESTAURANT')).toBe(true);
     });
 
     it('returns 400 for invalid coordinates or out-of-range radius', async () => {
@@ -116,7 +116,7 @@ describe('Milestone M03 — Marketplace Discovery & Proximity Verification', () 
 
   describe('2. Search API (/api/listings/search)', () => {
     it('searches listings by keyword in title or merchant name', async () => {
-      const req = new NextRequest('http://localhost:3000/api/listings/search?q=نقل');
+      const req = new NextRequest('http://localhost:3000/api/listings/search?q=کباب');
       const res = await searchListings(req);
       const json = await res.json();
 
@@ -126,7 +126,7 @@ describe('Milestone M03 — Marketplace Discovery & Proximity Verification', () 
 
       const match = json.data[0];
       const titleOrStoreMatches =
-        match.titleFa.includes('نقل') || match.storeNameFa.includes('نقل') || match.descriptionFa?.includes('نقل');
+        match.titleFa.includes('کباب') || match.storeNameFa.includes('کباب') || match.descriptionFa?.includes('کباب');
       expect(titleOrStoreMatches).toBe(true);
     });
 

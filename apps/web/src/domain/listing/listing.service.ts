@@ -38,7 +38,17 @@ export class ListingService {
     }
   ) {
     const validated = CreateSurpriseBagSchema.parse(params);
-    await listingImageStorage.authorize(merchantId, validated.imageUrl);
+    const primaryImage = validated.imageUrl?.trim() || validated.images?.[0]?.trim();
+    if (!primaryImage) {
+      throw new Error('افزودن حداقل یک تصویر برای ثبت بسته الزامی است');
+    }
+    const allImages = [
+      primaryImage,
+      ...(validated.images || []).map((s) => s.trim()).filter((s) => s && s !== primaryImage),
+    ];
+    for (const img of allImages) {
+      await listingImageStorage.authorize(merchantId, img);
+    }
     await this.requireStoreCover(merchantId);
 
     const pickupStartDate = new Date(params.pickupStart);
@@ -59,7 +69,13 @@ export class ListingService {
         data: {
           merchantId,
           merchantLocationId: params.merchantLocationId,
-          images: { create: { imageUrl: validated.imageUrl, isPrimary: true } },
+          images: {
+            create: allImages.map((imageUrl, idx) => ({
+              imageUrl,
+              isPrimary: idx === 0,
+              displayOrder: idx,
+            })),
+          },
           categoryId: validated.categoryId,
           type: ListingType.SURPRISE_BAG,
           titleFa: validated.title,
@@ -109,7 +125,17 @@ export class ListingService {
    */
   async createListing(input: CreateListingInput, actorId?: string) {
     const validated = CreateListingSchema.parse(input);
-    await listingImageStorage.authorize(validated.merchantId, validated.imageUrl);
+    const primaryImage = validated.imageUrl?.trim() || validated.images?.[0]?.trim();
+    if (!primaryImage) {
+      throw new Error('افزودن حداقل یک تصویر برای ثبت بسته الزامی است');
+    }
+    const allImages = [
+      primaryImage,
+      ...(validated.images || []).map((s) => s.trim()).filter((s) => s && s !== primaryImage),
+    ];
+    for (const img of allImages) {
+      await listingImageStorage.authorize(validated.merchantId, img);
+    }
     await this.requireStoreCover(validated.merchantId);
 
     const pickupStartDate = new Date(validated.pickupStart);
@@ -122,7 +148,13 @@ export class ListingService {
         data: {
           merchantId: validated.merchantId,
           attributes: validated.pickupDetails ? { create: { key: 'pickupDetails', valueJson: validated.pickupDetails } } : undefined,
-          images: validated.imageUrl ? { create: { imageUrl: validated.imageUrl, isPrimary: true } } : undefined,
+          images: {
+            create: allImages.map((imageUrl, idx) => ({
+              imageUrl,
+              isPrimary: idx === 0,
+              displayOrder: idx,
+            })),
+          },
           merchantLocationId: validated.merchantLocationId,
           categoryId: validated.categoryId,
           type: validated.type as ListingType,

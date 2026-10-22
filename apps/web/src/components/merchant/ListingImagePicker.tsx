@@ -51,8 +51,8 @@ export function ListingImagePicker({
   }
   return (
     <fieldset className="min-w-0 w-full space-y-3" disabled={busy}>
-      <legend className="text-sm font-bold mb-2">{cover ? "عکس جلد فروشگاه (الزامی)" : "تصویر بسته (الزامی)"}</legend>
-      <p className="text-xs text-loqme-neutral-600">{cover ? "یک عکس افقی و روشن از فروشگاه خود انتخاب کنید؛ پیشنهاد ما ۱۸۰۰ × ۶۰۰ پیکسل است" : "عکس بسته را بارگذاری کنید یا یک تصویر تزئینی متناسب انتخاب کنید"}</p>
+      <legend className="text-sm font-bold mb-2">{cover ? "عکس جلد فروشگاه (الزامی)" : "تصویر بسته (حداقل یک تصویر الزامی است)"}</legend>
+      <p className="text-xs text-loqme-neutral-600">{cover ? "یک عکس افقی و روشن از فروشگاه خود انتخاب کنید؛ پیشنهاد ما ۱۸۰۰ × ۶۰۰ پیکسل است" : "افزودن حداقل یک تصویر برای ثبت بسته الزامی است؛ عکس بسته را بارگذاری کنید یا یک تصویر تزئینی متناسب انتخاب کنید"}</p>
       <input
         ref={input}
         className="sr-only"

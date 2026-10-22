@@ -125,6 +125,14 @@ async function handlePOST(request: NextRequest) {
 
     const validated = FastCreateListingSchema.parse(body);
 
+    const primaryImageUrl = validated.imageUrl?.trim() || validated.images?.[0]?.trim();
+    if (!primaryImageUrl) {
+      return NextResponse.json(
+        { success: false, message: "افزودن حداقل یک تصویر برای ثبت بسته الزامی است" },
+        { status: 400 },
+      );
+    }
+
     // 1. Resolve category
     let categoryId = validated.categoryId;
     if (!categoryId && validated.categorySlug) {
@@ -151,7 +159,8 @@ async function handlePOST(request: NextRequest) {
 
     const newListing = await listingService.createListing({
       pickupDetails: validated.pickupDetails,
-      imageUrl: validated.imageUrl,
+      imageUrl: primaryImageUrl,
+      images: validated.images,
       merchantId: merchant.id,
       merchantLocationId: primaryLocation?.id,
       categoryId,

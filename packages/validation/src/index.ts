@@ -107,6 +107,7 @@ export type VerifyOtpInput = z.infer<typeof VerifyOtpSchema>;
 
 export const CreateSurpriseBagSchema = z.object({
   imageUrl: z.string().trim().min(1, 'تصویر بسته الزامی است').max(500),
+  images: z.array(z.string().trim().min(1, 'آدرس تصویر نامعتبر است').max(500)).min(1, 'افزودن حداقل یک تصویر برای بسته الزامی است').optional(),
   title: z.string().min(3, 'عنوان بسته باید حداقل ۳ حرف باشد'),
   description: z.string().max(500, 'توضیحات نمی‌تواند بیش از ۵۰۰ حرف باشد').optional(),
   categoryId: z.string().min(1, 'انتخاب دسته‌بندی الزامی است'),
@@ -136,6 +137,7 @@ export type PickupDetailsInput = z.infer<typeof PickupDetailsSchema>;
 export const CreateListingSchema = z.object({
   pickupDetails: PickupDetailsSchema.optional(),
   imageUrl: z.string().trim().min(1, 'تصویر بسته الزامی است').max(500),
+  images: z.array(z.string().trim().min(1, 'آدرس تصویر نامعتبر است').max(500)).min(1, 'افزودن حداقل یک تصویر برای بسته الزامی است').optional(),
   merchantId: z.string().uuid('شناسه فروشگاه نامعتبر است'),
   merchantLocationId: z.string().uuid('شناسه شعبه نامعتبر است').optional(),
   categoryId: z.string().min(1, 'شناسه دسته‌بندی الزامی است'),
@@ -433,6 +435,7 @@ export const FastCreateListingSchema = z
   .object({
     pickupDetails: PickupDetailsSchema.optional(),
     imageUrl: z.string().trim().min(1, 'تصویر بسته الزامی است').max(500),
+    images: z.array(z.string().trim().min(1, 'آدرس تصویر نامعتبر است').max(500)).min(1, 'افزودن حداقل یک تصویر برای بسته الزامی است').optional(),
     categoryId: z.string().optional(),
     categorySlug: z.string().optional(),
     titleFa: z.string().trim().min(3, 'عنوان بسته حداقل باید ۳ کاراکتر باشد').max(100),

@@ -235,7 +235,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
     setFieldErrors({});
 
     const errors: Record<string, string> = {};
-    if (!imageUrl) errors.imageUrl = "تصویر بسته را انتخاب کنید";
+    if (!imageUrl || !imageUrl.trim()) errors.imageUrl = "تصویر بسته را انتخاب کنید";
     if (!categorySlug) errors.categorySlug = "دسته‌بندی خوراکی را انتخاب کنید";
     if (titleFa.trim().length < 3)
       errors.titleFa = "عنوان بسته حداقل ۳ کاراکتر باشد";
@@ -453,11 +453,22 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
 
           <PickupDetailsFields value={pickupDetails} onChange={setPickupDetails}/>
           {fieldErrors.imageUrl && <p role="alert" className="text-sm text-rose-700">{fieldErrors.imageUrl}</p>}
-          <ListingImagePicker
-            value={imageUrl}
-            onChange={setImageUrl}
-            onBusyChange={setImageBusy}
-          />
+          <div data-field="imageUrl">
+            <ListingImagePicker
+              value={imageUrl}
+              onChange={(val) => {
+                setImageUrl(val);
+                if (val) {
+                  setFieldErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.imageUrl;
+                    return next;
+                  });
+                }
+              }}
+              onBusyChange={setImageBusy}
+            />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Select
               label="دمای نگهداری"
