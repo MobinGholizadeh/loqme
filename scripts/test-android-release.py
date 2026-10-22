@@ -61,6 +61,7 @@ class PolicyTests(unittest.TestCase):
         self.assertIn('needs: deploy', deploy)
         self.assertIn('source_sha: ${{ github.sha }}', deploy)
         self.assertIn('group: android-release-publication', workflow)
+        self.assertIn('disk-size: 2G', workflow)
         self.assertIn('--latest=false', workflow)
 
 
