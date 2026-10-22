@@ -20,7 +20,7 @@ test("White-first teal theme, responsive public pages and reduced-motion button 
   await installFixtures(page);
   await page.route("**/api/business/cities", route => route.fulfill({ json: { success: true, data: [{ id: "city", nameFa: "ارومیه", slug: "urmia", provinceNameFa: "آذربایجان غربی", center: { latitude: 37.55, longitude: 45.07 } }] } }));
   await page.route("**/api/business/application", route => route.fulfill({ json: { success: true, data: null } }));
-  await page.route("https://map.ir/**", route => route.abort());
+  await page.route(/(map\.ir|tile\.openstreetmap\.org)/, route => route.abort());
   for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     for (const route of ["/", "/discover", "/about", "/login", "/business"]) {

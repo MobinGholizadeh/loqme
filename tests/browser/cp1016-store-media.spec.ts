@@ -8,7 +8,7 @@ for (const width of [360, 390, 768, 1440]) {
     await page.route('**/api/auth/session', r => r.fulfill({ json: { authenticated: false, user: null } }));
     await page.route('**/api/business/cities', r => r.fulfill({ json: { success: true, data: [{id:'city',nameFa:'ارومیه',slug:'urmia',provinceNameFa:'آذربایجان غربی',center:{latitude:37.55,longitude:45.07}}] } }));
     await page.route('**/api/business/places/search?**', r => r.fulfill({ json: { success: true, data: [{id:'place',providerId:null,name:'کافه آرام',address:'ارومیه، خیابان دانشکده',latitude:37.55,longitude:45.07}] } }));
-    await page.route('https://map.ir/**', r => r.abort());
+    await page.route(/(map\.ir|tile\.openstreetmap\.org)/, r => r.abort());
     await page.goto('/business'); await page.getByLabel('نام کسب‌وکار', {exact:true}).fill('آرام');
     await expect(page.getByRole('button', {name:/کافه آرام ارومیه/})).toBeVisible();
     await expect(page.locator('.business-map')).toHaveCount(0);

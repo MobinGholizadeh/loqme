@@ -67,9 +67,9 @@ const nextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://unpkg.com https://map.ir https://*.map.ir https://*.basemaps.cartocdn.com" +
+              "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://unpkg.com https://*.basemaps.cartocdn.com" +
                 (inventoryImageUrl ? " " + inventoryImageUrl.origin : ""),
-              "connect-src 'self' https://*.tile.openstreetmap.org https://map.ir https://*.map.ir",
+              "connect-src 'self' https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
               "frame-ancestors 'none'",
               "object-src 'none'",
               "base-uri 'self'",

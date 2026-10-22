@@ -13,7 +13,7 @@ async function setup(page: Page, authenticated = false) {
     await page.context().clearCookies();
   }
   // Map availability must not control form tests; the fallback is tested explicitly.
-  await page.route('https://map.ir/**', r => r.abort());
+  await page.route(/(map\.ir|tile\.openstreetmap\.org)/, r => r.abort());
   await page.route('**/api/business/cities', r => r.fulfill({ json: { success: true, data: [city] } }));
   await page.route('**/api/business/places/search?**', r => r.fulfill({ json: { success: true, data: [place] } }));
   await page.route('**/api/business/places/reverse?**', r => r.fulfill({ json: { success: true, data: { address: 'نشانی پیشنهادی نقشه' } } }));
@@ -127,7 +127,7 @@ test('customer checkout return and invalid OTP remain within the correct journey
 });
 
 test('admin reviews full application, requires reason, rejects and approves', async ({ page }) => {
-  await installFixtures(page, 'ADMIN'); await page.route('https://map.ir/**', r => r.abort());
+  await installFixtures(page, 'ADMIN'); await page.route(/(map\.ir|tile\.openstreetmap\.org)/, r => r.abort());
   let status = 'PENDING'; let reason = '';
   await page.route('**/api/admin/merchant-applications?**', r => r.fulfill({ json: { success: true, data: { items: [{ ...application, status, reviewReason: reason, applicantMobile: user.mobile, duplicates: [] }], total: 1 } } }));
   await page.route('**/api/admin/merchant-applications/application', r => { const body = r.request().postDataJSON(); status = body.decision; reason = body.reasonFa; return r.fulfill({ json: { success: true, data: { ...application, status } } }); });

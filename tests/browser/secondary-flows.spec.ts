@@ -67,7 +67,7 @@ test("map frames pins, reports tile availability, opens details and survives til
     path: info.outputPath("map-selected-mobile.png"),
     fullPage: true,
   });
-  await page.route(/(basemaps\.cartocdn\.com|map\.ir)/, (route) =>
+  await page.route(/(tile\.openstreetmap\.org|openstreetmap|map\.ir)/, (route) =>
     route.abort(),
   );
   await page.reload();

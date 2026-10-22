@@ -82,7 +82,7 @@ test('reduced motion uses static manually navigable scenes', async ({ page }) =>
 });
 test('map controls stay below sticky navigation while scrolling', async ({ page }, info) => {
   await page.setViewportSize({ width: 390, height: 844 }); await installFixtures(page);
-  await page.route(/map\.ir/, route => route.abort()); await page.goto('/explore?view=map');
+  await page.route(/(map\.ir|tile\.openstreetmap\.org)/, route => route.abort()); await page.goto('/explore?view=map');
   await expect(page.getByRole('button', { name: 'نمایش موقعیت من روی نقشه' })).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, document.querySelector('.leaflet-container')!.getBoundingClientRect().top + window.scrollY));
   const headerAbove = await page.locator('.market-header').evaluate(header => {
