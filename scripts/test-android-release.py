@@ -62,6 +62,8 @@ class PolicyTests(unittest.TestCase):
         self.assertIn('source_sha: ${{ github.sha }}', deploy)
         self.assertIn('group: android-release-publication', workflow)
         self.assertIn('disk-size: 2G', workflow)
+        self.assertIn('sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost', workflow)
+        self.assertIn('minimum_available_kb=$((9 * 1024 * 1024))', workflow)
         self.assertIn('--latest=false', workflow)
 
 

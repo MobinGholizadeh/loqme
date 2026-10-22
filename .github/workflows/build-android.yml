@@ -96,6 +96,18 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Reclaim hosted runner disk for emulator
+        run: |
+          set -euo pipefail
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          available_kb="$(df --output=avail -k / | tail -1 | tr -d ' ')"
+          minimum_available_kb=$((9 * 1024 * 1024))
+          df -h /
+          if [ "$available_kb" -lt "$minimum_available_kb" ]; then
+            echo "::error::Android emulator requires at least 9 GB of free runner disk; found ${available_kb} KB"
+            exit 1
+          fi
+
       - name: Emulator installation and launch acceptance
         uses: reactivecircus/android-emulator-runner@v2
         with:
