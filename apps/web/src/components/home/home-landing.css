@@ -72,3 +72,66 @@
  .food-ticker-group > span { white-space: normal; font-size: 18px; padding: 0; gap: 12px; }
  .food-ticker-group[aria-hidden="true"], .food-ticker button { display: none; }
 }
+
+/* Owner-supplied scrolling card stack, adapted to the Loqme pickup journey. */
+.pickup-story { background: #EFF7F4; color: #1D616A; }
+.cards-scroll { position: relative; height: 270svh; }
+.pickup-sticky { position: sticky; top: 84px; height: calc(100svh - 84px); min-height: 690px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+.pickup-heading { text-align: center; position: relative; z-index: 5; }
+.pickup-heading .landing-kicker { margin-bottom: 8px; }
+.pickup-heading h2 { font-size: clamp(28px, 3vw, 44px); line-height: 1.6; font-weight: 900; text-wrap: balance; }
+.pickup-heading h2 span { color: #203B3B; }
+.pickup-heading > p { font-size: 14px; color: #526460; margin-top: 8px; }
+.pickup-stage { width: 100%; padding: 40px 24px 42px; overflow: clip; }
+.cards-stack { position: relative; width: min(100%, 430px); height: 370px; margin: auto; perspective: 1000px; }
+.stack-card { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 28px; background: #fff; border: 1px solid #BCD8D1; border-radius: 24px; box-shadow: 0 12px 30px rgb(29 97 106 / .1); transform-origin: center 80%; backface-visibility: hidden; }
+.stack-card:nth-child(2) { background: #F6FBF9; }
+.stack-card:nth-child(3) { background: #E1EFEB; }
+.pickup-card-top { display: flex; width: 100%; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 700; }
+.pickup-card-top > span:first-child { border: 1px solid #BCD8D1; border-radius: 99px; padding: 5px 12px; }
+.pickup-icon { display: grid; place-items: center; margin: 18px 0 12px; }
+.stack-card h3 { font-size: 28px; font-weight: 900; line-height: 1.7; color: #1D616A; }
+.pickup-description { font-size: 15px; line-height: 2; max-width: 330px; margin-top: 8px; color: #203B3B; }
+.pickup-detail { display: flex; align-items: center; gap: 10px; text-align: right; padding-top: 14px; margin-top: auto; border-top: 1px solid #D6E4DF; }
+.pickup-detail svg { flex-shrink: 0; }
+.pickup-detail p { font-size: 12px; line-height: 1.9; color: #526460; }
+.pickup-card-bottom { display: none; }
+.pickup-story-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; position: relative; z-index: 5; }
+.pickup-scroll-hint { display: flex; align-items: center; gap: 8px; color: #526460; font-size: 12px; }
+@media(max-width: 767px) {
+ .pickup-sticky { min-height: 0; height: calc(100svh - 150px); padding: 16px 20px; }
+ .pickup-heading h2 { font-size: 27px; }
+ .pickup-heading > p { font-size: 12px; }
+ .pickup-stage { padding: 28px 12px 36px; }
+ .cards-stack { height: 330px; max-width: 320px; }
+ .stack-card { padding: 20px; border-radius: 20px; }
+ .stack-card h3 { font-size: 24px; }
+ .pickup-icon { margin: 12px 0 8px; }
+ .pickup-icon svg { width: 42px; height: 42px; }
+ .pickup-description { font-size: 13px; }
+ .pickup-detail p { font-size: 11px; }
+ .pickup-story-actions { gap: 10px; }
+}
+@media(prefers-reduced-motion: reduce), (max-height: 740px) {
+ .cards-scroll { height: auto; }
+ .pickup-sticky { position: relative; top: 0; height: auto; min-height: 0; padding-block: 48px; }
+ .pickup-stage { overflow: visible; }
+ .cards-stack { display: grid; gap: 20px; height: auto; perspective: none; }
+ .stack-card { position: relative; top: auto !important; transform: none !important; opacity: 1 !important; min-height: 330px; }
+ .pickup-scroll-hint { display: none; }
+}
+
+/* Bakery photography frames the scroll cards without competing with the copy. */
+.pickup-story { background: #173F44; }
+.pickup-sticky { isolation: isolate; overflow: clip; }
+.pickup-backdrop { position: absolute; inset: -10px; z-index: -2; pointer-events: none; }
+.pickup-backdrop img { display: block; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: center; filter: blur(3px); }
+.pickup-sticky::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, rgb(13 42 42 / .72), rgb(13 42 42 / .26) 38%, rgb(13 42 42 / .35) 65%, rgb(13 42 42 / .78)); }
+.pickup-heading .landing-kicker, .pickup-heading h2, .pickup-heading h2 span, .pickup-heading > p, .pickup-scroll-hint { color: #fff; }
+.pickup-story-actions .action-link { background: #fff; color: #1D616A; }
+.pickup-story-actions .action-link:hover { background: #E1EFEB; }
+.pickup-story-actions .action-link:focus-visible { outline: 3px solid white; outline-offset: 4px; }
+@media(max-width: 767px) {
+ .pickup-backdrop img { object-position: center 20%; filter: blur(2px); }
+ .pickup-sticky::before { background: linear-gradient(180deg, rgb(13 42 42 / .76), rgb(13 42 42 / .3) 38%, rgb(13 42 42 / .52) 70%, rgb(13 42 42 / .85)); }
+}

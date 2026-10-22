@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, MapPin, Compass, ShoppingBag, Store, Heart, BadgeCheck, Wallet } from "lucide-react";
+import { ArrowLeft, MapPin, Compass, Heart, BadgeCheck, Wallet } from "lucide-react";
+import { PickupSteps } from "./PickupSteps";
 import { CategoryTicker } from "./CategoryTicker";
 import { SplitText, ShinyText, SpotlightCard, Magnet } from "react-bits";
 import "./home-landing.css";
@@ -70,22 +71,6 @@ export function HomeLanding() {
 
     <CategoryTicker />
 
-    <section className="landing-section landing-how" aria-labelledby="how-title">
-      <div><span className="landing-kicker">از کشف تا دریافت</span><h2 id="how-title">سه قدم تا<br />لقمه‌ی بعدی تو</h2><Link href="/discover" className="landing-text-link">بسته‌ها را ببین <ArrowLeft size={18} aria-hidden="true" /></Link></div>
-      <div className="landing-steps">
-        {[
-          { Icon: Compass, number: "۰۱", title: "کشف کن", text: "پیشنهادهای اطرافت را پیدا کن و جزئیات بسته را بخوان" },
-          { Icon: ShoppingBag, number: "۰۲", title: "رزرو کن", text: "بسته دلخواهت را انتخاب کن و پرداخت آنلاین را انجام بده" },
-          { Icon: Store, number: "۰۳", title: "تحویل بگیر", text: "در بازه مشخص به فروشگاه برو و کد دریافتت را نشان بده" },
-        ].map(({ Icon, number, title, text }) => <article key={number}><span>{number}</span><Icon size={24} aria-hidden="true" /><div><h3>{title}</h3><p>{text}</p></div></article>)}
-      </div>
-    </section>
-
-    <section className="landing-coverage landing-section" aria-labelledby="coverage-title">
-      <div className="landing-coverage-mark" aria-hidden="true"><MapPin size={64} /><span>ارومیه</span><small>از همین نزدیکی</small></div>
-      <div><span className="landing-kicker">لقمه کجاست؟</span><h2 id="coverage-title">شروع از ارومیه،<br />از محله‌ی خودمان</h2><p>شروع مسیر لقمه از ارومیه است؛ برای دیدن فروشگاه‌ها، محدوده‌ها و بسته‌های موجود، به نقشه و بخش کشف سر بزن؛ موجودی و زمان دریافت هر پیشنهاد همان‌جا مشخص است</p><Link href="/explore?view=map" className="action-link">دیدن اطراف من <ArrowLeft size={18} aria-hidden="true" /></Link></div>
-    </section>
-
-    <section className="landing-business landing-section" aria-labelledby="business-title"><div><span className="landing-kicker">برای کسب‌وکارهای محله</span><h2 id="business-title">خوبی‌های فروشگاهت<br />را به محله معرفی کن</h2><p>موجودی سالمِ مازاد را به فرصتی برای فروش و آشنایی با مشتری‌های تازه تبدیل کن</p></div><Link href="/business" className="action-link">ثبت کسب‌وکار <ArrowLeft size={18} aria-hidden="true" /></Link></section>
+    <PickupSteps />
   </div>;
 }

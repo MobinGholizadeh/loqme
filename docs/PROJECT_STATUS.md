@@ -8,6 +8,14 @@
 
 ## 1. Project Health & Current State
 
+### Scroll-stack pickup guide — CP-10.29 (2026-10-23)
+
+Background follow-up: the owner requested unique imagery after the initial bakery reuse. The approved stack now uses two newly generated food-counter still lifes with food framing the edges and a quiet teal center. Four responsive landscape/portrait WebPs are saved in apps/web/public/images/home; subtle blur, teal overlay and white heading/helper copy remain. Built-in generation prompts and provenance are in WHITE_TEAL.md. Three browser scenarios (including axe and scroll/reversal), lint and desktop/mobile screenshot review pass. No new dependencies or deployment; the independent build blocker below remains.
+
+Owner-supplied animated card stack adapted to three Persian steps: discover a package, reserve/pay online, and collect in person using the order code/QR. Replaces the three sections after the food ticker; hero, introduction, ticker and shopping behavior are preserved. Cards lift and rotate away with reversible scroll progress; reduced-motion and short-height layouts show every card statically. Uses existing Motion dependency and Loqme styling, with no testimonial content or new packages. The earlier grocery-bag experiment was reverted and is not part of this implementation.
+
+Validation: three browser scenarios (desktop/mobile, axe/navigation, transitions/reversal, reduced motion and landscape), six existing animation tests and lint pass; screenshots reviewed. Production compilation succeeds; full build and typecheck remain blocked by existing `PortalShell.tsx` navigation `badge` errors at lines 143/145. Resolve that independent issue before release validation. No deployment. See [WHITE_TEAL.md](WHITE_TEAL.md).
+
 ### Homepage motion, hero type and Persian punctuation — CP-10.28 (2026-10-22)
 
 The homepage animation regression is repaired: React Bits `SplitText` now renders each hero line as a `<span>` that inherits the `h1` typography, preventing the generic hero paragraph rule from shrinking «یک کشف خوشمزه» and «یک خرید هوشمندانه». Browser coverage verifies both lines inherit the computed heading size and that Lenis initializes on the document. User-facing Persian copy across the web application no longer ends sentences with ASCII full stops; internal sentence boundaries use Persian semicolons and loading copy uses the single ellipsis glyph. A source-level regression test enforces this copy rule without changing URLs, version numbers or decimal values.

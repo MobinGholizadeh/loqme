@@ -73,3 +73,36 @@ test("mobile moves business entry from the header into the account section", asy
   await expect(page.locator('.header-actions a[href="/login"]')).toBeVisible();
   await expect(page.locator(".business-entry-link")).toBeVisible();
 });
+
+test("pickup stack advances in order and offers a static reduced-motion layout", async ({ page }, info) => {
+  await installFixtures(page);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const scroll = page.locator(".cards-scroll");
+    await expect(scroll).toBeVisible();
+    await expect(page.locator(".landing-how, .landing-coverage, .landing-business")).toHaveCount(0);
+    const cards = page.locator(".stack-card");
+    await expect(cards).toHaveCount(3);
+    const bounds = await scroll.evaluate(el => ({ top: el.getBoundingClientRect().top + scrollY, distance: el.clientHeight - innerHeight }));
+    for (const [step, progress] of [0.05, 0.46, 0.98].entries()) {
+      await page.evaluate(y => window.scrollTo(0, y), bounds.top + bounds.distance * progress);
+      if (step > 0) await expect(cards.nth(step - 1)).toHaveCSS("opacity", "0");
+      await expect(cards.nth(step)).toHaveCSS("opacity", "1");
+      await page.screenshot({ path: info.outputPath(`pickup-${width}-${step}.png`) });
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await page.evaluate(y => window.scrollTo(0, y), bounds.top);
+    await expect(cards.first()).toHaveCSS("opacity", "1");
+  }
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator(".pickup-sticky")).toHaveCSS("position", "relative");
+  for (const card of await page.locator(".stack-card").all()) {
+    await expect(card).toHaveCSS("transform", "none");
+    await expect(card).toHaveCSS("opacity", "1");
+  }
+  await page.setViewportSize({ width: 667, height: 375 });
+  await page.locator(".pickup-story-actions a").scrollIntoViewIfNeeded();
+  await expect(page.locator(".pickup-story-actions a")).toBeInViewport();
+});
