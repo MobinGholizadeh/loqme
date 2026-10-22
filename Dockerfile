@@ -32,6 +32,10 @@ RUN npm ci --include=dev
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+# npm can install dependencies inside individual workspaces (for example Lenis).
+# Preserve those trees as well as hoisted dependencies in the builder.
+COPY --from=deps /app/apps ./apps
+COPY --from=deps /app/packages ./packages
 COPY . .
 
 # Build-time placeholder environment variables to allow Prisma client generation
