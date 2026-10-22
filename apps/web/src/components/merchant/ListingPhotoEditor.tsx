@@ -4,7 +4,7 @@ import { DialogSurface } from '@/components/ui/DialogSurface';
 import { Button } from '@/components/ui/Button';
 import { ListingImagePicker } from './ListingImagePicker';
 
-export function ListingPhotoEditor({ listing, onClose, onSaved }: { listing: { id: string; imageUrl?: string | null }; onClose: () => void; onSaved: () => void }) {
+export function ListingPhotoEditor({ listing, onClose, onSaved }: { listing: { id: string; imageUrl?: string | null; categorySlug?: string }; onClose: () => void; onSaved: () => void }) {
   const [value, setValue] = useState(listing.imageUrl || '');
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -19,5 +19,5 @@ export function ListingPhotoEditor({ listing, onClose, onSaved }: { listing: { i
       onSaved(); onClose();
     } catch (err) { setError(err instanceof Error ? err.message : 'ارتباط برقرار نشد'); }
     finally { setSaving(false); }
-  }}><ListingImagePicker value={value} onChange={setValue} onBusyChange={setBusy}/>{error && <p role="alert">{error}</p>}<div className="flex gap-3"><Button type="submit" disabled={busy} isLoading={saving}>ذخیره تصویر</Button><Button type="button" variant="secondary" onClick={onClose}>بستن</Button></div></form></DialogSurface>;
+  }}><ListingImagePicker value={value} categorySlug={listing.categorySlug} onChange={setValue} onBusyChange={setBusy}/>{error && <p role="alert">{error}</p>}<div className="flex gap-3"><Button type="submit" disabled={busy} isLoading={saving}>ذخیره تصویر</Button><Button type="button" variant="secondary" onClick={onClose}>بستن</Button></div></form></DialogSurface>;
 }
