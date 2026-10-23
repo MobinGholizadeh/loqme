@@ -135,3 +135,48 @@
  .pickup-backdrop img { object-position: center 20%; filter: blur(2px); }
  .pickup-sticky::before { background: linear-gradient(180deg, rgb(13 42 42 / .76), rgb(13 42 42 / .3) 38%, rgb(13 42 42 / .52) 70%, rgb(13 42 42 / .85)); }
 }
+
+/* Section-local expanding photograph: food value first, nature as reinforcement. */
+.food-impact { background: #173F44; color: #fff; }
+.smooth-hero { position: relative; height: calc(var(--reveal-scroll) + 100svh); }
+.smooth-hero-sticky { position: sticky; top: 84px; height: calc(100svh - 84px); min-height: 700px; isolation: isolate; overflow: clip; }
+.smooth-hero-reveal { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.smooth-hero-picture { display: block; position: absolute; inset: 0; }
+.smooth-hero-picture img { width: 100%; height: 100%; max-width: none; display: block; object-fit: cover; object-position: center; }
+.smooth-hero-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgb(9 34 31 / .08) 15%, rgb(9 34 31 / .48) 45%, rgb(9 34 31 / .94) 77%); }
+.smooth-hero-content { width: min(1280px, 100%); height: 100%; margin: auto; display: flex; align-items: center; padding: 48px 6%; }
+.food-impact-copy { max-width: 510px; }
+.food-impact-kicker { display: flex; gap: 10px; align-items: center; font-size: 13px; font-weight: 700; margin-bottom: 18px; }
+.food-impact h2 { color: #fff; font-size: clamp(32px, 3.6vw, 52px); line-height: 1.55; font-weight: 900; }
+.food-impact h2 span { color: #C7E5DC; }
+.food-impact-intro { font-size: 15px; line-height: 2; margin-top: 20px; }
+.food-impact-benefits { list-style: none; padding: 0; margin: 24px 0; display: grid; gap: 18px; }
+.food-impact-benefits li { display: flex; align-items: flex-start; gap: 14px; }
+.food-impact-benefits svg { flex-shrink: 0; margin-top: 4px; color: #C7E5DC; }
+.food-impact-benefits h3 { font-size: 15px; line-height: 1.8; font-weight: 800; color: #fff; margin-bottom: 3px; }
+.food-impact-benefits p { font-size: 13px; line-height: 1.9; color: #E3EFEB; }
+.food-impact .action-link { background: #fff; color: #1D616A; }
+.food-impact .action-link:hover { background: #E1EFEB; }
+.food-impact .action-link:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+@media(max-width: 767px) {
+ .smooth-hero { height: calc(650px + 100svh); }
+ .smooth-hero-sticky { height: calc(100svh - 150px); min-height: 650px; }
+ .smooth-hero-picture img { object-position: center 25%; }
+ .smooth-hero-shade { background: linear-gradient(180deg, rgb(9 34 31 / .25), rgb(9 34 31 / .88) 30%, rgb(9 34 31 / .96)); }
+ .smooth-hero-content { padding: 32px 24px; align-items: flex-end; }
+ .food-impact-kicker { font-size: 11px; margin-bottom: 12px; }
+ .food-impact h2 { font-size: 32px; }
+ .food-impact-intro { font-size: 13px; margin-top: 14px; }
+ .food-impact-benefits { gap: 12px; margin: 18px 0; }
+ .food-impact-benefits h3 { font-size: 13px; }
+ .food-impact-benefits p { font-size: 12px; }
+}
+@media(prefers-reduced-motion: reduce), (max-height: 740px) {
+ .smooth-hero { height: auto; }
+ .smooth-hero-sticky { position: relative; top: 0; height: auto; min-height: 700px; }
+ .smooth-hero-reveal { clip-path: none !important; }
+ .smooth-hero-picture { transform: none !important; }
+ .smooth-hero-content { min-height: 700px; padding-block: 48px; }
+}
+.food-impact h2 > .response-stream:first-child { color: #fff; }
+.food-impact h2 .response-stream span { color: inherit; }

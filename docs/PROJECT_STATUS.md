@@ -8,6 +8,12 @@
 
 ## 1. Project Health & Current State
 
+### Food value and nature reveal — CP-10.30 (2026-10-23)
+
+Text follow-up: applied the owner-supplied ResponseStream word-fade effect to the nature section's Persian heading, introduction and benefits. Starts once in view, preserves joined Persian words and layout, exposes complete text to screen readers and respects reduced motion. Four browser scenarios and lint pass; the independent PortalShell blocker below remains.
+
+Added the requested expanding-image scroll component directly below the pickup stack. New generated garden/food photography, desktop and mobile exports, and Persian copy explain customer savings, neighborhood-shop sales opportunities and reduced food waste. Scroll progress is local to this section; readable content, responsive cropping, static reduced-motion and short-height fallbacks are included. Four browser scenarios (including axe/navigation, card-stack regression and new reveal/mobile coverage), lint and screenshot review pass. Existing PortalShell `badge` errors at lines 143/145 still block workspace typecheck/release validation. No backend changes or deployment. Artwork paths and built-in generation prompt are in WHITE_TEAL.md.
+
 ### Scroll-stack pickup guide — CP-10.29 (2026-10-23)
 
 Background follow-up: the owner requested unique imagery after the initial bakery reuse. The approved stack now uses two newly generated food-counter still lifes with food framing the edges and a quiet teal center. Four responsive landscape/portrait WebPs are saved in apps/web/public/images/home; subtle blur, teal overlay and white heading/helper copy remain. Built-in generation prompts and provenance are in WHITE_TEAL.md. Three browser scenarios (including axe and scroll/reversal), lint and desktop/mobile screenshot review pass. No new dependencies or deployment; the independent build blocker below remains.

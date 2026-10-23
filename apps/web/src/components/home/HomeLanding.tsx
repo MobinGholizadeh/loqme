@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, MapPin, Compass, Heart, BadgeCheck, Wallet } from "lucide-react";
 import { PickupSteps } from "./PickupSteps";
+import { FoodImpact } from "./FoodImpact";
 import { CategoryTicker } from "./CategoryTicker";
 import { SplitText, ShinyText, SpotlightCard, Magnet } from "react-bits";
 import "./home-landing.css";
@@ -72,5 +73,6 @@ export function HomeLanding() {
     <CategoryTicker />
 
     <PickupSteps />
+    <FoodImpact />
   </div>;
 }

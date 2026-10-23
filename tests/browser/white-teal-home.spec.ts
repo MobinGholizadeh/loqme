@@ -106,3 +106,39 @@ test("pickup stack advances in order and offers a static reduced-motion layout",
   await page.locator(".pickup-story-actions a").scrollIntoViewIfNeeded();
   await expect(page.locator(".pickup-story-actions a")).toBeInViewport();
 });
+
+test("nature section reveals locally and preserves readable content on mobile", async ({ page }, info) => {
+  await installFixtures(page);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const section = page.locator(".smooth-hero");
+    await expect(section).toBeAttached();
+    await expect(page.locator(".food-impact .response-stream").first()).toHaveAttribute("data-motion", "waiting");
+    const bounds = await section.evaluate(el => ({ top: el.getBoundingClientRect().top + scrollY, height: el.clientHeight }));
+    const reveal = page.locator(".smooth-hero-reveal");
+    const initial = await reveal.evaluate(el => getComputedStyle(el).clipPath);
+    await page.evaluate(y => window.scrollTo(0, y), bounds.top + bounds.height - 900);
+    await expect.poll(() => reveal.evaluate(el => getComputedStyle(el).clipPath)).toBe("polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)");
+    expect(await reveal.evaluate(el => getComputedStyle(el).clipPath)).not.toBe(initial);
+    await expect(page.locator(".food-impact h2")).toBeInViewport();
+    await expect(page.locator(".food-impact .action-link")).toBeInViewport();
+    const img = page.locator(".smooth-hero-picture img");
+    await expect(img).toHaveJSProperty("complete", true);
+    expect(await img.evaluate((el: HTMLImageElement) => el.currentSrc)).toContain(width < 768 ? "mobile" : "desktop");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await expect(page.locator(".food-impact .response-stream-word").last()).toHaveCSS("opacity", "1");
+    await expect(page.locator(".food-impact .response-stream").first()).toHaveAttribute("data-motion", "playing");
+    await page.screenshot({ path: info.outputPath(`nature-${width}.png`) });
+    const audit = await new AxeBuilder({ page }).include(".food-impact").withTags(["wcag2a", "wcag2aa"]).analyze();
+    expect(audit.violations).toEqual([]);
+  }
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator(".smooth-hero-reveal")).toHaveCSS("clip-path", "none");
+  await expect(page.locator(".food-impact .response-stream-word").first()).toHaveCSS("animation-name", "none");
+  await expect(page.locator(".smooth-hero-sticky")).toHaveCSS("position", "relative");
+  await page.setViewportSize({ width: 667, height: 375 });
+  await page.locator(".food-impact .action-link").scrollIntoViewIfNeeded();
+  await expect(page.locator(".food-impact .action-link")).toBeInViewport();
+});
