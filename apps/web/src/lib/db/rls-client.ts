@@ -59,5 +59,14 @@ export function createRlsClient(base: PrismaClient): PrismaClient {
       (...args: any[]) => transaction(tx => (tx as any)[name][operation](...args)),
     ]));
   }
-  return facade as PrismaClient;
+  return new Proxy(facade, {
+    get(target, prop) {
+      if (typeof prop === 'string' && !(prop in target) && !prop.startsWith('$')) {
+        target[prop] = Object.fromEntries(operations.map(operation => [operation,
+          (...args: any[]) => transaction(tx => (tx as any)[prop][operation](...args)),
+        ]));
+      }
+      return target[prop as string];
+    },
+  }) as PrismaClient;
 }

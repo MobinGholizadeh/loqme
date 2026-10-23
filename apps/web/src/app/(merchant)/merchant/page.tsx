@@ -41,7 +41,14 @@ import {
 
 import { FastListingModal } from "@/components/merchant/FastListingModal";
 import { formatToman, toPersianDigits } from "@/lib/utils/persian";
-import { MerchantDashboardDto } from "@loqme/types";
+import { MerchantDashboardDto, MerchantBankAccountDto } from "@loqme/types";
+
+function formatCardShaba(shaba: string): string {
+  const clean = shaba.replace(/^IR/i, "").replace(/\s+/g, "");
+  if (clean.length < 4) return shaba;
+  const last4 = clean.slice(-4);
+  return `IR•• •••• •••• •••• ${last4}`;
+}
 
 // 7-day weekly dataset matching the reference image structure
 interface DayStat {
@@ -67,6 +74,8 @@ const WEEKLY_DATA: DayStat[] = [
 
 export default function MerchantDashboardPage() {
   const [stats, setStats] = useState<MerchantDashboardDto | null>(null);
+  const [bankAccounts, setBankAccounts] = useState<MerchantBankAccountDto[]>([]);
+  const [isBankLoading, setIsBankLoading] = useState<boolean>(true);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFastListingOpen, setIsFastListingOpen] = useState<boolean>(false);
@@ -94,11 +103,39 @@ export default function MerchantDashboardPage() {
     }
   }, []);
 
+  const fetchBankAccounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/merchant/bank-accounts");
+      const json = await res.json();
+      if (res.ok && json.success && Array.isArray(json.data)) {
+        setBankAccounts(json.data);
+      }
+    } catch {
+      // Non-fatal for dashboard
+    } finally {
+      setIsBankLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 30000);
+    fetchBankAccounts();
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchBankAccounts();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [fetchStats]);
+  }, [fetchStats, fetchBankAccounts]);
+
+  // Priority:
+  // 1. Default approved account
+  // 2. Any approved account
+  // 3. Any pending account (blurred/placeholder)
+  // 4. Any rejected account
+  const approvedAccount = bankAccounts.find((a) => a.isDefault && a.status === "APPROVED")
+    || bankAccounts.find((a) => a.status === "APPROVED");
+  const pendingAccount = bankAccounts.find((a) => a.status === "PENDING");
+  const rejectedAccount = bankAccounts.find((a) => a.status === "REJECTED");
 
   const selectedDay = WEEKLY_DATA[selectedDayIndex] || WEEKLY_DATA[4];
 
@@ -754,52 +791,204 @@ export default function MerchantDashboardPage() {
                 href="/merchant/finance?tab=accounts"
                 className="portal-action-btn text-[11px] font-bold px-3 py-1 shadow-2xs inline-block"
               >
-                + افزودن حساب
+                {approvedAccount ? "مدیریت حساب‌ها" : "+ ثبت حساب"}
               </Link>
             </div>
 
-            {/* Hyper-realistic Loqme Teal Debit Card */}
-            <div className="relative rounded-2xl p-5 text-white shadow-md overflow-hidden bg-gradient-to-tr from-[#123338] via-[#1D616A] to-[#28757A]">
-              {/* Glossy overlay sheen */}
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 65%)",
-                }}
-              />
-
-              {/* Card Top Row */}
-              <div className="relative z-10 flex items-center justify-between">
-                <span className="text-[11px] font-bold tracking-wider opacity-90">کارت تجاری</span>
-                <span className="text-xs font-black italic tracking-widest bg-white/15 border border-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full text-white">
-                  LOQME PAY
-                </span>
+            {/* Dynamic Bank Card Preview */}
+            {isBankLoading ? (
+              <div className="rounded-2xl p-5 border border-slate-200 bg-slate-50/70 animate-pulse flex flex-col justify-between h-[180px]">
+                <div className="flex justify-between items-center">
+                  <div className="h-4 w-24 bg-slate-200 rounded-md" />
+                  <div className="h-4 w-16 bg-slate-200 rounded-full" />
+                </div>
+                <div className="h-6 w-9 bg-slate-200 rounded-md my-auto" />
+                <div className="h-4 w-44 bg-slate-200 rounded-md" />
+                <div className="flex justify-between items-center">
+                  <div className="h-3 w-28 bg-slate-200 rounded-md" />
+                  <div className="h-3 w-12 bg-slate-200 rounded-md" />
+                </div>
               </div>
+            ) : approvedAccount ? (
+              /* Approved Account Card: Hyper-realistic Loqme Teal Debit Card */
+              <div className="relative rounded-2xl p-5 text-white shadow-md overflow-hidden bg-gradient-to-tr from-[#123338] via-[#1D616A] to-[#28757A]">
+                {/* Glossy overlay sheen */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 65%)",
+                  }}
+                />
 
-              {/* Realistic Gold EMV Chip */}
-              <div className="relative z-10 my-4">
-                <svg width="34" height="26" viewBox="0 0 34 26" fill="none" className="rounded-md shadow-xs">
-                  <rect width="34" height="26" rx="4" fill="#FDE047" stroke="#CA8A04" strokeWidth="1" />
-                  <path d="M0 13 H34" stroke="#A16207" strokeWidth="0.8" />
-                  <path d="M11 0 V26" stroke="#A16207" strokeWidth="0.8" />
-                  <path d="M23 0 V26" stroke="#A16207" strokeWidth="0.8" />
-                  <circle cx="17" cy="13" r="3.5" fill="#FEF08A" stroke="#A16207" strokeWidth="0.8" />
-                </svg>
-              </div>
+                {/* Card Top Row */}
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold tracking-wider opacity-90">{approvedAccount.bankName}</span>
+                    <span className="inline-flex items-center gap-1 text-[9px] font-black bg-emerald-500/25 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 rounded-full">
+                      <CheckCircle2 size={10} />
+                      تایید شده
+                    </span>
+                  </div>
+                  <span className="text-xs font-black italic tracking-widest bg-white/15 border border-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full text-white">
+                    LOQME PAY
+                  </span>
+                </div>
 
-              {/* Card Number */}
-              <div className="relative z-10 text-base sm:text-lg font-black tracking-widest text-left font-mono text-white/95" dir="ltr">
-                •••• •••• •••• ۷۸۹۰
-              </div>
+                {/* Realistic Gold EMV Chip */}
+                <div className="relative z-10 my-4 flex items-center justify-between">
+                  <svg width="34" height="26" viewBox="0 0 34 26" fill="none" className="rounded-md shadow-xs">
+                    <rect width="34" height="26" rx="4" fill="#FDE047" stroke="#CA8A04" strokeWidth="1" />
+                    <path d="M0 13 H34" stroke="#A16207" strokeWidth="0.8" />
+                    <path d="M11 0 V26" stroke="#A16207" strokeWidth="0.8" />
+                    <path d="M23 0 V26" stroke="#A16207" strokeWidth="0.8" />
+                    <circle cx="17" cy="13" r="3.5" fill="#FEF08A" stroke="#A16207" strokeWidth="0.8" />
+                  </svg>
+                  {approvedAccount.isDefault && (
+                    <span className="text-[10px] font-bold bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-md text-white/90">
+                      حساب پیش‌فرض تسویه
+                    </span>
+                  )}
+                </div>
 
-              {/* Cardholder Name & Expiry Date */}
-              <div className="relative z-10 flex items-center justify-between mt-3 text-[11px] font-bold text-white/90">
-                <span className="truncate max-w-[160px]">
-                  {stats?.businessNameFa || "نقل و حلوای سنتی هما"}
-                </span>
-                <span className="font-mono">{toPersianDigits("03/30")}</span>
+                {/* Card Number */}
+                <div className="relative z-10 text-base sm:text-lg font-black tracking-widest text-left font-mono text-white/95" dir="ltr">
+                  {toPersianDigits(formatCardShaba(approvedAccount.shabaNumber))}
+                </div>
+
+                {/* Cardholder Name & Direct Transfer Badge */}
+                <div className="relative z-10 flex items-center justify-between mt-3 text-[11px] font-bold text-white/90">
+                  <span className="truncate max-w-[170px]" title={approvedAccount.accountHolder}>
+                    {approvedAccount.accountHolder}
+                  </span>
+                  <span className="text-[10px] text-white/75 font-normal">تسویه مستقیم پایا</span>
+                </div>
               </div>
-            </div>
+            ) : pendingAccount ? (
+              /* Pending / Unapproved Blurred Card */
+              <div className="relative rounded-2xl p-5 text-white shadow-sm overflow-hidden bg-gradient-to-tr from-[#1E293B] via-[#334155] to-[#1E3A40] border border-amber-400/40">
+                {/* Glossy overlay */}
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-40"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 65%)",
+                  }}
+                />
+
+                {/* Blurred / Frosted Over-state overlay */}
+                <div className="absolute inset-0 z-20 bg-slate-950/50 backdrop-blur-[2.5px] flex flex-col items-center justify-center p-4 text-center">
+                  <div className="inline-flex items-center gap-1.5 bg-amber-500 text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-full shadow-md mb-2">
+                    <Clock size={13} className="animate-pulse" />
+                    <span>در انتظار بررسی و تایید مدیریت</span>
+                  </div>
+                  <p className="text-[11px] text-slate-200 font-medium max-w-[230px] leading-relaxed">
+                    شماره شبا و حساب در حال بررسی است و پس از تایید توسط تیم پشتیبانی لوقمه، تسویه فعال خواهد شد
+                  </p>
+                  <Link
+                    href="/merchant/finance?tab=accounts"
+                    className="mt-2.5 text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg backdrop-blur-xs border border-white/25 transition-all inline-flex items-center gap-1"
+                  >
+                    <span>پیگیری وضعیت حساب</span>
+                    <ArrowRight size={11} className="rotate-180" />
+                  </Link>
+                </div>
+
+                {/* Background Card content (blurred behind overlay) */}
+                <div className="relative z-10 flex items-center justify-between filter blur-[1px] opacity-60">
+                  <span className="text-[11px] font-bold tracking-wider">{pendingAccount.bankName}</span>
+                  <span className="text-xs font-black italic tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full">
+                    LOQME PAY
+                  </span>
+                </div>
+
+                <div className="relative z-10 my-4 filter blur-[1px] opacity-50">
+                  <svg width="34" height="26" viewBox="0 0 34 26" fill="none" className="rounded-md">
+                    <rect width="34" height="26" rx="4" fill="#94A3B8" stroke="#64748B" strokeWidth="1" />
+                    <path d="M0 13 H34" stroke="#475569" strokeWidth="0.8" />
+                    <path d="M11 0 V26" stroke="#475569" strokeWidth="0.8" />
+                    <path d="M23 0 V26" stroke="#475569" strokeWidth="0.8" />
+                  </svg>
+                </div>
+
+                <div className="relative z-10 text-base sm:text-lg font-black tracking-widest text-left font-mono filter blur-[2px] opacity-60" dir="ltr">
+                  {toPersianDigits(formatCardShaba(pendingAccount.shabaNumber))}
+                </div>
+
+                <div className="relative z-10 flex items-center justify-between mt-3 text-[11px] font-bold filter blur-[1px] opacity-60">
+                  <span className="truncate max-w-[160px]">{pendingAccount.accountHolder}</span>
+                  <span className="font-mono">••/••</span>
+                </div>
+              </div>
+            ) : rejectedAccount ? (
+              /* Rejected Card */
+              <div className="relative rounded-2xl p-5 text-white shadow-sm overflow-hidden bg-gradient-to-tr from-[#3F1D1D] via-[#4C1D1D] to-[#1E293B] border border-rose-500/50">
+                <div className="absolute inset-0 z-20 bg-slate-950/65 backdrop-blur-[2.5px] flex flex-col items-center justify-center p-4 text-center">
+                  <div className="inline-flex items-center gap-1.5 bg-rose-600 text-white font-black text-xs px-3.5 py-1.5 rounded-full shadow-md mb-2">
+                    <XCircle size={14} />
+                    <span>حساب بانکی تایید نشد</span>
+                  </div>
+                  <p className="text-[11px] text-rose-200 font-medium max-w-[240px] leading-relaxed">
+                    {rejectedAccount.rejectionReason || "اطلاعات حساب بانکی مورد تایید قرار نگرفت. لطفاً شماره شبا را ویرایش فرمایید."}
+                  </p>
+                  <Link
+                    href="/merchant/finance?tab=accounts"
+                    className="mt-2.5 text-[11px] font-bold bg-white text-rose-800 hover:bg-rose-50 px-3.5 py-1 rounded-lg shadow-2xs transition-all"
+                  >
+                    ویرایش یا ثبت حساب جدید
+                  </Link>
+                </div>
+
+                <div className="relative z-10 flex items-center justify-between filter blur-[1.5px] opacity-40">
+                  <span className="text-[11px] font-bold">{rejectedAccount.bankName}</span>
+                  <span className="text-xs font-black italic">LOQME PAY</span>
+                </div>
+                <div className="relative z-10 my-4 filter blur-[1.5px] opacity-30">
+                  <div className="w-[34px] h-[26px] bg-slate-600 rounded-md" />
+                </div>
+                <div className="relative z-10 text-base font-black text-left font-mono filter blur-[2px] opacity-40" dir="ltr">
+                  {toPersianDigits(formatCardShaba(rejectedAccount.shabaNumber))}
+                </div>
+                <div className="relative z-10 flex items-center justify-between mt-3 text-[11px] filter blur-[1.5px] opacity-40">
+                  <span>{rejectedAccount.accountHolder}</span>
+                </div>
+              </div>
+            ) : (
+              /* Empty Placeholder State when no card is registered */
+              <div className="rounded-2xl p-6 text-center border-2 border-dashed border-[#BCD8D1] bg-gradient-to-b from-[#F7FAF9] to-[#EFF7F4] space-y-3.5 relative overflow-hidden">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-[#BCD8D1] text-[#1D616A] mx-auto flex items-center justify-center shadow-2xs">
+                  <CreditCard size={22} />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-black text-xs text-slate-800">حساب یا کارت تسویه ثبت نشده است</h4>
+                  <p className="text-[11px] text-slate-500 leading-relaxed max-w-[240px] mx-auto">
+                    جهت واریز و تسویه درآمدهای حاصل از فروش بسته‌ها، شماره شبای بانکی خود را متصل فرمایید.
+                  </p>
+                </div>
+                <div>
+                  <Link
+                    href="/merchant/finance?tab=accounts"
+                    className="portal-action-btn inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 shadow-2xs"
+                  >
+                    <Plus size={15} />
+                    <span>+ اتصال شماره شبا</span>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {approvedAccount && pendingAccount && (
+              <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-2.5 text-[11px] text-amber-900 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Clock size={13} className="text-amber-600 shrink-0" />
+                  <span>یک حساب دیگر نیز در انتظار تایید مدیریت است</span>
+                </div>
+                <Link
+                  href="/merchant/finance?tab=accounts"
+                  className="font-bold text-amber-800 underline shrink-0 text-[10px]"
+                >
+                  مشاهده
+                </Link>
+              </div>
+            )}
 
             {/* 5 Quick Action Buttons below Debit Card */}
             <div className="grid grid-cols-5 gap-1.5 pt-1 text-center">
@@ -1008,6 +1197,7 @@ export default function MerchantDashboardPage() {
         onClose={() => setIsFastListingOpen(false)}
         onListingCreated={() => {
           fetchStats();
+    fetchBankAccounts();
         }}
       />
     </div>
