@@ -128,7 +128,7 @@ export function BusinessRegistration() {
   }
   const selectedCity = cities.find(c => c.id === draft.cityId);
   if (!ready) return <HeartbeatLoading />;
-  if (session.status === 'authenticated' && session.user?.role !== 'CUSTOMER') return <div className="space-y-6"><h1 className="text-2xl font-bold">حساب کسب‌وکار شما آماده است</h1><p>برای مدیریت فروشگاه، وارد پنل خود شوید</p><Link className="action-link" href={session.user?.role === 'ADMIN' ? '/admin' : '/business/login'}>ورود به پنل</Link></div>;
+  if (session.status === 'authenticated' && session.user?.role !== 'CUSTOMER') return <div className="space-y-6"><h1 className="text-2xl font-bold">حساب کسب‌وکار شما آماده است</h1><p>برای مدیریت فروشگاه، وارد پنل خود شوید</p><Link className="action-link" href={session.user?.role === 'ADMIN' ? '/admin' : '/merchant'}>ورود به پنل</Link></div>;
   return <div className="business-registration space-y-7">
     <div className="flex items-center justify-between gap-3"><span className="text-xs text-loqme-neutral-600">مرحله {toPersianDigits(step + 1)} از ۵</span><Link href="/business/login" className="auth-inline-link text-sm">قبلاً ثبت‌نام کرده‌اید؟ ورود</Link></div>
     <div className="business-progress" role="progressbar" aria-label="پیشرفت ثبت‌نام" aria-valuemin={1} aria-valuemax={5} aria-valuenow={step + 1}>{titles.map((title, i) => <span key={title} data-complete={i <= step} />)}</div>
