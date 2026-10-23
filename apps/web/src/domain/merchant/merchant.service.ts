@@ -769,17 +769,37 @@ export class MerchantService {
       };
     });
 
+    // 3. Check for approved default bank account and active payouts
+    const defaultBank = (prisma as any).merchantBankAccount ? await (prisma as any).merchantBankAccount.findFirst({
+      where: {
+        merchantId: merchant.id,
+        isDefault: true,
+        status: 'APPROVED',
+        isActive: true,
+      },
+    }) : null;
+
+    const activePayouts = (prisma as any).merchantPayoutRequest ? await (prisma as any).merchantPayoutRequest.findMany({
+      where: {
+        merchantId: merchant.id,
+        status: { in: ['COMPLETED', 'PENDING', 'APPROVED'] },
+      },
+      select: { amountToman: true },
+    }) : [];
+    const deductedPayouts = activePayouts.reduce((sum: number, p: any) => sum + Number(p.amountToman), 0);
+    const effectiveNetPayable = Math.max(0, netPayableBalanceToman - deductedPayouts);
+
     return {
       merchantId: merchant.id,
       businessNameFa: merchant.businessNameFa,
       commissionPercent,
       grossSalesToman,
       platformCommissionToman,
-      netPayableBalanceToman,
+      netPayableBalanceToman: effectiveNetPayable,
       totalOrdersCount: orders.length,
       completedOrdersCount,
-      shabaNumber: null,
-      isBankVerified: false,
+      shabaNumber: defaultBank?.shabaNumber || null,
+      isBankVerified: Boolean(defaultBank),
       transactions: ledgerEntries,
     };
   }

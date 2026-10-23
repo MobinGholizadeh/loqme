@@ -5,6 +5,7 @@
 
 import { z } from 'zod';
 export * from './business';
+export * from './bank';
 
 // ==========================================
 // 1. Persian String & Digit Utilities

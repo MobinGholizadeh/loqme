@@ -8,6 +8,31 @@
 
 ## 1. Project Health & Current State
 
+### Merchant Bank Accounts Management & Wallet Withdrawals — CP-10.31 (2026-10-23)
+
+Implemented complete, secure, end-to-end bank account management and wallet payouts for merchants across the Merchant Panel and Admin Panel:
+1. **Bank Catalog & Validation (`packages/validation`)**:
+   - Comprehensive catalog of 34 Iranian banks (`IRANIAN_BANKS`) with official bank codes, names, and card prefixes.
+   - Full ISO 7064 Mod 97-10 checksum validation with BigInt arithmetic (`isValidShaba`).
+   - Normalization utility for Persian digits, whitespace, and IR prefix (`normalizeShaba`).
+   - Real-time bank auto-detection from Sheba number (`getBankFromShaba`).
+   - Zod validation schemas for bank account creation/updates, admin reviews, and payout requests.
+2. **Database Schema & Migrations (`prisma`)**:
+   - Added models `MerchantBankAccount` and `MerchantPayoutRequest` with status enums `BankAccountStatus` (`PENDING`, `APPROVED`, `REJECTED`) and `PayoutRequestStatus` (`PENDING`, `APPROVED`, `REJECTED`, `COMPLETED`).
+   - Migration `20261023081030_merchant_bank_accounts_payouts` applied with full PostgreSQL Row Level Security (RLS) policies, verifying 36 enforced tables and strict tenant/role separation.
+3. **Domain Services & Security Guardrails**:
+   - `MerchantBankService`: multi-account management, soft-deletion guards (prevents deletion when active payouts exist), edit re-approval triggers (resets to `PENDING` on Shaba/name change), default account selection restricted to approved accounts, live available balance hold (`netEarnings - completed - pending/approved`), and 30-second rapid duplicate submission guards.
+   - `AdminBankService`: administrative approval/rejection for bank accounts, and payout lifecycle management (`APPROVED`, `REJECTED`, `COMPLETED` with Paya tracking reference and double-entry financial transaction ledger recording).
+4. **Merchant & Admin UI**:
+   - Modern White & Teal responsive UI with tabbed finance navigation ("صورت‌حساب و دفاتر کل", "حساب‌های بانکی همکار", "درخواست‌های تسویه و برداشت") and dedicated `/merchant/accounts` route.
+   - Bank detection card preview in Iranian Sheba modal with quick copy and status badges.
+   - Available balance KPI cards, quick payout percentage pills, destination account picker (pre-selecting default approved account), and status history table.
+   - Admin panel approval modals and Paya tracking code entry in `/admin/finance`.
+5. **Quality & Test Validation**:
+   - 106 tests across 7 test files passed cleanly (including 15 bank validation tests, 19 domain service tests, 13 API route contract tests, finance page tests, and boundaries).
+   - Zero-error workspace typecheck across all 5 monorepo packages.
+   - Clean Next.js production build (`next build --webpack`) compiling all 38 static and dynamic routes.
+
 ### Food value and nature reveal — CP-10.30 (2026-10-23)
 
 Text follow-up: applied the owner-supplied ResponseStream word-fade effect to the nature section's Persian heading, introduction and benefits. Starts once in view, preserves joined Persian words and layout, exposes complete text to screen readers and respects reduced motion. Four browser scenarios and lint pass; the independent PortalShell blocker below remains.

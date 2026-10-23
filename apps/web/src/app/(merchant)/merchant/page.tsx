@@ -750,13 +750,12 @@ export default function MerchantDashboardPage() {
                 <h3 className="font-black text-sm text-slate-900">کارت و حساب تسویه</h3>
                 <p className="text-[10px] text-slate-400">عملیات بانکی شتاب</p>
               </div>
-              <button
-                type="button"
-                onClick={() => alert("امکان اتصال کارت جدید فعال خواهد شد")}
-                className="portal-action-btn text-[11px] font-bold px-3 py-1 shadow-2xs"
+              <Link
+                href="/merchant/finance?tab=accounts"
+                className="portal-action-btn text-[11px] font-bold px-3 py-1 shadow-2xs inline-block"
               >
-                + افزودن کارت
-              </button>
+                + افزودن حساب
+              </Link>
             </div>
 
             {/* Hyper-realistic Loqme Teal Debit Card */}
@@ -804,38 +803,35 @@ export default function MerchantDashboardPage() {
 
             {/* 5 Quick Action Buttons below Debit Card */}
             <div className="grid grid-cols-5 gap-1.5 pt-1 text-center">
-              <button
-                type="button"
-                onClick={() => alert("درخواست تسویه آنی ثبت شد")}
+              <Link
+                href="/merchant/finance?tab=withdrawals"
                 className="flex flex-col items-center gap-1 group"
               >
                 <div className="w-10 h-10 rounded-2xl border border-slate-200 bg-white flex items-center justify-center text-slate-700 group-hover:border-[#1D616A] group-hover:bg-[#EFF7F4] group-hover:text-[#174F56] transition-all shadow-2xs">
                   <Wallet size={17} />
                 </div>
-                <span className="text-[10px] font-bold text-slate-600 group-hover:text-[#174F56] transition-colors">واریز</span>
-              </button>
+                <span className="text-[10px] font-bold text-slate-600 group-hover:text-[#174F56] transition-colors">تسویه</span>
+              </Link>
 
-              <button
-                type="button"
-                onClick={() => alert("انتقال موجودی")}
-                className="flex flex-col items-center gap-1 group"
-              >
-                <div className="w-10 h-10 rounded-2xl border border-slate-200 bg-white flex items-center justify-center text-slate-700 group-hover:border-[#1D616A] group-hover:bg-[#EFF7F4] group-hover:text-[#174F56] transition-all shadow-2xs">
-                  <Send size={17} />
-                </div>
-                <span className="text-[10px] font-bold text-slate-600 group-hover:text-[#174F56] transition-colors">انتقال</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => alert("درخواست ثبت شد")}
+              <Link
+                href="/merchant/finance?tab=accounts"
                 className="flex flex-col items-center gap-1 group"
               >
                 <div className="w-10 h-10 rounded-2xl border border-slate-200 bg-white flex items-center justify-center text-slate-700 group-hover:border-[#1D616A] group-hover:bg-[#EFF7F4] group-hover:text-[#174F56] transition-all shadow-2xs">
                   <CreditCard size={17} />
                 </div>
-                <span className="text-[10px] font-bold text-slate-600 group-hover:text-[#174F56] transition-colors">درخواست</span>
-              </button>
+                <span className="text-[10px] font-bold text-slate-600 group-hover:text-[#174F56] transition-colors">حساب‌ها</span>
+              </Link>
+
+              <Link
+                href="/merchant/finance?tab=withdrawals"
+                className="flex flex-col items-center gap-1 group"
+              >
+                <div className="w-10 h-10 rounded-2xl border border-slate-200 bg-white flex items-center justify-center text-slate-700 group-hover:border-[#1D616A] group-hover:bg-[#EFF7F4] group-hover:text-[#174F56] transition-all shadow-2xs">
+                  <Send size={17} />
+                </div>
+                <span className="text-[10px] font-bold text-slate-600 group-hover:text-[#174F56] transition-colors">برداشت</span>
+              </Link>
 
               <Link
                 href="/merchant/finance"
