@@ -32,7 +32,14 @@ import { LoqmeLogo } from "@/components/ui/LoqmeLogo";
 import { Modal } from "@/components/ui/Modal";
 import { BlurFade } from "@/components/magicui/blur-fade";
 
-const merchantItems = [
+interface PortalNavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number; className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>;
+  badge?: string;
+}
+
+const merchantItems: PortalNavItem[] = [
   { href: "/merchant", label: "داشبورد و نمای کلی", icon: LayoutDashboard },
   { href: "/merchant/listings", label: "بسته‌های مازاد", icon: Package },
   { href: "/merchant/orders", label: "سفارش‌ها و تحویل", icon: ScanLine, badge: "۱۹" },
@@ -42,7 +49,7 @@ const merchantItems = [
   { href: "/merchant/settings", label: "تنظیمات فروشگاه", icon: Settings },
 ];
 
-const adminItems = [
+const adminItems: PortalNavItem[] = [
   { href: "/admin", label: "نمای کلی", icon: LayoutDashboard },
   { href: "/admin/analytics", label: "تحلیل بازار", icon: ChartNoAxesCombined },
   { href: "/admin/merchants", label: "فروشگاه‌ها", icon: Store },

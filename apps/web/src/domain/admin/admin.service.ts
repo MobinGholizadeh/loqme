@@ -475,6 +475,7 @@ export class AdminService {
         refundsDeductedToman: storeRefunds,
         netPayableToman: netPayable,
         shabaNumber: null,
+        isBankVerified: false,
         ordersCount: m.orders.length,
       });
     }

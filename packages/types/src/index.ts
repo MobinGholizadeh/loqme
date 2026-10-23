@@ -1074,6 +1074,7 @@ export interface MerchantSettlementSheetDto {
   refundsDeductedToman: number;
   netPayableToman: number;
   shabaNumber: string | null;
+  isBankVerified?: boolean;
   ordersCount: number;
 }
 
@@ -1167,4 +1168,58 @@ export interface PickupDetailsDto {
   carrierBagProvided: boolean | null;
   instructionsFa: string;
 }
+
+export type BankAccountStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type PayoutRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
+
+export interface MerchantBankAccountDto {
+  id: string;
+  merchantId: string;
+  shabaNumber: string;
+  bankName: string;
+  bankCode?: string | null;
+  accountHolder: string;
+  isDefault: boolean;
+  status: BankAccountStatus;
+  rejectionReason?: string | null;
+  reviewedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MerchantPayoutRequestDto {
+  id: string;
+  merchantId: string;
+  bankAccountId: string;
+  bankAccount?: {
+    id: string;
+    shabaNumber: string;
+    bankName: string;
+    accountHolder: string;
+  } | null;
+  amountToman: number;
+  status: PayoutRequestStatus;
+  trackingReference?: string | null;
+  rejectionReason?: string | null;
+  notesFa?: string | null;
+  requestedByUserId: string;
+  reviewedAt?: string | null;
+  completedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MerchantWalletSummaryDto {
+  merchantId: string;
+  businessNameFa: string;
+  grossSalesToman: number;
+  platformCommissionToman: number;
+  netEarningsToman: number;
+  completedPayoutsToman: number;
+  pendingPayoutsToman: number;
+  availableBalanceToman: number;
+  defaultBankAccount: MerchantBankAccountDto | null;
+  approvedAccountsCount: number;
+}
+
 export * from './merchant-data';

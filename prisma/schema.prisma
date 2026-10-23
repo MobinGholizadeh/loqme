@@ -132,6 +132,20 @@ enum ComplaintStatus {
   RESOLVED_WARNING
 }
 
+enum BankAccountStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PayoutRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+
 model User {
   id          String          @id @default(uuid())
   mobile      String          @unique
@@ -150,6 +164,9 @@ model User {
   auditLogs        AuditLog[]
   merchantApplication MerchantApplication? @relation("ApplicationApplicant")
   reviewedApplications MerchantApplication[] @relation("ApplicationReviewer")
+  reviewedBankAccounts MerchantBankAccount[] @relation("BankAccountReviewer")
+  requestedPayouts     MerchantPayoutRequest[] @relation("PayoutRequester")
+  reviewedPayouts      MerchantPayoutRequest[] @relation("PayoutReviewer")
 
   @@index([mobile])
 }
@@ -195,6 +212,8 @@ model Merchant {
 
   application        MerchantApplication?
   mapirPlaceId       String?            @unique
+  bankAccounts       MerchantBankAccount[]
+  payoutRequests     MerchantPayoutRequest[]
 
   @@index([ownerUserId])
 }
@@ -796,6 +815,54 @@ model ReconciliationCase {
   @@index([merchantId, status, createdAt])
 }
 
+model MerchantBankAccount {
+  id              String            @id @default(uuid())
+  merchantId      String
+  shabaNumber     String
+  bankName        String
+  bankCode        String?
+  accountHolder   String
+  isDefault       Boolean           @default(false)
+  status          BankAccountStatus @default(PENDING)
+  rejectionReason String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
+  merchant        Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  reviewer        User?             @relation("BankAccountReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  payoutRequests  MerchantPayoutRequest[]
 
+  @@index([merchantId])
+  @@index([status])
+  @@index([shabaNumber])
+}
 
+model MerchantPayoutRequest {
+  id                String              @id @default(uuid())
+  merchantId        String
+  bankAccountId     String
+  amountToman       BigInt
+  status            PayoutRequestStatus @default(PENDING)
+  trackingReference String?
+  rejectionReason   String?
+  notesFa           String?
+  requestedByUserId String
+  reviewedById      String?
+  reviewedAt        DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  merchant          Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  bankAccount       MerchantBankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  requestedBy       User                @relation("PayoutRequester", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+  reviewer          User?               @relation("PayoutReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([merchantId])
+  @@index([status])
+  @@index([bankAccountId])
+  @@index([createdAt])
+}

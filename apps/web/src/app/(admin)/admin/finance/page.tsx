@@ -1,6 +1,6 @@
 "use client";
-import { ErrorState } from "@/components/ui/ErrorState";
 
+import { ErrorState } from "@/components/ui/ErrorState";
 import React, { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -9,8 +9,11 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { formatToman, toPersianDigits } from "@/lib/utils/persian";
 import { AdminSettlementReportDto } from "@loqme/types";
 import { csvRow } from "@/lib/utils/csv";
+import { AdminBankAndPayoutsSection } from "@/components/admin/AdminBankAndPayoutsSection";
+import { Building2, Receipt } from "lucide-react";
 
 export default function AdminFinancePage() {
+  const [activeTab, setActiveTab] = useState<"settlements" | "bank_payouts">("settlements");
   const [loadError, setLoadError] = useState("");
   const [report, setReport] = useState<AdminSettlementReportDto | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -95,38 +98,70 @@ export default function AdminFinancePage() {
             کارمزد، تسویه‌حساب و حسابداری پلتفرم
           </h1>
           <p className="text-xs text-loqme-neutral-500 mt-1">
-            محاسبه مانده بستانکاری کلیه فروشگاه‌ها، کسر کارمزد و جرایم استرداد،
-            و تولید حواله تسویه پایا
+            محاسبه مانده بستانکاری کلیه فروشگاه‌ها، تایید حساب‌های بانکی، و مدیریت درخواست‌های تسویه
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            size="md"
-            variant="primary"
-            onClick={handleExportCsv}
-            disabled={!report || report.merchants.length === 0}
-            className="gap-2 font-bold shadow-xs"
-          >
-            <span>📥</span>
-            <span>خروجی فایل پایا / CSV</span>
-          </Button>
+        {activeTab === "settlements" && (
+          <div className="flex items-center gap-2">
+            <Button
+              size="md"
+              variant="primary"
+              onClick={handleExportCsv}
+              disabled={!report || report.merchants.length === 0}
+              className="gap-2 font-bold shadow-xs bg-[#1D616A] text-white"
+            >
+              <span>📥</span>
+              <span>خروجی فایل پایا / CSV</span>
+            </Button>
 
-          <Button
-            size="md"
-            variant="outline"
-            className="text-loqme-neutral-900 border-loqme-neutral-200 hover:bg-loqme-neutral-100"
-            onClick={() => {
-              setIsLoading(true);
-              fetchReport();
-            }}
-          >
-            محاسبه مجدد
-          </Button>
-        </div>
+            <Button
+              size="md"
+              variant="outline"
+              className="text-loqme-neutral-900 border-loqme-neutral-200 hover:bg-loqme-neutral-100"
+              onClick={() => {
+                setIsLoading(true);
+                fetchReport();
+              }}
+            >
+              محاسبه مجدد
+            </Button>
+          </div>
+        )}
       </div>
 
-      {isLoading && !report ? (
+      {/* Main Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab("settlements")}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+            activeTab === "settlements"
+              ? "bg-[#1D616A] text-white shadow-2xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          }`}
+        >
+          <Receipt size={16} />
+          <span>گزارش جامع تسویه و حواله پایا</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("bank_payouts")}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+            activeTab === "bank_payouts"
+              ? "bg-[#1D616A] text-white shadow-2xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          }`}
+        >
+          <Building2 size={16} />
+          <span>تایید حساب‌های بانکی و تسویه‌ها</span>
+        </button>
+      </div>
+
+      {activeTab === "bank_payouts" ? (
+        <AdminBankAndPayoutsSection />
+      ) : isLoading && !report ? (
         <div className="py-20 text-center space-y-2">
           <Spinner size="lg" variant="primary" className="mx-auto" />
           <p className="text-xs text-loqme-neutral-500">
@@ -139,115 +174,126 @@ export default function AdminFinancePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-lg bg-white border border-loqme-neutral-200 shadow-card">
               <span className="text-xs text-loqme-neutral-500 font-medium">
-                گردش مالی کل پلتفرم (GMV)
+                مجموع فروش ناخالص بازار (GMV)
               </span>
               <div className="text-2xl font-black text-loqme-neutral-900 mt-2">
                 {formatToman(report?.totalGmvToman ?? 0)}
               </div>
               <span className="text-[11px] text-loqme-neutral-500 mt-1 block">
-                مجموع تراکنش‌های پرداخت موفق
+                تراکنش‌های موفق پرداخت سفارش
               </span>
             </div>
 
             <div className="p-5 rounded-lg bg-white border border-loqme-neutral-200 shadow-card">
               <span className="text-xs text-loqme-neutral-500 font-medium">
-                درآمد کارمزد لقمه
+                درآمد کارمزد پلتفرم لقمه
               </span>
-              <div className="text-2xl font-black text-loqme-primary-700 mt-2">
+              <div className="text-2xl font-black text-loqme-primary-900 mt-2">
                 {formatToman(report?.totalPlatformCommissionToman ?? 0)}
               </div>
               <span className="text-[11px] text-loqme-primary-700 mt-1 block">
-                سهم خالص عملیاتی پلتفرم
+                سهم پلتفرم از کل سفارش‌ها
               </span>
             </div>
 
             <div className="p-5 rounded-lg bg-white border border-loqme-neutral-200 shadow-card">
               <span className="text-xs text-loqme-neutral-500 font-medium">
-                مجموع مبالغ استرداد شده
+                مجموع استردادهای کسر شده
               </span>
-              <div className="text-2xl font-black text-[color:var(--color-danger)] mt-2">
+              <div className="text-2xl font-black text-rose-600 mt-2">
                 {formatToman(report?.totalRefundsToman ?? 0)}
               </div>
-              <span className="text-[11px] text-[color:var(--color-danger)] mt-1 block">
-                کسر شده از بدهی فروشندگان متخلف
+              <span className="text-[11px] text-rose-500 mt-1 block">
+                سفارش‌های مرجوع‌شده یا لغو شده
               </span>
             </div>
 
-            <div className="p-5 rounded-lg bg-loqme-primary-950/80 border-2 border-loqme-primary-500/50 shadow-card">
-              <span className="text-xs text-loqme-primary-200 font-medium">
-                کل مانده قابل پرداخت پایا
+            <div className="p-5 rounded-lg bg-loqme-primary-50 border-2 border-loqme-primary-300 shadow-card">
+              <span className="text-xs text-loqme-primary-900 font-medium">
+                خالص مانده قابل تسویه همکاران
               </span>
-              <div className="text-2xl font-black text-emerald-700 mt-2">
+              <div className="text-2xl font-black text-loqme-primary-950 mt-2">
                 {formatToman(report?.totalNetPayableToman ?? 0)}
               </div>
               <span className="text-[11px] text-loqme-primary-700 mt-1 block">
-                آماده صدور دستور واریز دسته‌ای
+                مجموع حواله بانکی پایا تجمیعی
               </span>
             </div>
           </div>
 
-          {/* Settlement Sheet Table */}
+          {/* Merchants Settlement Table */}
           <div className="space-y-3">
-            <h3 className="font-bold text-sm text-loqme-neutral-900">
-              دفتر تسویه‌حساب دوره‌ای فروشگاه‌های همکار
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm text-loqme-neutral-900">
+                فهرست فروشگاه‌ها و مانده تسویه حساب
+              </h3>
+              <span className="text-xs text-loqme-neutral-500">
+                تعداد کل فروشگاه‌ها:{" "}
+                {toPersianDigits(report?.merchants.length ?? 0)}
+              </span>
+            </div>
 
             {!report?.merchants || report.merchants.length === 0 ? (
               <EmptyState
                 title="تراکنشی برای تسویه موجود نیست"
-                description="با ثبت و تکمیل سفارش‌ها، تراز مالی هر فروشگاه در این بخش محاسبه می‌گردد"
+                description="به محض تکمیل سفارش توسط فروشگاه‌ها، مانده بستانکاری آنان در این جدول درج خواهد شد."
               />
             ) : (
-              <div className="rounded-lg bg-white border border-loqme-neutral-200 overflow-hidden shadow-card">
-                <table className="w-full text-right text-xs responsive-data-table">
-                  <thead className="bg-white text-loqme-neutral-500 border-b border-loqme-neutral-200">
+              <div className="overflow-x-auto rounded-lg border border-loqme-neutral-200 bg-white">
+                <table className="w-full text-right text-xs">
+                  <thead className="bg-loqme-neutral-50 border-b border-loqme-neutral-200 text-loqme-neutral-600 font-bold">
                     <tr>
-                      <th className="p-4">نام فروشگاه</th>
-                      <th className="p-4">کارمزد</th>
-                      <th className="p-4">فروش ناخالص</th>
-                      <th className="p-4">سهم پلتفرم</th>
-                      <th className="p-4">کسر استرداد</th>
-                      <th className="p-4">خالص واریزی همکار</th>
-                      <th className="p-4">شماره شبا بانک</th>
+                      <th className="p-3">نام فروشگاه</th>
+                      <th className="p-3">تعداد سفارش</th>
+                      <th className="p-3">فروش ناخالص</th>
+                      <th className="p-3">درصد کارمزد</th>
+                      <th className="p-3">سهم لقمه</th>
+                      <th className="p-3">استرداد</th>
+                      <th className="p-3">خالص قابل واریز</th>
+                      <th className="p-3">شماره شبا مقصد</th>
+                      <th className="p-3">وضعیت حساب</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-loqme-neutral-700/60 text-loqme-neutral-700">
+                  <tbody className="divide-y divide-loqme-neutral-100">
                     {report.merchants.map((m) => (
                       <tr
                         key={m.merchantId}
-                        className="hover:bg-loqme-neutral-100"
+                        className="hover:bg-loqme-neutral-50/50"
                       >
-                        <td className="p-4 font-bold text-loqme-neutral-900 text-sm">
+                        <td className="p-3 font-bold text-loqme-neutral-900">
                           {m.businessNameFa}
-                          <span className="text-[10px] text-loqme-neutral-500 block font-normal">
-                            {toPersianDigits(m.ordersCount)} سفارش تکمیل شده
-                          </span>
                         </td>
-
-                        <td className="p-4 font-bold text-loqme-primary-700">
-                          {toPersianDigits(m.commissionPercent)}٪
+                        <td className="p-3 font-mono text-loqme-neutral-600">
+                          {toPersianDigits(m.ordersCount)}
                         </td>
-
-                        <td className="p-4 font-mono font-bold text-loqme-neutral-900">
+                        <td className="p-3 font-mono text-loqme-neutral-900">
                           {formatToman(m.grossGmvToman)}
                         </td>
-
-                        <td className="p-4 font-mono text-loqme-primary-700">
+                        <td className="p-3 font-mono text-loqme-neutral-600">
+                          {toPersianDigits(m.commissionPercent)}٪
+                        </td>
+                        <td className="p-3 font-mono text-rose-600 font-medium">
                           {formatToman(m.commissionCutToman)}
                         </td>
-
-                        <td className="p-4 font-mono text-[color:var(--color-danger)]">
-                          {m.refundsDeductedToman > 0
-                            ? formatToman(m.refundsDeductedToman)
-                            : "۰ تومان"}
+                        <td className="p-3 font-mono text-rose-700">
+                          {formatToman(m.refundsDeductedToman)}
                         </td>
-
-                        <td className="p-4 font-mono font-black text-emerald-700 text-sm">
+                        <td className="p-3 font-mono font-black text-emerald-700 text-sm">
                           {formatToman(m.netPayableToman)}
                         </td>
-
-                        <td className="p-4 font-mono text-loqme-neutral-700 dir-ltr text-right">
+                        <td className="p-3 font-mono text-[11px] text-loqme-neutral-600 dir-ltr text-right">
                           {m.shabaNumber || "ثبت نشده"}
+                        </td>
+                        <td className="p-3">
+                          {m.shabaNumber && m.isBankVerified ? (
+                            <Badge variant="success" size="sm">
+                              شبا تایید شده
+                            </Badge>
+                          ) : (
+                            <Badge variant="warning" size="sm">
+                              فاقد شبا تایید شده
+                            </Badge>
+                          )}
                         </td>
                       </tr>
                     ))}
