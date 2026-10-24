@@ -823,6 +823,17 @@ export interface AuditLogItemDto {
 // 10. Merchant Product & Portal (Milestone M07)
 // ==========================================
 
+export interface MerchantSalesDayDto {
+  id: number;
+  dayName: string;
+  dayShort: string;
+  dateFa: string;
+  savings: number;
+  income: number;
+  expenses: number;
+  heightPercent: number;
+}
+
 export interface MerchantDashboardDto {
   merchantId: string;
   businessNameFa: string;
@@ -841,6 +852,8 @@ export interface MerchantDashboardDto {
     labelFa: string;
     startsInMinutes: number;
   } | null;
+  weeklySales?: MerchantSalesDayDto[];
+  monthlySales?: MerchantSalesDayDto[];
 }
 
 export interface QuickListingTemplateDto {

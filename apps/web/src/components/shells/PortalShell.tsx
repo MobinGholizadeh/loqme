@@ -1,7 +1,7 @@
 "use client";
 import { RippleButton } from "@/components/magicui/ripple-button";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "@/components/auth/SessionProvider";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -27,11 +27,12 @@ import {
   HelpCircle,
   Headphones,
   ChevronsRight,
+  Loader2,
 } from "lucide-react";
 import { LoqmeLogo } from "@/components/ui/LoqmeLogo";
 import { Modal } from "@/components/ui/Modal";
 import { BlurFade } from "@/components/magicui/blur-fade";
-import { toPersianDigits } from "@/lib/utils/persian";
+import { toPersianDigits, formatToman } from "@/lib/utils/persian";
 
 interface PortalNavItem {
   href: string;
@@ -83,6 +84,57 @@ export function PortalShell({
   const [contexts, setContexts] = useState<Array<{ id: string; nameFa: string; role: string }>>([]);
   const [activeMerchantId, setActiveMerchantId] = useState<string>('');
   const [ordersCount, setOrdersCount] = useState<number | null>(null);
+
+  // Quick Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<{
+    orders: Array<{ id: string; orderNumber: string; customerName: string; totalAmountToman: number; status: string; href: string }>;
+    listings: Array<{ id: string; title: string; discountedPriceToman: number; originalPriceToman: number; status: string; href: string }>;
+    staff: Array<{ id: string; name: string; role: string; mobile: string; href: string }>;
+  } | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      setSearchResults(null);
+      setIsSearching(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const url = activeMerchantId
+          ? `/api/merchant/search?q=${encodeURIComponent(q)}&merchantId=${encodeURIComponent(activeMerchantId)}`
+          : `/api/merchant/search?q=${encodeURIComponent(q)}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.results) {
+            setSearchResults(json.results);
+            setIsSearchOpen(true);
+          }
+        }
+      } catch {
+        // ignore
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery, activeMerchantId]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const fetchOrdersCount = useCallback(async (signal?: AbortSignal) => {
     if (role !== "merchant") return;
@@ -352,17 +404,179 @@ export function PortalShell({
               <Menu size={20} />
             </RippleButton>
 
-            {/* Quick Search Bar */}
-            <div className="relative w-full hidden sm:block">
+            {/* Quick Search Bar with Live Results Dropdown */}
+            <div ref={searchContainerRef} className="relative w-full hidden sm:block">
               <Search
                 size={16}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
               />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsSearchOpen(true);
+                }}
+                onFocus={() => {
+                  if (searchQuery.trim().length >= 2) setIsSearchOpen(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setIsSearchOpen(false);
+                  }
+                }}
                 placeholder="جستجوی سریع در سفارش‌ها، بسته‌ها یا مشتریان"
-                className="w-full bg-slate-50 border border-slate-200/90 rounded-xl pr-10 pl-4 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:bg-white transition-all"
+                className="w-full bg-slate-50 border border-slate-200/90 rounded-xl pr-10 pl-8 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1D616A] focus:bg-white transition-all"
               />
+              {isSearching ? (
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 animate-spin">
+                  <Loader2 size={14} />
+                </div>
+              ) : searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSearchResults(null);
+                    setIsSearchOpen(false);
+                  }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  aria-label="پاک کردن جستجو"
+                >
+                  <X size={14} />
+                </button>
+              ) : null}
+
+              {/* Floating Search Results Dropdown */}
+              {isSearchOpen && searchQuery.trim().length >= 2 && searchResults && (
+                <div className="absolute top-full mt-2 right-0 left-0 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 text-right max-h-96 overflow-y-auto">
+                  {searchResults.orders.length === 0 &&
+                  searchResults.listings.length === 0 &&
+                  searchResults.staff.length === 0 ? (
+                    <div className="p-6 text-center text-xs text-slate-500">
+                      موردی برای «{searchQuery}» یافت نشد
+                    </div>
+                  ) : (
+                    <div className="p-2 space-y-3">
+                      {/* Orders */}
+                      {searchResults.orders.length > 0 && (
+                        <div>
+                          <div className="px-3 py-1 text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
+                            <ScanLine size={13} className="text-[#1D616A]" />
+                            <span>سفارش‌ها</span>
+                          </div>
+                          <div className="space-y-0.5 mt-1">
+                            {searchResults.orders.map((ord) => (
+                              <Link
+                                key={ord.id}
+                                href={ord.href}
+                                onClick={() => {
+                                  setIsSearchOpen(false);
+                                  setSearchQuery("");
+                                }}
+                                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#EFF7F4] transition-colors group"
+                              >
+                                <div>
+                                  <span className="font-bold text-xs text-slate-900 group-hover:text-[#174F56] block">
+                                    سفارش {ord.orderNumber}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500 block mt-0.5">
+                                    {ord.customerName}
+                                  </span>
+                                </div>
+                                <div className="text-left">
+                                  <span className="font-black text-xs text-slate-900 block">
+                                    {formatToman(ord.totalAmountToman)}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-[#1D616A] bg-[#EFF7F4] border border-[#BCD8D1] px-1.5 py-0.5 rounded-md inline-block mt-0.5">
+                                    {ord.status === "COMPLETED"
+                                      ? "تحویل شده"
+                                      : ord.status === "READY_FOR_PICKUP" || ord.status === "PAID"
+                                      ? "آماده تحویل"
+                                      : ord.status}
+                                  </span>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Listings */}
+                      {searchResults.listings.length > 0 && (
+                        <div>
+                          <div className="px-3 py-1 text-[11px] font-bold text-slate-400 flex items-center gap-1.5 border-t border-slate-100 pt-2">
+                            <Package size={13} className="text-[#1D616A]" />
+                            <span>بسته‌های مازاد</span>
+                          </div>
+                          <div className="space-y-0.5 mt-1">
+                            {searchResults.listings.map((item) => (
+                              <Link
+                                key={item.id}
+                                href={item.href}
+                                onClick={() => {
+                                  setIsSearchOpen(false);
+                                  setSearchQuery("");
+                                }}
+                                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#EFF7F4] transition-colors group"
+                              >
+                                <div>
+                                  <span className="font-bold text-xs text-slate-900 group-hover:text-[#174F56] block">
+                                    {item.title}
+                                  </span>
+                                </div>
+                                <div className="text-left">
+                                  <span className="font-black text-xs text-slate-900 block">
+                                    {formatToman(item.discountedPriceToman)}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 line-through block">
+                                    {formatToman(item.originalPriceToman)}
+                                  </span>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Staff */}
+                      {searchResults.staff.length > 0 && (
+                        <div>
+                          <div className="px-3 py-1 text-[11px] font-bold text-slate-400 flex items-center gap-1.5 border-t border-slate-100 pt-2">
+                            <Users size={13} className="text-[#1D616A]" />
+                            <span>همکاران و دسترسی</span>
+                          </div>
+                          <div className="space-y-0.5 mt-1">
+                            {searchResults.staff.map((s) => (
+                              <Link
+                                key={s.id}
+                                href={s.href}
+                                onClick={() => {
+                                  setIsSearchOpen(false);
+                                  setSearchQuery("");
+                                }}
+                                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#EFF7F4] transition-colors group"
+                              >
+                                <div>
+                                  <span className="font-bold text-xs text-slate-900 group-hover:text-[#174F56] block">
+                                    {s.name}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500 block mt-0.5">
+                                    {s.mobile}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                                  {s.role === "OWNER" ? "مدیر" : "صندوق‌دار"}
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

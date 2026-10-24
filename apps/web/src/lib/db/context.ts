@@ -8,7 +8,13 @@ export type DatabaseContext = Readonly<{
   subject?: string;
 }>;
 
-const contexts = new AsyncLocalStorage<DatabaseContext>();
+const globalForContext = globalThis as unknown as {
+  __loqmeDatabaseContexts?: AsyncLocalStorage<DatabaseContext>;
+};
+const contexts = globalForContext.__loqmeDatabaseContexts ?? new AsyncLocalStorage<DatabaseContext>();
+if (process.env.NODE_ENV !== 'production') {
+  globalForContext.__loqmeDatabaseContexts = contexts;
+}
 export const databaseContext = (): DatabaseContext => contexts.getStore() ?? {};
 
 export function withDatabaseActor<T>(userId: string | undefined, work: () => T): T {

@@ -50,27 +50,47 @@ function formatCardShaba(shaba: string): string {
   return `IR•• •••• •••• •••• ${last4}`;
 }
 
-// 7-day weekly dataset matching the reference image structure
-interface DayStat {
-  id: number;
-  dayName: string;
-  dayShort: string;
-  dateFa: string;
-  savings: number;
-  income: number;
-  expenses: number;
-  heightPercent: number;
-}
+import type { MerchantSalesDayDto } from "@loqme/types";
 
-const WEEKLY_DATA: DayStat[] = [
-  { id: 0, dayName: "شنبه", dayShort: "ش", dateFa: "شنبه، ۲۸ مهر ۱۴۰۳", savings: 180000, income: 520000, expenses: 35000, heightPercent: 48 },
-  { id: 1, dayName: "یکشنبه", dayShort: "ی", dateFa: "یکشنبه، ۲۹ مهر ۱۴۰۳", savings: 210000, income: 610000, expenses: 40000, heightPercent: 58 },
-  { id: 2, dayName: "دوشنبه", dayShort: "د", dateFa: "دوشنبه، ۳۰ مهر ۱۴۰۳", savings: 160000, income: 490000, expenses: 32000, heightPercent: 44 },
-  { id: 3, dayName: "سه‌شنبه", dayShort: "س", dateFa: "سه‌شنبه، ۱ آبان ۱۴۰۳", savings: 290000, income: 840000, expenses: 58000, heightPercent: 78 },
-  { id: 4, dayName: "چهارشنبه", dayShort: "چ", dateFa: "چهارشنبه، ۲ آبان ۱۴۰۳", savings: 240000, income: 700000, expenses: 46000, heightPercent: 68 },
-  { id: 5, dayName: "پنج‌شنبه", dayShort: "پ", dateFa: "پنج‌شنبه، ۳ آبان ۱۴۰۳", savings: 320000, income: 940000, expenses: 62000, heightPercent: 88 },
-  { id: 6, dayName: "جمعه", dayShort: "ج", dateFa: "جمعه، ۴ آبان ۱۴۰۳", savings: 220000, income: 630000, expenses: 42000, heightPercent: 54 },
-];
+type DayStat = MerchantSalesDayDto;
+
+function getEmptyWeekDays(): DayStat[] {
+  const DAY_NAMES = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه"];
+  const DAY_SHORTS = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
+  const now = new Date();
+  const currentDayOfWeek = (now.getDay() + 1) % 7;
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - currentDayOfWeek);
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  return DAY_NAMES.map((name, i) => {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    let dateFa = name;
+    try {
+      const parts = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).formatToParts(d);
+      const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
+      dateFa = `${p.weekday}، ${p.day} ${p.month} ${p.year}`;
+    } catch {
+      dateFa = `${name}، ${d.toLocaleDateString("fa-IR")}`;
+    }
+    return {
+      id: i,
+      dayName: name,
+      dayShort: DAY_SHORTS[i],
+      dateFa,
+      savings: 0,
+      income: 0,
+      expenses: 0,
+      heightPercent: 12,
+    };
+  });
+}
 
 export default function MerchantDashboardPage() {
   const [stats, setStats] = useState<MerchantDashboardDto | null>(null);
@@ -81,10 +101,17 @@ export default function MerchantDashboardPage() {
   const [isFastListingOpen, setIsFastListingOpen] = useState<boolean>(false);
 
   // Interactive controls
+  const currentDayOfWeek = typeof window !== "undefined" ? (new Date().getDay() + 1) % 7 : 0;
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "today">("7d");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
-  const [selectedDayIndex, setSelectedDayIndex] = useState<number>(4); // Wednesday selected by default like the image
-  const [categoryMonth, setCategoryMonth] = useState<string>("آبان");
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number>(currentDayOfWeek);
+  const [categoryMonth, setCategoryMonth] = useState<string>(() => {
+    try {
+      return new Intl.DateTimeFormat("fa-IR-u-ca-persian", { month: "long" }).format(new Date());
+    } catch {
+      return "آبان";
+    }
+  });
   const [healthPeriod, setHealthPeriod] = useState<string>("30d");
 
   const fetchStats = useCallback(async () => {
@@ -137,24 +164,16 @@ export default function MerchantDashboardPage() {
   const pendingAccount = bankAccounts.find((a) => a.status === "PENDING");
   const rejectedAccount = bankAccounts.find((a) => a.status === "REJECTED");
 
-  const selectedDay = WEEKLY_DATA[selectedDayIndex] || WEEKLY_DATA[4];
+  const chartData: DayStat[] = (timeRange === "30d" ? stats?.monthlySales : stats?.weeklySales)
+    || (stats?.weeklySales?.length ? stats.weeklySales : getEmptyWeekDays());
 
-  // Dynamic values combining API stats and design reference values
-  const mainBalanceDisplay = stats && stats.grossRevenueTodayToman > 0
-    ? stats.grossRevenueTodayToman
-    : 12450000;
+  const selectedDay = chartData[selectedDayIndex] || chartData[currentDayOfWeek] || chartData[0] || getEmptyWeekDays()[0];
 
-  const totalIncomeDisplay = stats && stats.grossRevenueTodayToman > 0
-    ? stats.grossRevenueTodayToman
-    : 15000000;
-
-  const totalExpensesDisplay = stats && stats.grossRevenueTodayToman > 0
-    ? Math.round(stats.grossRevenueTodayToman * 0.1)
-    : 6700000;
-
-  const savedBalanceDisplay = stats && stats.netPayoutTodayToman > 0
-    ? stats.netPayoutTodayToman
-    : 8300000;
+  // Dynamic values from real database orders for the period
+  const totalIncomeDisplay = chartData.reduce((sum, d) => sum + (d.income || 0), 0);
+  const totalExpensesDisplay = chartData.reduce((sum, d) => sum + (d.expenses || 0), 0);
+  const savedBalanceDisplay = Math.max(0, totalIncomeDisplay - totalExpensesDisplay);
+  const mainBalanceDisplay = totalIncomeDisplay > 0 ? totalIncomeDisplay : (stats?.grossRevenueTodayToman || 0);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16 font-sans">
@@ -330,7 +349,7 @@ export default function MerchantDashboardPage() {
                   <div
                     className="absolute bottom-0 transition-all duration-300 pointer-events-none z-10"
                     style={{
-                      right: `${((selectedDayIndex + 0.5) / 7) * 100}%`,
+                      right: `${((selectedDayIndex + 0.5) / Math.max(chartData.length, 1)) * 100}%`,
                       transform: "translateX(50%)",
                     }}
                   >
@@ -367,54 +386,128 @@ export default function MerchantDashboardPage() {
                   </div>
                 </div>
 
-                {/* Chart Graphic Area */}
-                <div className="flex items-end justify-between gap-2 sm:gap-3 h-52 pt-4 px-1">
-                  {WEEKLY_DATA.map((day, idx) => {
-                    const isSelected = selectedDayIndex === idx;
-                    return (
-                      <button
-                        key={day.id}
-                        type="button"
-                        onClick={() => setSelectedDayIndex(idx)}
-                        onMouseEnter={() => setSelectedDayIndex(idx)}
-                        className="flex-1 flex flex-col items-center h-full justify-end group focus:outline-none"
-                      >
-                        {/* Bar Pillar */}
-                        <div className="w-full max-w-[36px] bg-slate-100 rounded-2xl h-full flex flex-col justify-end p-1 transition-all group-hover:bg-slate-200/80">
-                          {isSelected ? (
-                            /* Selected Day Segmented Bar (Yellow / Loqme Teal / Orange) */
-                            <div
-                              className="w-full rounded-xl overflow-hidden flex flex-col shadow-md transition-all duration-300"
-                              style={{ height: `${day.heightPercent}%` }}
-                            >
-                              {/* Top: Savings (Yellow) */}
-                              <div className="h-[28%] bg-[#FACC15] w-full" />
-                              {/* Middle: Income (Loqme Brand Teal) */}
-                              <div className="h-[52%] bg-[#1D616A] w-full" />
-                              {/* Bottom: Expenses (Coral Orange) */}
-                              <div className="h-[20%] bg-[#FB923C] w-full" />
-                            </div>
-                          ) : (
-                            /* Inactive Days: Clean pill tone */
-                            <div
-                              className="w-full rounded-xl bg-slate-200/70 group-hover:bg-slate-300 transition-all duration-300"
-                              style={{ height: `${day.heightPercent}%` }}
-                            />
-                          )}
-                        </div>
-
-                        {/* Day Label */}
-                        <span
-                          className={`text-[11px] font-bold mt-2 transition-colors ${
-                            isSelected ? "text-slate-900 font-black" : "text-slate-400 group-hover:text-slate-700"
+                {/* Chart Graphic Area: Supports both Bar and Line modes */}
+                {chartType === "line" ? (
+                  <div className="relative h-52 pt-4 px-2 flex flex-col justify-end">
+                    <svg className="w-full h-36 overflow-visible" viewBox="0 0 700 140" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="loqmeChartGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#1D616A" stopOpacity="0.35" />
+                          <stop offset="100%" stopColor="#1D616A" stopOpacity="0.02" />
+                        </linearGradient>
+                      </defs>
+                      {(() => {
+                        const len = Math.max(chartData.length, 1);
+                        const points = chartData.map((d, i) => {
+                          const x = ((len - 1 - i) / Math.max(len - 1, 1)) * 660 + 20;
+                          const y = 130 - (d.heightPercent / 100) * 110;
+                          return { x, y };
+                        });
+                        const areaPath = points.length > 0
+                          ? `M ${points[0].x} 130 L ${points.map((p) => `${p.x} ${p.y}`).join(" L ")} L ${points[points.length - 1].x} 130 Z`
+                          : "";
+                        const linePath = points.length > 0
+                          ? `M ${points.map((p) => `${p.x} ${p.y}`).join(" L ")}`
+                          : "";
+                        return (
+                          <>
+                            <path d={areaPath} fill="url(#loqmeChartGrad)" />
+                            <path d={linePath} fill="none" stroke="#1D616A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                            {points.map((p, idx) => (
+                              <circle
+                                key={idx}
+                                cx={p.x}
+                                cy={p.y}
+                                r={selectedDayIndex === idx ? 6 : 4}
+                                className={`cursor-pointer transition-all ${
+                                  selectedDayIndex === idx
+                                    ? "fill-[#1D616A] stroke-white stroke-2 shadow-md"
+                                    : "fill-white stroke-[#1D616A] stroke-2 hover:fill-[#1D616A]"
+                                }`}
+                                onClick={() => setSelectedDayIndex(idx)}
+                                onMouseEnter={() => setSelectedDayIndex(idx)}
+                              />
+                            ))}
+                          </>
+                        );
+                      })()}
+                    </svg>
+                    <div className="flex justify-between w-full mt-3 px-1 text-[11px] font-bold text-slate-400">
+                      {chartData.map((day, idx) => (
+                        <button
+                          key={day.id}
+                          type="button"
+                          onClick={() => setSelectedDayIndex(idx)}
+                          className={`cursor-pointer transition-colors ${
+                            selectedDayIndex === idx ? "text-slate-900 font-black" : "hover:text-slate-700"
                           }`}
                         >
-                          {day.dayName}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                          {timeRange === "30d" ? day.dayShort : day.dayName}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-end justify-between gap-2 sm:gap-3 h-52 pt-4 px-1">
+                    {chartData.map((day, idx) => {
+                      const isSelected = selectedDayIndex === idx;
+                      const dayTotal = day.savings + day.income + day.expenses;
+                      const savingsH = dayTotal > 0 ? Math.round((day.savings / dayTotal) * 100) : 0;
+                      const incomeH = dayTotal > 0 ? Math.round((day.income / dayTotal) * 100) : 100;
+                      const expensesH = dayTotal > 0 ? Math.max(0, 100 - savingsH - incomeH) : 0;
+
+                      return (
+                        <button
+                          key={day.id}
+                          type="button"
+                          onClick={() => setSelectedDayIndex(idx)}
+                          onMouseEnter={() => setSelectedDayIndex(idx)}
+                          className="flex-1 flex flex-col items-center h-full justify-end group focus:outline-none"
+                        >
+                          {/* Bar Pillar */}
+                          <div className="w-full max-w-[36px] bg-slate-100 rounded-2xl h-full flex flex-col justify-end p-1 transition-all group-hover:bg-slate-200/80">
+                            {isSelected ? (
+                              /* Selected Day Segmented Bar (Yellow / Loqme Teal / Orange) */
+                              <div
+                                className="w-full rounded-xl overflow-hidden flex flex-col shadow-md transition-all duration-300"
+                                style={{ height: `${day.heightPercent}%` }}
+                              >
+                                {dayTotal > 0 ? (
+                                  <>
+                                    <div className="bg-[#FACC15] w-full" style={{ height: `${savingsH}%` }} />
+                                    <div className="bg-[#1D616A] w-full" style={{ height: `${incomeH}%` }} />
+                                    <div className="bg-[#FB923C] w-full" style={{ height: `${expensesH}%` }} />
+                                  </>
+                                ) : (
+                                  <div className="w-full h-full bg-[#1D616A]/20" />
+                                )}
+                              </div>
+                            ) : day.income > 0 ? (
+                              <div
+                                className="w-full rounded-xl bg-[#1D616A]/75 group-hover:bg-[#1D616A] transition-all duration-300"
+                                style={{ height: `${day.heightPercent}%` }}
+                              />
+                            ) : (
+                              <div
+                                className="w-full rounded-xl bg-slate-200/70 group-hover:bg-slate-300 transition-all duration-300"
+                                style={{ height: `${day.heightPercent}%` }}
+                              />
+                            )}
+                          </div>
+
+                          {/* Day Label */}
+                          <span
+                            className={`text-[11px] font-bold mt-2 transition-colors ${
+                              isSelected ? "text-slate-900 font-black" : "text-slate-400 group-hover:text-slate-700"
+                            }`}
+                          >
+                            {timeRange === "30d" ? day.dayShort : day.dayName}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* 3 Stacked KPI Metric Cards (4 of 12 columns on MD) */}
