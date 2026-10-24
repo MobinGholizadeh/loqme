@@ -31,8 +31,57 @@ function dto(a: MerchantApplication & { city: { nameFa: string } }): MerchantApp
   };
 }
 export async function getApplication(userId: string) {
-  await requireActiveAccount(userId);
+  const user = await requireActiveAccount(userId);
   const app = await prisma.merchantApplication.findUnique({ where: { applicantId: userId }, include: { city: true } });
+  if (app && app.status === 'APPROVED') return dto(app);
+
+  const ownedMerchant = await prisma.merchant.findFirst({
+    where: {
+      OR: [
+        { ownerUserId: userId },
+        { staff: { some: { userId } } },
+      ],
+      verificationStatus: 'APPROVED',
+    },
+    include: {
+      locations: {
+        include: { city: true, hours: true },
+        take: 1,
+      },
+    },
+  });
+
+  if (ownedMerchant) {
+    const loc = ownedMerchant.locations[0];
+    const hours = (loc?.hours || []).map(h => ({
+      dayOfWeek: h.dayOfWeek,
+      isOpen: h.isOpen,
+      storeOpenTime: h.storeOpenTime,
+      storeCloseTime: h.storeCloseTime,
+    }));
+    return {
+      id: app?.id || ownedMerchant.id,
+      ownerName: app?.ownerName || ownedMerchant.businessNameFa,
+      businessNameFa: ownedMerchant.businessNameFa,
+      businessType: ownedMerchant.businessType,
+      cityId: loc?.cityId || app?.cityId || '',
+      cityNameFa: loc?.city?.nameFa || app?.city?.nameFa || 'ارومیه',
+      addressFa: loc?.addressFa || app?.addressFa || '',
+      latitude: loc?.latitude || app?.latitude || 37.55,
+      longitude: loc?.longitude || app?.longitude || 45.07,
+      phone: loc?.phone || app?.phone || null,
+      licenseNumber: ownedMerchant.licenseNumber || app?.licenseNumber || null,
+      mapirPlaceId: ownedMerchant.mapirPlaceId || app?.mapirPlaceId || null,
+      hours: hours.length > 0 ? hours : (app ? BusinessHoursSchema.parse(app.hours) : []),
+      status: 'APPROVED' as const,
+      revision: app?.revision || 1,
+      reviewReason: null,
+      merchantId: ownedMerchant.id,
+      createdAt: (app?.createdAt || ownedMerchant.createdAt).toISOString(),
+      updatedAt: (app?.updatedAt || ownedMerchant.updatedAt).toISOString(),
+    };
+  }
+
   return app ? dto(app) : null;
 }
 export async function submitApplication(userId: string, input: MerchantApplicationInput) {

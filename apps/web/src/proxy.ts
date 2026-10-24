@@ -7,7 +7,7 @@ function privateResponse(response: NextResponse) {
   return response;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Retrieve session token from Bearer header or cookie
@@ -50,6 +50,8 @@ export async function middleware(request: NextRequest) {
 
   return privateResponse(NextResponse.next());
 }
+
+export const middleware = proxy;
 
 export const config = {
   matcher: [

@@ -7,7 +7,7 @@ import { hashOtp } from '@/lib/auth/crypto';
 import { POST as verify } from '@/app/api/auth/verify-otp/route';
 import { GET as session } from '@/app/api/auth/session/route';
 import { POST as logout } from '@/app/api/auth/logout/route';
-import { middleware } from '@/middleware';
+import { proxy as middleware } from '@/proxy';
 
 const mobile = '09127771017';
 const request = (path: string, cookie?: string) => new NextRequest(`https://loqme.test${path}`, {
