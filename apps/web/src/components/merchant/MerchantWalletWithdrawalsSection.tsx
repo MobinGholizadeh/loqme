@@ -98,7 +98,7 @@ export function MerchantWalletWithdrawalsSection({
     setFormError("");
 
     if (approvedAccounts.length === 0) {
-      alert("برای ثبت درخواست تسویه، ابتدا باید حداقل یک حساب بانکی تایید شده ثبت نمایید.");
+      alert("برای ثبت درخواست تسویه، ابتدا باید حداقل یک حساب بانکی تایید شده ثبت نمایید");
       onNavigateToAccounts?.();
       return;
     }
@@ -124,18 +124,18 @@ export function MerchantWalletWithdrawalsSection({
     setFormError("");
 
     if (!selectedAccountId) {
-      setFormError("انتخاب حساب بانکی مقصد الزامی است.");
+      setFormError("انتخاب حساب بانکی مقصد الزامی است");
       return;
     }
 
     const numericAmount = parseInt(toEnglishDigits(amountInput).replace(/,/g, ""), 10);
     if (isNaN(numericAmount) || numericAmount < 10000) {
-      setFormError("حداقل مبلغ قابل تسویه ۱۰,۰۰۰ تومان است.");
+      setFormError("حداقل مبلغ قابل تسویه ۱۰,۰۰۰ تومان است");
       return;
     }
 
     if (wallet && numericAmount > wallet.availableBalanceToman) {
-      setFormError(`مبلغ درخواستی بیشتر از موجودی قابل تسویه شما می‌باشد (مانده: ${formatToman(wallet.availableBalanceToman)}).`);
+      setFormError(`مبلغ درخواستی بیشتر از موجودی قابل تسویه شما می‌باشد (مانده: ${formatToman(wallet.availableBalanceToman)})`);
       return;
     }
 
@@ -304,7 +304,7 @@ export function MerchantWalletWithdrawalsSection({
         ) : requests.length === 0 ? (
           <EmptyState
             title="هیچ درخواست تسویه‌ای ثبت نشده است"
-            description="پس از فروش و دریافت سفارش‌ها، می‌توانید با ثبت درخواست تسویه، مبالغ را به حساب بانکی خود واریز نمایید."
+            description="پس از فروش و دریافت سفارش‌ها، می‌توانید با ثبت درخواست تسویه، مبالغ را به حساب بانکی خود واریز نمایید"
             action={
               <Button variant="primary" size="sm" onClick={handleOpenWithdrawModal}>
                 + ثبت درخواست تسویه

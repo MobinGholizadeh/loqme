@@ -67,7 +67,7 @@ export function ApplicationStatus() {
           <div className="business-status-icon"><CheckCircle2 size={30} aria-hidden="true" /></div>
           <div className="space-y-3">
             <h1 className="text-2xl font-extrabold">فروشگاه شما فعال و تأیید شده است</h1>
-            <p className="text-sm text-loqme-neutral-600">حساب کاربری شما دارای دسترسی فعال به پنل مدیریت فروشگاه است.</p>
+            <p className="text-sm text-loqme-neutral-600">حساب کاربری شما دارای دسترسی فعال به پنل مدیریت فروشگاه است</p>
           </div>
           <Link href="/merchant" className="action-link w-full justify-center">ورود به پنل فروشگاه</Link>
           <Link href="/explore" className="auth-text-link justify-center">بازگشت به کاوش لقمه</Link>

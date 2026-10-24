@@ -161,7 +161,7 @@ export function AdminBankAndPayoutsSection() {
     e.preventDefault();
     setActionError("");
     if (!rejectionReasonInput.trim()) {
-      setActionError("ذکر علت رد حساب الزامی است.");
+      setActionError("ذکر علت رد حساب الزامی است");
       return;
     }
 
@@ -213,7 +213,7 @@ export function AdminBankAndPayoutsSection() {
     e.preventDefault();
     setActionError("");
     if (!rejectionReasonInput.trim()) {
-      setActionError("ذکر علت رد تسویه الزامی است.");
+      setActionError("ذکر علت رد تسویه الزامی است");
       return;
     }
 
@@ -245,7 +245,7 @@ export function AdminBankAndPayoutsSection() {
     e.preventDefault();
     setActionError("");
     if (!trackingReferenceInput.trim()) {
-      setActionError("ثبت کد رهگیری واریز پایا/ساتنا الزامی است.");
+      setActionError("ثبت کد رهگیری واریز پایا/ساتنا الزامی است");
       return;
     }
 
@@ -348,7 +348,7 @@ export function AdminBankAndPayoutsSection() {
           ) : accounts.length === 0 ? (
             <EmptyState
               title="موردی یافت نشد"
-              description="هیچ حساب بانکی با فیلتر انتخابی وجود ندارد."
+              description="هیچ حساب بانکی با فیلتر انتخابی وجود ندارد"
             />
           ) : (
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-2xs">
@@ -498,7 +498,7 @@ export function AdminBankAndPayoutsSection() {
           ) : payouts.length === 0 ? (
             <EmptyState
               title="موردی یافت نشد"
-              description="هیچ درخواست تسویه‌ای با فیلتر انتخابی وجود ندارد."
+              description="هیچ درخواست تسویه‌ای با فیلتر انتخابی وجود ندارد"
             />
           ) : (
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-2xs">
@@ -761,7 +761,7 @@ export function AdminBankAndPayoutsSection() {
           )}
 
           <p className="text-xs text-slate-600 leading-relaxed">
-            توجه: با رد این درخواست، مبلغ تسویه مجدداً به مانده قابل برداشت کیف پول همکار بازگردانده خواهد شد.
+            توجه: با رد این درخواست، مبلغ تسویه مجدداً به مانده قابل برداشت کیف پول همکار بازگردانده خواهد شد
           </p>
 
           <div>

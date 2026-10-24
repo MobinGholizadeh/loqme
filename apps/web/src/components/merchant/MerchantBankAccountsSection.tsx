@@ -115,17 +115,17 @@ export function MerchantBankAccountsSection({
 
     const normalized = normalizeShaba(shabaInput);
     if (!isValidShaba(normalized)) {
-      setFormError("شماره شبا وارد شده نامعتبر است. لطفاً ۲۴ رقم بعد از IR را به دقت بررسی کنید.");
+      setFormError("شماره شبا وارد شده نامعتبر است؛ لطفاً ۲۴ رقم بعد از IR را به دقت بررسی کنید");
       return;
     }
 
     if (!bankNameInput.trim()) {
-      setFormError("نام بانک الزامی است.");
+      setFormError("نام بانک الزامی است");
       return;
     }
 
     if (!accountHolderInput.trim() || accountHolderInput.trim().length < 3) {
-      setFormError("نام و نام خانوادگی صاحب حساب باید حداقل ۳ حرف باشد.");
+      setFormError("نام و نام خانوادگی صاحب حساب باید حداقل ۳ حرف باشد");
       return;
     }
 
@@ -163,7 +163,7 @@ export function MerchantBankAccountsSection({
 
     const normalized = normalizeShaba(shabaInput);
     if (!isValidShaba(normalized)) {
-      setFormError("شماره شبا وارد شده نامعتبر است.");
+      setFormError("شماره شبا وارد شده نامعتبر است");
       return;
     }
 
@@ -245,7 +245,7 @@ export function MerchantBankAccountsSection({
             <span>حساب‌های بانکی و تسویه</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            تسویه درآمد فروش بسته‌های لقمه به حساب‌های بانکی تایید شده در شبکه پایا/ساتنا انجام می‌پذیرد.
+            تسویه درآمد فروش بسته‌های لقمه به حساب‌های بانکی تایید شده در شبکه پایا/ساتنا انجام می‌پذیرد
           </p>
         </div>
 
@@ -266,9 +266,9 @@ export function MerchantBankAccountsSection({
         <div className="space-y-1 leading-relaxed">
           <p className="font-bold">نکات امنیتی تسویه حساب و شماره شبا:</p>
           <ul className="list-disc list-inside space-y-0.5 text-slate-600">
-            <li>حساب بانکی باید متعلق به صاحب کسب‌وکار یا دارنده پروانه واحد صنفی باشد.</li>
-            <li>کلیه حساب‌های بانکی جدید پیش از امکان برداشت وجه توسط کارشناسان پشتیبانی و سامانه بانکی تایید می‌شوند.</li>
-            <li>در هر لحظه می‌توانید یکی از حساب‌های تایید شده را به عنوان حساب پیش‌فرض تسویه انتخاب فرمایید.</li>
+            <li>حساب بانکی باید متعلق به صاحب کسب‌وکار یا دارنده پروانه واحد صنفی باشد</li>
+            <li>کلیه حساب‌های بانکی جدید پیش از امکان برداشت وجه توسط کارشناسان پشتیبانی و سامانه بانکی تایید می‌شوند</li>
+            <li>در هر لحظه می‌توانید یکی از حساب‌های تایید شده را به عنوان حساب پیش‌فرض تسویه انتخاب فرمایید</li>
           </ul>
         </div>
       </div>
@@ -286,7 +286,7 @@ export function MerchantBankAccountsSection({
       ) : accounts.length === 0 ? (
         <EmptyState
           title="هنوز حساب بانکی ثبت نشده است"
-          description="برای واریز مبالغ فروش و برداشت از کیف پول، لطفاً شماره شبای حساب بانکی خود را ثبت فرمایید."
+          description="برای واریز مبالغ فروش و برداشت از کیف پول، لطفاً شماره شبای حساب بانکی خود را ثبت فرمایید"
           action={
             <Button variant="primary" size="sm" onClick={openAddModal}>
               + ثبت اولین حساب بانکی
@@ -535,7 +535,7 @@ export function MerchantBankAccountsSection({
           )}
 
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs">
-            توجه: با تغییر شماره شبا یا نام صاحب حساب، وضعیت حساب جهت بررسی مجدد به «در انتظار تایید» تغییر خواهد یافت.
+            توجه: با تغییر شماره شبا یا نام صاحب حساب، وضعیت حساب جهت بررسی مجدد به «در انتظار تایید» تغییر خواهد یافت
           </div>
 
           <div>

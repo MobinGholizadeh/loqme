@@ -89,11 +89,11 @@ export function MerchantBannerUploader({
     if (!file) return;
 
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setImageError("فرمت فایل باید JPG، PNG یا WebP باشد.");
+      setImageError("فرمت فایل باید JPG، PNG یا WebP باشد");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setImageError("حجم فایل نباید بیش از ۵ مگابایت باشد.");
+      setImageError("حجم فایل نباید بیش از ۵ مگابایت باشد");
       return;
     }
 
@@ -416,7 +416,7 @@ export function MerchantBannerUploader({
           <div className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 border border-slate-200/80 rounded-xl p-3">
             <div className="flex items-center gap-2">
               <Sparkles size={15} className="text-[#1D616A] shrink-0" />
-              <span>تصویر را بکشید تا کادر دلخواه قرار گیرد. با اسکرول یا نوار لغزنده زوم کنید.</span>
+              <span>تصویر را بکشید تا کادر دلخواه قرار گیرد؛ با اسکرول یا نوار لغزنده زوم کنید</span>
             </div>
             <span className="font-bold text-slate-700 hidden sm:inline">نسبت ۳:۱</span>
           </div>

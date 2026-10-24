@@ -932,7 +932,7 @@ export default function MerchantDashboardPage() {
                     {toPersianDigits(formatCardShaba(approvedAccount.shabaNumber))}
                   </span>
                   <span className="font-bold text-slate-700">
-                    {approvedAccount.isDefault ? "پیش‌فرض تسویه پایا" : "تسویه مستقیم پایا"}
+                    {approvedAccount.isDefault ? "حساب پیش‌فرض تسویه" : "تسویه مستقیم پایا"}
                   </span>
                 </div>
               </div>
@@ -981,7 +981,7 @@ export default function MerchantDashboardPage() {
                     <span>حساب بانکی تایید نشد</span>
                   </div>
                   <p className="text-[11px] text-rose-800 font-bold max-w-[240px] leading-relaxed bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-rose-200 shadow-xs">
-                    {rejectedAccount.rejectionReason || "اطلاعات حساب بانکی مورد تایید قرار نگرفت. لطفاً شماره شبا را ویرایش فرمایید."}
+                    {rejectedAccount.rejectionReason || "اطلاعات حساب بانکی مورد تایید قرار نگرفت؛ لطفاً شماره شبا را ویرایش فرمایید"}
                   </p>
                   <Link
                     href="/merchant/finance?tab=accounts"
@@ -1000,7 +1000,7 @@ export default function MerchantDashboardPage() {
                 <div className="space-y-1">
                   <h4 className="font-black text-xs text-slate-800">حساب یا کارت تسویه ثبت نشده است</h4>
                   <p className="text-[11px] text-slate-500 leading-relaxed max-w-[240px] mx-auto">
-                    جهت واریز و تسویه درآمدهای حاصل از فروش بسته‌ها، شماره شبای بانکی خود را متصل فرمایید.
+                    جهت واریز و تسویه درآمدهای حاصل از فروش بسته‌ها، شماره شبای بانکی خود را متصل فرمایید
                   </p>
                 </div>
                 <div>

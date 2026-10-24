@@ -145,7 +145,10 @@ export const HoloCard = React.forwardRef<HoloCardHandle, HoloCardProps>(function
 
   /* animation loop: ease tilt and light, spin with inertia, settle on a face */
   React.useEffect(() => {
-    reduce.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    reduce.current =
+      typeof window !== "undefined" && typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        : false;
     const st = s.current;
     const loop = () => {
       st.tx += (st.ttx - st.tx) * 0.12;
@@ -241,7 +244,7 @@ export const HoloCard = React.forwardRef<HoloCardHandle, HoloCardProps>(function
   }, [listenGyro]);
 
   React.useEffect(() => {
-    if (!motion || !window.matchMedia("(hover: none)").matches) return;
+    if (!motion || typeof window === "undefined" || typeof window.matchMedia !== "function" || !window.matchMedia("(hover: none)").matches) return;
     const DOE = (typeof DeviceOrientationEvent !== "undefined" ? DeviceOrientationEvent : undefined) as unknown as { requestPermission?: unknown } | undefined;
     if (DOE && typeof DOE.requestPermission !== "function") listenGyro();
   }, [motion, listenGyro]);

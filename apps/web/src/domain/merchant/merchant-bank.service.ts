@@ -477,7 +477,7 @@ export class MerchantBankService {
       });
 
       if (recentDuplicate) {
-        throw new Error('یک درخواست تسویه مشابه در حال بررسی است. لطفاً چند لحظه شکیبا باشید');
+        throw new Error('یک درخواست تسویه مشابه در حال بررسی است؛ لطفاً چند لحظه شکیبا باشید');
       }
 
       // 4. Create payout request

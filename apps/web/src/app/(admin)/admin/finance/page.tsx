@@ -236,7 +236,7 @@ export default function AdminFinancePage() {
             {!report?.merchants || report.merchants.length === 0 ? (
               <EmptyState
                 title="تراکنشی برای تسویه موجود نیست"
-                description="به محض تکمیل سفارش توسط فروشگاه‌ها، مانده بستانکاری آنان در این جدول درج خواهد شد."
+                description="به محض تکمیل سفارش توسط فروشگاه‌ها، مانده بستانکاری آنان در این جدول درج خواهد شد"
               />
             ) : (
               <div className="overflow-x-auto rounded-lg border border-loqme-neutral-200 bg-white">
