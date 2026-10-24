@@ -16,6 +16,7 @@ import {
   Plus,
   ShieldAlert,
   Leaf,
+  Headphones,
 } from "lucide-react";
 import { CustomerOrderSummaryDto } from "@loqme/types";
 import { HeartbeatLoading } from "@/components/ui/HeartbeatLoading";
@@ -310,6 +311,24 @@ export default function ProfilePage() {
                   پیگیری درخواست
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">استعلام ثبت فروشگاه</p>
+              </div>
+            </Link>
+
+            {/* Action: Support Chat */}
+            <Link
+              href="/support"
+              className="group bg-white p-3.5 rounded-2xl border border-slate-200/70 shadow-card hover:border-[#1D616A]/50 hover:shadow-soft transition-all flex flex-col justify-between active:scale-[0.98]"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-teal-50 group-hover:bg-teal-100 text-[#1D616A] flex items-center justify-center transition-colors">
+                  <Headphones className="w-5 h-5" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 group-hover:text-[#1D616A]">
+                  پشتیبانی و ارتباط با لقمه
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">گفتگوی زنده با پشتیبانی</p>
               </div>
             </Link>
 

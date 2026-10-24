@@ -8,6 +8,31 @@
 
 ## 1. Project Health & Current State
 
+### Real-Time Support Chat System (Customer, Merchant & Admin) — CP-10.32 (2026-10-24)
+
+Implemented a complete, production-ready, real-time support chat system connecting admins with regular customers and merchant partners:
+1. **Real-Time Architecture & Resilient Delivery**:
+   - High-throughput Server-Sent Events (SSE) streaming at `/api/support/conversations/[id]/events` and global admin stream at `/api/support/events` powered by `SupportEventHub`.
+   - Adaptive fallback polling (4s active, 15s background) for seamless recovery during network disruptions or proxy timeouts.
+   - Client-generated idempotency keys (`clientMessageId`) guaranteeing zero duplicate messages on reconnections or double taps.
+   - Live read receipts (`isRead`, `readAt`, `readByUserId`), double checkmarks, and unread counter badges.
+2. **Text, Image & Document Sharing**:
+   - Secure multipart file upload endpoint at `/api/support/upload` supporting images (JPG, PNG, WebP) and documents (PDF, TXT) capped at 10MB.
+   - Strict filename sanitization and local isolated storage in `.data/support-attachments/`.
+   - Authenticated file-streaming endpoint at `/api/support/attachments/[id]` enforcing strict conversation ownership and admin-only bypass.
+3. **Database Schema & PostgreSQL Row Level Security (RLS)**:
+   - Models `SupportConversation`, `SupportMessage`, and `SupportAttachment` with status enums (`OPEN`, `RESOLVED`, `CLOSED`), priorities (`LOW`, `NORMAL`, `HIGH`, `URGENT`), and channel types (`CUSTOMER_ADMIN`, `MERCHANT_ADMIN`).
+   - Migrations `20261024165256_support_chat_system` and `20261024170330_support_attachment_nullable_message` deployed with comprehensive RLS policies and grants for `loqme_app` and `loqme_rls_reader`, preventing cross-customer or cross-merchant data leakage.
+4. **Responsive UI/UX & Navigation**:
+   - Centralized Admin support dashboard at `/admin/support` with split master-detail view, channel/status filters, instant search, and status modification dropdown.
+   - Dedicated Merchant store support page at `/merchant/support` with automated channel creation and order issue tracking.
+   - Customer support page at `/support` with mobile-first layout and guest-login prompting.
+   - Live badge counters integrated into `PortalShell` navigation for merchants and admins, plus customer profile quick actions.
+5. **Quality & Validation**:
+   - 19 automated unit and API route contract tests in Vitest passed in under 1s.
+   - Zero TypeScript errors across all workspaces in `npm run typecheck`.
+   - Optimized Next.js production build (`npm run build`) successfully compiled all static and dynamic support routes.
+
 ### Merchant Bank Accounts Management & Wallet Withdrawals — CP-10.31 (2026-10-23)
 
 Implemented complete, secure, end-to-end bank account management and wallet payouts for merchants across the Merchant Panel and Admin Panel:

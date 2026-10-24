@@ -47,6 +47,7 @@ const merchantItems: PortalNavItem[] = [
   { href: "/merchant/orders", label: "سفارش‌ها و تحویل", icon: ScanLine },
   { href: "/merchant/finance", label: "جریان مالی و تسویه", icon: Wallet },
   { href: "/merchant/insights", label: "گزارش و بینش فروش", icon: ChartNoAxesCombined },
+  { href: "/merchant/support", label: "پشتیبانی لقمه", icon: Headphones },
   { href: "/merchant/staff", label: "همکاران و دسترسی", icon: Users },
   { href: "/merchant/settings", label: "تنظیمات فروشگاه", icon: Settings },
 ];
@@ -57,6 +58,7 @@ const adminItems: PortalNavItem[] = [
   { href: "/admin/merchants", label: "فروشگاه‌ها", icon: Store },
   { href: "/admin/customers", label: "مشتریان", icon: Users },
   { href: "/admin/listings", label: "بسته‌ها و دسته‌بندی", icon: Package },
+  { href: "/admin/support", label: "پشتیبانی و گفتگوها", icon: Headphones },
   {
     href: "/admin/moderation",
     label: "شکایت‌ها و بررسی",
@@ -84,6 +86,7 @@ export function PortalShell({
   const [contexts, setContexts] = useState<Array<{ id: string; nameFa: string; role: string }>>([]);
   const [activeMerchantId, setActiveMerchantId] = useState<string>('');
   const [ordersCount, setOrdersCount] = useState<number | null>(null);
+  const [supportCount, setSupportCount] = useState<number | null>(null);
 
   // Quick Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,6 +139,22 @@ export function PortalShell({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const fetchSupportBadge = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const url = activeMerchantId
+        ? `/api/support/badge?merchantId=${encodeURIComponent(activeMerchantId)}`
+        : "/api/support/badge";
+      const res = await fetch(url, { signal });
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json.success && json.data) {
+        setSupportCount(json.data.unreadCount ?? 0);
+      }
+    } catch {
+      // ignore
+    }
+  }, [activeMerchantId]);
+
   const fetchOrdersCount = useCallback(async (signal?: AbortSignal) => {
     if (role !== "merchant") return;
     try {
@@ -160,9 +179,11 @@ export function PortalShell({
     if (role !== "merchant") return;
     const controller = new AbortController();
     fetchOrdersCount(controller.signal);
+    fetchSupportBadge(controller.signal);
 
     const interval = setInterval(() => {
       fetchOrdersCount();
+      fetchSupportBadge();
     }, 15000);
 
     const handleCountEvent = (e: Event) => {
@@ -230,6 +251,12 @@ export function PortalShell({
         ),
     )
     .map((item) => {
+      if ((item.href === "/merchant/support" || item.href === "/admin/support") && typeof supportCount === "number" && supportCount > 0) {
+        return {
+          ...item,
+          badge: supportCount > 99 ? "+۹۹" : toPersianDigits(supportCount),
+        };
+      }
       if (item.href === "/merchant/orders" && typeof ordersCount === "number" && ordersCount > 0) {
         return {
           ...item,
@@ -286,13 +313,6 @@ export function PortalShell({
             <HelpCircle size={18} className="text-slate-400" />
             <span>راهنما و قوانین</span>
           </Link>
-          <a
-            href="tel:09122222222"
-            className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-[#174F56] hover:bg-[#EFF7F4] transition-colors"
-          >
-            <Headphones size={18} className="text-slate-400" />
-            <span>پشتیبانی فروشندگان</span>
-          </a>
         </div>
       )}
     </nav>

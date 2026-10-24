@@ -1236,3 +1236,5 @@ export interface MerchantWalletSummaryDto {
 }
 
 export * from './merchant-data';
+
+export * from './support';
