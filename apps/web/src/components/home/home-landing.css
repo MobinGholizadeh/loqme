@@ -25,14 +25,13 @@
 .landing-benefits svg { color: #1D616A; margin-bottom: 18px; }
 .landing-section h3 { font-size: 18px; font-weight: 800; color: #203B3B; margin-bottom: 12px; }
 .landing-benefits p { font-size: 13px; }
-.food-ticker { display: flex; align-items: center; gap: 12px; background: #1D616A; color: white; padding: 20px 16px; }
+.food-ticker { display: flex; align-items: center; background: #1D616A; color: white; padding: 20px 16px; }
 .food-ticker-window { overflow: hidden; flex: 1; direction: ltr; }
 .food-ticker-track { display: flex; width: max-content; animation: food-ticker 50s linear infinite; }
 .food-ticker-group { display: flex; flex-shrink: 0; }
-.food-ticker-group > span { display: flex; align-items: center; gap: 36px; padding-inline: 18px; white-space: nowrap; font-size: clamp(24px, 3vw, 40px); font-weight: 900; direction: rtl; }
+.food-ticker-group > span { display: flex; align-items: center; gap: 5px; padding-inline: 18px; white-space: nowrap; font-size: clamp(24px, 3vw, 40px); font-weight: 900; direction: rtl; }
 .food-ticker i { font-style: normal; color: #BCD8D1; }
-.food-ticker button { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid white; border-radius: 50%; color: #1D616A; background: white; }
-.food-ticker[data-paused="true"] .food-ticker-track, .food-ticker:hover .food-ticker-track, .food-ticker:focus-within .food-ticker-track { animation-play-state: paused; }
+.food-ticker:hover .food-ticker-track { animation-play-state: paused; }
 @keyframes food-ticker { to { transform: translateX(-50%); } }
 .landing-how { display: grid; grid-template-columns: 1fr 1.2fr; gap: 64px; }
 .landing-text-link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; margin-top: 24px; color: #1D616A; font-weight: 700; }
@@ -70,7 +69,7 @@
  .food-ticker-track { animation: none; width: auto; }
  .food-ticker-group { flex-wrap: wrap; gap: 12px; }
  .food-ticker-group > span { white-space: normal; font-size: 18px; padding: 0; gap: 12px; }
- .food-ticker-group[aria-hidden="true"], .food-ticker button { display: none; }
+ .food-ticker-group[aria-hidden="true"] { display: none; }
 }
 
 /* Owner-supplied scrolling card stack, adapted to the Loqme pickup journey. */

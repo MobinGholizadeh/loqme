@@ -47,7 +47,6 @@ export function HomeLanding() {
           </Magnet>
         </div>
       </div>
-      <span className="landing-photo-note">از فروشگاه محله، به دست تو</span>
     </section>
 
     <section className="landing-intro landing-section" id="why-loqme" aria-labelledby="why-title">
