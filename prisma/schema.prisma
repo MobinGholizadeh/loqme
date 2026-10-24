@@ -144,6 +144,37 @@ enum PayoutRequestStatus {
   REJECTED
   COMPLETED
 }
+enum SupportChannelType {
+  CUSTOMER_ADMIN
+  MERCHANT_ADMIN
+}
+
+enum SupportConversationStatus {
+  OPEN
+  RESOLVED
+  CLOSED
+}
+
+enum SupportPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum SupportMessageSenderType {
+  ADMIN
+  MERCHANT
+  CUSTOMER
+  SYSTEM
+}
+
+enum SupportAttachmentType {
+  IMAGE
+  DOCUMENT
+  OTHER
+}
+
 
 
 model User {
@@ -167,6 +198,9 @@ model User {
   reviewedBankAccounts MerchantBankAccount[] @relation("BankAccountReviewer")
   requestedPayouts     MerchantPayoutRequest[] @relation("PayoutRequester")
   reviewedPayouts      MerchantPayoutRequest[] @relation("PayoutReviewer")
+  supportConversations SupportConversation[]   @relation("UserSupportConversations")
+  closedSupportConversations SupportConversation[] @relation("ClosedSupportConversations")
+  sentSupportMessages  SupportMessage[]        @relation("SentSupportMessages")
 
   @@index([mobile])
 }
@@ -214,6 +248,7 @@ model Merchant {
   mapirPlaceId       String?            @unique
   bankAccounts       MerchantBankAccount[]
   payoutRequests     MerchantPayoutRequest[]
+  supportConversations SupportConversation[]   @relation("MerchantSupportConversations")
 
   @@index([ownerUserId])
 }
@@ -865,4 +900,73 @@ model MerchantPayoutRequest {
   @@index([status])
   @@index([bankAccountId])
   @@index([createdAt])
+}
+
+model SupportConversation {
+  id                  String                    @id @default(uuid())
+  channelType         SupportChannelType        @default(CUSTOMER_ADMIN)
+  userId              String?
+  merchantId          String?
+  subject             String?
+  status              SupportConversationStatus @default(OPEN)
+  priority            SupportPriority           @default(NORMAL)
+  lastMessageAt       DateTime?
+  lastMessagePreview  String?
+  unreadCustomerCount Int                       @default(0)
+  unreadMerchantCount Int                       @default(0)
+  unreadAdminCount    Int                       @default(0)
+  closedAt            DateTime?
+  closedByUserId      String?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+
+  user                User?                     @relation("UserSupportConversations", fields: [userId], references: [id], onDelete: SetNull)
+  merchant            Merchant?                 @relation("MerchantSupportConversations", fields: [merchantId], references: [id], onDelete: Cascade)
+  closedBy            User?                     @relation("ClosedSupportConversations", fields: [closedByUserId], references: [id], onDelete: SetNull)
+  messages            SupportMessage[]
+
+  @@index([channelType, status])
+  @@index([userId])
+  @@index([merchantId])
+  @@index([lastMessageAt])
+  @@index([status, updatedAt])
+}
+
+model SupportMessage {
+  id              String                   @id @default(uuid())
+  conversationId  String
+  senderUserId    String
+  senderType      SupportMessageSenderType
+  clientMessageId String?
+  body            String
+  isRead          Boolean                  @default(false)
+  readAt          DateTime?
+  readByUserId    String?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  conversation    SupportConversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          User                     @relation("SentSupportMessages", fields: [senderUserId], references: [id], onDelete: Restrict)
+  attachments     SupportAttachment[]
+
+  @@index([conversationId, createdAt])
+  @@index([conversationId, isRead])
+  @@index([clientMessageId])
+}
+
+model SupportAttachment {
+  id               String                @id @default(uuid())
+  messageId        String?
+  fileName         String
+  fileSize         Int
+  mimeType         String
+  fileUrl          String
+  attachmentType   SupportAttachmentType @default(OTHER)
+  uploadedByUserId String?
+  createdAt        DateTime              @default(now())
+
+  message          SupportMessage?       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([uploadedByUserId])
 }
