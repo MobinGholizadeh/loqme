@@ -87,7 +87,7 @@ async function handlePOST(request: NextRequest) {
     if (validated.channelType === 'MERCHANT_ADMIN') {
       conversation = await supportService.getOrCreateMerchantConversation(
         session.userId,
-        validated.merchantId,
+        validated.merchantId ?? undefined,
         validated.subject
       );
     } else {

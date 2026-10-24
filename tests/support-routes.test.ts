@@ -129,6 +129,32 @@ describe('Support API Route Contracts', () => {
       );
       expect(mocks.supportService.sendMessage).toHaveBeenCalled();
     });
+
+    it('creates merchant conversation without initial message', async () => {
+      mocks.auth.extractSessionToken.mockReturnValue('valid-token');
+      mocks.auth.verifySessionToken.mockResolvedValue({
+        userId: 'merchant-user-1',
+        role: 'MERCHANT_OWNER',
+      });
+      mocks.supportService.getOrCreateMerchantConversation.mockResolvedValue({
+        id: 'conv-merchant-1',
+        channelType: 'MERCHANT_ADMIN',
+        status: 'OPEN',
+      });
+
+      const req = makeReq('http://localhost:3100/api/support/conversations', 'POST', {
+        channelType: 'MERCHANT_ADMIN',
+        subject: 'پشتیبانی فروشگاه',
+      });
+
+      const res = await conversationsRoute.POST(req);
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.success).toBe(true);
+      expect(json.data.id).toBe('conv-merchant-1');
+      expect(mocks.supportService.sendMessage).not.toHaveBeenCalled();
+    });
   });
 
   describe('GET /api/support/conversations/[id]', () => {
