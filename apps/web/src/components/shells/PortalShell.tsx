@@ -1,7 +1,7 @@
 "use client";
 import { RippleButton } from "@/components/magicui/ripple-button";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "@/components/auth/SessionProvider";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -31,6 +31,7 @@ import {
 import { LoqmeLogo } from "@/components/ui/LoqmeLogo";
 import { Modal } from "@/components/ui/Modal";
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { toPersianDigits } from "@/lib/utils/persian";
 
 interface PortalNavItem {
   href: string;
@@ -42,7 +43,7 @@ interface PortalNavItem {
 const merchantItems: PortalNavItem[] = [
   { href: "/merchant", label: "داشبورد و نمای کلی", icon: LayoutDashboard },
   { href: "/merchant/listings", label: "بسته‌های مازاد", icon: Package },
-  { href: "/merchant/orders", label: "سفارش‌ها و تحویل", icon: ScanLine, badge: "۱۹" },
+  { href: "/merchant/orders", label: "سفارش‌ها و تحویل", icon: ScanLine },
   { href: "/merchant/finance", label: "جریان مالی و تسویه", icon: Wallet },
   { href: "/merchant/insights", label: "گزارش و بینش فروش", icon: ChartNoAxesCombined },
   { href: "/merchant/staff", label: "همکاران و دسترسی", icon: Users },
@@ -81,6 +82,58 @@ export function PortalShell({
   const [proDismissed, setProDismissed] = useState(false);
   const [contexts, setContexts] = useState<Array<{ id: string; nameFa: string; role: string }>>([]);
   const [activeMerchantId, setActiveMerchantId] = useState<string>('');
+  const [ordersCount, setOrdersCount] = useState<number | null>(null);
+
+  const fetchOrdersCount = useCallback(async (signal?: AbortSignal) => {
+    if (role !== "merchant") return;
+    try {
+      const url = activeMerchantId
+        ? `/api/merchant/pickup/queue?merchantId=${encodeURIComponent(activeMerchantId)}`
+        : "/api/merchant/pickup/queue";
+      const res = await fetch(url, { signal });
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        const readyCount = json.data.filter(
+          (o: any) => o.status === "READY_FOR_PICKUP" || o.status === "PAID"
+        ).length;
+        setOrdersCount(readyCount);
+      }
+    } catch {
+      // ignore abort or network issues silently
+    }
+  }, [role, activeMerchantId]);
+
+  useEffect(() => {
+    if (role !== "merchant") return;
+    const controller = new AbortController();
+    fetchOrdersCount(controller.signal);
+
+    const interval = setInterval(() => {
+      fetchOrdersCount();
+    }, 15000);
+
+    const handleCountEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<number>;
+      if (typeof customEvent.detail === "number") {
+        setOrdersCount(customEvent.detail);
+      }
+    };
+
+    const handleRefresh = () => {
+      fetchOrdersCount();
+    };
+
+    window.addEventListener("loqme:orders-count", handleCountEvent);
+    window.addEventListener("loqme:order-updated", handleRefresh);
+
+    return () => {
+      controller.abort();
+      clearInterval(interval);
+      window.removeEventListener("loqme:orders-count", handleCountEvent);
+      window.removeEventListener("loqme:order-updated", handleRefresh);
+    };
+  }, [fetchOrdersCount, role, pathname]);
 
   useEffect(() => {
     if (role !== 'merchant') return;
@@ -116,13 +169,23 @@ export function PortalShell({
     }
   };
 
-  const items = (role === "admin" ? adminItems : merchantItems).filter(
-    (item) =>
-      user?.role !== "MERCHANT_STAFF" ||
-      ["/merchant", "/merchant/listings", "/merchant/orders"].includes(
-        item.href,
-      ),
-  );
+  const items = (role === "admin" ? adminItems : merchantItems)
+    .filter(
+      (item) =>
+        user?.role !== "MERCHANT_STAFF" ||
+        ["/merchant", "/merchant/listings", "/merchant/orders"].includes(
+          item.href,
+        ),
+    )
+    .map((item) => {
+      if (item.href === "/merchant/orders" && typeof ordersCount === "number" && ordersCount > 0) {
+        return {
+          ...item,
+          badge: ordersCount > 99 ? "+۹۹" : toPersianDigits(ordersCount),
+        };
+      }
+      return item;
+    });
 
   const title = role === "admin" ? "مدیریت لقمه" : "پنل فروشگاه";
   const isActive = (href: string) => pathname === href || (href !== `/${role}` && pathname.startsWith(href + "/"));
@@ -147,8 +210,14 @@ export function PortalShell({
               <item.icon size={18} className={active ? "text-[#1D616A]" : "text-slate-500"} aria-hidden="true" />
               <span>{item.label}</span>
             </div>
-            {item.badge && !active && (
-              <span className="bg-[#EFF7F4] text-[#1D616A] border border-[#BCD8D1] text-[10px] font-bold px-2 py-0.5 rounded-full">
+            {item.badge && (
+              <span
+                className={`${
+                  active
+                    ? "bg-white text-[#1D616A] border border-[#BCD8D1]"
+                    : "bg-[#EFF7F4] text-[#1D616A] border border-[#BCD8D1]"
+                } text-[10px] font-bold px-2 py-0.5 rounded-full`}
+              >
                 {item.badge}
               </span>
             )}

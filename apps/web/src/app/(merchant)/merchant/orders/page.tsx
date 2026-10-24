@@ -61,6 +61,10 @@ export default function MerchantOrdersPage() {
         throw new Error(json.message || "دریافت اطلاعات ممکن نشد");
       if (json.success) {
         setQueue(json.data || []);
+        if (typeof window !== "undefined") {
+          const ready = (json.data || []).filter((o: any) => o.status === "READY_FOR_PICKUP" || o.status === "PAID").length;
+          window.dispatchEvent(new CustomEvent("loqme:orders-count", { detail: ready }));
+        }
       }
     } catch (err) {
       setLoadError("دریافت اطلاعات ممکن نشد؛ دوباره تلاش کنید");
@@ -104,6 +108,9 @@ export default function MerchantOrdersPage() {
         setPickupCode("");
         setOrderNumberInput("");
         fetchQueue(true);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("loqme:order-updated"));
+        }
       } else if (res.status === 409) {
         // DOUBLE-PICKUP CONFLICT DETECTED!
         playErrorBuzzer();
