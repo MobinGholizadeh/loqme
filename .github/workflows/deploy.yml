@@ -129,10 +129,20 @@ jobs:
 
       - name: Prepare versioned production Compose manifest
         id: compose
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         run: |
           echo "manifest=$(base64 -w0 docker-compose.prod.yml)" >> "$GITHUB_OUTPUT"
           echo "cleanup=$(base64 -w0 scripts/prune-deployment-images.py)" >> "$GITHUB_OUTPUT"
           echo "rls_setup=$(base64 -w0 scripts/prepare-rls-env.py)" >> "$GITHUB_OUTPUT"
+          if [ -n "${DOPPLER_TOKEN:-}" ]; then
+            if curl --fail --silent --show-error --retry 3 \
+              -H "Authorization: Bearer $DOPPLER_TOKEN" \
+              "https://api.doppler.com/v3/configs/config/secrets/download?format=env" > doppler.env; then
+              echo "doppler_env_b64=$(base64 -w0 doppler.env)" >> "$GITHUB_OUTPUT"
+              rm -f doppler.env
+            fi
+          fi
 
       - name: Verify Deployment Secrets Configuration
         env:
@@ -147,6 +157,7 @@ jobs:
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          DOPPLER_ENV_B64: ${{ steps.compose.outputs.doppler_env_b64 }}
           COMPOSE_FILE_B64: ${{ steps.compose.outputs.manifest }}
           CLEANUP_SCRIPT_B64: ${{ steps.compose.outputs.cleanup }}
           RLS_SETUP_SCRIPT_B64: ${{ steps.compose.outputs.rls_setup }}
@@ -157,7 +168,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           command_timeout: 15m
-          envs: DOPPLER_TOKEN,COMPOSE_FILE_B64,CLEANUP_SCRIPT_B64,RLS_SETUP_SCRIPT_B64
+          envs: DOPPLER_TOKEN,DOPPLER_ENV_B64,COMPOSE_FILE_B64,CLEANUP_SCRIPT_B64,RLS_SETUP_SCRIPT_B64
           script: |
             set -eu
             umask 077
@@ -207,13 +218,23 @@ jobs:
             test -s docker-compose.prod.yml
 
             # Stage and validate a complete environment before replacing the existing file.
-            # Without Doppler, preserve the server-managed environment unchanged.
-            if [ -n "${DOPPLER_TOKEN:-}" ]; then
+            # Prefer Doppler env downloaded by GitHub Actions runner to avoid regional network blocks on VPS.
+            if [ -n "${DOPPLER_ENV_B64:-}" ]; then
               DOPPLER_ENV=$(mktemp /opt/loqme/.env.doppler.XXXXXX)
-              curl --fail --silent --show-error --retry 3 \
-                -H "Authorization: Bearer $DOPPLER_TOKEN" \
-                "https://api.doppler.com/v3/configs/config/secrets/download?format=env" > "$DOPPLER_ENV"
+              printf '%s' "$DOPPLER_ENV_B64" | base64 -d > "$DOPPLER_ENV"
               test -s "$DOPPLER_ENV"
+            elif [ -n "${DOPPLER_TOKEN:-}" ]; then
+              DOPPLER_ENV=$(mktemp /opt/loqme/.env.doppler.XXXXXX)
+              if curl --fail --silent --show-error --retry 3 \
+                -H "Authorization: Bearer $DOPPLER_TOKEN" \
+                "https://api.doppler.com/v3/configs/config/secrets/download?format=env" > "$DOPPLER_ENV" 2>/dev/null && [ -s "$DOPPLER_ENV" ]; then
+                echo "Synchronized environment from Doppler via direct server connection"
+              else
+                echo "Notice: Direct Doppler connection from server failed; retaining existing server environment"
+                rm -f "$DOPPLER_ENV"
+                DOPPLER_ENV=""
+              fi
+            fi
               # Existing PostgreSQL volumes retain their initialized credentials.
               # Keep database configuration server-owned; an app deploy is not a DB password rotation.
               if [ -f .env ]; then
