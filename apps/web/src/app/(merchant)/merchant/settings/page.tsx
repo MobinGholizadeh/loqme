@@ -1,7 +1,7 @@
 "use client";
 import { RippleButton } from "@/components/magicui/ripple-button";
 
-import { ListingImagePicker } from "@/components/merchant/ListingImagePicker";
+import { MerchantBannerUploader } from "@/components/merchant/MerchantBannerUploader";
 import { ErrorState } from "@/components/ui/ErrorState";
 import * as RedesignIcons from "lucide-react";
 
@@ -191,7 +191,32 @@ export default function MerchantSettingsPage() {
         </div>
       ) : (
         <form onSubmit={handleSave} className="space-y-6">
-          <Card className="p-6"><ListingImagePicker cover value={bannerImageUrl} onChange={setBannerImageUrl} onBusyChange={setImageBusy}/><p className="mt-3 text-sm text-loqme-neutral-600">این تصویر در بالای صفحه فروشگاه شما نمایش داده می‌شود؛ پیش از انتشار بسته، عکس جلد را ذخیره کنید</p></Card>
+          <Card
+            variant="elevated"
+            className="p-6 bg-white border border-slate-200/90 rounded-2xl shadow-sm space-y-4"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                  <span className="text-base">🖼️</span>
+                  <span>تصویر جلد و بنر فروشگاه</span>
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  این تصویر در بالای صفحه عمومی فروشگاه و هدر کارت‌های معرفی شما نمایش داده می‌شود (نسبت ۳:۱).
+                </p>
+              </div>
+              <Badge variant="brand" size="sm">
+                الزامی برای انتشار بسته
+              </Badge>
+            </div>
+
+            <MerchantBannerUploader
+              value={bannerImageUrl}
+              onChange={setBannerImageUrl}
+              onBusyChange={setImageBusy}
+              businessNameFa={businessNameFa || "فروشگاه شما"}
+            />
+          </Card>
           {/* Business Profile Card */}
           <Card
             variant="elevated"

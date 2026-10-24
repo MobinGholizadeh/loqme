@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { HoloCard } from "@/components/ui/holo-card";
 import {
   Zap,
   RefreshCw,
@@ -903,145 +904,91 @@ export default function MerchantDashboardPage() {
                 </div>
               </div>
             ) : approvedAccount ? (
-              /* Approved Account Card: Hyper-realistic Loqme Teal Debit Card */
-              <div className="relative rounded-2xl p-5 text-white shadow-md overflow-hidden bg-gradient-to-tr from-[#123338] via-[#1D616A] to-[#28757A]">
-                {/* Glossy overlay sheen */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 65%)",
-                  }}
+              /* Approved Account Card: Interactive 3D Holographic Card */
+              <div className="flex flex-col items-center">
+                <HoloCard
+                  holder={approvedAccount.accountHolder}
+                  number={approvedAccount.shabaNumber.replace(/\D/g, "").slice(-16).padStart(16, "5022")}
+                  tier={approvedAccount.bankName || "LOQME PAY"}
+                  expires="1408/06"
+                  cvv="782"
+                  logo={
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-black text-sm text-[#1D616A] tracking-tight">لقمه پی</span>
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded font-bold">
+                        تایید شده
+                      </span>
+                    </div>
+                  }
+                  network={
+                    <span className="flex items-center gap-1 text-[10px] font-black text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-2xs border border-slate-200">
+                      شتاب
+                    </span>
+                  }
+                  className="w-full"
                 />
-
-                {/* Card Top Row */}
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold tracking-wider opacity-90">{approvedAccount.bankName}</span>
-                    <span className="inline-flex items-center gap-1 text-[9px] font-black bg-emerald-500/25 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 rounded-full">
-                      <CheckCircle2 size={10} />
-                      تایید شده
-                    </span>
-                  </div>
-                  <span className="text-xs font-black italic tracking-widest bg-white/15 border border-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full text-white">
-                    LOQME PAY
+                <div className="w-full flex items-center justify-between mt-3 px-1 text-[11px] text-slate-500">
+                  <span className="font-mono font-bold text-slate-700" dir="ltr">
+                    {toPersianDigits(formatCardShaba(approvedAccount.shabaNumber))}
                   </span>
-                </div>
-
-                {/* Realistic Gold EMV Chip */}
-                <div className="relative z-10 my-4 flex items-center justify-between">
-                  <svg width="34" height="26" viewBox="0 0 34 26" fill="none" className="rounded-md shadow-xs">
-                    <rect width="34" height="26" rx="4" fill="#FDE047" stroke="#CA8A04" strokeWidth="1" />
-                    <path d="M0 13 H34" stroke="#A16207" strokeWidth="0.8" />
-                    <path d="M11 0 V26" stroke="#A16207" strokeWidth="0.8" />
-                    <path d="M23 0 V26" stroke="#A16207" strokeWidth="0.8" />
-                    <circle cx="17" cy="13" r="3.5" fill="#FEF08A" stroke="#A16207" strokeWidth="0.8" />
-                  </svg>
-                  {approvedAccount.isDefault && (
-                    <span className="text-[10px] font-bold bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-md text-white/90">
-                      حساب پیش‌فرض تسویه
-                    </span>
-                  )}
-                </div>
-
-                {/* Card Number */}
-                <div className="relative z-10 text-base sm:text-lg font-black tracking-widest text-left font-mono text-white/95" dir="ltr">
-                  {toPersianDigits(formatCardShaba(approvedAccount.shabaNumber))}
-                </div>
-
-                {/* Cardholder Name & Direct Transfer Badge */}
-                <div className="relative z-10 flex items-center justify-between mt-3 text-[11px] font-bold text-white/90">
-                  <span className="truncate max-w-[170px]" title={approvedAccount.accountHolder}>
-                    {approvedAccount.accountHolder}
+                  <span className="font-bold text-slate-700">
+                    {approvedAccount.isDefault ? "پیش‌فرض تسویه پایا" : "تسویه مستقیم پایا"}
                   </span>
-                  <span className="text-[10px] text-white/75 font-normal">تسویه مستقیم پایا</span>
                 </div>
               </div>
             ) : pendingAccount ? (
-              /* Pending / Unapproved Blurred Card */
-              <div className="relative rounded-2xl p-5 text-white shadow-sm overflow-hidden bg-gradient-to-tr from-[#1E293B] via-[#334155] to-[#1E3A40] border border-amber-400/40">
-                {/* Glossy overlay */}
-                <div
-                  className="absolute inset-0 pointer-events-none opacity-40"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 65%)",
-                  }}
-                />
-
-                {/* Blurred / Frosted Over-state overlay */}
-                <div className="absolute inset-0 z-20 bg-slate-950/50 backdrop-blur-[2.5px] flex flex-col items-center justify-center p-4 text-center">
+              /* Pending / Unapproved Holographic Card */
+              <div className="relative flex flex-col items-center">
+                <div className="filter blur-[1.5px] opacity-70 pointer-events-none w-full">
+                  <HoloCard
+                    holder={pendingAccount.accountHolder}
+                    number={pendingAccount.shabaNumber.replace(/\D/g, "").slice(-16).padStart(16, "5022")}
+                    tier={pendingAccount.bankName || "در انتظار تایید"}
+                    className="w-full"
+                  />
+                </div>
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-4 text-center">
                   <div className="inline-flex items-center gap-1.5 bg-amber-500 text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-full shadow-md mb-2">
                     <Clock size={13} className="animate-pulse" />
                     <span>در انتظار بررسی و تایید مدیریت</span>
                   </div>
-                  <p className="text-[11px] text-slate-200 font-medium max-w-[230px] leading-relaxed">
-                    شماره شبا و حساب در حال بررسی است و پس از تایید توسط تیم پشتیبانی لوقمه، تسویه فعال خواهد شد
+                  <p className="text-[11px] text-slate-700 font-bold max-w-[230px] leading-relaxed bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-amber-200 shadow-xs">
+                    شماره شبا و حساب پس از تایید توسط پشتیبانی لقمه فعال خواهد شد
                   </p>
                   <Link
                     href="/merchant/finance?tab=accounts"
-                    className="mt-2.5 text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg backdrop-blur-xs border border-white/25 transition-all inline-flex items-center gap-1"
+                    className="mt-2 text-[10px] font-bold bg-[#1D616A] hover:bg-[#174F56] text-white px-3 py-1 rounded-lg shadow-sm transition-all inline-flex items-center gap-1"
                   >
                     <span>پیگیری وضعیت حساب</span>
                     <ArrowRight size={11} className="rotate-180" />
                   </Link>
                 </div>
-
-                {/* Background Card content (blurred behind overlay) */}
-                <div className="relative z-10 flex items-center justify-between filter blur-[1px] opacity-60">
-                  <span className="text-[11px] font-bold tracking-wider">{pendingAccount.bankName}</span>
-                  <span className="text-xs font-black italic tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full">
-                    LOQME PAY
-                  </span>
-                </div>
-
-                <div className="relative z-10 my-4 filter blur-[1px] opacity-50">
-                  <svg width="34" height="26" viewBox="0 0 34 26" fill="none" className="rounded-md">
-                    <rect width="34" height="26" rx="4" fill="#94A3B8" stroke="#64748B" strokeWidth="1" />
-                    <path d="M0 13 H34" stroke="#475569" strokeWidth="0.8" />
-                    <path d="M11 0 V26" stroke="#475569" strokeWidth="0.8" />
-                    <path d="M23 0 V26" stroke="#475569" strokeWidth="0.8" />
-                  </svg>
-                </div>
-
-                <div className="relative z-10 text-base sm:text-lg font-black tracking-widest text-left font-mono filter blur-[2px] opacity-60" dir="ltr">
-                  {toPersianDigits(formatCardShaba(pendingAccount.shabaNumber))}
-                </div>
-
-                <div className="relative z-10 flex items-center justify-between mt-3 text-[11px] font-bold filter blur-[1px] opacity-60">
-                  <span className="truncate max-w-[160px]">{pendingAccount.accountHolder}</span>
-                  <span className="font-mono">••/••</span>
-                </div>
               </div>
             ) : rejectedAccount ? (
-              /* Rejected Card */
-              <div className="relative rounded-2xl p-5 text-white shadow-sm overflow-hidden bg-gradient-to-tr from-[#3F1D1D] via-[#4C1D1D] to-[#1E293B] border border-rose-500/50">
-                <div className="absolute inset-0 z-20 bg-slate-950/65 backdrop-blur-[2.5px] flex flex-col items-center justify-center p-4 text-center">
+              /* Rejected Holographic Card */
+              <div className="relative flex flex-col items-center">
+                <div className="filter blur-[2px] opacity-50 pointer-events-none w-full">
+                  <HoloCard
+                    holder={rejectedAccount.accountHolder}
+                    number={rejectedAccount.shabaNumber.replace(/\D/g, "").slice(-16).padStart(16, "5022")}
+                    tier={rejectedAccount.bankName || "رد شده"}
+                    className="w-full"
+                  />
+                </div>
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-4 text-center">
                   <div className="inline-flex items-center gap-1.5 bg-rose-600 text-white font-black text-xs px-3.5 py-1.5 rounded-full shadow-md mb-2">
                     <XCircle size={14} />
                     <span>حساب بانکی تایید نشد</span>
                   </div>
-                  <p className="text-[11px] text-rose-200 font-medium max-w-[240px] leading-relaxed">
+                  <p className="text-[11px] text-rose-800 font-bold max-w-[240px] leading-relaxed bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-rose-200 shadow-xs">
                     {rejectedAccount.rejectionReason || "اطلاعات حساب بانکی مورد تایید قرار نگرفت. لطفاً شماره شبا را ویرایش فرمایید."}
                   </p>
                   <Link
                     href="/merchant/finance?tab=accounts"
-                    className="mt-2.5 text-[11px] font-bold bg-white text-rose-800 hover:bg-rose-50 px-3.5 py-1 rounded-lg shadow-2xs transition-all"
+                    className="mt-2 text-[11px] font-bold bg-white text-rose-800 hover:bg-rose-50 px-3.5 py-1 rounded-lg border border-rose-200 shadow-xs transition-all"
                   >
                     ویرایش یا ثبت حساب جدید
                   </Link>
-                </div>
-
-                <div className="relative z-10 flex items-center justify-between filter blur-[1.5px] opacity-40">
-                  <span className="text-[11px] font-bold">{rejectedAccount.bankName}</span>
-                  <span className="text-xs font-black italic">LOQME PAY</span>
-                </div>
-                <div className="relative z-10 my-4 filter blur-[1.5px] opacity-30">
-                  <div className="w-[34px] h-[26px] bg-slate-600 rounded-md" />
-                </div>
-                <div className="relative z-10 text-base font-black text-left font-mono filter blur-[2px] opacity-40" dir="ltr">
-                  {toPersianDigits(formatCardShaba(rejectedAccount.shabaNumber))}
-                </div>
-                <div className="relative z-10 flex items-center justify-between mt-3 text-[11px] filter blur-[1.5px] opacity-40">
-                  <span>{rejectedAccount.accountHolder}</span>
                 </div>
               </div>
             ) : (

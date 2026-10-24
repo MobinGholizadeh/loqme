@@ -8,6 +8,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
+import { HoloCard } from "@/components/ui/holo-card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
@@ -297,6 +298,45 @@ export default function CheckoutPage() {
           </div>
         </div>
       </Card>
+
+      {/* Interactive Holographic Payment Card */}
+      <div className="flex flex-col items-center justify-center p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-slate-50/80 to-white border border-slate-200/90 shadow-sm space-y-3">
+        <div className="flex items-center justify-between w-full max-w-[380px] px-1 text-xs">
+          <span className="font-bold text-slate-800 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>پرداخت امن با کلیه کارت‌های عضو شتاب</span>
+          </span>
+          <span className="text-[10px] font-bold text-[#1D616A] bg-[#EFF7F4] px-2 py-0.5 rounded-md border border-[#BCD8D1]">
+            رمزنگاری شاپرک
+          </span>
+        </div>
+
+        <HoloCard
+          holder="مشتری گرامی لقمه"
+          number="6037 9975 8241 4920"
+          tier="کارت شتاب / شاپرک"
+          expires="1407/09"
+          cvv="438"
+          logo={
+            <div className="flex items-center gap-1.5">
+              <div className="w-5 h-5 rounded-md bg-[#1D616A] text-white flex items-center justify-center font-black text-[10px]">
+                ل
+              </div>
+              <span className="font-black text-xs text-[#1D616A]">لقمه پی</span>
+            </div>
+          }
+          network={
+            <span className="flex items-center gap-1 text-[10px] font-black text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-2xs border border-slate-200">
+              شاپرک
+            </span>
+          }
+          className="mx-auto"
+        />
+
+        <p className="text-[11px] text-slate-400 text-center max-w-[340px] leading-relaxed">
+          جهت چرخاندن کارت کلیک یا لمس کنید؛ شماره کارت به صورت تعاملی با ضربه زدن نمایش داده می‌شود
+        </p>
+      </div>
 
       {/* Gateway Selection Card */}
       <Card variant="outlined" className="p-5 space-y-3 bg-white">
