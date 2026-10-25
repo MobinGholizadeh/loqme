@@ -60,7 +60,7 @@ async function handleGET(request: NextRequest) {
         notifications.push({
           id: `admin-bank-${b.id}`,
           title: 'حساب بانکی در انتظار بررسی',
-          body: `فروشگاه «${b.merchant.businessNameFa}» حساب جدید در بانک ${b.bankName} ثبت کرده است.`,
+          body: `فروشگاه «${b.merchant.businessNameFa}» حساب جدید در بانک ${b.bankName} ثبت کرده است`,
           time: toRelativeTime(b.createdAt),
           read: false,
           type: 'system',
@@ -81,7 +81,7 @@ async function handleGET(request: NextRequest) {
         notifications.push({
           id: `admin-payout-${p.id}`,
           title: 'درخواست تسویه حساب مالی',
-          body: `درخواست تسویه به مبلغ ${formatToman(Number(p.amountToman))} برای فروشگاه «${p.merchant.businessNameFa}» ثبت شد.`,
+          body: `درخواست تسویه به مبلغ ${formatToman(Number(p.amountToman))} برای فروشگاه «${p.merchant.businessNameFa}» ثبت شد`,
           time: toRelativeTime(p.createdAt),
           read: false,
           type: 'system',
@@ -102,7 +102,7 @@ async function handleGET(request: NextRequest) {
         notifications.push({
           id: `admin-merchant-${m.id}`,
           title: 'فروشگاه جدید در صف تأیید مدارک',
-          body: `فروشگاه «${m.businessNameFa}» ثبت‌نام نموده و در انتظار احراز هویت و بررسی پروانه است.`,
+          body: `فروشگاه «${m.businessNameFa}» ثبت‌نام نموده و در انتظار احراز هویت و بررسی پروانه است`,
           time: toRelativeTime(m.createdAt),
           read: false,
           type: 'system',
@@ -126,7 +126,7 @@ async function handleGET(request: NextRequest) {
         notifications.push({
           id: `admin-complaint-${c.id}`,
           title: 'شکایت / گزارش مشتری',
-          body: `شکایتی برای سفارش #${c.order.orderNumber} در فروشگاه «${c.merchant.businessNameFa}» ثبت شد.`,
+          body: `شکایتی برای سفارش #${c.order.orderNumber} در فروشگاه «${c.merchant.businessNameFa}» ثبت شد`,
           time: toRelativeTime(c.createdAt),
           read: false,
           type: 'order',
@@ -173,7 +173,7 @@ async function handleGET(request: NextRequest) {
             notifications.push({
               id: `merchant-order-${o.id}`,
               title: 'سفارش جدید آماده تحویل',
-              body: `سفارش #${o.orderNumber} به مبلغ ${formatToman(Number(o.totalAmountToman))} ثبت شد. خریدار: ${o.customer?.fullName || 'مشتری لقمه'}.`,
+              body: `سفارش #${o.orderNumber} به مبلغ ${formatToman(Number(o.totalAmountToman))} ثبت شد خریدار: ${o.customer?.fullName || 'مشتری لقمه'}.`,
               time: toRelativeTime(o.createdAt),
               read: false,
               type: 'order',
@@ -184,7 +184,7 @@ async function handleGET(request: NextRequest) {
             notifications.push({
               id: `merchant-completed-${o.id}`,
               title: 'تحویل موفقیت‌آمیز سفارش',
-              body: `سفارش #${o.orderNumber} با کد تحویل تایید و تحویل مشتری داده شد.`,
+              body: `سفارش #${o.orderNumber} با کد تحویل تایید و تحویل مشتری داده شد`,
               time: toRelativeTime(o.updatedAt),
               read: true,
               type: 'order',
@@ -206,7 +206,7 @@ async function handleGET(request: NextRequest) {
             notifications.push({
               id: `merchant-bank-${b.id}`,
               title: '✓ تأیید شماره شبا',
-              body: `حساب بانکی ${b.bankName} با شماره شبا ${b.shabaNumber} با موفقیت توسط مدیریت تأیید شد.`,
+              body: `حساب بانکی ${b.bankName} با شماره شبا ${b.shabaNumber} با موفقیت توسط مدیریت تأیید شد`,
               time: toRelativeTime(b.updatedAt),
               read: false,
               type: 'system',
@@ -275,7 +275,7 @@ async function handleGET(request: NextRequest) {
             notifications.push({
               id: `cust-order-${o.id}`,
               title: 'سفارش شما تایید شد',
-              body: `سفارش #${o.orderNumber} در «${o.merchant.businessNameFa}» ثبت گردید. آماده تحویل در بازه تعیین‌شده.`,
+              body: `سفارش #${o.orderNumber} در «${o.merchant.businessNameFa}» ثبت گردید (آماده تحویل در بازه تعیین‌شده)`,
               time: toRelativeTime(o.createdAt),
               read: false,
               type: 'order',
@@ -286,7 +286,7 @@ async function handleGET(request: NextRequest) {
             notifications.push({
               id: `cust-completed-${o.id}`,
               title: 'سفارش تحویل داده شد',
-              body: `از خرید شما از «${o.merchant.businessNameFa}» سپاسگزاریم! نوش جان.`,
+              body: `از خرید شما از «${o.merchant.businessNameFa}» سپاسگزاریم، نوش جان`,
               time: toRelativeTime(o.updatedAt),
               read: true,
               type: 'order',
@@ -301,7 +301,7 @@ async function handleGET(request: NextRequest) {
       notifications.push({
         id: 'cust-deals-today',
         title: 'بسته‌های شگفت‌انگیز محله شما',
-        body: 'فروشگاه‌های اطراف شما بسته‌های مازاد تازه را با تخفیف ۵۰٪ آماده سفارش دارند.',
+        body: 'فروشگاه‌های اطراف شما بسته‌های مازاد تازه را با تخفیف ۵۰٪ آماده سفارش دارند',
         time: 'امروز',
         read: false,
         type: 'discount',

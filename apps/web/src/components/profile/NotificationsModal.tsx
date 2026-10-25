@@ -4,7 +4,6 @@ import { RippleButton } from "@/components/magicui/ripple-button";
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
-import { Spinner } from "@/components/ui/Spinner";
 import {
   Bell,
   CheckCheck,
@@ -28,40 +27,24 @@ export interface NotificationItem {
   createdAt?: string;
 }
 
-const STORAGE_KEY = "loqme-read-notifications-v2";
+const STORAGE_KEY = "loqme-user-notifications-v1";
 
-function getReadIds(): string[] {
+function getSavedNotifications(): NotificationItem[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.filter(
+          (n: NotificationItem) =>
+            n && !["notif-1", "notif-2", "notif-3"].includes(n.id)
+        );
+      }
     }
   } catch {
     // ignore
   }
   return [];
-}
-
-function saveReadId(id: string) {
-  try {
-    const current = getReadIds();
-    if (!current.includes(id)) {
-      current.push(id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
-    }
-  } catch {
-    // ignore
-  }
-}
-
-function saveAllReadIds(ids: string[]) {
-  try {
-    const current = new Set([...getReadIds(), ...ids]);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(current)));
-  } catch {
-    // ignore
-  }
 }
 
 export function NotificationsModal({
@@ -75,36 +58,62 @@ export function NotificationsModal({
   onUnreadCountChange?: (count: number) => void;
   role?: string;
 }) {
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(getSavedNotifications);
   const [filter, setFilter] = useState<"all" | "order" | "discount" | "system">("all");
 
+  const updateNotifications = useCallback(
+    (newList: NotificationItem[]) => {
+      setNotifications(newList);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newList));
+      } catch {
+        // ignore
+      }
+      const unread = newList.filter((n) => !n.read).length;
+      onUnreadCountChange?.(unread);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("loqme:notifications-count", { detail: unread })
+        );
+      }
+    },
+    [onUnreadCountChange]
+  );
+
   const fetchNotifications = useCallback(async () => {
+    if (typeof fetch !== "function") return;
     try {
-      setIsLoading(true);
       const res = await fetch("/api/notifications");
       if (res.ok) {
         const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          const readIds = getReadIds();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const currentSaved = getSavedNotifications();
+          const readMap = new Map<string, boolean>();
+          for (const s of currentSaved) {
+            readMap.set(s.id, s.read);
+          }
           const items: NotificationItem[] = json.data.map((item: NotificationItem) => ({
             ...item,
-            read: item.read || readIds.includes(item.id),
+            read: readMap.has(item.id) ? !!readMap.get(item.id) : item.read,
           }));
 
-          setNotifications(items);
-          const unread = items.filter((n) => !n.read).length;
-          onUnreadCountChange?.(unread);
-          window.dispatchEvent(
-            new CustomEvent("loqme:notifications-count", { detail: unread })
-          );
-          return;
+          updateNotifications(items);
         }
       }
     } catch {
       // ignore
-    } finally {
-      setIsLoading(false);
+    }
+  }, [updateNotifications]);
+
+  useEffect(() => {
+    // Initialize unread count on mount
+    const initialSaved = getSavedNotifications();
+    const unread = initialSaved.filter((n) => !n.read).length;
+    onUnreadCountChange?.(unread);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("loqme:notifications-count", { detail: unread })
+      );
     }
   }, [onUnreadCountChange]);
 
@@ -118,7 +127,6 @@ export function NotificationsModal({
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  // Refetch when modal is opened to ensure fresh data
   useEffect(() => {
     if (isOpen) {
       fetchNotifications();
@@ -126,25 +134,13 @@ export function NotificationsModal({
   }, [isOpen, fetchNotifications]);
 
   const handleMarkAllRead = () => {
-    const allIds = notifications.map((n) => n.id);
-    saveAllReadIds(allIds);
     const updated = notifications.map((n) => ({ ...n, read: true }));
-    setNotifications(updated);
-    onUnreadCountChange?.(0);
-    window.dispatchEvent(
-      new CustomEvent("loqme:notifications-count", { detail: 0 })
-    );
+    updateNotifications(updated);
   };
 
   const handleItemClick = (id: string) => {
-    saveReadId(id);
     const updated = notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
-    setNotifications(updated);
-    const unread = updated.filter((n) => !n.read).length;
-    onUnreadCountChange?.(unread);
-    window.dispatchEvent(
-      new CustomEvent("loqme:notifications-count", { detail: unread })
-    );
+    updateNotifications(updated);
     onClose();
   };
 
@@ -231,18 +227,13 @@ export function NotificationsModal({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            سیستم
+            {role === "admin" ? "سیستم" : "کسب‌وکار"}
           </RippleButton>
         </div>
 
         {/* Notifications List */}
         <div className="space-y-2.5 max-h-[380px] overflow-y-auto pl-1">
-          {isLoading && notifications.length === 0 ? (
-            <div className="py-12 text-center space-y-2">
-              <Spinner size="md" variant="primary" className="mx-auto" />
-              <p className="text-xs text-slate-500">در حال دریافت اعلان‌ها…</p>
-            </div>
-          ) : filtered.length > 0 ? (
+          {filtered.length > 0 ? (
             filtered.map((item) => {
               const icon =
                 item.type === "order" ? (
@@ -322,9 +313,9 @@ export function NotificationsModal({
           ) : (
             <div className="py-10 text-center text-slate-400">
               <Bell className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-xs font-bold text-slate-600">اعلانی در این بخش وجود ندارد</p>
+              <p className="text-xs font-bold text-slate-600">اعلانی وجود ندارد</p>
               <p className="text-[11px] text-slate-400 mt-1">
-                پیام‌ها، رویدادها و هشدارهای جدید در این قسمت نمایش داده می‌شوند
+                پیام‌ها و وضعیت سفارش‌های شما اینجا نمایش داده می‌شوند
               </p>
             </div>
           )}

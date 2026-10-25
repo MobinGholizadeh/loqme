@@ -2,6 +2,12 @@ import 'dotenv/config';
 import { defineConfig } from 'vitest/config';
 import path from 'path';
 
+// Target disposable test database so integration tests and RLS suites pass cleanly without mutating developer data
+if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('_test_')) {
+  process.env.DATABASE_MIGRATION_URL = 'postgresql://postgres:postgres@localhost:5432/loqme_onboarding_test_local?schema=public';
+  process.env.DATABASE_URL = `postgresql://loqme_runtime:${process.env.DATABASE_RUNTIME_PASSWORD || 'ci-runtime-test-only-password-123456'}@localhost:5432/loqme_onboarding_test_local?schema=public`;
+}
+
 export default defineConfig({
   test: {
     globals: true,

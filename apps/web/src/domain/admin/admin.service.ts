@@ -470,14 +470,15 @@ export class AdminService {
       totalRefundsToman += storeRefunds;
       totalNetPayableToman += netPayable;
 
-      const approvedDefault = m.bankAccounts.find(
+      const bankAccounts = Array.isArray(m.bankAccounts) ? m.bankAccounts : [];
+      const approvedDefault = bankAccounts.find(
         (b) => b.status === BankAccountStatus.APPROVED && b.isDefault
       );
-      const anyApproved = m.bankAccounts.find(
+      const anyApproved = bankAccounts.find(
         (b) => b.status === BankAccountStatus.APPROVED
       );
-      const anyDefault = m.bankAccounts.find((b) => b.isDefault);
-      const chosenAccount = approvedDefault || anyApproved || anyDefault || m.bankAccounts[0] || null;
+      const anyDefault = bankAccounts.find((b) => b.isDefault);
+      const chosenAccount = approvedDefault || anyApproved || anyDefault || bankAccounts[0] || null;
 
       const shabaNumber = chosenAccount?.shabaNumber ?? null;
       const isBankVerified = chosenAccount ? chosenAccount.status === BankAccountStatus.APPROVED : false;
