@@ -1,6 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const { db, payment, pickup, inventory } = vi.hoisted(() => ({
-  db: { payment: { findUnique: vi.fn() }, refund: { findFirst: vi.fn() }, reconciliationCase: { upsert: vi.fn() }, reservation: { findUnique: vi.fn(), updateMany: vi.fn() }, order: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn() }, listing: { findUnique: vi.fn() }, customer: { update: vi.fn() }, financialTransaction: { create: vi.fn() }, $queryRaw: vi.fn(), $transaction: vi.fn() },
+  db: {
+    payment: { findUnique: vi.fn() },
+    refund: { findFirst: vi.fn() },
+    reconciliationCase: { upsert: vi.fn() },
+    reservation: { findUnique: vi.fn(), updateMany: vi.fn() },
+    order: { create: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn() },
+    listing: { findUnique: vi.fn() },
+    customer: { update: vi.fn() },
+    financialTransaction: { create: vi.fn() },
+    discount: { findUnique: vi.fn(), findMany: vi.fn().mockResolvedValue([]), update: vi.fn() },
+    discountRedemption: { count: vi.fn().mockResolvedValue(0), create: vi.fn() },
+    $queryRaw: vi.fn(),
+    $transaction: vi.fn(),
+  },
   payment: { initiateOrderPayment: vi.fn(), verifyPayment: vi.fn() }, pickup: { getOrCreateVerification: vi.fn() }, inventory: { atomicConfirmSold: vi.fn() },
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: db }));
@@ -18,6 +31,7 @@ describe('Order lifecycle boundaries', () => {
   const checkout = () => service.createOrderFromReservation({ customerId: 'customer', reservationId: 'hold', callbackUrl: 'http://localhost/callback' });
   beforeEach(() => {
     vi.resetAllMocks(); vi.useFakeTimers(); vi.setSystemTime(now); vi.spyOn(console, 'warn').mockImplementation(() => {});
+    db.discount.findMany.mockResolvedValue([]); db.discountRedemption.count.mockResolvedValue(0);
     db.reservation.findUnique.mockResolvedValue(hold()); db.reservation.updateMany.mockResolvedValue({ count: 1 });
     db.order.create.mockImplementation(async ({ data }) => ({ id: 'order', ...data })); db.order.findUnique.mockResolvedValue(order()); db.order.update.mockResolvedValue({ ...order(), status: 'READY_FOR_PICKUP' });
     db.$transaction.mockImplementation(fn => fn(db)); db.listing.findUnique.mockResolvedValue({ originalPriceToman: 200n });

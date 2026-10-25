@@ -1,4 +1,5 @@
 import { notificationService } from '@/domain/notification/notification.service';
+import { DiscountEngine } from '@/domain/discount/discount-engine';
 import { withDatabaseService } from '@/lib/db/context';
 import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
@@ -40,9 +41,10 @@ export class OrderService {
     notesFa?: string;
     callbackUrl: string;
     mobile?: string;
+    couponCode?: string;
   }): Promise<CreateOrderResult> {
     return withDatabaseService('reservation', params.reservationId, async () => {
-    const { customerId, reservationId, notesFa, callbackUrl, mobile } = params;
+    const { customerId, reservationId, notesFa, callbackUrl, mobile, couponCode } = params;
     const gateway = params.gateway ?? (process.env.NODE_ENV === 'production' ? PaymentGatewayType.ZARINPAL : PaymentGatewayType.MOCK);
     const prepared = await prisma.$transaction(async tx => {
       await tx.$queryRaw`SELECT id FROM "Reservation" WHERE id=${reservationId} FOR UPDATE`;
@@ -56,18 +58,153 @@ export class OrderService {
       if (reservation.order) return reservation.order.status === OrderStatus.PENDING_PAYMENT
         ? { order: reservation.order } : { message: 'سفارش قبلاً نهایی شده است' };
       const listing = reservation.listing;
-      const total = listing.discountedPriceToman * BigInt(reservation.quantity);
-      if (total <= BigInt(0) || total > BigInt(Number.MAX_SAFE_INTEGER)) return { message: 'مبلغ سفارش معتبر نیست' };
+      const subtotal = listing.discountedPriceToman * BigInt(reservation.quantity);
+      if (subtotal <= BigInt(0) || subtotal > BigInt(Number.MAX_SAFE_INTEGER)) return { message: 'مبلغ سفارش معتبر نیست' };
       const rate = Number(listing.merchant.commissionPercent ?? 10);
       if (!Number.isFinite(rate) || rate < 0 || rate > 100) return { message: 'کارمزد سفارش معتبر نیست' };
-      const commission = (total * BigInt(Math.round(rate * 100)) + BigInt(5000)) / BigInt(10000);
+      // Discount Evaluation
+      let appliedDiscount: any = null;
+      let discountAmountBigInt = BigInt(0);
+      const normalizedCoupon = DiscountEngine.normalizeCouponCode(couponCode);
+
+      if (normalizedCoupon) {
+        if (!tx.discount) {
+          return { message: 'سیستم تخفیف موقتاً در دسترس نیست' };
+        }
+        await tx.$queryRaw`SELECT id FROM "Discount" WHERE code = ${normalizedCoupon} FOR UPDATE`;
+        const discount = await tx.discount.findUnique({
+          where: { code: normalizedCoupon },
+        });
+        if (!discount) {
+          return { message: 'کد تخفیف وارد شده معتبر نیست' };
+        }
+        const customerUsageCount = tx.discountRedemption
+          ? await tx.discountRedemption.count({
+              where: { discountId: discount.id, customerId },
+            })
+          : 0;
+        const eligibility = DiscountEngine.checkEligibility(discount, {
+          customerId,
+          merchantId: listing.merchantId ?? listing.merchant.id,
+          listingId: listing.id,
+          categoryId: listing.categoryId,
+          subtotalToman: subtotal,
+          customerUsageCount,
+        });
+        if (!eligibility.eligible) {
+          return { message: eligibility.errorMessageFa || 'امکان اعمال کد تخفیف وجود ندارد' };
+        }
+        discountAmountBigInt = DiscountEngine.calculateDiscountAmount(discount, subtotal);
+        appliedDiscount = discount;
+      } else if (tx.discount) {
+        const now = new Date();
+        const autoCandidates = (await tx.discount.findMany({
+          where: {
+            applicationMethod: 'AUTOMATIC',
+            isActive: true,
+            startsAt: { lte: now },
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+            AND: [
+              {
+                OR: [
+                  { scope: 'PLATFORM' },
+                  { scope: 'MERCHANT', merchantId: listing.merchantId ?? listing.merchant.id },
+                  { scope: 'CATEGORY', categoryId: listing.categoryId || undefined },
+                  { scope: 'LISTING', listingId: listing.id },
+                ],
+              },
+            ],
+          },
+        })) || [];
+        let best: any = null;
+        let bestAmount = BigInt(0);
+        if (Array.isArray(autoCandidates)) {
+          for (const candidate of autoCandidates) {
+            const customerUsageCount = tx.discountRedemption
+              ? await tx.discountRedemption.count({
+                  where: { discountId: candidate.id, customerId },
+                })
+              : 0;
+            const eligibility = DiscountEngine.checkEligibility(candidate, {
+              customerId,
+              merchantId: listing.merchantId ?? listing.merchant.id,
+              listingId: listing.id,
+              categoryId: listing.categoryId,
+              subtotalToman: subtotal,
+              customerUsageCount,
+              now,
+            });
+            if (eligibility.eligible) {
+              const amount = DiscountEngine.calculateDiscountAmount(candidate, subtotal);
+              if (amount > bestAmount) {
+                bestAmount = amount;
+                best = candidate;
+              }
+            }
+          }
+        }
+        if (best && bestAmount > BigInt(0)) {
+          appliedDiscount = best;
+          discountAmountBigInt = bestAmount;
+        }
+      }
+
+      if (discountAmountBigInt > subtotal) {
+        discountAmountBigInt = subtotal;
+      }
+
+      if (subtotal - discountAmountBigInt < BigInt(1000) && subtotal >= BigInt(1000)) {
+        discountAmountBigInt = subtotal - BigInt(1000);
+      }
+
+      const totalPayable = subtotal - discountAmountBigInt;
+      const fundingSource = appliedDiscount?.fundingSource || 'PLATFORM';
+
+      let commission = BigInt(0);
+      let merchantPayout = BigInt(0);
+
+      if (fundingSource === 'MERCHANT' && discountAmountBigInt > BigInt(0)) {
+        const effectiveBase = totalPayable;
+        commission = (effectiveBase * BigInt(Math.round(rate * 100)) + BigInt(5000)) / BigInt(10000);
+        merchantPayout = effectiveBase - commission;
+      } else {
+        commission = (subtotal * BigInt(Math.round(rate * 100)) + BigInt(5000)) / BigInt(10000);
+        merchantPayout = subtotal - commission;
+      }
       const order = await tx.order.create({ data: {
         orderNumber: `LQ-${randomUUID().replaceAll('-', '').slice(0, 12).toUpperCase()}`,
         customerId, merchantId: listing.merchantId ?? listing.merchant.id, reservationId, status: OrderStatus.PENDING_PAYMENT,
-        totalAmountToman: total, commissionPercent: rate, commissionAmountToman: commission,
-        merchantPayoutAmountToman: total - commission, notesFa,
-        items: { create: { listingId: listing.id, unitPriceToman: listing.discountedPriceToman, quantity: reservation.quantity, subtotalToman: total } },
+        totalAmountToman: totalPayable,
+        commissionPercent: rate,
+        commissionAmountToman: commission,
+        merchantPayoutAmountToman: merchantPayout,
+        discountAmountToman: discountAmountBigInt,
+        discountCode: appliedDiscount?.code || null,
+        discountId: appliedDiscount?.id || null,
+        discountFundingSource: appliedDiscount?.fundingSource || null,
+        notesFa,
+        items: { create: { listingId: listing.id, unitPriceToman: listing.discountedPriceToman, quantity: reservation.quantity, subtotalToman: subtotal } },
       }, include: { items: true } });
+
+      if (appliedDiscount) {
+        if (tx.discount) {
+          await tx.discount.update({
+            where: { id: appliedDiscount.id },
+            data: { currentUses: { increment: 1 } },
+          });
+        }
+
+        if (tx.discountRedemption) {
+          await tx.discountRedemption.create({
+            data: {
+              discountId: appliedDiscount.id,
+              orderId: order.id,
+              customerId,
+              discountAmountToman: discountAmountBigInt,
+            },
+          });
+        }
+      }
       return { order };
     });
     if (!prepared.order) return { success: false, message: prepared.message };
@@ -176,6 +313,9 @@ export class OrderService {
             const difference = item.originalPriceTomanSnapshot - item.unitPriceToman;
             if (difference > BigInt(0)) savings += difference * BigInt(item.quantity);
           }
+        }
+        if (order.discountAmountToman > BigInt(0)) {
+          savings += order.discountAmountToman;
         }
         if (savings > BigInt(0)) await tx.customer.update({ where: { id: order.customerId }, data: { cumulativeSavingsToman: { increment: savings } } });
         completedNow = true;

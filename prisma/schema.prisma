@@ -144,6 +144,7 @@ enum PayoutRequestStatus {
   REJECTED
   COMPLETED
 }
+
 enum SupportChannelType {
   CUSTOMER_ADMIN
   MERCHANT_ADMIN
@@ -175,53 +176,80 @@ enum SupportAttachmentType {
   OTHER
 }
 
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
 
+enum DiscountOwnerType {
+  ADMIN
+  MERCHANT
+}
+
+enum DiscountScope {
+  PLATFORM
+  MERCHANT
+  CATEGORY
+  LISTING
+}
+
+enum DiscountApplicationMethod {
+  COUPON_CODE
+  AUTOMATIC
+}
+
+enum DiscountFundingSource {
+  PLATFORM
+  MERCHANT
+}
 
 model User {
-  id          String          @id @default(uuid())
-  mobile      String          @unique
-  role        Role            @default(CUSTOMER)
-  isActive    Boolean         @default(true)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id        String   @id @default(uuid())
+  mobile    String   @unique
+  role      Role     @default(CUSTOMER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  customer         Customer?
-  ownedStores      Merchant[]      @relation("MerchantOwner")
-  staffRoles       MerchantStaff[]
-  sessions         Session[]
-  processedRefunds Refund[]        @relation("RefundProcessor")
-  verifiedPickups  PickupVerification[] @relation("VerifiedPickups")
-  resolvedComplaints Complaint[]   @relation("ResolvedComplaints")
-  auditLogs        AuditLog[]
-  merchantApplication MerchantApplication? @relation("ApplicationApplicant")
-  reviewedApplications MerchantApplication[] @relation("ApplicationReviewer")
-  reviewedBankAccounts MerchantBankAccount[] @relation("BankAccountReviewer")
-  requestedPayouts     MerchantPayoutRequest[] @relation("PayoutRequester")
-  reviewedPayouts      MerchantPayoutRequest[] @relation("PayoutReviewer")
-  supportConversations SupportConversation[]   @relation("UserSupportConversations")
-  closedSupportConversations SupportConversation[] @relation("ClosedSupportConversations")
-  sentSupportMessages  SupportMessage[]        @relation("SentSupportMessages")
-  notifications        Notification[]
-  pushSubscriptions    PushSubscription[]
-  notificationPreference NotificationPreference?
+  customer                   Customer?
+  ownedStores                Merchant[]              @relation("MerchantOwner")
+  staffRoles                 MerchantStaff[]
+  sessions                   Session[]
+  processedRefunds           Refund[]                @relation("RefundProcessor")
+  verifiedPickups            PickupVerification[]    @relation("VerifiedPickups")
+  resolvedComplaints         Complaint[]             @relation("ResolvedComplaints")
+  auditLogs                  AuditLog[]
+  merchantApplication        MerchantApplication?    @relation("ApplicationApplicant")
+  reviewedApplications       MerchantApplication[]   @relation("ApplicationReviewer")
+  reviewedBankAccounts       MerchantBankAccount[]   @relation("BankAccountReviewer")
+  requestedPayouts           MerchantPayoutRequest[] @relation("PayoutRequester")
+  reviewedPayouts            MerchantPayoutRequest[] @relation("PayoutReviewer")
+  supportConversations       SupportConversation[]   @relation("UserSupportConversations")
+  closedSupportConversations SupportConversation[]   @relation("ClosedSupportConversations")
+  sentSupportMessages        SupportMessage[]        @relation("SentSupportMessages")
+  notifications              Notification[]
+  pushSubscriptions          PushSubscription[]
+  notificationPreference     NotificationPreference?
+  createdDiscounts           Discount[]              @relation("DiscountCreator")
 
   @@index([mobile])
 }
 
 model Customer {
-  id                     String        @id @default(uuid())
-  userId                 String        @unique
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
   fullName               String?
-  cumulativeSavingsToman BigInt        @default(0)
-  createdAt              DateTime      @default(now())
-  updatedAt              DateTime      @updatedAt
+  cumulativeSavingsToman BigInt   @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  user                   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  favorites              Favorite[]
-  reservations           Reservation[]
-  orders                 Order[]
-  reviews                Review[]
-  complaints             Complaint[]
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites           Favorite[]
+  reservations        Reservation[]
+  orders              Order[]
+  reviews             Review[]
+  complaints          Complaint[]
+  discountRedemptions DiscountRedemption[]
 }
 
 model Merchant {
@@ -238,20 +266,21 @@ model Merchant {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  owner              User               @relation("MerchantOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
-  staff              MerchantStaff[]
-  locations          MerchantLocation[]
-  listings           Listing[]
-  favorites          Favorite[]
-  orders             Order[]
-  reviews            Review[]
-  complaints         Complaint[]
+  owner      User               @relation("MerchantOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  staff      MerchantStaff[]
+  locations  MerchantLocation[]
+  listings   Listing[]
+  favorites  Favorite[]
+  orders     Order[]
+  reviews    Review[]
+  complaints Complaint[]
 
-  application        MerchantApplication?
-  mapirPlaceId       String?            @unique
-  bankAccounts       MerchantBankAccount[]
-  payoutRequests     MerchantPayoutRequest[]
+  application          MerchantApplication?
+  mapirPlaceId         String?                 @unique
+  bankAccounts         MerchantBankAccount[]
+  payoutRequests       MerchantPayoutRequest[]
   supportConversations SupportConversation[]   @relation("MerchantSupportConversations")
+  discounts            Discount[]
 
   @@index([ownerUserId])
 }
@@ -264,16 +293,16 @@ model MerchantStaff {
   canScanPickup Boolean   @default(true)
   createdAt     DateTime  @default(now())
 
-  merchant      Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  merchant        Merchant             @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   verifiedPickups PickupVerification[] @relation("StaffVerifiedPickups")
 
   @@unique([merchantId, userId])
 }
 
 model MerchantApplication {
-  id             String @id @default(uuid())
-  applicantId    String @unique
+  id             String                    @id @default(uuid())
+  applicantId    String                    @unique
   ownerName      String
   businessNameFa String
   businessType   BusinessType
@@ -286,18 +315,18 @@ model MerchantApplication {
   mapirPlaceId   String?
   hours          Json
   status         MerchantApplicationStatus @default(PENDING)
-  revision       Int @default(1)
+  revision       Int                       @default(1)
   reviewReason   String?
   reviewedById   String?
   reviewedAt     DateTime?
-  merchantId     String? @unique
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  merchantId     String?                   @unique
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
 
-  applicant User @relation("ApplicationApplicant", fields: [applicantId], references: [id], onDelete: Restrict)
-  reviewer User? @relation("ApplicationReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
-  city City @relation(fields: [cityId], references: [id], onDelete: Restrict)
-  merchant Merchant? @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  applicant User      @relation("ApplicationApplicant", fields: [applicantId], references: [id], onDelete: Restrict)
+  reviewer  User?     @relation("ApplicationReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  city      City      @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  merchant  Merchant? @relation(fields: [merchantId], references: [id], onDelete: Restrict)
 
   @@index([status, createdAt])
   @@index([mapirPlaceId])
@@ -312,29 +341,29 @@ model Province {
 }
 
 model City {
-  id                String             @id @default(uuid())
-  provinceId        String
-  nameFa            String
-  slug              String
-  createdAt         DateTime           @default(now())
+  id         String   @id @default(uuid())
+  provinceId String
+  nameFa     String
+  slug       String
+  createdAt  DateTime @default(now())
 
   province          Province           @relation(fields: [provinceId], references: [id], onDelete: Cascade)
   neighborhoods     Neighborhood[]
   merchantLocations MerchantLocation[]
 
-  applications      MerchantApplication[]
+  applications MerchantApplication[]
 
   @@unique([provinceId, slug])
 }
 
 model Neighborhood {
-  id                String             @id @default(uuid())
-  cityId            String
-  nameFa            String
-  slug              String
-  centerLat         Float
-  centerLng         Float
-  createdAt         DateTime           @default(now())
+  id        String   @id @default(uuid())
+  cityId    String
+  nameFa    String
+  slug      String
+  centerLat Float
+  centerLng Float
+  createdAt DateTime @default(now())
 
   city              City               @relation(fields: [cityId], references: [id], onDelete: Cascade)
   merchantLocations MerchantLocation[]
@@ -356,11 +385,11 @@ model MerchantLocation {
   createdAt      DateTime                               @default(now())
   updatedAt      DateTime                               @updatedAt
 
-  merchant       Merchant                               @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  city           City                                   @relation(fields: [cityId], references: [id], onDelete: Restrict)
-  neighborhood   Neighborhood?                          @relation(fields: [neighborhoodId], references: [id], onDelete: SetNull)
-  hours          MerchantHours[]
-  listings       Listing[]
+  merchant     Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  city         City            @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  neighborhood Neighborhood?   @relation(fields: [neighborhoodId], references: [id], onDelete: SetNull)
+  hours        MerchantHours[]
+  listings     Listing[]
 
   @@index([merchantId])
   @@index([cityId])
@@ -368,40 +397,41 @@ model MerchantLocation {
 }
 
 model MerchantHours {
-  id                 String           @id @default(uuid())
+  id                 String  @id @default(uuid())
   merchantLocationId String
-  dayOfWeek          Int              // 0 = Saturday, 1 = Sunday, ..., 6 = Friday
-  isOpen             Boolean          @default(true)
-  storeOpenTime      String           // e.g. "08:00"
-  storeCloseTime     String           // e.g. "22:00"
-  defaultPickupStart String?          // Unset until the merchant configures pickup
+  dayOfWeek          Int // 0 = Saturday, 1 = Sunday, ..., 6 = Friday
+  isOpen             Boolean @default(true)
+  storeOpenTime      String // e.g. "08:00"
+  storeCloseTime     String // e.g. "22:00"
+  defaultPickupStart String? // Unset until the merchant configures pickup
   defaultPickupEnd   String?
 
-  location           MerchantLocation @relation(fields: [merchantLocationId], references: [id], onDelete: Cascade)
+  location MerchantLocation @relation(fields: [merchantLocationId], references: [id], onDelete: Cascade)
 
   @@unique([merchantLocationId, dayOfWeek])
 }
 
 model Category {
-  id        String     @id @default(uuid())
-  slug      String     @unique
+  id        String   @id @default(uuid())
+  slug      String   @unique
   nameFa    String
   iconUrl   String?
   parentId  String?
-  createdAt DateTime   @default(now())
+  createdAt DateTime @default(now())
 
   parent    Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   children  Category[] @relation("CategoryHierarchy")
   listings  Listing[]
+  discounts Discount[]
 }
 
 model Listing {
-  revision             Int                 @default(1)
-  id                   String              @id @default(uuid())
+  revision             Int           @default(1)
+  id                   String        @id @default(uuid())
   merchantId           String
   merchantLocationId   String?
   categoryId           String
-  type                 ListingType         @default(SURPRISE_BAG)
+  type                 ListingType   @default(SURPRISE_BAG)
   titleFa              String
   descriptionFa        String?
   originalPriceToman   BigInt
@@ -409,19 +439,20 @@ model Listing {
   pickupDate           DateTime
   pickupStart          DateTime
   pickupEnd            DateTime
-  status               ListingStatus       @default(DRAFT)
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
+  status               ListingStatus @default(DRAFT)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 
-  merchant             Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  location             MerchantLocation?   @relation(fields: [merchantLocationId], references: [id], onDelete: SetNull)
-  category             Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  images               ListingImage[]
-  inventory            ListingInventory?
-  safety               ListingSafety?
-  attributes           ListingAttributes[]
-  reservations         Reservation[]
-  orderItems           OrderItem[]
+  merchant     Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  location     MerchantLocation?   @relation(fields: [merchantLocationId], references: [id], onDelete: SetNull)
+  category     Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  images       ListingImage[]
+  inventory    ListingInventory?
+  safety       ListingSafety?
+  attributes   ListingAttributes[]
+  reservations Reservation[]
+  orderItems   OrderItem[]
+  discounts    Discount[]
 
   @@index([merchantId])
   @@index([categoryId])
@@ -438,7 +469,7 @@ model ListingImage {
   isPrimary    Boolean  @default(false)
   createdAt    DateTime @default(now())
 
-  listing      Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@index([listingId])
 }
@@ -453,7 +484,7 @@ model ListingInventory {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  listing          Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 }
 
 model ListingSafety {
@@ -462,21 +493,21 @@ model ListingSafety {
   safetyStatus           SafetyStatus           @default(APPROVED)
   allergens              String[]
   dietaryTags            String[]
-  storageInstructionsFa String?
+  storageInstructionsFa  String?
   temperatureRequirement TemperatureRequirement @default(ROOM_TEMP)
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
 
-  listing                Listing                @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 }
 
 model ListingAttributes {
-  id        String   @id @default(uuid())
+  id        String @id @default(uuid())
   listingId String
   key       String
   valueJson Json
 
-  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@index([listingId])
 }
@@ -490,7 +521,7 @@ model Session {
   userAgent String?
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
@@ -515,8 +546,8 @@ model Favorite {
   merchantId String
   createdAt  DateTime @default(now())
 
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
   @@unique([customerId, merchantId])
   @@index([customerId])
@@ -533,9 +564,9 @@ model Reservation {
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
 
-  listing    Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  customer   Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  order      Order?
+  listing  Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  order    Order?
 
   @@index([listingId])
   @@index([customerId])
@@ -546,33 +577,39 @@ model Reservation {
 model Order {
   merchantLocationId        String?
   pickupAddressFa           String?
-  acceptedPaymentId         String?                @unique
+  acceptedPaymentId         String?     @unique
   paidAt                    DateTime?
-  id                        String                 @id @default(uuid())
-  orderNumber               String                 @unique // e.g. "LQ-10492"
+  id                        String      @id @default(uuid())
+  orderNumber               String      @unique // e.g. "LQ-10492"
   customerId                String
   merchantId                String
-  reservationId             String?                @unique
-  status                    OrderStatus            @default(PENDING_PAYMENT)
+  reservationId             String?     @unique
+  status                    OrderStatus @default(PENDING_PAYMENT)
   totalAmountToman          BigInt
-  commissionPercent         Decimal                @default(10.0) @db.Decimal(5, 2)
-  commissionAmountToman     BigInt                 @default(0)
-  merchantPayoutAmountToman BigInt                 @default(0)
+  commissionPercent         Decimal     @default(10.0) @db.Decimal(5, 2)
+  commissionAmountToman     BigInt      @default(0)
+  merchantPayoutAmountToman BigInt      @default(0)
   notesFa                   String?
-  createdAt                 DateTime               @default(now())
-  updatedAt                 DateTime               @updatedAt
+  createdAt                 DateTime    @default(now())
+  updatedAt                 DateTime    @updatedAt
 
-  customer                  Customer               @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  merchant                  Merchant               @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  reservation               Reservation?           @relation(fields: [reservationId], references: [id], onDelete: SetNull)
-  items                     OrderItem[]
-  payments                  Payment[]
-  paymentAttempts           PaymentAttempt[]
-  financialTransactions     FinancialTransaction[]
-  refunds                   Refund[]
-  pickupVerification        PickupVerification?
-  review                    Review?
-  complaints                Complaint[]
+  customer              Customer               @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  merchant              Merchant               @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  reservation           Reservation?           @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  items                 OrderItem[]
+  payments              Payment[]
+  paymentAttempts       PaymentAttempt[]
+  financialTransactions FinancialTransaction[]
+  refunds               Refund[]
+  pickupVerification    PickupVerification?
+  review                Review?
+  complaints            Complaint[]
+  discountAmountToman   BigInt                 @default(0)
+  discountCode          String?
+  discountId            String?
+  discountFundingSource DiscountFundingSource?
+  discount              Discount?              @relation(fields: [discountId], references: [id], onDelete: SetNull)
+  discountRedemptions   DiscountRedemption[]
 
   @@index([customerId])
   @@index([merchantId])
@@ -583,25 +620,25 @@ model Order {
 }
 
 model OrderItem {
-  termsSnapshot            Json?
-  titleFaSnapshot          String?
-  categoryIdSnapshot       String?
-  categoryNameFaSnapshot   String?
+  termsSnapshot              Json?
+  titleFaSnapshot            String?
+  categoryIdSnapshot         String?
+  categoryNameFaSnapshot     String?
   originalPriceTomanSnapshot BigInt?
-  pickupStartSnapshot      DateTime?
-  pickupEndSnapshot        DateTime?
-  listingRevisionSnapshot  Int?
-  snapshotCapturedAt       DateTime?
-  id             String   @id @default(uuid())
-  orderId        String
-  listingId      String
-  unitPriceToman BigInt
-  quantity       Int      @default(1)
-  subtotalToman  BigInt
-  createdAt      DateTime @default(now())
+  pickupStartSnapshot        DateTime?
+  pickupEndSnapshot          DateTime?
+  listingRevisionSnapshot    Int?
+  snapshotCapturedAt         DateTime?
+  id                         String    @id @default(uuid())
+  orderId                    String
+  listingId                  String
+  unitPriceToman             BigInt
+  quantity                   Int       @default(1)
+  subtotalToman              BigInt
+  createdAt                  DateTime  @default(now())
 
-  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  listing        Listing  @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
   @@index([listingId])
@@ -621,9 +658,9 @@ model Payment {
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
 
-  order        Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  events       PaymentEvent[]
-  refunds      Refund[]
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  events  PaymentEvent[]
+  refunds Refund[]
 
   @@index([orderId])
   @@index([status])
@@ -634,12 +671,12 @@ model Payment {
 model PaymentEvent {
   id          String   @id @default(uuid())
   paymentId   String
-  eventType   String   // e.g. "INITIATED", "CALLBACK_RECEIVED", "VERIFIED", "FAILED"
+  eventType   String // e.g. "INITIATED", "CALLBACK_RECEIVED", "VERIFIED", "FAILED"
   payloadJson Json?
   ipAddress   String?
   createdAt   DateTime @default(now())
 
-  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
   @@index([paymentId])
   @@index([createdAt])
@@ -650,13 +687,13 @@ model FinancialTransaction {
   id              String                   @id @default(uuid())
   orderId         String?
   type            FinancialTransactionType
-  debitAccount    String                   // e.g. "CUSTOMER_PAYMENT", "PLATFORM_CASH"
-  creditAccount   String                   // e.g. "MERCHANT_PAYABLE", "PLATFORM_COMMISSION"
+  debitAccount    String // e.g. "CUSTOMER_PAYMENT", "PLATFORM_CASH"
+  creditAccount   String // e.g. "MERCHANT_PAYABLE", "PLATFORM_COMMISSION"
   amountToman     BigInt
   referenceNumber String?
   createdAt       DateTime                 @default(now())
 
-  order           Order?                   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
   @@index([type])
@@ -675,10 +712,10 @@ model Refund {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
-  payment           Payment      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
-  order             Order        @relation(fields: [orderId], references: [id], onDelete: Restrict)
-  processedBy       User?        @relation("RefundProcessor", fields: [processedByUserId], references: [id], onDelete: SetNull)
-  complaint         Complaint?
+  payment     Payment    @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  order       Order      @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  processedBy User?      @relation("RefundProcessor", fields: [processedByUserId], references: [id], onDelete: SetNull)
+  complaint   Complaint?
 
   @@index([paymentId])
   @@index([orderId])
@@ -687,23 +724,23 @@ model Refund {
 }
 
 model PickupVerification {
-  id                String         @id @default(uuid())
-  orderId           String         @unique
+  id                String    @id @default(uuid())
+  orderId           String    @unique
   qrCodeHash        String?
-  otpCode           String         // 4-digit numeric code e.g. "8491"
-  isVerified        Boolean        @default(false)
+  otpCode           String // 4-digit numeric code e.g. "8491"
+  isVerified        Boolean   @default(false)
   verifiedAt        DateTime?
   verifiedByUserId  String?
   verifiedByStaffId String?
-  attemptCount      Int            @default(0)
+  attemptCount      Int       @default(0)
   lockedUntil       DateTime?
   reminderSentAt    DateTime?
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  order             Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  verifiedByUser    User?          @relation("VerifiedPickups", fields: [verifiedByUserId], references: [id], onDelete: SetNull)
-  verifiedByStaff   MerchantStaff? @relation("StaffVerifiedPickups", fields: [verifiedByStaffId], references: [id], onDelete: SetNull)
+  order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  verifiedByUser  User?          @relation("VerifiedPickups", fields: [verifiedByUserId], references: [id], onDelete: SetNull)
+  verifiedByStaff MerchantStaff? @relation("StaffVerifiedPickups", fields: [verifiedByStaffId], references: [id], onDelete: SetNull)
 
   @@index([otpCode, isVerified])
   @@index([orderId])
@@ -711,25 +748,25 @@ model PickupVerification {
 }
 
 model Review {
-  id              String    @id @default(uuid())
-  orderId         String    @unique
-  customerId      String
-  merchantId      String
-  overallRating   Int       // 1-5
-  qualityRating   Int?      // 1-5; omitted legacy scores remain unknown
-  valueRating     Int?      // Historical value-for-money scores
+  id               String    @id @default(uuid())
+  orderId          String    @unique
+  customerId       String
+  merchantId       String
+  overallRating    Int // 1-5
+  qualityRating    Int? // 1-5; omitted legacy scores remain unknown
+  valueRating      Int? // Historical value-for-money scores
   collectionRating Int?
   varietyRating    Int?
   quantityRating   Int?
-  commentFa       String?
-  merchantReplyFa String?
-  merchantReplyAt DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  commentFa        String?
+  merchantReplyFa  String?
+  merchantReplyAt  DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  merchant        Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
   @@index([merchantId])
   @@index([customerId])
@@ -743,7 +780,7 @@ model Complaint {
   merchantId       String
   category         ComplaintCategory
   descriptionFa    String
-  evidencePhotos   String[]          // URLs / file paths
+  evidencePhotos   String[] // URLs / file paths
   status           ComplaintStatus   @default(PENDING)
   adminNotesFa     String?
   resolvedByUserId String?
@@ -752,11 +789,11 @@ model Complaint {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
-  order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  customer         Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  merchant         Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  resolvedByUser   User?             @relation("ResolvedComplaints", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
-  refund           Refund?           @relation(fields: [refundId], references: [id], onDelete: SetNull)
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customer       Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  merchant       Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  resolvedByUser User?    @relation("ResolvedComplaints", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
+  refund         Refund?  @relation(fields: [refundId], references: [id], onDelete: SetNull)
 
   @@index([merchantId])
   @@index([customerId])
@@ -769,8 +806,8 @@ model AuditLog {
   merchantId  String?
   sourceKind  String?
   id          String   @id @default(uuid())
-  action      String   // e.g. "SAFETY_OVERRIDE", "COMPLAINT_RESOLVED", "MERCHANT_RESTRICTED"
-  entityType  String   // e.g. "ListingSafety", "Complaint", "Merchant", "Order"
+  action      String // e.g. "SAFETY_OVERRIDE", "COMPLAINT_RESOLVED", "MERCHANT_RESTRICTED"
+  entityType  String // e.g. "ListingSafety", "Complaint", "Merchant", "Order"
   entityId    String
   actorId     String?
   actorRole   Role?
@@ -778,7 +815,7 @@ model AuditLog {
   ipAddress   String?
   createdAt   DateTime @default(now())
 
-  actor       User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([entityType, entityId])
   @@index([actorId])
@@ -799,57 +836,61 @@ model ListingRevision {
   sourceKind String   @default("MARKETPLACE")
   snapshot   Json
   recordedAt DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+
   @@unique([listingId, revision])
   @@index([merchantId, recordedAt])
 }
 
 model ListingInventoryMovement {
-  id               String   @id @default(dbgenerated("(gen_random_uuid())::text"))
-  listingId        String
-  merchantId       String
-  locationId       String?
-  inventoryVersion Int
-  kind             String
-  deltaTotal       Int
-  deltaReserved    Int
-  deltaSold        Int
-  resultingTotal   Int
+  id                String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  listingId         String
+  merchantId        String
+  locationId        String?
+  inventoryVersion  Int
+  kind              String
+  deltaTotal        Int
+  deltaReserved     Int
+  deltaSold         Int
+  resultingTotal    Int
   resultingReserved Int
-  resultingSold    Int
-  actorId          String?
-  reasonCode       String?
-  sourceKind       String   @default("MARKETPLACE")
-  recordedAt       DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+  resultingSold     Int
+  actorId           String?
+  reasonCode        String?
+  sourceKind        String   @default("MARKETPLACE")
+  recordedAt        DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+
   @@unique([listingId, inventoryVersion])
   @@index([merchantId, recordedAt])
 }
 
 model PaymentAttempt {
-  id          String   @id @default(uuid())
-  orderId     String
-  gateway     PaymentGatewayType
-  state       String   @default("SUBMITTING")
-  authority   String?  @unique
-  paymentUrl  String?
-  safeCode    String?
-  createdAt   DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
-  updatedAt   DateTime @updatedAt
-  order       Order @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id         String             @id @default(uuid())
+  orderId    String
+  gateway    PaymentGatewayType
+  state      String             @default("SUBMITTING")
+  authority  String?            @unique
+  paymentUrl String?
+  safeCode   String?
+  createdAt  DateTime           @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+  updatedAt  DateTime           @updatedAt
+  order      Order              @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
   @@index([orderId, createdAt])
 }
 
 model ReconciliationCase {
-  id          String   @id @default(uuid())
-  merchantId  String
-  orderId     String
-  paymentId   String?
-  caseKey     String   @unique
-  reason      String
-  status      String   @default("OPEN")
-  resolution  String?
-  resolvedBy  String?
-  createdAt   DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
-  resolvedAt  DateTime?
+  id         String    @id @default(uuid())
+  merchantId String
+  orderId    String
+  paymentId  String?
+  caseKey    String    @unique
+  reason     String
+  status     String    @default("OPEN")
+  resolution String?
+  resolvedBy String?
+  createdAt  DateTime  @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"))
+  resolvedAt DateTime?
+
   @@index([merchantId, status, createdAt])
 }
 
@@ -869,9 +910,9 @@ model MerchantBankAccount {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  merchant        Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  reviewer        User?             @relation("BankAccountReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
-  payoutRequests  MerchantPayoutRequest[]
+  merchant       Merchant                @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  reviewer       User?                   @relation("BankAccountReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  payoutRequests MerchantPayoutRequest[]
 
   @@index([merchantId])
   @@index([status])
@@ -894,10 +935,10 @@ model MerchantPayoutRequest {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
-  merchant          Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  bankAccount       MerchantBankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
-  requestedBy       User                @relation("PayoutRequester", fields: [requestedByUserId], references: [id], onDelete: Restrict)
-  reviewer          User?               @relation("PayoutReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  merchant    Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  bankAccount MerchantBankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  requestedBy User                @relation("PayoutRequester", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+  reviewer    User?               @relation("PayoutReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
 
   @@index([merchantId])
   @@index([status])
@@ -923,10 +964,10 @@ model SupportConversation {
   createdAt           DateTime                  @default(now())
   updatedAt           DateTime                  @updatedAt
 
-  user                User?                     @relation("UserSupportConversations", fields: [userId], references: [id], onDelete: SetNull)
-  merchant            Merchant?                 @relation("MerchantSupportConversations", fields: [merchantId], references: [id], onDelete: Cascade)
-  closedBy            User?                     @relation("ClosedSupportConversations", fields: [closedByUserId], references: [id], onDelete: SetNull)
-  messages            SupportMessage[]
+  user     User?            @relation("UserSupportConversations", fields: [userId], references: [id], onDelete: SetNull)
+  merchant Merchant?        @relation("MerchantSupportConversations", fields: [merchantId], references: [id], onDelete: Cascade)
+  closedBy User?            @relation("ClosedSupportConversations", fields: [closedByUserId], references: [id], onDelete: SetNull)
+  messages SupportMessage[]
 
   @@index([channelType, status])
   @@index([userId])
@@ -948,9 +989,9 @@ model SupportMessage {
   createdAt       DateTime                 @default(now())
   updatedAt       DateTime                 @updatedAt
 
-  conversation    SupportConversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender          User                     @relation("SentSupportMessages", fields: [senderUserId], references: [id], onDelete: Restrict)
-  attachments     SupportAttachment[]
+  conversation SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User                @relation("SentSupportMessages", fields: [senderUserId], references: [id], onDelete: Restrict)
+  attachments  SupportAttachment[]
 
   @@index([conversationId, createdAt])
   @@index([conversationId, isRead])
@@ -968,30 +1009,29 @@ model SupportAttachment {
   uploadedByUserId String?
   createdAt        DateTime              @default(now())
 
-  message          SupportMessage?       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  message SupportMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([messageId])
   @@index([uploadedByUserId])
 }
 
-
 model Notification {
-  id          String   @id @default(uuid())
-  userId      String
-  role        Role     @default(CUSTOMER)
-  type        String
-  category    String   @default("system")
-  title       String
-  body        String
-  link        String?
-  dataJson    String?
-  isRead      Boolean  @default(false)
-  readAt      DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String    @id @default(uuid())
+  userId    String
+  role      Role      @default(CUSTOMER)
+  type      String
+  category  String    @default("system")
+  title     String
+  body      String
+  link      String?
+  dataJson  String?
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deliveries  NotificationDelivery[]
+  user       User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries NotificationDelivery[]
 
   @@index([userId, isRead, createdAt])
   @@index([userId, createdAt])
@@ -999,36 +1039,36 @@ model Notification {
 }
 
 model PushSubscription {
-  id          String   @id @default(uuid())
-  userId      String
-  endpoint    String   @unique
-  p256dh      String
-  auth        String
-  userAgent   String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isActive])
 }
 
 model NotificationPreference {
-  id             String   @id @default(uuid())
-  userId         String   @unique
-  inAppEnabled   Boolean  @default(true)
-  pushEnabled    Boolean  @default(true)
-  smsOrders      Boolean  @default(true)
-  smsMarketing   Boolean  @default(false)
-  notifyOrders   Boolean  @default(true)
-  notifySupport  Boolean  @default(true)
-  notifyFinance  Boolean  @default(true)
-  notifySystem   Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  inAppEnabled  Boolean  @default(true)
+  pushEnabled   Boolean  @default(true)
+  smsOrders     Boolean  @default(true)
+  smsMarketing  Boolean  @default(false)
+  notifyOrders  Boolean  @default(true)
+  notifySupport Boolean  @default(true)
+  notifyFinance Boolean  @default(true)
+  notifySystem  Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model NotificationDelivery {
@@ -1041,8 +1081,72 @@ model NotificationDelivery {
   sentAt         DateTime?
   createdAt      DateTime  @default(now())
 
-  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
 
   @@index([notificationId])
   @@index([status, createdAt])
+}
+
+model Discount {
+  id                     String                    @id @default(uuid())
+  code                   String?                   @unique
+  titleFa                String
+  descriptionFa          String?
+  ownerType              DiscountOwnerType         @default(ADMIN)
+  creatorUserId          String
+  merchantId             String?
+  discountType           DiscountType
+  discountPercent        Decimal?                  @db.Decimal(5, 2)
+  discountAmountToman    BigInt?                   @default(0)
+  maxDiscountAmountToman BigInt?
+  minOrderAmountToman    BigInt?                   @default(0)
+  applicationMethod      DiscountApplicationMethod @default(COUPON_CODE)
+  scope                  DiscountScope             @default(PLATFORM)
+  categoryId             String?
+  listingId              String?
+  startsAt               DateTime                  @default(now())
+  expiresAt              DateTime?
+  maxUses                Int?
+  maxUsesPerCustomer     Int?                      @default(1)
+  currentUses            Int                       @default(0)
+  isCombinable           Boolean                   @default(false)
+  isActive               Boolean                   @default(true)
+  fundingSource          DiscountFundingSource     @default(PLATFORM)
+  metadata               Json?
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+
+  creator     User                 @relation("DiscountCreator", fields: [creatorUserId], references: [id], onDelete: Restrict)
+  merchant    Merchant?            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  category    Category?            @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  listing     Listing?             @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  redemptions DiscountRedemption[]
+  orders      Order[]
+
+  @@index([code])
+  @@index([ownerType, merchantId])
+  @@index([isActive, startsAt, expiresAt])
+  @@index([scope, categoryId])
+  @@index([scope, listingId])
+  @@index([applicationMethod, isActive])
+  @@index([createdAt])
+}
+
+model DiscountRedemption {
+  id                  String   @id @default(uuid())
+  discountId          String
+  orderId             String
+  customerId          String
+  discountAmountToman BigInt
+  createdAt           DateTime @default(now())
+
+  discount Discount @relation(fields: [discountId], references: [id], onDelete: Restrict)
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@unique([discountId, orderId])
+  @@index([discountId, customerId])
+  @@index([customerId])
+  @@index([orderId])
+  @@index([createdAt])
 }

@@ -50,6 +50,7 @@ async function handleGET(
         isExpired: reservation.isExpired,
         listing: {
           id: listing.id,
+          merchantId: merchant.id,
           titleFa: listing.titleFa,
           storeNameFa: merchant.businessNameFa,
           addressFa: location?.addressFa,
