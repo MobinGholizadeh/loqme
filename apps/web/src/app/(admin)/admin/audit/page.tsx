@@ -141,11 +141,11 @@ export default function AdminAuditPage() {
                       onClick={() => setSelectedLog(log)}
                       className="hover:bg-loqme-primary-50/40 cursor-pointer transition-colors"
                     >
-                      <td className="p-4 font-mono text-loqme-neutral-800">
+                      <td className="p-4 text-loqme-neutral-800">
                         {getActorDisplay(log)}
                       </td>
                       <td className="p-4">{renderActionBadge(log.action)}</td>
-                      <td className="p-4 font-mono text-xs text-loqme-primary-700">
+                      <td className="p-4 text-xs text-loqme-primary-700">
                         <span className="bg-loqme-neutral-100 px-2 py-0.5 rounded text-loqme-neutral-700 ml-1">
                           {log.entityType}
                         </span>
@@ -156,7 +156,7 @@ export default function AdminAuditPage() {
                           ? JSON.stringify(log.detailsJson)
                           : String(log.detailsJson || "-")}
                       </td>
-                      <td className="p-4 text-loqme-neutral-500 font-mono text-[11px] whitespace-nowrap">
+                      <td className="p-4 text-loqme-neutral-500 text-[11px] whitespace-nowrap">
                         {toPersianDigits(
                           new Date(log.createdAt).toLocaleString("fa-IR"),
                         )}
@@ -186,7 +186,7 @@ export default function AdminAuditPage() {
                 <div key={log.id} className="p-4 space-y-3 bg-white">
                   <div className="flex items-center justify-between gap-2">
                     <div>{renderActionBadge(log.action)}</div>
-                    <span className="text-[11px] font-mono text-loqme-neutral-400">
+                    <span className="text-[11px] text-loqme-neutral-400">
                       {toPersianDigits(
                         new Date(log.createdAt).toLocaleTimeString("fa-IR"),
                       )}
@@ -199,7 +199,7 @@ export default function AdminAuditPage() {
                         size={14}
                         className="text-loqme-neutral-400 shrink-0"
                       />
-                      <span className="font-mono">{getActorDisplay(log)}</span>
+                      <span>{getActorDisplay(log)}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-loqme-neutral-600">
                       <Database
@@ -207,13 +207,13 @@ export default function AdminAuditPage() {
                         className="text-loqme-neutral-400 shrink-0"
                       />
                       <span>{log.entityType}: </span>
-                      <span className="font-mono text-loqme-primary-700">
+                      <span className="text-loqme-primary-700">
                         {log.entityId.slice(0, 12)}...
                       </span>
                     </div>
                   </div>
 
-                  <div className="bg-loqme-neutral-50 p-2.5 rounded text-[11px] font-mono text-loqme-neutral-600 truncate border border-loqme-neutral-150">
+                  <div className="bg-loqme-neutral-50 p-2.5 rounded text-[11px] text-loqme-neutral-600 truncate border border-loqme-neutral-150">
                     {typeof log.detailsJson === "object"
                       ? JSON.stringify(log.detailsJson)
                       : String(log.detailsJson || "-")}
@@ -277,7 +277,7 @@ export default function AdminAuditPage() {
                 <span className="text-loqme-neutral-500 block mb-1">
                   کاربر اقدام‌کننده:
                 </span>
-                <strong className="text-loqme-neutral-800 font-mono block">
+                <strong className="text-loqme-neutral-800 block">
                   {getActorDisplay(selectedLog)}
                 </strong>
               </div>
@@ -298,7 +298,7 @@ export default function AdminAuditPage() {
                 <span className="text-loqme-neutral-500 block mb-1">
                   زمان ثبت رویداد:
                 </span>
-                <strong className="text-loqme-neutral-800 font-mono block">
+                <strong className="text-loqme-neutral-800 block">
                   {toPersianDigits(
                     new Date(selectedLog.createdAt).toLocaleString("fa-IR"),
                   )}

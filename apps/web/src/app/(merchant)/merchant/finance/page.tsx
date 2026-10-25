@@ -218,7 +218,7 @@ function FinanceContent() {
                       حساب بانکی جهت تسویه خودکار:
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-base font-bold text-loqme-neutral-900 tracking-wider">
+                      <span className="text-base font-bold text-loqme-neutral-900 tracking-wider">
                         {finance?.shabaNumber || "حساب بانکی ثبت نشده است"}
                       </span>
                       <Badge
@@ -281,10 +281,10 @@ function FinanceContent() {
                       <tbody className="divide-y divide-loqme-neutral-100">
                         {finance.transactions.map((tx) => (
                           <tr key={tx.id} className="hover:bg-loqme-neutral-50/50">
-                            <td className="p-3 font-mono text-loqme-neutral-500">
+                            <td className="p-3 text-loqme-neutral-500 font-medium">
                               {new Date(tx.createdAt).toLocaleDateString("fa-IR")}
                             </td>
-                            <td className="p-3 font-mono font-bold text-loqme-primary-800">
+                            <td className="p-3 font-bold text-loqme-primary-800">
                               {tx.orderNumber || "-"}
                             </td>
                             <td className="p-3 text-loqme-neutral-800">

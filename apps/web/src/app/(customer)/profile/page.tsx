@@ -213,7 +213,7 @@ export default function ProfilePage() {
               </div>
               <p
                 dir="ltr"
-                className="text-sm font-medium text-slate-500 tracking-wider font-mono text-right inline-block"
+                className="text-sm font-medium text-slate-500 tracking-wider text-right inline-block"
               >
                 {toPersianDigits(user.mobile)}
               </p>

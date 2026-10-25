@@ -30,6 +30,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { LoqmeLogo } from "@/components/ui/LoqmeLogo";
+import { NotificationsModal } from "@/components/profile/NotificationsModal";
 import { Modal } from "@/components/ui/Modal";
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { toPersianDigits, formatToman } from "@/lib/utils/persian";
@@ -86,6 +87,19 @@ export function PortalShell({
   const [contexts, setContexts] = useState<Array<{ id: string; nameFa: string; role: string }>>([]);
   const [activeMerchantId, setActiveMerchantId] = useState<string>('');
   const [ordersCount, setOrdersCount] = useState<number | null>(null);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+
+  useEffect(() => {
+    const handleNotifCount = (e: Event) => {
+      const customEvent = e as CustomEvent<number>;
+      if (typeof customEvent.detail === "number") {
+        setUnreadNotifCount(customEvent.detail);
+      }
+    };
+    window.addEventListener("loqme:notifications-count", handleNotifCount);
+    return () => window.removeEventListener("loqme:notifications-count", handleNotifCount);
+  }, []);
   const [supportCount, setSupportCount] = useState<number | null>(null);
 
   // Quick Search state
@@ -206,7 +220,7 @@ export function PortalShell({
       window.removeEventListener("loqme:orders-count", handleCountEvent);
       window.removeEventListener("loqme:order-updated", handleRefresh);
     };
-  }, [fetchOrdersCount, role, pathname]);
+  }, [fetchOrdersCount, fetchSupportBadge, role, pathname]);
 
   useEffect(() => {
     if (role !== 'merchant') return;
@@ -605,11 +619,17 @@ export function PortalShell({
             {/* Notification Bell */}
             <button
               type="button"
+              onClick={() => setNotificationsOpen(true)}
               className="relative w-9 h-9 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors shadow-2xs"
-              title="اعلان‌ها"
+              title="اعلان‌ها و پیام‌ها"
+              aria-label="اعلان‌ها"
             >
               <Bell size={17} />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" />
+              {unreadNotifCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center ring-2 ring-white">
+                  {unreadNotifCount > 9 ? "+۹" : toPersianDigits(unreadNotifCount)}
+                </span>
+              )}
             </button>
 
             {/* Settings Link */}
@@ -677,6 +697,14 @@ export function PortalShell({
           <BlurFade key={pathname}>{children}</BlurFade>
         </main>
       </div>
+
+      {/* Notifications Modal */}
+      <NotificationsModal
+        isOpen={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        onUnreadCountChange={setUnreadNotifCount}
+        role={role}
+      />
 
       {/* Mobile Navigation Drawer Modal */}
       <Modal isOpen={menuOpen} onClose={() => setMenuOpen(false)} title={title}>

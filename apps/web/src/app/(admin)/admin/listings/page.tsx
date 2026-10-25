@@ -40,6 +40,49 @@ export default function AdminListingsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [selectedListing, setSelectedListing] =
     useState<AdminListingItemDto | null>(null);
+  const [isUpdatingSafety, setIsUpdatingSafety] = useState<boolean>(false);
+  const [safetyReason, setSafetyReason] = useState<string>("");
+  const [safetyModalMessage, setSafetyModalMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const handleUpdateSafetyStatus = async (newStatus: string) => {
+    if (!selectedListing) return;
+    setIsUpdatingSafety(true);
+    setSafetyModalMessage(null);
+    try {
+      const res = await fetch(`/api/admin/listings/${selectedListing.id}/safety`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          safetyStatus: newStatus,
+          reasonFa: safetyReason.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "خطا در تغییر وضعیت سلامت بسته");
+      }
+      setSelectedListing((prev) => (prev ? { ...prev, safetyStatus: newStatus } : null));
+      setListings((prev) =>
+        prev.map((item) =>
+          item.id === selectedListing.id ? { ...item, safetyStatus: newStatus } : item
+        )
+      );
+      setSafetyModalMessage({
+        type: "success",
+        text: `وضعیت ایمنی با موفقیت به «${getSafetyStatusLabel(newStatus).labelFa}» به‌روزرسانی شد`,
+      });
+    } catch (err: any) {
+      setSafetyModalMessage({
+        type: "error",
+        text: err.message || "خطا در به‌روزرسانی وضعیت ایمنی",
+      });
+    } finally {
+      setIsUpdatingSafety(false);
+    }
+  };
 
   // Categories State
   const [categories, setCategories] = useState<AdminCategoryDto[]>([]);
@@ -326,7 +369,7 @@ export default function AdminListingsPage() {
                               {formatToman(l.originalPriceToman)}
                             </del>
                           </td>
-                          <td className="p-4 font-mono font-bold text-loqme-neutral-900">
+                          <td className="p-4 font-bold text-loqme-neutral-900">
                             {toPersianDigits(l.quantity)} عدد
                           </td>
                           <td className="p-4">
@@ -394,7 +437,7 @@ export default function AdminListingsPage() {
                         <Badge variant={sf.badgeVariant} size="sm">
                           {sf.labelFa}
                         </Badge>
-                        <span className="text-xs font-mono text-loqme-neutral-600">
+                        <span className="text-xs font-medium text-loqme-neutral-600">
                           {toPersianDigits(l.quantity)} عدد موجود
                         </span>
                       </div>
@@ -456,6 +499,220 @@ export default function AdminListingsPage() {
           )}
         </div>
       )}
+
+      {/* Listing Detail & Moderation Modal */}
+      <Modal
+        isOpen={!!selectedListing}
+        onClose={() => {
+          setSelectedListing(null);
+          setSafetyReason("");
+          setSafetyModalMessage(null);
+        }}
+        title={selectedListing ? `جزئیات بسته: ${selectedListing.titleFa}` : "جزئیات بسته"}
+      >
+        {selectedListing && (
+          <div className="space-y-4 text-xs">
+            {safetyModalMessage && (
+              <div
+                className={`p-3 rounded-lg text-xs font-bold flex items-center justify-between ${
+                  safetyModalMessage.type === "success"
+                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                    : "bg-rose-50 text-rose-800 border border-rose-200"
+                }`}
+              >
+                <span>{safetyModalMessage.text}</span>
+                <button
+                  type="button"
+                  onClick={() => setSafetyModalMessage(null)}
+                  className="text-slate-500 hover:text-slate-800"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Header Summary */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    {selectedListing.titleFa}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-[#1D616A] font-bold">
+                      فروشگاه: {selectedListing.merchantNameFa}
+                    </span>
+                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-600">
+                      دسته‌بندی: {selectedListing.categoryNameFa || "عمومی"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${getListingStatusLabel(selectedListing.status).className}`}
+                  >
+                    {getListingStatusLabel(selectedListing.status).labelFa}
+                  </span>
+                  <Badge
+                    variant={getSafetyStatusLabel(selectedListing.safetyStatus).badgeVariant}
+                    size="sm"
+                  >
+                    {getSafetyStatusLabel(selectedListing.safetyStatus).labelFa}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial and Inventory Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 rounded-lg border border-slate-200 bg-white">
+                <span className="text-[11px] text-slate-500 block mb-1">
+                  قیمت فروش با تخفیف:
+                </span>
+                <strong className="text-sm font-black text-emerald-700 block">
+                  {formatToman(selectedListing.discountedPriceToman)}
+                </strong>
+              </div>
+
+              <div className="p-3 rounded-lg border border-slate-200 bg-white">
+                <span className="text-[11px] text-slate-500 block mb-1">
+                  قیمت اصلی قبل تخفیف:
+                </span>
+                <span className="text-xs font-medium text-slate-500 line-through block">
+                  {formatToman(selectedListing.originalPriceToman)}
+                </span>
+              </div>
+
+              <div className="p-3 rounded-lg border border-slate-200 bg-white">
+                <span className="text-[11px] text-slate-500 block mb-1">
+                  درصد تخفیف اعمالی:
+                </span>
+                <strong className="text-xs font-black text-rose-600 block">
+                  {toPersianDigits(
+                    Math.max(
+                      0,
+                      Math.round(
+                        ((selectedListing.originalPriceToman -
+                          selectedListing.discountedPriceToman) /
+                          Math.max(1, selectedListing.originalPriceToman)) *
+                          100
+                      )
+                    )
+                  )}
+                  ٪ تخفیف
+                </strong>
+              </div>
+
+              <div className="p-3 rounded-lg border border-slate-200 bg-white">
+                <span className="text-[11px] text-slate-500 block mb-1">
+                  موجودی در انبار:
+                </span>
+                <strong className="text-xs font-bold text-slate-900 block">
+                  {toPersianDigits(selectedListing.quantity)} عدد موجود
+                </strong>
+              </div>
+            </div>
+
+            {/* Schedule & Metadata */}
+            <div className="p-3.5 rounded-lg border border-slate-200 bg-white space-y-2 text-slate-700">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">بازه تحویل حضوری مشتری:</span>
+                <span className="font-bold text-slate-900">
+                  {selectedListing.pickupStart && selectedListing.pickupEnd
+                    ? `${toPersianDigits(selectedListing.pickupStart)} الی ${toPersianDigits(selectedListing.pickupEnd)}`
+                    : "تنظیم نشده"}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">تاریخ ثبت بسته:</span>
+                <span className="font-medium text-slate-800">
+                  {toPersianDigits(
+                    new Date(selectedListing.createdAt).toLocaleString("fa-IR")
+                  )}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">شناسه سیستمی بسته (UUID):</span>
+                <span className="text-[11px] text-slate-600 select-all" dir="ltr">
+                  {selectedListing.id}
+                </span>
+              </div>
+            </div>
+
+            {/* Admin Moderation / Safety Override Section */}
+            <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/50 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-amber-950 text-xs flex items-center gap-1.5">
+                  <ShieldCheck size={16} className="text-amber-700" />
+                  <span>مدیریت بازرسی سلامت و ایمنی غذا</span>
+                </h4>
+                <Badge
+                  variant={getSafetyStatusLabel(selectedListing.safetyStatus).badgeVariant}
+                  size="sm"
+                >
+                  وضعیت فعلی: {getSafetyStatusLabel(selectedListing.safetyStatus).labelFa}
+                </Badge>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[11px] font-semibold text-slate-700">
+                  تغییر وضعیت ایمنی بسته:
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { key: "APPROVED", label: "تایید ایمنی و سلامت", variant: "bg-emerald-600 hover:bg-emerald-700 text-white" },
+                    { key: "PENDING_REVIEW", label: "در انتظار بازرسی مجدد", variant: "bg-amber-600 hover:bg-amber-700 text-white" },
+                    { key: "RESTRICTED", label: "محدودسازی بسته", variant: "bg-orange-600 hover:bg-orange-700 text-white" },
+                    { key: "UNSAFE", label: "غیراستاندارد / توقیف", variant: "bg-rose-600 hover:bg-rose-700 text-white" },
+                  ].map((btn) => (
+                    <button
+                      key={btn.key}
+                      type="button"
+                      disabled={isUpdatingSafety || selectedListing.safetyStatus === btn.key}
+                      onClick={() => handleUpdateSafetyStatus(btn.key)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-2xs disabled:opacity-50 ${btn.variant}`}
+                    >
+                      {selectedListing.safetyStatus === btn.key ? `✓ ${btn.label}` : btn.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                  توضیحات بازرسی و علت تصمیم (در صورت لزوم):
+                </label>
+                <input
+                  type="text"
+                  value={safetyReason}
+                  onChange={(e) => setSafetyReason(e.target.value)}
+                  placeholder="علت رد یا تایید بسته جهت ثبت در لاگ حسابرسی…"
+                  className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none focus:border-[#1D616A]"
+                />
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setSelectedListing(null);
+                  setSafetyReason("");
+                  setSafetyModalMessage(null);
+                }}
+              >
+                بستن
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Create Category Modal */}
       {isNewCategoryModalOpen && (

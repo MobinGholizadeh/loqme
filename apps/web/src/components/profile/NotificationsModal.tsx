@@ -1,10 +1,21 @@
 "use client";
 import { RippleButton } from "@/components/magicui/ripple-button";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
-import { Bell, CheckCheck, Clock3, ShoppingBag, Sparkles, Store, ExternalLink } from "lucide-react";
+import { Spinner } from "@/components/ui/Spinner";
+import {
+  Bell,
+  CheckCheck,
+  Clock3,
+  ShoppingBag,
+  Sparkles,
+  Store,
+  ExternalLink,
+  ShieldAlert,
+} from "lucide-react";
+import { toPersianDigits } from "@loqme/validation";
 
 export interface NotificationItem {
   id: string;
@@ -14,65 +25,126 @@ export interface NotificationItem {
   read: boolean;
   type: "order" | "discount" | "system";
   link?: string;
+  createdAt?: string;
 }
 
-// Until real notifications are supplied, show the empty state without invented activity.
-const DEFAULT_NOTIFICATIONS: NotificationItem[] = [];
+const STORAGE_KEY = "loqme-read-notifications-v2";
 
-const STORAGE_KEY = "loqme-user-notifications-v1";
+function getReadIds(): string[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {
+    // ignore
+  }
+  return [];
+}
+
+function saveReadId(id: string) {
+  try {
+    const current = getReadIds();
+    if (!current.includes(id)) {
+      current.push(id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function saveAllReadIds(ids: string[]) {
+  try {
+    const current = new Set([...getReadIds(), ...ids]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(current)));
+  } catch {
+    // ignore
+  }
+}
 
 export function NotificationsModal({
   isOpen,
   onClose,
   onUnreadCountChange,
+  role,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onUnreadCountChange?: (count: number) => void;
+  role?: string;
 }) {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(DEFAULT_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [filter, setFilter] = useState<"all" | "order" | "discount" | "system">("all");
 
-  useEffect(() => {
+  const fetchNotifications = useCallback(async () => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Earlier versions persisted three fabricated demo entries.
-          const actual = parsed.filter((n: NotificationItem) => n && !['notif-1', 'notif-2', 'notif-3'].includes(n.id));
-          setNotifications(actual);
-          const unread = actual.filter((n: NotificationItem) => !n.read).length;
+      setIsLoading(true);
+      const res = await fetch("/api/notifications");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const readIds = getReadIds();
+          const items: NotificationItem[] = json.data.map((item: NotificationItem) => ({
+            ...item,
+            read: item.read || readIds.includes(item.id),
+          }));
+
+          setNotifications(items);
+          const unread = items.filter((n) => !n.read).length;
           onUnreadCountChange?.(unread);
+          window.dispatchEvent(
+            new CustomEvent("loqme:notifications-count", { detail: unread })
+          );
           return;
         }
       }
     } catch {
       // ignore
+    } finally {
+      setIsLoading(false);
     }
-    const unread = DEFAULT_NOTIFICATIONS.filter((n) => !n.read).length;
-    onUnreadCountChange?.(unread);
   }, [onUnreadCountChange]);
 
-  const updateNotifications = (newList: NotificationItem[]) => {
-    setNotifications(newList);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newList));
-    } catch {
-      // ignore
+  useEffect(() => {
+    fetchNotifications();
+
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  // Refetch when modal is opened to ensure fresh data
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotifications();
     }
-    const unread = newList.filter((n) => !n.read).length;
-    onUnreadCountChange?.(unread);
-  };
+  }, [isOpen, fetchNotifications]);
 
   const handleMarkAllRead = () => {
+    const allIds = notifications.map((n) => n.id);
+    saveAllReadIds(allIds);
     const updated = notifications.map((n) => ({ ...n, read: true }));
-    updateNotifications(updated);
+    setNotifications(updated);
+    onUnreadCountChange?.(0);
+    window.dispatchEvent(
+      new CustomEvent("loqme:notifications-count", { detail: 0 })
+    );
   };
 
   const handleItemClick = (id: string) => {
+    saveReadId(id);
     const updated = notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
-    updateNotifications(updated);
+    setNotifications(updated);
+    const unread = updated.filter((n) => !n.read).length;
+    onUnreadCountChange?.(unread);
+    window.dispatchEvent(
+      new CustomEvent("loqme:notifications-count", { detail: unread })
+    );
     onClose();
   };
 
@@ -85,7 +157,13 @@ export function NotificationsModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="پیام‌ها و اعلان‌ها"
+      title={
+        role === "admin"
+          ? "رویدادها و هشدارهای مدیریت"
+          : role === "merchant"
+            ? "پیام‌ها و هشدارهای فروشگاه"
+            : "پیام‌ها و اعلان‌ها"
+      }
       className="max-w-md"
       footer={
         <div className="flex items-center justify-between w-full">
@@ -93,7 +171,7 @@ export function NotificationsModal({
             type="button"
             onClick={handleMarkAllRead}
             disabled={unreadCount === 0}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-loqme-700 hover:text-loqme-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1D616A] hover:text-[#174F56] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <CheckCheck size={16} />
             <span>علامت‌گذاری همه به عنوان خوانده‌شده</span>
@@ -120,7 +198,7 @@ export function NotificationsModal({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            همه ({notifications.length})
+            همه ({toPersianDigits(notifications.length)})
           </RippleButton>
           <RippleButton
             type="button"
@@ -153,19 +231,26 @@ export function NotificationsModal({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            کسب‌وکار
+            سیستم
           </RippleButton>
         </div>
 
         {/* Notifications List */}
         <div className="space-y-2.5 max-h-[380px] overflow-y-auto pl-1">
-          {filtered.length > 0 ? (
+          {isLoading && notifications.length === 0 ? (
+            <div className="py-12 text-center space-y-2">
+              <Spinner size="md" variant="primary" className="mx-auto" />
+              <p className="text-xs text-slate-500">در حال دریافت اعلان‌ها…</p>
+            </div>
+          ) : filtered.length > 0 ? (
             filtered.map((item) => {
               const icon =
                 item.type === "order" ? (
                   <ShoppingBag size={18} className="text-emerald-600" />
                 ) : item.type === "discount" ? (
                   <Sparkles size={18} className="text-amber-600" />
+                ) : role === "admin" ? (
+                  <ShieldAlert size={18} className="text-[#1D616A]" />
                 ) : (
                   <Store size={18} className="text-indigo-600" />
                 );
@@ -175,14 +260,16 @@ export function NotificationsModal({
                   ? "bg-emerald-50 border-emerald-100"
                   : item.type === "discount"
                     ? "bg-amber-50 border-amber-100"
-                    : "bg-indigo-50 border-indigo-100";
+                    : role === "admin"
+                      ? "bg-teal-50 border-teal-100"
+                      : "bg-indigo-50 border-indigo-100";
 
               const content = (
                 <div
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
                     item.read
                       ? "bg-white border-slate-200/80 hover:border-slate-300"
-                      : "bg-teal-50/50 border-teal-200/70 hover:border-teal-300 shadow-sm"
+                      : "bg-[#EFF7F4] border-[#BCD8D1] hover:border-[#1D616A] shadow-xs"
                   }`}
                   onClick={() => handleItemClick(item.id)}
                 >
@@ -202,20 +289,20 @@ export function NotificationsModal({
                           {item.title}
                         </h4>
                         {!item.read && (
-                          <span className="w-2 h-2 rounded-full bg-teal-600 shrink-0" />
+                          <span className="w-2 h-2 rounded-full bg-[#1D616A] shrink-0" />
                         )}
                       </div>
-                      <p className="text-[11px] text-slate-500 leading-relaxed mb-2">
+                      <p className="text-[11px] text-slate-600 leading-relaxed mb-2">
                         {item.body}
                       </p>
                       <div className="flex items-center justify-between text-[10px] text-slate-400">
-                        <span className="inline-flex items-center gap-1">
+                        <span className="inline-flex items-center gap-1 font-medium">
                           <Clock3 size={12} />
                           {item.time}
                         </span>
                         {item.link && (
-                          <span className="inline-flex items-center gap-1 text-teal-700 font-semibold hover:underline">
-                            مشاهده <ExternalLink size={10} />
+                          <span className="inline-flex items-center gap-1 text-[#1D616A] font-bold hover:underline">
+                            مشاهده و اقدام <ExternalLink size={10} />
                           </span>
                         )}
                       </div>
@@ -235,9 +322,9 @@ export function NotificationsModal({
           ) : (
             <div className="py-10 text-center text-slate-400">
               <Bell className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-xs font-bold text-slate-600">اعلانی وجود ندارد</p>
+              <p className="text-xs font-bold text-slate-600">اعلانی در این بخش وجود ندارد</p>
               <p className="text-[11px] text-slate-400 mt-1">
-                پیام‌ها و وضعیت سفارش‌های شما اینجا نمایش داده می‌شوند
+                پیام‌ها، رویدادها و هشدارهای جدید در این قسمت نمایش داده می‌شوند
               </p>
             </div>
           )}

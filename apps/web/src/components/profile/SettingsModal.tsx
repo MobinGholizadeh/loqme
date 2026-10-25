@@ -160,7 +160,7 @@ export function SettingsModal({
                 شماره همراه
               </span>
               <div className="flex items-center justify-between bg-slate-100/80 border border-slate-200/80 rounded-xl px-3 py-2 text-xs">
-                <span dir="ltr" className="font-mono text-slate-700 font-bold">
+                <span dir="ltr" className="text-slate-700 font-bold">
                   {initialUser?.mobile ? toPersianDigits(initialUser.mobile) : "—"}
                 </span>
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">

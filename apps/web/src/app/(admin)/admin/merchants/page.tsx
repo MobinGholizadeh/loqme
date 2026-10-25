@@ -280,14 +280,14 @@ export default function AdminMerchantsPage() {
                     <span className="text-loqme-neutral-900 block">
                       {m.ownerFullName || "مالک فروشگاه"}
                     </span>
-                    <span className="font-mono text-loqme-primary-700 dir-ltr text-right block">
+                    <span className="text-loqme-primary-700 dir-ltr text-right block font-medium">
                       {toPersianDigits(m.ownerMobile)}
                     </span>
                   </td>
 
                   <td
                     data-label="پروانه کسب"
-                    className="p-4 font-mono text-loqme-neutral-700"
+                    className="p-4 font-medium text-loqme-neutral-700"
                   >
                     {m.licenseNumber
                       ? toPersianDigits(m.licenseNumber)
@@ -364,7 +364,7 @@ export default function AdminMerchantsPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-loqme-neutral-500">شماره جواز کسب:</span>
-                <span className="font-mono text-loqme-primary-700 font-bold">
+                <span className="text-loqme-primary-700 font-bold">
                   {selectedMerchant.licenseNumber || "نامشخص"}
                 </span>
               </div>
@@ -393,7 +393,7 @@ export default function AdminMerchantsPage() {
                       parseFloat(toEnglishDigits(e.target.value)) || 0,
                     )
                   }
-                  className="w-28 px-3 py-2 text-center font-mono font-bold text-base bg-white border border-loqme-neutral-200 rounded-lg text-loqme-neutral-900"
+                  className="w-28 px-3 py-2 text-center font-bold text-base bg-white border border-loqme-neutral-200 rounded-lg text-loqme-neutral-900"
                 />
                 <span className="text-xs text-loqme-neutral-500">
                   درصد (پیش‌فرض مصوب پلتفرم: ۱۰.۰٪)

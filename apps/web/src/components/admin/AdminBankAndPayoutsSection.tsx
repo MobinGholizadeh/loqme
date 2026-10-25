@@ -370,15 +370,15 @@ export function AdminBankAndPayoutsSection() {
                         <strong className="font-bold text-slate-900 block">
                           {acc.merchantNameFa}
                         </strong>
-                        <span className="font-mono text-slate-500 text-[11px]">
-                          {acc.merchantOwnerMobile}
+                        <span className="text-slate-500 text-[11px]">
+                          {toPersianDigits(acc.merchantOwnerMobile)}
                         </span>
                       </td>
                       <td className="p-3.5">
                         <span className="font-bold text-slate-800 block">
                           {acc.bankName}
                         </span>
-                        <span className="font-mono text-[11px] text-slate-600" dir="ltr">
+                        <span className="text-[11px] text-slate-600 font-medium" dir="ltr">
                           {acc.shabaNumber}
                         </span>
                       </td>
@@ -412,7 +412,7 @@ export function AdminBankAndPayoutsSection() {
                           </div>
                         )}
                       </td>
-                      <td className="p-3.5 font-mono text-slate-500">
+                      <td className="p-3.5 text-slate-500">
                         {new Date(acc.createdAt).toLocaleDateString("fa-IR")}
                       </td>
                       <td className="p-3.5 text-center">
@@ -520,8 +520,8 @@ export function AdminBankAndPayoutsSection() {
                         <strong className="font-bold text-slate-900 block">
                           {p.merchantNameFa}
                         </strong>
-                        <span className="font-mono text-slate-500 text-[11px]">
-                          {p.merchantOwnerMobile}
+                        <span className="text-slate-500 text-[11px]">
+                          {toPersianDigits(p.merchantOwnerMobile)}
                         </span>
                       </td>
                       <td className="p-3.5 font-black text-slate-900 text-sm">
@@ -531,7 +531,7 @@ export function AdminBankAndPayoutsSection() {
                         <span className="font-bold text-slate-800 block">
                           {p.bankAccount.bankName} — {p.bankAccount.accountHolder}
                         </span>
-                        <span className="font-mono text-[11px] text-slate-600" dir="ltr">
+                        <span className="text-[11px] text-slate-600 font-medium" dir="ltr">
                           {p.bankAccount.shabaNumber}
                         </span>
                       </td>
@@ -563,7 +563,7 @@ export function AdminBankAndPayoutsSection() {
                       </td>
                       <td className="p-3.5">
                         {p.trackingReference ? (
-                          <span className="font-mono font-bold text-slate-800 text-xs bg-slate-100 px-2 py-0.5 rounded" dir="ltr">
+                          <span className="font-bold text-slate-800 text-xs bg-slate-100 px-2 py-0.5 rounded" dir="ltr">
                             {p.trackingReference}
                           </span>
                         ) : p.rejectionReason ? (

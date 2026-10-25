@@ -530,7 +530,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                     setOriginalPrice(Number(toEnglishDigits(e.target.value)))
                   }
                   step={1000}
-                  className="w-full px-3 py-2 text-sm font-mono font-bold border border-loqme-neutral-300 rounded-lg text-left focus:ring-2 focus:ring-loqme-primary-500"
+                  className="w-full px-3 py-2 text-sm font-bold border border-loqme-neutral-300 rounded-lg text-left focus:ring-2 focus:ring-loqme-primary-500"
                   required
                 />
                 {fieldErrors.originalPriceToman && (
@@ -562,7 +562,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                     setDiscountedPrice(Number(toEnglishDigits(e.target.value)))
                   }
                   step={1000}
-                  className="w-full px-3 py-2 text-sm font-mono font-black border-2 border-loqme-primary-500 rounded-lg text-left bg-white text-loqme-primary-800 focus:ring-2 focus:ring-loqme-primary-500"
+                  className="w-full px-3 py-2 text-sm font-black border-2 border-loqme-primary-500 rounded-lg text-left bg-white text-loqme-primary-800 focus:ring-2 focus:ring-loqme-primary-500"
                   required
                 />
                 {fieldErrors.discountedPriceToman && (
@@ -588,7 +588,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                   >
                     -
                   </RippleButton>
-                  <span className="flex-1 text-center font-mono font-black text-lg text-loqme-neutral-900">
+                  <span className="flex-1 text-center font-black text-lg text-loqme-neutral-900">
                     {toPersianDigits(quantity)}
                   </span>
                   <RippleButton
@@ -628,7 +628,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                   setPickupStart(toEnglishDigits(e.target.value))
                 }
                 placeholder="19:30"
-                className="w-full px-3 py-2 text-center font-mono text-sm font-bold border border-loqme-neutral-300 rounded-lg"
+                className="w-full px-3 py-2 text-center text-sm font-bold border border-loqme-neutral-300 rounded-lg"
                 required
               />
               {fieldErrors.pickupStart && (
@@ -652,7 +652,7 @@ export const FastListingModal: React.FC<FastListingModalProps> = ({
                 aria-invalid={fieldErrors.pickupEnd ? true : undefined}
                 onChange={(e) => setPickupEnd(toEnglishDigits(e.target.value))}
                 placeholder="21:30"
-                className="w-full px-3 py-2 text-center font-mono text-sm font-bold border border-loqme-neutral-300 rounded-lg"
+                className="w-full px-3 py-2 text-center text-sm font-bold border border-loqme-neutral-300 rounded-lg"
                 required
               />
               {fieldErrors.pickupEnd && (

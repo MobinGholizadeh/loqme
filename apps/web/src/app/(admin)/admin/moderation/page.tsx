@@ -351,7 +351,7 @@ export default function AdminModerationPage() {
                       </span>
                     )}
 
-                    <span className="text-xs text-loqme-neutral-500 font-mono">
+                    <span className="text-xs text-loqme-neutral-500 font-medium">
                       سفارش: {item.order.orderNumber}
                     </span>
                   </div>
@@ -394,7 +394,7 @@ export default function AdminModerationPage() {
                     <span className="text-loqme-neutral-500 block">
                       شاکی / مشتری:
                     </span>
-                    <span className="text-loqme-neutral-900 font-mono">
+                    <span className="text-loqme-neutral-900 font-medium">
                       {item.customer.fullName || "مشتری لقمه"} (
                       {item.customer.user.mobile})
                     </span>

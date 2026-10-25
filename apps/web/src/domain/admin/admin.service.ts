@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { VerificationStatus, ListingStatus, Role, Prisma, OrderStatus, RefundStatus } from '@prisma/client';
+import { VerificationStatus, ListingStatus, Role, Prisma, OrderStatus, RefundStatus, BankAccountStatus } from '@prisma/client';
 import { auditService } from '@/domain/moderation/audit.service';
 import {
   AdminUpdateMerchantInput,
@@ -435,6 +435,10 @@ export class AdminService {
             refunds: { where: { status: { in: [RefundStatus.APPROVED, RefundStatus.SETTLED] } } },
           },
         },
+        bankAccounts: {
+          where: { isActive: true },
+          orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
+        },
       },
     });
 
@@ -466,6 +470,18 @@ export class AdminService {
       totalRefundsToman += storeRefunds;
       totalNetPayableToman += netPayable;
 
+      const approvedDefault = m.bankAccounts.find(
+        (b) => b.status === BankAccountStatus.APPROVED && b.isDefault
+      );
+      const anyApproved = m.bankAccounts.find(
+        (b) => b.status === BankAccountStatus.APPROVED
+      );
+      const anyDefault = m.bankAccounts.find((b) => b.isDefault);
+      const chosenAccount = approvedDefault || anyApproved || anyDefault || m.bankAccounts[0] || null;
+
+      const shabaNumber = chosenAccount?.shabaNumber ?? null;
+      const isBankVerified = chosenAccount ? chosenAccount.status === BankAccountStatus.APPROVED : false;
+
       sheets.push({
         merchantId: m.id,
         businessNameFa: m.businessNameFa,
@@ -474,8 +490,8 @@ export class AdminService {
         commissionCutToman: commissionCut,
         refundsDeductedToman: storeRefunds,
         netPayableToman: netPayable,
-        shabaNumber: null,
-        isBankVerified: false,
+        shabaNumber,
+        isBankVerified,
         ordersCount: m.orders.length,
       });
     }

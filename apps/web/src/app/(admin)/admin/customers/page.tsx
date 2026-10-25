@@ -190,7 +190,7 @@ export default function AdminCustomersPage() {
                     {c.fullName || "مشتری لقمه"}
                   </td>
 
-                  <td className="p-4 font-mono text-loqme-primary-700 dir-ltr text-right">
+                  <td className="p-4 text-loqme-primary-700 dir-ltr text-right font-medium">
                     {toPersianDigits(c.mobile)}
                   </td>
 

@@ -229,7 +229,7 @@ export default function MerchantStaffPage() {
                       {getRoleBadge(member.role)}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-loqme-neutral-500 mt-1">
-                      <span className="font-mono">
+                      <span className="font-medium">
                         {toPersianDigits(member.mobile)}
                       </span>
                       <span>•</span>

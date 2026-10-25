@@ -263,31 +263,35 @@ export default function AdminFinancePage() {
                         <td className="p-3 font-bold text-loqme-neutral-900">
                           {m.businessNameFa}
                         </td>
-                        <td className="p-3 font-mono text-loqme-neutral-600">
+                        <td className="p-3 font-medium text-loqme-neutral-600">
                           {toPersianDigits(m.ordersCount)}
                         </td>
-                        <td className="p-3 font-mono text-loqme-neutral-900">
+                        <td className="p-3 font-bold text-loqme-neutral-900">
                           {formatToman(m.grossGmvToman)}
                         </td>
-                        <td className="p-3 font-mono text-loqme-neutral-600">
+                        <td className="p-3 font-medium text-loqme-neutral-600">
                           {toPersianDigits(m.commissionPercent)}٪
                         </td>
-                        <td className="p-3 font-mono text-rose-600 font-medium">
+                        <td className="p-3 text-rose-600 font-bold">
                           {formatToman(m.commissionCutToman)}
                         </td>
-                        <td className="p-3 font-mono text-rose-700">
+                        <td className="p-3 text-rose-700 font-medium">
                           {formatToman(m.refundsDeductedToman)}
                         </td>
-                        <td className="p-3 font-mono font-black text-emerald-700 text-sm">
+                        <td className="p-3 font-black text-emerald-700 text-sm">
                           {formatToman(m.netPayableToman)}
                         </td>
-                        <td className="p-3 font-mono text-[11px] text-loqme-neutral-600 dir-ltr text-right">
+                        <td className="p-3 text-[11px] text-loqme-neutral-600 dir-ltr text-right font-medium">
                           {m.shabaNumber || "ثبت نشده"}
                         </td>
                         <td className="p-3">
                           {m.shabaNumber && m.isBankVerified ? (
                             <Badge variant="success" size="sm">
-                              شبا تایید شده
+                              ✓ شبا تایید شده
+                            </Badge>
+                          ) : m.shabaNumber ? (
+                            <Badge variant="warning" size="sm">
+                              ⏳ در انتظار تایید
                             </Badge>
                           ) : (
                             <Badge variant="warning" size="sm">

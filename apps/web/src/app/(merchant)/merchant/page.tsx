@@ -928,7 +928,7 @@ export default function MerchantDashboardPage() {
                   className="w-full"
                 />
                 <div className="w-full flex items-center justify-between mt-3 px-1 text-[11px] text-slate-500">
-                  <span className="font-mono font-bold text-slate-700" dir="ltr">
+                  <span className="font-bold text-slate-700" dir="ltr">
                     {toPersianDigits(formatCardShaba(approvedAccount.shabaNumber))}
                   </span>
                   <span className="font-bold text-slate-700">

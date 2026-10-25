@@ -132,7 +132,7 @@ export const CustomerPickupPassModal: React.FC<
               <h2 className="font-black text-sm text-loqme-neutral-900">
                 کارت تحویل حضوری لقمه
               </h2>
-              <span className="text-[11px] text-loqme-neutral-500 font-mono">
+              <span className="text-[11px] text-loqme-neutral-500 font-bold">
                 {credentials?.orderNumber || "..."}
               </span>
             </div>
@@ -253,7 +253,7 @@ export const CustomerPickupPassModal: React.FC<
                   </div>
                   <span>
                     بارکد امن پویا • بروزرسانی خودکار در{" "}
-                    <span className="font-mono font-bold text-loqme-primary-800">
+                    <span className="font-bold text-loqme-primary-800">
                       {toPersianDigits(secondsRemaining)}
                     </span>{" "}
                     ثانیه
@@ -267,7 +267,7 @@ export const CustomerPickupPassModal: React.FC<
                   کد ۴ رقمی جایگزین (در صورت عدم اسکن بارکد):
                 </span>
                 <div className="flex items-center justify-center gap-3">
-                  <span className="font-mono font-black text-3xl tracking-widest text-loqme-primary-800 bg-white px-5 py-2 rounded-lg border-2 border-loqme-primary-300 shadow-xs">
+                  <span className="font-black text-3xl tracking-widest text-loqme-primary-800 bg-white px-5 py-2 rounded-lg border-2 border-loqme-primary-300 shadow-xs">
                     {credentials?.otpCodePersian || "----"}
                   </span>
                   <RippleButton

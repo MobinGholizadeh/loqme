@@ -255,7 +255,7 @@ export function MerchantWalletWithdrawalsSection({
           <Building2 size={18} className="text-[#1D616A]" />
           <span>حساب پیش‌فرض تسویه:</span>
           {wallet?.defaultBankAccount ? (
-            <span className="font-bold text-slate-900 font-mono">
+            <span className="font-bold text-slate-900">
               {wallet.defaultBankAccount.bankName} — {wallet.defaultBankAccount.shabaNumber}
             </span>
           ) : (
@@ -327,7 +327,7 @@ export function MerchantWalletWithdrawalsSection({
               <tbody className="divide-y divide-slate-100">
                 {requests.map((req) => (
                   <tr key={req.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="p-3.5 font-mono text-slate-500">
+                    <td className="p-3.5 text-slate-500 font-medium">
                       {new Date(req.createdAt).toLocaleDateString("fa-IR")}
                       <span className="block text-[10px] text-slate-400">
                         {new Date(req.createdAt).toLocaleTimeString("fa-IR", {
@@ -343,7 +343,7 @@ export function MerchantWalletWithdrawalsSection({
                       <span className="font-bold text-slate-800 block">
                         {req.bankAccount?.bankName || "بانک"}
                       </span>
-                      <span className="font-mono text-[11px] text-slate-500 tracking-wider" dir="ltr">
+                      <span className="text-[11px] text-slate-500 tracking-wider font-medium" dir="ltr">
                         {req.bankAccount?.shabaNumber || "-"}
                       </span>
                     </td>
@@ -378,7 +378,7 @@ export function MerchantWalletWithdrawalsSection({
                     </td>
                     <td className="p-3.5">
                       {req.trackingReference ? (
-                        <div className="font-mono font-bold text-slate-800 text-xs bg-slate-100 px-2.5 py-1 rounded-md inline-block" dir="ltr">
+                        <div className="font-bold text-slate-800 text-xs bg-slate-100 px-2.5 py-1 rounded-md inline-block" dir="ltr">
                           {req.trackingReference}
                         </div>
                       ) : req.rejectionReason ? (

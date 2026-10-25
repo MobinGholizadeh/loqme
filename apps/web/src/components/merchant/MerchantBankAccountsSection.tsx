@@ -354,7 +354,7 @@ export function MerchantBankAccountsSection({
                 </div>
 
                 {/* Shaba Display Box */}
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between font-mono text-xs sm:text-sm text-slate-800 tracking-wider direction-ltr" dir="ltr">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between text-xs sm:text-sm text-slate-800 tracking-wider direction-ltr" dir="ltr">
                   <span className="font-bold">{acc.shabaNumber}</span>
                   <button
                     type="button"

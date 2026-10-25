@@ -382,7 +382,7 @@ export default function MerchantListingsPage() {
                         >
                           -
                         </RippleButton>
-                        <span className="w-8 text-center font-mono font-black text-base text-loqme-neutral-900">
+                        <span className="w-8 text-center font-black text-base text-loqme-neutral-900">
                           {toPersianDigits(item.remainingQuantity)}
                         </span>
                         <RippleButton

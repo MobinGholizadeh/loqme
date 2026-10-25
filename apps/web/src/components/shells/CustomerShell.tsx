@@ -19,13 +19,25 @@ import { useSession } from "@/components/auth/SessionProvider";
 import { NotificationsModal } from "@/components/profile/NotificationsModal";
 import { SettingsModal } from "@/components/profile/SettingsModal";
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { toPersianDigits } from "@loqme/validation";
 
 export function CustomerShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(2);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const handleCount = (e: Event) => {
+      const customEvent = e as CustomEvent<number>;
+      if (typeof customEvent.detail === "number") {
+        setUnreadCount(customEvent.detail);
+      }
+    };
+    window.addEventListener("loqme:notifications-count", handleCount);
+    return () => window.removeEventListener("loqme:notifications-count", handleCount);
+  }, []);
 
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 12);
@@ -103,7 +115,9 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
             >
               <Bell size={20} />
               {unreadCount > 0 && (
-                <span className="absolute top-2 left-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
+                <span className="absolute top-1 left-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center ring-2 ring-white">
+                  {unreadCount > 9 ? "+۹" : toPersianDigits(unreadCount)}
+                </span>
               )}
               <span className="sr-only">پیام‌ها</span>
             </RippleButton>
@@ -149,6 +163,23 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
               ))}
             </nav>
             <div className="header-actions">
+              {authenticated && (
+                <RippleButton
+                  aria-label="اعلانات"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-loqme-800 hover:bg-slate-100 active:scale-95 transition-all relative shrink-0"
+                  type="button"
+                  onClick={() => setNotificationsOpen(true)}
+                  title="پیام‌ها و اعلان‌ها"
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0.5 left-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-rose-500 text-[9px] font-bold text-white flex items-center justify-center ring-2 ring-white">
+                      {unreadCount > 9 ? "+۹" : toPersianDigits(unreadCount)}
+                    </span>
+                  )}
+                  <span className="sr-only">پیام‌ها</span>
+                </RippleButton>
+              )}
               {(status === "anonymous" ||
                 (authenticated && role === "CUSTOMER")) && (
                 <Link

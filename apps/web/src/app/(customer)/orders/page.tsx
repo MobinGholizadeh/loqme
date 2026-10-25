@@ -170,7 +170,7 @@ export default function OrdersPage() {
                     <span className="text-[11px] text-loqme-neutral-500">
                       شماره سفارش:
                     </span>
-                    <span className="font-mono font-bold text-xs text-loqme-primary-800 bg-loqme-primary-50 px-2 py-0.5 rounded-lg border border-loqme-primary-200">
+                    <span className="font-bold text-xs text-loqme-primary-800 bg-loqme-primary-50 px-2 py-0.5 rounded-lg border border-loqme-primary-200">
                       {order.orderNumber}
                     </span>
                   </div>

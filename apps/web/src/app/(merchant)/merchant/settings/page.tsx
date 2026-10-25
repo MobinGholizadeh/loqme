@@ -341,7 +341,7 @@ export default function MerchantSettingsPage() {
                 <span>💡</span>
                 <span>
                   مختصات فعلی:{" "}
-                  <span className="font-mono font-bold text-loqme-primary-800">
+                  <span className="font-bold text-loqme-primary-800">
                     {latitude.toFixed(5)}, {longitude.toFixed(5)}
                   </span>{" "}
                   (شهر {settings?.primaryLocation?.cityNameFa || "ارومیه"})
@@ -441,7 +441,7 @@ export default function MerchantSettingsPage() {
                             )
                           }
                           disabled={!day.isOpen}
-                          className="w-20 px-2 py-1 text-center font-mono text-xs border border-loqme-neutral-300 rounded-lg disabled:bg-loqme-neutral-100"
+                          className="w-20 px-2 py-1 text-center text-xs border border-loqme-neutral-300 rounded-lg disabled:bg-loqme-neutral-100"
                         />
                       </td>
 
@@ -457,7 +457,7 @@ export default function MerchantSettingsPage() {
                             )
                           }
                           disabled={!day.isOpen}
-                          className="w-20 px-2 py-1 text-center font-mono text-xs border border-loqme-neutral-300 rounded-lg disabled:bg-loqme-neutral-100"
+                          className="w-20 px-2 py-1 text-center text-xs border border-loqme-neutral-300 rounded-lg disabled:bg-loqme-neutral-100"
                         />
                       </td>
 
@@ -474,7 +474,7 @@ export default function MerchantSettingsPage() {
                             )
                           }
                           disabled={!day.isOpen}
-                          className="w-20 px-2 py-1 text-center font-mono font-bold text-xs border-2 border-loqme-primary-300 rounded-lg bg-loqme-primary-50/50 disabled:bg-loqme-neutral-100"
+                          className="w-20 px-2 py-1 text-center font-bold text-xs border-2 border-loqme-primary-300 rounded-lg bg-loqme-primary-50/50 disabled:bg-loqme-neutral-100"
                         />
                       </td>
 
@@ -490,7 +490,7 @@ export default function MerchantSettingsPage() {
                             )
                           }
                           disabled={!day.isOpen}
-                          className="w-20 px-2 py-1 text-center font-mono font-bold text-xs border-2 border-loqme-primary-300 rounded-lg bg-loqme-primary-50/50 disabled:bg-loqme-neutral-100"
+                          className="w-20 px-2 py-1 text-center font-bold text-xs border-2 border-loqme-primary-300 rounded-lg bg-loqme-primary-50/50 disabled:bg-loqme-neutral-100"
                         />
                       </td>
                     </tr>

@@ -317,14 +317,14 @@ export default function MerchantOrdersPage() {
           </div>
           <p className="text-xs text-rose-800 leading-relaxed">
             سفارش شماره{" "}
-            <span className="font-mono font-bold px-1.5 py-0.5 bg-white rounded border border-rose-200">
+            <span className="font-bold px-1.5 py-0.5 bg-white rounded border border-rose-200">
               {conflictAlert.orderNumber}
             </span>{" "}
             متعلق به{" "}
             <span className="font-bold">{conflictAlert.customerNameFa}</span>{" "}
             قبلاً در تاریخ و ساعت زیر تایید و تحویل شده است:
           </p>
-          <div className="p-2 rounded-lg bg-white/80 border border-rose-200 text-xs font-mono font-bold text-rose-900 inline-block">
+          <div className="p-2 rounded-lg bg-white/80 border border-rose-200 text-xs font-bold text-rose-900 inline-block">
             {conflictAlert.verifiedAt
               ? new Date(conflictAlert.verifiedAt).toLocaleString("fa-IR")
               : "پیش‌تر ثبت گردیده است"}
@@ -358,7 +358,7 @@ export default function MerchantOrdersPage() {
             </span>
             <span>
               کد سفارش:{" "}
-              <strong className="font-mono text-emerald-900">
+              <strong className="text-emerald-900 font-bold">
                 {lastVerified.orderNumber}
               </strong>
             </span>
@@ -535,11 +535,11 @@ export default function MerchantOrdersPage() {
                       </span>
                       <bdi
                         dir="ltr"
-                        className="text-[11px] text-loqme-neutral-500 font-mono inline-block"
+                        className="text-[11px] text-loqme-neutral-500 font-medium inline-block"
                       >
                         ({toPersianDigits(item.customerMobileMasked)})
                       </bdi>
-                      <span className="font-mono text-xs font-bold text-loqme-primary-800 bg-loqme-primary-50 px-2 py-0.5 rounded-md border border-loqme-primary-200">
+                      <span className="text-xs font-bold text-loqme-primary-800 bg-loqme-primary-50 px-2 py-0.5 rounded-md border border-loqme-primary-200">
                         {item.orderNumber}
                       </span>
                       <div>{getStatusBadge(item.status)}</div>
@@ -582,7 +582,7 @@ export default function MerchantOrdersPage() {
                             setPickupCode(item.otpCode);
                             setOrderNumberInput(item.orderNumber);
                           }}
-                          className="px-3 py-1.5 rounded-lg border border-loqme-neutral-200 bg-loqme-neutral-50 hover:bg-loqme-neutral-100 text-xs font-mono font-bold text-loqme-neutral-700 transition-colors"
+                          className="px-3 py-1.5 rounded-lg border border-loqme-neutral-200 bg-loqme-neutral-50 hover:bg-loqme-neutral-100 text-xs font-bold text-loqme-neutral-700 transition-colors"
                           title="کد ۴ رقمی ثبت شده"
                         >
                           کد: {toPersianDigits(item.otpCode)}

@@ -169,7 +169,7 @@ export function ComplaintModal({
             </h3>
             <p className="text-xs text-gray-500 mt-1">
               سفارش{" "}
-              <span className="font-mono text-teal-800">{orderNumber}</span> •
+              <span className="font-bold text-teal-800">{orderNumber}</span> •
               فروشگاه {merchantName}
             </p>
           </div>
