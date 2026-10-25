@@ -235,6 +235,8 @@ jobs:
                 DOPPLER_ENV=""
               fi
             fi
+
+            if [ -n "$DOPPLER_ENV" ]; then
               # Existing PostgreSQL volumes retain their initialized credentials.
               # Keep database configuration server-owned; an app deploy is not a DB password rotation.
               if [ -f .env ]; then
