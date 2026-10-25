@@ -3,19 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { extractSessionToken, verifySessionToken } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 import { formatToman, toPersianDigits } from '@loqme/validation';
+import { notificationService } from '@/domain/notification/notification.service';
+import type { NotificationDto } from '@loqme/types';
 
 export const dynamic = 'force-dynamic';
-
-export interface NotificationItem {
-  id: string;
-  title: string;
-  body: string;
-  time: string;
-  read: boolean;
-  type: 'order' | 'discount' | 'system';
-  link?: string;
-  createdAt: string;
-}
 
 function toRelativeTime(date: Date | string): string {
   const now = Date.now();
@@ -34,119 +25,100 @@ async function handleGET(request: NextRequest) {
   try {
     const token = extractSessionToken(request);
     if (!token) {
-      return NextResponse.json({ success: true, data: [] });
+      return NextResponse.json({ success: true, data: [], unreadCount: 0 });
     }
 
     const session = await verifySessionToken(token);
     if (!session) {
-      return NextResponse.json({ success: true, data: [] });
+      return NextResponse.json({ success: true, data: [], unreadCount: 0 });
     }
 
-    const notifications: NotificationItem[] = [];
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category') || 'all';
+    const isReadParam = searchParams.get('isRead');
+    const isRead = isReadParam === 'true' ? true : isReadParam === 'false' ? false : undefined;
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '30', 10);
 
-    // =========================================================================
-    // 1. ADMIN NOTIFICATIONS
-    // =========================================================================
+    // 1. Fetch persisted notifications from Notification table
+    const result = await notificationService.getNotifications(session.userId, {
+      category,
+      isRead,
+      page,
+      limit,
+    });
+
+    if (result.total > 0) {
+      return NextResponse.json({
+        success: true,
+        data: result.notifications,
+        unreadCount: result.unreadCount,
+        unreadByCategory: result.unreadByCategory,
+        total: result.total,
+      });
+    }
+
+    // 2. Fallback initialization for existing active states if table was empty
+    const fallbackList: NotificationDto[] = [];
+
     if (session.role === 'ADMIN') {
-      // A. Pending Merchant Bank Accounts
       const pendingBankAccounts = await prisma.merchantBankAccount.findMany({
         where: { status: 'PENDING', isActive: true },
         include: { merchant: { select: { businessNameFa: true } } },
         orderBy: { createdAt: 'desc' },
-        take: 6,
+        take: 5,
       });
 
       for (const b of pendingBankAccounts) {
-        notifications.push({
+        fallbackList.push({
           id: `admin-bank-${b.id}`,
+          userId: session.userId,
+          role: 'ADMIN',
+          type: 'BANK_ACCOUNT_PENDING',
+          category: 'system',
           title: 'حساب بانکی در انتظار بررسی',
           body: `فروشگاه «${b.merchant.businessNameFa}» حساب جدید در بانک ${b.bankName} ثبت کرده است`,
           time: toRelativeTime(b.createdAt),
-          read: false,
-          type: 'system',
+          readAt: null,
+          isRead: false,
           link: '/admin/finance?tab=bank_payouts',
           createdAt: b.createdAt.toISOString(),
+          updatedAt: b.updatedAt.toISOString(),
         });
       }
 
-      // B. Pending Payout Requests
-      const pendingPayouts = await prisma.merchantPayoutRequest.findMany({
-        where: { status: 'PENDING' },
-        include: { merchant: { select: { businessNameFa: true } } },
-        orderBy: { createdAt: 'desc' },
-        take: 6,
-      });
-
-      for (const p of pendingPayouts) {
-        notifications.push({
-          id: `admin-payout-${p.id}`,
-          title: 'درخواست تسویه حساب مالی',
-          body: `درخواست تسویه به مبلغ ${formatToman(Number(p.amountToman))} برای فروشگاه «${p.merchant.businessNameFa}» ثبت شد`,
-          time: toRelativeTime(p.createdAt),
-          read: false,
-          type: 'system',
-          link: '/admin/finance?tab=bank_payouts',
-          createdAt: p.createdAt.toISOString(),
-        });
-      }
-
-      // C. Pending Merchant Registrations
       const pendingMerchants = await prisma.merchant.findMany({
         where: { verificationStatus: 'PENDING' },
-        select: { id: true, businessNameFa: true, createdAt: true },
+        select: { id: true, businessNameFa: true, createdAt: true, updatedAt: true },
         orderBy: { createdAt: 'desc' },
-        take: 6,
+        take: 5,
       });
 
       for (const m of pendingMerchants) {
-        notifications.push({
+        fallbackList.push({
           id: `admin-merchant-${m.id}`,
+          userId: session.userId,
+          role: 'ADMIN',
+          type: 'MERCHANT_PENDING',
+          category: 'system',
           title: 'فروشگاه جدید در صف تأیید مدارک',
           body: `فروشگاه «${m.businessNameFa}» ثبت‌نام نموده و در انتظار احراز هویت و بررسی پروانه است`,
           time: toRelativeTime(m.createdAt),
-          read: false,
-          type: 'system',
+          readAt: null,
+          isRead: false,
           link: '/admin/merchants',
           createdAt: m.createdAt.toISOString(),
+          updatedAt: m.updatedAt.toISOString(),
         });
       }
-
-      // D. Open Complaints
-      const pendingComplaints = await prisma.complaint.findMany({
-        where: { status: 'PENDING' },
-        include: {
-          order: { select: { orderNumber: true } },
-          merchant: { select: { businessNameFa: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 6,
-      });
-
-      for (const c of pendingComplaints) {
-        notifications.push({
-          id: `admin-complaint-${c.id}`,
-          title: 'شکایت / گزارش مشتری',
-          body: `شکایتی برای سفارش #${c.order.orderNumber} در فروشگاه «${c.merchant.businessNameFa}» ثبت شد`,
-          time: toRelativeTime(c.createdAt),
-          read: false,
-          type: 'order',
-          link: '/admin/moderation',
-          createdAt: c.createdAt.toISOString(),
-        });
-      }
-    }
-
-    // =========================================================================
-    // 2. MERCHANT OWNER / STAFF NOTIFICATIONS
-    // =========================================================================
-    if (session.role === 'MERCHANT_OWNER' || session.role === 'MERCHANT_STAFF') {
+    } else if (session.role === 'MERCHANT_OWNER' || session.role === 'MERCHANT_STAFF') {
       const owned = await prisma.merchant.findMany({
         where: { ownerUserId: session.userId },
-        select: { id: true, businessNameFa: true },
+        select: { id: true },
       });
       const staffed = await prisma.merchantStaff.findMany({
         where: { userId: session.userId },
-        select: { merchant: { select: { id: true, businessNameFa: true } } },
+        select: { merchant: { select: { id: true } } },
       });
 
       const merchantIds = Array.from(
@@ -154,178 +126,126 @@ async function handleGET(request: NextRequest) {
       );
 
       if (merchantIds.length > 0) {
-        // A. Recent Orders
         const recentOrders = await prisma.order.findMany({
           where: {
             merchantId: { in: merchantIds },
-            status: { in: ['PAID', 'READY_FOR_PICKUP', 'COMPLETED'] },
+            status: { in: ['PAID', 'READY_FOR_PICKUP'] },
           },
-          include: {
-            customer: { select: { fullName: true } },
-            merchant: { select: { businessNameFa: true } },
-          },
+          include: { customer: { select: { fullName: true } } },
           orderBy: { createdAt: 'desc' },
-          take: 8,
+          take: 5,
         });
 
         for (const o of recentOrders) {
-          if (o.status === 'READY_FOR_PICKUP' || o.status === 'PAID') {
-            notifications.push({
-              id: `merchant-order-${o.id}`,
-              title: 'سفارش جدید آماده تحویل',
-              body: `سفارش #${o.orderNumber} به مبلغ ${formatToman(Number(o.totalAmountToman))} ثبت شد خریدار: ${o.customer?.fullName || 'مشتری لقمه'}.`,
-              time: toRelativeTime(o.createdAt),
-              read: false,
-              type: 'order',
-              link: '/merchant/orders',
-              createdAt: o.createdAt.toISOString(),
-            });
-          } else if (o.status === 'COMPLETED') {
-            notifications.push({
-              id: `merchant-completed-${o.id}`,
-              title: 'تحویل موفقیت‌آمیز سفارش',
-              body: `سفارش #${o.orderNumber} با کد تحویل تایید و تحویل مشتری داده شد`,
-              time: toRelativeTime(o.updatedAt),
-              read: true,
-              type: 'order',
-              link: '/merchant/orders',
-              createdAt: o.updatedAt.toISOString(),
-            });
-          }
-        }
-
-        // B. Bank Account Updates
-        const bankAccounts = await prisma.merchantBankAccount.findMany({
-          where: { merchantId: { in: merchantIds }, isActive: true },
-          orderBy: { updatedAt: 'desc' },
-          take: 4,
-        });
-
-        for (const b of bankAccounts) {
-          if (b.status === 'APPROVED') {
-            notifications.push({
-              id: `merchant-bank-${b.id}`,
-              title: '✓ تأیید شماره شبا',
-              body: `حساب بانکی ${b.bankName} با شماره شبا ${b.shabaNumber} با موفقیت توسط مدیریت تأیید شد`,
-              time: toRelativeTime(b.updatedAt),
-              read: false,
-              type: 'system',
-              link: '/merchant/finance?tab=accounts',
-              createdAt: b.updatedAt.toISOString(),
-            });
-          } else if (b.status === 'REJECTED') {
-            notifications.push({
-              id: `merchant-bank-${b.id}`,
-              title: 'عدم تأیید شماره شبا',
-              body: `حساب بانکی ${b.shabaNumber} تأیید نشد: ${b.rejectionReason || 'عدم تطابق مشخصات فردی با حساب'}`,
-              time: toRelativeTime(b.updatedAt),
-              read: false,
-              type: 'system',
-              link: '/merchant/finance?tab=accounts',
-              createdAt: b.updatedAt.toISOString(),
-            });
-          }
-        }
-
-        // C. Payout Updates
-        const payouts = await prisma.merchantPayoutRequest.findMany({
-          where: { merchantId: { in: merchantIds } },
-          orderBy: { updatedAt: 'desc' },
-          take: 4,
-        });
-
-        for (const p of payouts) {
-          if (p.status === 'COMPLETED') {
-            notifications.push({
-              id: `merchant-payout-${p.id}`,
-              title: 'تسویه حساب و واریز وجه',
-              body: `مبلغ ${formatToman(Number(p.amountToman))} از طریق پایا به حساب بانکی شما واریز گردید (پیگیری: ${p.trackingReference || 'انجام شد'}).`,
-              time: toRelativeTime(p.updatedAt),
-              read: false,
-              type: 'system',
-              link: '/merchant/finance?tab=withdrawals',
-              createdAt: p.updatedAt.toISOString(),
-            });
-          }
+          fallbackList.push({
+            id: `merchant-order-${o.id}`,
+            userId: session.userId,
+            role: session.role,
+            type: 'ORDER_RECEIVED',
+            category: 'order',
+            title: 'سفارش جدید آماده تحویل',
+            body: `سفارش #${o.orderNumber} به مبلغ ${formatToman(Number(o.totalAmountToman))} ثبت شد (خریدار: ${o.customer?.fullName || 'مشتری لقمه'})`,
+            time: toRelativeTime(o.createdAt),
+            readAt: null,
+            isRead: false,
+            link: '/merchant/orders',
+            createdAt: o.createdAt.toISOString(),
+            updatedAt: o.updatedAt.toISOString(),
+          });
         }
       }
-    }
-
-    // =========================================================================
-    // 3. CUSTOMER NOTIFICATIONS
-    // =========================================================================
-    if (session.role === 'CUSTOMER') {
+    } else {
       const customer = await prisma.customer.findFirst({
         where: { userId: session.userId },
         select: { id: true },
       });
 
       if (customer) {
-        const customerOrders = await prisma.order.findMany({
-          where: { customerId: customer.id },
-          include: {
-            merchant: { select: { businessNameFa: true } },
+        const activeOrders = await prisma.order.findMany({
+          where: {
+            customerId: customer.id,
+            status: { in: ['PAID', 'READY_FOR_PICKUP'] },
           },
+          include: { merchant: { select: { businessNameFa: true } } },
           orderBy: { createdAt: 'desc' },
-          take: 8,
+          take: 5,
         });
 
-        for (const o of customerOrders) {
-          if (o.status === 'PAID' || o.status === 'READY_FOR_PICKUP') {
-            notifications.push({
-              id: `cust-order-${o.id}`,
-              title: 'سفارش شما تایید شد',
-              body: `سفارش #${o.orderNumber} در «${o.merchant.businessNameFa}» ثبت گردید (آماده تحویل در بازه تعیین‌شده)`,
-              time: toRelativeTime(o.createdAt),
-              read: false,
-              type: 'order',
-              link: '/orders',
-              createdAt: o.createdAt.toISOString(),
-            });
-          } else if (o.status === 'COMPLETED') {
-            notifications.push({
-              id: `cust-completed-${o.id}`,
-              title: 'سفارش تحویل داده شد',
-              body: `از خرید شما از «${o.merchant.businessNameFa}» سپاسگزاریم، نوش جان`,
-              time: toRelativeTime(o.updatedAt),
-              read: true,
-              type: 'order',
-              link: '/orders',
-              createdAt: o.updatedAt.toISOString(),
-            });
-          }
+        for (const o of activeOrders) {
+          fallbackList.push({
+            id: `cust-order-${o.id}`,
+            userId: session.userId,
+            role: 'CUSTOMER',
+            type: 'ORDER_CONFIRMED',
+            category: 'order',
+            title: 'سفارش شما تایید شد',
+            body: `سفارش #${o.orderNumber} در «${o.merchant.businessNameFa}» ثبت گردید (آماده تحویل در بازه تعیین‌شده)`,
+            time: toRelativeTime(o.createdAt),
+            readAt: null,
+            isRead: false,
+            link: '/orders',
+            createdAt: o.createdAt.toISOString(),
+            updatedAt: o.updatedAt.toISOString(),
+          });
         }
       }
-
-      // Promotional Announcement / Nearby Surplus Discovery
-      notifications.push({
-        id: 'cust-deals-today',
-        title: 'بسته‌های شگفت‌انگیز محله شما',
-        body: 'فروشگاه‌های اطراف شما بسته‌های مازاد تازه را با تخفیف ۵۰٪ آماده سفارش دارند',
-        time: 'امروز',
-        read: false,
-        type: 'discount',
-        link: '/explore',
-        createdAt: new Date().toISOString(),
-      });
     }
-
-    // Sort by createdAt descending
-    notifications.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
 
     return NextResponse.json({
       success: true,
-      data: notifications,
+      data: fallbackList,
+      unreadCount: fallbackList.filter((n) => !n.isRead).length,
+      unreadByCategory: {
+        order: fallbackList.filter((n) => n.category === 'order' && !n.isRead).length,
+        discount: 0,
+        system: fallbackList.filter((n) => n.category === 'system' && !n.isRead).length,
+        support: 0,
+      },
+      total: fallbackList.length,
     });
   } catch (error: any) {
-    console.error('Error in GET /api/notifications:', error);
+    console.error('[API/notifications] Error handling GET:', error);
     return NextResponse.json(
-      { success: false, message: error.message || 'خطا در دریافت پیام‌ها و اعلان‌ها' },
+      { success: false, message: 'خطا در دریافت اعلان‌ها' },
+      { status: 500 }
+    );
+  }
+}
+
+async function handlePOST(request: NextRequest) {
+  try {
+    const token = extractSessionToken(request);
+    if (!token) {
+      return NextResponse.json({ success: false, message: 'احراز هویت نشده' }, { status: 401 });
+    }
+
+    const session = await verifySessionToken(token);
+    if (!session) {
+      return NextResponse.json({ success: false, message: 'نشست نامعتبر است' }, { status: 401 });
+    }
+
+    let body: any = {};
+    try {
+      body = await request.json();
+    } catch {
+      // Empty body
+    }
+
+    const notificationId = body.notificationId;
+    const result = await notificationService.markAsRead(session.userId, notificationId);
+
+    return NextResponse.json({
+      success: true,
+      updatedCount: result.updatedCount,
+    });
+  } catch (error: any) {
+    console.error('[API/notifications] Error handling POST:', error);
+    return NextResponse.json(
+      { success: false, message: 'خطا در به‌روزرسانی اعلان‌ها' },
       { status: 500 }
     );
   }
 }
 
 export const GET = withDatabaseRequest(handleGET);
+export const POST = withDatabaseRequest(handlePOST);

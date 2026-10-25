@@ -1,3 +1,4 @@
+import { notificationService } from '@/domain/notification/notification.service';
 import { Prisma, MerchantApplication } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { BusinessHoursSchema, MerchantApplicationSchema, ReviewMerchantApplicationSchema } from '@loqme/validation';
@@ -150,6 +151,18 @@ export async function reviewApplication(adminId: string, id: string, input: Revi
     }
     const reviewed = await tx.merchantApplication.update({ where: { id }, data: { status: data.decision, reviewReason: data.reasonFa, reviewedById: adminId, reviewedAt: new Date(), merchantId }, include: { city: true } });
     await tx.auditLog.create({ data: { actorId: adminId, actorRole: 'ADMIN', action: 'MERCHANT_APPLICATION_' + data.decision, entityType: 'MERCHANT_APPLICATION', entityId: id, detailsJson: { reasonFa: data.reasonFa, revision: app.revision, merchantId } } });
+    const isApproved = data.decision === 'APPROVED';
+    notificationService.createNotification({
+      userId: app.applicantId,
+      role: isApproved ? 'MERCHANT_OWNER' : 'CUSTOMER',
+      type: isApproved ? 'APPLICATION_APPROVED' : 'APPLICATION_REJECTED',
+      category: 'system',
+      title: isApproved ? 'تأیید درخواست ثبت فروشگاه' : 'عدم تأیید درخواست فروشگاه',
+      body: isApproved
+        ? 'درخواست ثبت فروشگاه «' + app.businessNameFa + '» با موفقیت تأیید شد و پنل مدیریت شما فعال گردید'
+        : 'درخواست فروشگاه «' + app.businessNameFa + '» تایید نشد: ' + (data.reasonFa || 'عدم تطابق مدارک'),
+      link: isApproved ? '/merchant' : '/business/application',
+    }).catch(() => {});
     return dto(reviewed);
   });
 }

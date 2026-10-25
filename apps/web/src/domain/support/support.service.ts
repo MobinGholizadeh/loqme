@@ -1,3 +1,4 @@
+import { notificationService } from '@/domain/notification/notification.service';
 import { prisma } from '@/lib/prisma';
 import { Role, StaffRole } from '@prisma/client';
 import type {
@@ -522,6 +523,44 @@ export class SupportService {
         message: dto,
       },
     });
+
+    try {
+      if (senderType === SupportMessageSenderType.ADMIN) {
+        if (conversation.channelType === SupportChannelType.CUSTOMER_ADMIN && conversation.userId) {
+          notificationService.createNotification({
+            userId: conversation.userId,
+            role: Role.CUSTOMER,
+            type: 'SUPPORT_REPLY',
+            category: 'support',
+            title: 'پاسخ جدید از پشتیبانی لقمه',
+            body: params.body.trim().slice(0, 100),
+            link: '/profile?tab=support',
+          }).catch(() => {});
+        } else if (conversation.merchantId) {
+          notificationService.notifyMerchant(conversation.merchantId, {
+            type: 'SUPPORT_REPLY',
+            category: 'support',
+            title: 'پاسخ جدید پشتیبانی به فروشگاه',
+            body: params.body.trim().slice(0, 100),
+            link: '/merchant/support',
+          }).catch(() => {});
+        }
+      } else {
+        const senderLabel =
+          conversation.user?.customer?.fullName ||
+          conversation.merchant?.businessNameFa ||
+          'کاربر';
+        notificationService.notifyAdmins({
+          type: 'SUPPORT_MESSAGE_RECEIVED',
+          category: 'support',
+          title: 'پیام جدید پشتیبانی از ' + senderLabel,
+          body: params.body.trim().slice(0, 100),
+          link: '/admin/support?conversationId=' + params.conversationId,
+        }).catch(() => {});
+      }
+    } catch {
+      // Non-blocking
+    }
 
     return dto;
   }

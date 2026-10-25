@@ -121,3 +121,63 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
+
+// 4. Web Push Notification Handling
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let payload = { title: 'لقمه | Loqme', body: '', link: '/' };
+  try {
+    payload = event.data.json();
+  } catch {
+    payload.body = event.data.text();
+  }
+
+  const title = payload.title || 'لقمه | Loqme';
+  const options = {
+    body: payload.body || '',
+    icon: payload.icon || '/icon.svg',
+    badge: payload.badge || '/favicon.svg',
+    dir: 'rtl',
+    lang: 'fa-IR',
+    tag: payload.tag || (payload.id ? ('loqme-' + payload.id) : 'loqme-notification'),
+    renotify: true,
+    data: {
+      url: payload.link || payload.url || '/',
+      id: payload.id,
+      category: payload.category || 'system',
+    },
+    vibrate: [100, 50, 100],
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options).then(() => {
+      return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+        windowClients.forEach((client) => {
+          client.postMessage({ type: 'LOQME_PUSH_RECEIVED', payload });
+        });
+      });
+    })
+  );
+});
+
+// 5. Push Notification Click Action
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+    })
+  );
+});

@@ -13,8 +13,12 @@ import {
   Store,
   ExternalLink,
   ShieldAlert,
+  Headphones,
+  BellRing,
+  Check,
 } from "lucide-react";
 import { toPersianDigits } from "@loqme/validation";
+import { useWebPush } from "@/lib/push/use-web-push";
 
 export interface NotificationItem {
   id: string;
@@ -22,7 +26,7 @@ export interface NotificationItem {
   body: string;
   time: string;
   read: boolean;
-  type: "order" | "discount" | "system";
+  type: "order" | "discount" | "system" | "support";
   link?: string;
   createdAt?: string;
 }
@@ -59,7 +63,9 @@ export function NotificationsModal({
   role?: string;
 }) {
   const [notifications, setNotifications] = useState<NotificationItem[]>(getSavedNotifications);
-  const [filter, setFilter] = useState<"all" | "order" | "discount" | "system">("all");
+  const [filter, setFilter] = useState<"all" | "order" | "discount" | "system" | "support">("all");
+  const { isSupported, permission, isSubscribed, isLoading: isPushLoading, subscribe: subscribePush } = useWebPush();
+  const [pushNotice, setPushNotice] = useState<string | null>(null);
 
   const updateNotifications = useCallback(
     (newList: NotificationItem[]) => {
@@ -92,9 +98,20 @@ export function NotificationsModal({
           for (const s of currentSaved) {
             readMap.set(s.id, s.read);
           }
-          const items: NotificationItem[] = json.data.map((item: NotificationItem) => ({
-            ...item,
-            read: readMap.has(item.id) ? !!readMap.get(item.id) : item.read,
+          const items: NotificationItem[] = json.data.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            body: item.body,
+            time: item.time,
+            read: readMap.has(item.id) ? !!readMap.get(item.id) : (item.read ?? item.isRead ?? false),
+            type:
+              item.category === "order" || item.category === "discount" || item.category === "support" || item.category === "system"
+                ? item.category
+                : ["order", "discount", "support", "system"].includes(item.type)
+                  ? item.type
+                  : "system",
+            link: item.link,
+            createdAt: item.createdAt,
           }));
 
           updateNotifications(items);
@@ -133,15 +150,114 @@ export function NotificationsModal({
     }
   }, [isOpen, fetchNotifications]);
 
-  const handleMarkAllRead = () => {
+  // Real-time SSE and Service Worker Push listener
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let eventSource: EventSource | null = null;
+    try {
+      if (typeof EventSource !== "undefined") {
+        eventSource = new EventSource("/api/notifications/stream");
+        eventSource.addEventListener("notification", (e: MessageEvent) => {
+          try {
+            const notif = JSON.parse(e.data);
+            if (notif && notif.id) {
+              setNotifications((prev) => {
+                if (prev.some((p) => p.id === notif.id)) return prev;
+                const newItem: NotificationItem = {
+                  id: notif.id,
+                  title: notif.title,
+                  body: notif.body,
+                  time: notif.time || "هم‌اکنون",
+                  read: false,
+                  type:
+                    notif.category === "order" || notif.category === "discount" || notif.category === "support" || notif.category === "system"
+                      ? notif.category
+                      : ["order", "discount", "support", "system"].includes(notif.type)
+                        ? notif.type
+                        : "system",
+                  link: notif.link,
+                  createdAt: notif.createdAt,
+                };
+                const updated = [newItem, ...prev];
+                try {
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+                } catch {}
+                const unread = updated.filter((n) => !n.read).length;
+                onUnreadCountChange?.(unread);
+                window.dispatchEvent(
+                  new CustomEvent("loqme:notifications-count", { detail: unread })
+                );
+                return updated;
+              });
+            }
+          } catch {}
+        });
+
+        eventSource.addEventListener("unread_count", (e: MessageEvent) => {
+          try {
+            const parsed = JSON.parse(e.data);
+            if (typeof parsed.unreadCount === "number") {
+              onUnreadCountChange?.(parsed.unreadCount);
+              window.dispatchEvent(
+                new CustomEvent("loqme:notifications-count", { detail: parsed.unreadCount })
+              );
+            }
+          } catch {}
+        });
+      }
+    } catch {}
+
+    const handlePushMessage = (e: MessageEvent) => {
+      if (e.data?.type === "LOQME_PUSH_RECEIVED") {
+        fetchNotifications();
+      }
+    };
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", handlePushMessage);
+    }
+
+    return () => {
+      eventSource?.close();
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.removeEventListener("message", handlePushMessage);
+      }
+    };
+  }, [fetchNotifications, onUnreadCountChange]);
+
+  const handleMarkAllRead = async () => {
     const updated = notifications.map((n) => ({ ...n, read: true }));
     updateNotifications(updated);
+    try {
+      await fetch("/api/notifications/read", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ all: true }),
+      });
+    } catch {}
   };
 
   const handleItemClick = (id: string) => {
     const updated = notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
     updateNotifications(updated);
+    fetch("/api/notifications/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notificationId: id }),
+    }).catch(() => {});
     onClose();
+  };
+
+  const handleEnablePush = async () => {
+    setPushNotice(null);
+    const res = await subscribePush();
+    if (!res.success && res.error) {
+      setPushNotice(res.error);
+    } else if (res.success) {
+      setPushNotice("اعلان مرورگر با موفقیت فعال شد");
+      setTimeout(() => setPushNotice(null), 3500);
+    }
   };
 
   const filtered =
@@ -183,12 +299,39 @@ export function NotificationsModal({
       }
     >
       <div className="space-y-4">
+        {/* Push Notification Activation Banner */}
+        {isSupported && !isSubscribed && permission !== "denied" && (
+          <div className="flex items-center justify-between p-2.5 bg-teal-50 border border-teal-200/80 rounded-xl text-xs">
+            <div className="flex items-center gap-2">
+              <BellRing size={16} className="text-[#1D616A] shrink-0" />
+              <span className="text-slate-800 font-semibold text-[11px]">
+                دریافت اعلان‌های آنی روی مرورگر
+              </span>
+            </div>
+            <RippleButton
+              type="button"
+              onClick={handleEnablePush}
+              disabled={isPushLoading}
+              className="py-1 px-3 bg-[#1D616A] hover:bg-[#174F56] text-white text-[11px] font-bold rounded-lg transition-all"
+            >
+              {isPushLoading ? "در حال فعال‌سازی" : "فعال‌سازی"}
+            </RippleButton>
+          </div>
+        )}
+
+        {pushNotice && (
+          <div className="p-2 text-[11px] rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
+            <Check size={14} className="text-emerald-600 shrink-0" />
+            <span>{pushNotice}</span>
+          </div>
+        )}
+
         {/* Filter Chips */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl overflow-x-auto">
           <RippleButton
             type="button"
             onClick={() => setFilter("all")}
-            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
               filter === "all"
                 ? "bg-white text-slate-800 shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
@@ -199,7 +342,7 @@ export function NotificationsModal({
           <RippleButton
             type="button"
             onClick={() => setFilter("order")}
-            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
               filter === "order"
                 ? "bg-white text-slate-800 shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
@@ -210,7 +353,7 @@ export function NotificationsModal({
           <RippleButton
             type="button"
             onClick={() => setFilter("discount")}
-            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
               filter === "discount"
                 ? "bg-white text-slate-800 shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
@@ -221,7 +364,7 @@ export function NotificationsModal({
           <RippleButton
             type="button"
             onClick={() => setFilter("system")}
-            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
               filter === "system"
                 ? "bg-white text-slate-800 shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
@@ -229,6 +372,19 @@ export function NotificationsModal({
           >
             {role === "admin" ? "سیستم" : "کسب‌وکار"}
           </RippleButton>
+          {notifications.some((n) => n.type === "support") && (
+            <RippleButton
+              type="button"
+              onClick={() => setFilter("support")}
+              className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
+                filter === "support"
+                  ? "bg-white text-slate-800 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              پشتیبانی
+            </RippleButton>
+          )}
         </div>
 
         {/* Notifications List */}
@@ -240,6 +396,8 @@ export function NotificationsModal({
                   <ShoppingBag size={18} className="text-emerald-600" />
                 ) : item.type === "discount" ? (
                   <Sparkles size={18} className="text-amber-600" />
+                ) : item.type === "support" ? (
+                  <Headphones size={18} className="text-sky-600" />
                 ) : role === "admin" ? (
                   <ShieldAlert size={18} className="text-[#1D616A]" />
                 ) : (
@@ -251,9 +409,11 @@ export function NotificationsModal({
                   ? "bg-emerald-50 border-emerald-100"
                   : item.type === "discount"
                     ? "bg-amber-50 border-amber-100"
-                    : role === "admin"
-                      ? "bg-teal-50 border-teal-100"
-                      : "bg-indigo-50 border-indigo-100";
+                    : item.type === "support"
+                      ? "bg-sky-50 border-sky-100"
+                      : role === "admin"
+                        ? "bg-teal-50 border-teal-100"
+                        : "bg-indigo-50 border-indigo-100";
 
               const content = (
                 <div

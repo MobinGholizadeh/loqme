@@ -1,3 +1,4 @@
+import { notificationService } from '@/domain/notification/notification.service';
 import { prisma } from '@/lib/prisma';
 import { assertActiveAdmin } from './merchant-account.service';
 import {
@@ -127,6 +128,13 @@ export class AdminBankService {
           },
         });
 
+        notificationService.notifyMerchant(account.merchantId, {
+          type: 'BANK_ACCOUNT_APPROVED',
+          category: 'system',
+          title: 'تأیید شماره شبا بانکی',
+          body: 'شماره شبا ' + account.shabaNumber + ' با موفقیت توسط مدیریت تأیید شد',
+          link: '/merchant/finance?tab=accounts',
+        }).catch(() => {});
         return updated;
       } else {
         // Reject
@@ -156,6 +164,13 @@ export class AdminBankService {
           },
         });
 
+        notificationService.notifyMerchant(account.merchantId, {
+          type: 'BANK_ACCOUNT_REJECTED',
+          category: 'system',
+          title: 'عدم تأیید شماره شبا بانکی',
+          body: 'شماره شبا ' + account.shabaNumber + ' تایید نشد: ' + (data.rejectionReason?.trim() || 'عدم تطابق مشخصات فردی'),
+          link: '/merchant/finance?tab=accounts',
+        }).catch(() => {});
         return updated;
       }
     });

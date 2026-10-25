@@ -79,6 +79,17 @@ export function SettingsModal({
     if (fullName.trim() && onUserUpdate) {
       onUserUpdate({ fullName: fullName.trim() });
     }
+    if (typeof fetch === 'function') {
+      fetch('/api/notifications/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          smsOrders,
+          smsMarketing: surplusAlerts,
+          notifyOrders: smsOrders,
+        }),
+      }).catch(() => {});
+    }
     setSavedSuccess(true);
     setTimeout(() => {
       setSavedSuccess(false);

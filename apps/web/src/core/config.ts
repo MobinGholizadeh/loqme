@@ -17,6 +17,10 @@ export const envSchema = z
     STRICT_PROD_CHECK: z.string().optional(),
     NEXT_PUBLIC_MAP_API_KEY: z.string().optional(),
     MAPIR_API_KEY: z.string().optional(),
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
+    VAPID_PUBLIC_KEY: z.string().optional(),
+    VAPID_PRIVATE_KEY: z.string().optional(),
+    VAPID_SUBJECT: z.string().optional().default('mailto:support@loqme.shop'),
   })
   .refine(
     (data) => {
@@ -59,6 +63,10 @@ export function validateEnv(rawEnv: Record<string, any> = process.env): EnvConfi
     STRICT_PROD_CHECK: rawEnv.STRICT_PROD_CHECK,
     NEXT_PUBLIC_MAP_API_KEY: rawEnv.NEXT_PUBLIC_MAP_API_KEY,
     MAPIR_API_KEY: rawEnv.MAPIR_API_KEY,
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: rawEnv.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    VAPID_PUBLIC_KEY: rawEnv.VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY: rawEnv.VAPID_PRIVATE_KEY,
+    VAPID_SUBJECT: rawEnv.VAPID_SUBJECT,
   });
 
   if (!result.success) {

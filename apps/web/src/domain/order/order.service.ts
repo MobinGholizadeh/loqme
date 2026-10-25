@@ -1,3 +1,4 @@
+import { notificationService } from '@/domain/notification/notification.service';
 import { withDatabaseService } from '@/lib/db/context';
 import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
@@ -192,6 +193,59 @@ export class OrderService {
     if (completedNow) {
       try { await pickupService.getOrCreateVerification(orderId); }
       catch { console.warn('Failed to pre-initialize pickup verification'); }
+    }
+
+    if (completedNow) {
+      // Dispatch order confirmation notifications
+      try {
+        const fullOrder = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: {
+            customer: { include: { user: true } },
+            merchant: { select: { id: true, businessNameFa: true } },
+            items: { take: 1, select: { listing: { select: { pickupStart: true, pickupEnd: true } } } },
+          },
+        });
+        if (fullOrder && fullOrder.customer?.user) {
+          const item = fullOrder.items[0];
+          let pickupWindow = '';
+          if (item?.listing?.pickupStart && item?.listing?.pickupEnd) {
+            const sH = item.listing.pickupStart.getHours().toString().padStart(2, '0');
+            const sM = item.listing.pickupStart.getMinutes().toString().padStart(2, '0');
+            const eH = item.listing.pickupEnd.getHours().toString().padStart(2, '0');
+            const eM = item.listing.pickupEnd.getMinutes().toString().padStart(2, '0');
+            pickupWindow = sH + ':' + sM + ' تا ' + eH + ':' + eM;
+          }
+          // Customer notification
+          notificationService.createNotification({
+            userId: fullOrder.customer.user.id,
+            role: fullOrder.customer.user.role,
+            type: 'ORDER_PAID',
+            category: 'order',
+            title: 'سفارش شما تایید شد',
+            body: 'سفارش #' + fullOrder.orderNumber + ' در «' + fullOrder.merchant.businessNameFa + '» ثبت گردید',
+            link: '/orders',
+            channels: ['IN_APP', 'WEB_PUSH', 'SMS'],
+            smsRecipientMobile: fullOrder.customer.user.mobile,
+            smsType: 'ORDER_CONFIRMATION',
+            smsData: {
+              orderNumber: fullOrder.orderNumber,
+              pickupWindow,
+            },
+          }).catch(() => {});
+
+          // Merchant notification
+          notificationService.notifyMerchant(fullOrder.merchant.id, {
+            type: 'ORDER_RECEIVED',
+            category: 'order',
+            title: 'سفارش جدید آماده تحویل',
+            body: 'سفارش #' + fullOrder.orderNumber + ' ثبت شد (خریدار: ' + (fullOrder.customer.fullName || 'مشتری لقمه') + ')',
+            link: '/merchant/orders',
+          }).catch(() => {});
+        }
+      } catch {
+        // Non-blocking
+      }
     }
     return result;
   

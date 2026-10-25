@@ -3,7 +3,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 /** Server-owned identity. Never populate this from request body/header role claims. */
 export type DatabaseContext = Readonly<{
   userId?: string;
-  service?: 'auth' | 'payment' | 'expiry' | 'reservation' | 'review' | 'safety' | 'invite';
+  service?: 'auth' | 'payment' | 'expiry' | 'reservation' | 'review' | 'safety' | 'invite' | 'notification';
   scope?: string;
   subject?: string;
 }>;

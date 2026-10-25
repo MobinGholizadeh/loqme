@@ -1,3 +1,4 @@
+import { notificationService } from '@/domain/notification/notification.service';
 /**
  * Pickup Verification Domain Service — Milestone M05
  * Governs the cryptographic dynamic QR token generation, 4-digit OTP fallback,
@@ -534,6 +535,30 @@ export class PickupService {
       };
     }
     const firstItem = order.items[0];
+
+    // Notify customer & merchant of completion
+    try {
+      if (order.customer?.user) {
+        notificationService.createNotification({
+          userId: order.customer.user.id,
+          role: order.customer.user.role,
+          type: 'ORDER_COMPLETED',
+          category: 'order',
+          title: 'سفارش تحویل داده شد',
+          body: 'از خرید شما از «' + order.merchant.businessNameFa + '» سپاسگزاریم، نوش جان',
+          link: '/orders',
+        }).catch(() => {});
+      }
+      notificationService.notifyMerchant(order.merchant.id, {
+        type: 'ORDER_COMPLETED',
+        category: 'order',
+        title: 'تحویل موفقیت‌آمیز سفارش',
+        body: 'سفارش #' + order.orderNumber + ' با کد تحویل تایید و تحویل مشتری داده شد',
+        link: '/merchant/orders',
+      }).catch(() => {});
+    } catch {
+      // Non-blocking
+    }
 
     return {
       statusCode: 200,
