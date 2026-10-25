@@ -34,7 +34,8 @@ export const PwaInstallPrompt: React.FC = () => {
   useEffect(() => {
     // 1. Register Service Worker in browser
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      if (process.env.NODE_ENV === "production") {
+      const isPushPermitted = typeof Notification !== "undefined" && Notification.permission === "granted";
+      if (process.env.NODE_ENV === "production" || isPushPermitted) {
         navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch((err) => {
           console.warn("ServiceWorker registration failed:", err);
         });

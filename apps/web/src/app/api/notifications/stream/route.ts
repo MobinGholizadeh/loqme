@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
       // Subscribe to user's notifications
       const unsubscribeUser = notificationEvents.subscribeUser(session.userId, (event) => {
         try {
+          controller.enqueue(encoder.encode(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`));
           controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
         } catch {
           // Stream closed
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
       if (session.role === 'ADMIN') {
         unsubscribeAdmin = notificationEvents.subscribeAdmin((event) => {
           try {
+            controller.enqueue(encoder.encode(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`));
             controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
           } catch {
             // Stream closed

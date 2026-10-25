@@ -64,7 +64,15 @@ export function NotificationsModal({
 }) {
   const [notifications, setNotifications] = useState<NotificationItem[]>(getSavedNotifications);
   const [filter, setFilter] = useState<"all" | "order" | "discount" | "system" | "support">("all");
-  const { isSupported, permission, isSubscribed, isLoading: isPushLoading, subscribe: subscribePush } = useWebPush();
+  const {
+    isSupported,
+    permission,
+    isSubscribed,
+    isLoading: isPushLoading,
+    isTesting: isPushTesting,
+    subscribe: subscribePush,
+    sendTestNotification,
+  } = useWebPush();
   const [pushNotice, setPushNotice] = useState<string | null>(null);
 
   const updateNotifications = useCallback(
@@ -158,10 +166,12 @@ export function NotificationsModal({
     try {
       if (typeof EventSource !== "undefined") {
         eventSource = new EventSource("/api/notifications/stream");
-        eventSource.addEventListener("notification", (e: MessageEvent) => {
+
+        eventSource.onmessage = (e: MessageEvent) => {
           try {
-            const notif = JSON.parse(e.data);
-            if (notif && notif.id) {
+            const event = JSON.parse(e.data);
+            if (event.type === "NOTIFICATION_CREATED" && event.notification) {
+              const notif = event.notification;
               setNotifications((prev) => {
                 if (prev.some((p) => p.id === notif.id)) return prev;
                 const newItem: NotificationItem = {
@@ -183,28 +193,23 @@ export function NotificationsModal({
                 try {
                   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
                 } catch {}
-                const unread = updated.filter((n) => !n.read).length;
-                onUnreadCountChange?.(unread);
-                window.dispatchEvent(
-                  new CustomEvent("loqme:notifications-count", { detail: unread })
-                );
                 return updated;
               });
-            }
-          } catch {}
-        });
 
-        eventSource.addEventListener("unread_count", (e: MessageEvent) => {
-          try {
-            const parsed = JSON.parse(e.data);
-            if (typeof parsed.unreadCount === "number") {
-              onUnreadCountChange?.(parsed.unreadCount);
+              if (typeof event.unreadCount === "number") {
+                onUnreadCountChange?.(event.unreadCount);
+                window.dispatchEvent(
+                  new CustomEvent("loqme:notifications-count", { detail: event.unreadCount })
+                );
+              }
+            } else if (event.type === "NOTIFICATION_READ" && typeof event.unreadCount === "number") {
+              onUnreadCountChange?.(event.unreadCount);
               window.dispatchEvent(
-                new CustomEvent("loqme:notifications-count", { detail: parsed.unreadCount })
+                new CustomEvent("loqme:notifications-count", { detail: event.unreadCount })
               );
             }
           } catch {}
-        });
+        };
       }
     } catch {}
 
@@ -257,6 +262,17 @@ export function NotificationsModal({
     } else if (res.success) {
       setPushNotice("اعلان مرورگر با موفقیت فعال شد");
       setTimeout(() => setPushNotice(null), 3500);
+    }
+  };
+
+  const handleSendTestPush = async () => {
+    setPushNotice(null);
+    const res = await sendTestNotification();
+    if (res.success) {
+      setPushNotice("اعلان آزمایشی ارسال شد");
+      setTimeout(() => setPushNotice(null), 3500);
+    } else if (res.message) {
+      setPushNotice(res.message);
     }
   };
 
@@ -315,6 +331,26 @@ export function NotificationsModal({
               className="py-1 px-3 bg-[#1D616A] hover:bg-[#174F56] text-white text-[11px] font-bold rounded-lg transition-all"
             >
               {isPushLoading ? "در حال فعال‌سازی" : "فعال‌سازی"}
+            </RippleButton>
+          </div>
+        )}
+
+        {/* Push Notification Enabled Banner + Test Button */}
+        {isSupported && isSubscribed && (
+          <div className="flex items-center justify-between p-2.5 bg-emerald-50 border border-emerald-200/80 rounded-xl text-xs">
+            <div className="flex items-center gap-2">
+              <Check size={16} className="text-emerald-700 shrink-0" />
+              <span className="text-emerald-950 font-semibold text-[11px]">
+                اعلان‌های آنی مرورگر فعال است
+              </span>
+            </div>
+            <RippleButton
+              type="button"
+              onClick={handleSendTestPush}
+              disabled={isPushTesting}
+              className="py-1 px-2.5 bg-white border border-emerald-300 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded-lg transition-all shadow-2xs"
+            >
+              {isPushTesting ? "در حال ارسال" : "تست اعلان"}
             </RippleButton>
           </div>
         )}

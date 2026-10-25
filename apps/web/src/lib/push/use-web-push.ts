@@ -63,17 +63,47 @@ export async function subscribeUserToPush(): Promise<{ success: boolean; error?:
       return { success: false, error: "کلید عمومی اعلان پیکربندی نشده است" };
     }
 
-    // 3. Wait for service worker ready
-    const registration = await navigator.serviceWorker.ready;
+    // 3. Ensure Service Worker is registered
+    let registration: ServiceWorkerRegistration | undefined;
+    try {
+      registration = await navigator.serviceWorker.getRegistration();
+    } catch {}
 
-    // 4. Subscribe to PushManager
+    if (!registration) {
+      try {
+        registration = await navigator.serviceWorker.register("/sw.js", {
+          scope: "/",
+          updateViaCache: "none",
+        });
+      } catch (err: any) {
+        console.error("[WebPush] ServiceWorker register failed:", err);
+        return { success: false, error: "خطا در ثبت سرویس‌ورکر مرورگر" };
+      }
+    }
+
+    if (!registration) {
+      return { success: false, error: "امکان فعال‌سازی سرویس‌ورکر روی مرورگر وجود ندارد" };
+    }
+
+    // 4. Wait briefly for active worker with timeout so it never hangs
+    if (!registration.active) {
+      await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((resolve) => setTimeout(resolve, 2500)),
+      ]);
+    }
+
+    // 5. Subscribe to PushManager
     const applicationServerKey = urlBase64ToUint8Array(publicKey);
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: applicationServerKey as unknown as BufferSource,
-    });
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKey as unknown as BufferSource,
+      });
+    }
 
-    // 5. Send subscription to backend
+    // 6. Send subscription to backend
     const subJson = subscription.toJSON();
     if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
       return { success: false, error: "اطلاعات اشتراک نامعتبر است" };
@@ -110,18 +140,20 @@ export async function unsubscribeUserFromPush(): Promise<{ success: boolean; err
   }
 
   try {
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (registration) {
+      const subscription = await registration.pushManager.getSubscription();
 
-    if (subscription) {
-      const endpoint = subscription.endpoint;
-      await subscription.unsubscribe();
+      if (subscription) {
+        const endpoint = subscription.endpoint;
+        await subscription.unsubscribe();
 
-      await fetch("/api/notifications/push/unsubscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint }),
-      }).catch(() => {});
+        await fetch("/api/notifications/push/unsubscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint }),
+        }).catch(() => {});
+      }
     }
 
     return { success: true };
@@ -136,6 +168,7 @@ export function useWebPush() {
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [testing, setTesting] = useState(false);
 
   const checkStatus = useCallback(async () => {
     const isSup = isPushSupported();
@@ -148,9 +181,13 @@ export function useWebPush() {
 
     setPermission(Notification.permission);
     try {
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.getSubscription();
-      setIsSubscribed(!!sub);
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        const sub = await reg.pushManager.getSubscription();
+        setIsSubscribed(!!sub);
+      } else {
+        setIsSubscribed(false);
+      }
     } catch {
       setIsSubscribed(false);
     }
@@ -182,13 +219,28 @@ export function useWebPush() {
     }
   }, [checkStatus]);
 
+  const sendTestNotification = useCallback(async () => {
+    setTesting(true);
+    try {
+      const res = await fetch("/api/notifications/test", { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      return { success: res.ok, message: json.message };
+    } catch (err: any) {
+      return { success: false, message: err?.message || "خطا در ارسال اعلان آزمایشی" };
+    } finally {
+      setTesting(false);
+    }
+  }, []);
+
   return {
     isSupported: supported,
     permission,
     isSubscribed,
     isLoading: loading,
+    isTesting: testing,
     subscribe,
     unsubscribe,
+    sendTestNotification,
     refreshStatus: checkStatus,
   };
 }
