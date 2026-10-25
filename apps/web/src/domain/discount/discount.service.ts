@@ -295,6 +295,20 @@ export class DiscountService {
         }
       }
 
+      if (input.listingId && !merchantId) {
+        const listingRecord = await prisma.listing.findUnique({
+          where: { id: input.listingId },
+          select: { merchantId: true },
+        });
+        if (listingRecord) {
+          merchantId = listingRecord.merchantId;
+        }
+      }
+
+      const effectiveScope = input.listingId
+        ? 'LISTING'
+        : (input.scope || (ownerType === 'MERCHANT' ? 'MERCHANT' : 'PLATFORM'));
+
       // 3. Create Discount
       const created = await prisma.discount.create({
         data: {
@@ -315,7 +329,7 @@ export class DiscountService {
           minOrderAmountToman:
             input.minOrderAmountToman ? BigInt(Math.floor(input.minOrderAmountToman)) : BigInt(0),
           applicationMethod: input.applicationMethod || 'COUPON_CODE',
-          scope: input.scope || (ownerType === 'MERCHANT' ? 'MERCHANT' : 'PLATFORM'),
+          scope: effectiveScope,
           categoryId: input.categoryId || null,
           listingId: input.listingId || null,
           startsAt: input.startsAt ? new Date(input.startsAt) : new Date(),

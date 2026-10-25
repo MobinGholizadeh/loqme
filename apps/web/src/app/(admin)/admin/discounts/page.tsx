@@ -49,7 +49,10 @@ export default function AdminDiscountsPage() {
   const [formDiscountAmountToman, setFormDiscountAmountToman] = useState<number>(25000);
   const [formMaxDiscountToman, setFormMaxDiscountToman] = useState<string>("");
   const [formMinOrderToman, setFormMinOrderToman] = useState<string>("0");
-  const [formScope, setFormScope] = useState<"PLATFORM" | "MERCHANT" | "CATEGORY">("PLATFORM");
+  const [formScope, setFormScope] = useState<"PLATFORM" | "MERCHANT" | "CATEGORY" | "LISTING">("PLATFORM");
+  const [formListingId, setFormListingId] = useState<string>("");
+  const [listings, setListings] = useState<any[]>([]);
+  const [isLoadingListings, setIsLoadingListings] = useState<boolean>(false);
   const [formFundingSource, setFormFundingSource] = useState<"PLATFORM" | "MERCHANT">("PLATFORM");
   const [formMaxUses, setFormMaxUses] = useState<string>("");
   const [formMaxUsesPerCustomer, setFormMaxUsesPerCustomer] = useState<string>("1");
@@ -94,6 +97,44 @@ export default function AdminDiscountsPage() {
     fetchDiscounts();
   }, [fetchDiscounts]);
 
+  const fetchListings = useCallback(async () => {
+    setIsLoadingListings(true);
+    try {
+      const res = await fetch("/api/admin/listings");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setListings(json.data);
+      }
+    } catch (e) {
+      console.error("Failed to load listings", e);
+    } finally {
+      setIsLoadingListings(false);
+    }
+  }, []);
+
+  const openCreateModal = () => {
+    setFormApplicationMethod("COUPON_CODE");
+    setFormCode("");
+    setFormTitleFa("");
+    setFormDescriptionFa("");
+    setFormDiscountType("PERCENTAGE");
+    setFormDiscountPercent(20);
+    setFormDiscountAmountToman(25000);
+    setFormMaxDiscountToman("");
+    setFormMinOrderToman("0");
+    setFormScope("PLATFORM");
+    setFormListingId("");
+    setFormFundingSource("PLATFORM");
+    setFormMaxUses("");
+    setFormMaxUsesPerCustomer("1");
+    setFormExpiresAt("");
+    setFormError(null);
+    setIsCreateModalOpen(true);
+    if (listings.length === 0) {
+      fetchListings();
+    }
+  };
+
   const handleToggleActive = async (discount: DiscountDto) => {
     try {
       const res = await fetch(`/api/admin/discounts/${discount.id}`, {
@@ -132,6 +173,15 @@ export default function AdminDiscountsPage() {
     setIsSubmitting(true);
     setFormError(null);
 
+    if (formApplicationMethod === "AUTOMATIC" && !formListingId) {
+      setFormError("برای تخفیف خودکار، انتخاب بسته / محصول الزامی است");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const selectedListing = listings.find((l) => l.id === formListingId);
+    const effectiveScope = formApplicationMethod === "AUTOMATIC" || formListingId ? "LISTING" : formScope;
+
     try {
       const payload: any = {
         applicationMethod: formApplicationMethod,
@@ -143,7 +193,9 @@ export default function AdminDiscountsPage() {
         discountAmountToman: formDiscountType === "FIXED_AMOUNT" ? Number(formDiscountAmountToman) : undefined,
         maxDiscountAmountToman: formMaxDiscountToman ? Number(formMaxDiscountToman) : undefined,
         minOrderAmountToman: formMinOrderToman ? Number(formMinOrderToman) : 0,
-        scope: formScope,
+        scope: effectiveScope,
+        listingId: formListingId || undefined,
+        merchantId: selectedListing?.merchantId || undefined,
         fundingSource: formFundingSource,
         maxUses: formMaxUses ? Number(formMaxUses) : undefined,
         maxUsesPerCustomer: formMaxUsesPerCustomer ? Number(formMaxUsesPerCustomer) : 1,
@@ -252,10 +304,7 @@ export default function AdminDiscountsPage() {
           <Button
             size="sm"
             variant="primary"
-            onClick={() => {
-              setFormError(null);
-              setIsCreateModalOpen(true);
-            }}
+            onClick={openCreateModal}
             className="flex items-center gap-1.5 text-xs font-bold bg-[#1D616A] hover:bg-[#154b52]"
           >
             <Plus size={16} />
@@ -367,7 +416,7 @@ export default function AdminDiscountsPage() {
           title="تخفیفی یافت نشد"
           description="با کلیک بر روی دکمه ایجاد تخفیف جدید یا تولید گروهی، اولین کمپین تخفیف را ثبت کنید"
           action={
-            <Button size="sm" variant="primary" onClick={() => setIsCreateModalOpen(true)}>
+            <Button size="sm" variant="primary" onClick={openCreateModal}>
               ایجاد تخفیف جدید
             </Button>
           }
@@ -538,7 +587,9 @@ export default function AdminDiscountsPage() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => setFormApplicationMethod("COUPON_CODE")}
+                  onClick={() => {
+                    setFormApplicationMethod("COUPON_CODE");
+                  }}
                   className={`py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 ${
                     formApplicationMethod === "COUPON_CODE"
                       ? "bg-teal-50 border-[#1D616A] text-[#1D616A]"
@@ -550,7 +601,10 @@ export default function AdminDiscountsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormApplicationMethod("AUTOMATIC")}
+                  onClick={() => {
+                    setFormApplicationMethod("AUTOMATIC");
+                    setFormScope("LISTING");
+                  }}
                   className={`py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 ${
                     formApplicationMethod === "AUTOMATIC"
                       ? "bg-teal-50 border-[#1D616A] text-[#1D616A]"
@@ -563,17 +617,91 @@ export default function AdminDiscountsPage() {
               </div>
             </div>
 
-            {formApplicationMethod === "COUPON_CODE" && (
-              <div>
-                <label className="block font-bold text-slate-800 mb-1">کد کوپن (انگلیسی و عدد)</label>
-                <input
-                  type="text"
-                  required
-                  value={formCode}
-                  onChange={(e) => setFormCode(e.target.value.toUpperCase())}
-                  placeholder="مثال: LQ-SUMMER-20"
-                  className="w-full p-2.5 rounded-lg border border-slate-200 uppercase font-mono tracking-wider outline-none focus:border-[#1D616A]"
-                />
+            {formApplicationMethod === "COUPON_CODE" ? (
+              <>
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">کد کوپن (انگلیسی و عدد)</label>
+                  <input
+                    type="text"
+                    required
+                    value={formCode}
+                    onChange={(e) => setFormCode(e.target.value.toUpperCase())}
+                    placeholder="مثال: LQ-SUMMER-20"
+                    className="w-full p-2.5 rounded-lg border border-slate-200 uppercase font-mono tracking-wider outline-none focus:border-[#1D616A]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">دامنه اعمال کوپن</label>
+                  <select
+                    value={formScope === "LISTING" ? "LISTING" : "PLATFORM"}
+                    onChange={(e) => {
+                      const val = e.target.value as "PLATFORM" | "LISTING";
+                      setFormScope(val);
+                      if (val === "PLATFORM") setFormListingId("");
+                    }}
+                    className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-[#1D616A] bg-white text-xs"
+                  >
+                    <option value="PLATFORM">سراسری (همه محصولات و بسته‌ها)</option>
+                    <option value="LISTING">فقط یک محصول / بسته مشخص</option>
+                  </select>
+                </div>
+
+                {formScope === "LISTING" && (
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">
+                      انتخاب محصول / بسته هدف <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={formListingId}
+                      onChange={(e) => setFormListingId(e.target.value)}
+                      className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-[#1D616A] bg-white text-xs"
+                    >
+                      <option value="">-- انتخاب بسته / محصول --</option>
+                      {listings.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.titleFa} ({l.merchantNameFa}) - {formatToman(l.discountedPriceToman)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-teal-50/70 p-3 rounded-lg border border-teal-200/80 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#1D616A]">
+                  <Sparkles size={16} />
+                  <span>تخفیف خودکار روی محصول مشخص</span>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  این تخفیف هنگام ثبت سفارش محصول انتخاب‌شده، بدون نیاز به وارد کردن کد، مستقیماً اعمال خواهد شد.
+                </p>
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1 text-xs">
+                    محصول / بسته هدف <span className="text-red-500">*</span>
+                  </label>
+                  {isLoadingListings ? (
+                    <div className="text-xs text-slate-500 p-2">در حال دریافت لیست محصولات...</div>
+                  ) : (
+                    <select
+                      required
+                      value={formListingId}
+                      onChange={(e) => {
+                        setFormListingId(e.target.value);
+                        setFormScope("LISTING");
+                      }}
+                      className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-[#1D616A] bg-white text-xs font-medium"
+                    >
+                      <option value="">-- لطفاً محصول / بسته مورد نظر را انتخاب کنید --</option>
+                      {listings.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.titleFa} ({l.merchantNameFa}) - {formatToman(l.discountedPriceToman)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
               </div>
             )}
 
