@@ -8,6 +8,34 @@
 
 ## 1. Project Health & Current State
 
+### Discount System (Admin Campaigns, Merchant Discounts & Checkout) — CP-10.33 (2026-10-25)
+
+Implemented a complete, secure, and scalable discount system supporting both admin-managed campaigns and merchant-managed discounts:
+1. **Discount Architecture & Domain Engine**:
+   - `DiscountEngine`: pure calculation engine handling coupon code normalization (Persian/Arabic digits, trim, case insensitivity), operational status assessment, multi-criteria eligibility validation, percentage discounts with caps, fixed amounts, and minimum order thresholds.
+   - `DiscountService`: manages discount lifecycle (creation, updates, safe deactivation/deletion when redemptions exist), single & bulk coupon generation (`/api/admin/discounts/generate`), and store-level or platform-wide redemption performance stats.
+   - Dual funding models: `PLATFORM` (platform absorbs discount for promotional campaigns; merchant receives full payout based on subtotal) vs `MERCHANT` (merchant funds store discount; commission and payout calculated from discounted total).
+2. **Database Schema & PostgreSQL Row Level Security (RLS)**:
+   - Added `Discount` and `DiscountRedemption` models with enums `DiscountType` (`PERCENTAGE`, `FIXED_AMOUNT`), `DiscountScope` (`PLATFORM`, `MERCHANT`, `CATEGORY`, `LISTING`), `DiscountApplication` (`COUPON_CODE`, `AUTOMATIC`), and `DiscountFunding` (`PLATFORM`, `MERCHANT`).
+   - Migration `20261025140000_discount_system` deployed to both local and test databases.
+   - PostgreSQL RLS policies implemented for `Discount` and `DiscountRedemption` protecting operational tenant isolation, preventing unauthorized merchant access across stores, and granting `loqme_app`, `loqme_rls_reader`, `loqme_rls.service('discount')`, and `loqme_rls.service('reservation')`.
+3. **Checkout Integration & Anti-Abuse Concurrency**:
+   - Real-time coupon validation endpoint at `/api/orders/discount/validate`.
+   - Customer checkout card at `/checkout/[reservationId]` with dynamic Persian validation feedback, applied coupon tag, removable badge, and instant breakdown of subtotal, discount, and final payable amount.
+   - Atomic reservation lock (`SELECT ... FOR UPDATE`) in `order.service.ts` preventing double-spend and race conditions across usage limits (`maxUses`, `maxUsesPerCustomer`).
+   - Banking compliance guarantee: enforces minimum payable order value (1,000 Toman) for Iranian payment gateway integration and non-negative amounts.
+   - Double-entry customer cumulative savings update upon verified order payment callback.
+4. **Admin & Merchant Portals**:
+   - Admin Discount Management at `/admin/discounts`: 4 KPI metric cards, searchable discount catalog, type/scope badges, status toggle, new discount modal, bulk generator modal, and full redemption audit trail viewer.
+   - Merchant Discount Management at `/merchant/discounts`: store-scoped KPI cards, merchant listing discount creator, status toggle, and store redemptions table.
+   - Portal navigation links ("تخفیف‌ها و کوپن", "کمپین‌ها و تخفیف‌ها") integrated in `PortalShell`.
+5. **Quality & Test Validation**:
+   - 9 new unit & integration tests in `tests/discount-system.test.ts` passed (100%).
+   - All 20 RLS acceptance tests in `tests/rls.integration.test.ts` passed with 45 RLS-secured tables.
+   - Full Vitest suite of 94 test files (1,114 tests) passed cleanly (100%).
+   - Workspace typecheck and eslint passed with 0 warnings.
+   - Next.js production build (`next build --webpack`) successfully compiled all static and dynamic discount routes.
+
 ### Real-Time Support Chat System (Customer, Merchant & Admin) — CP-10.32 (2026-10-24)
 
 Implemented a complete, production-ready, real-time support chat system connecting admins with regular customers and merchant partners:

@@ -6,6 +6,7 @@
 export * from './business';
 export * from './support';
 export * from './notification';
+export * from './discount';
 
 // ==========================================
 // 1. Roles & Permissions (RBAC)

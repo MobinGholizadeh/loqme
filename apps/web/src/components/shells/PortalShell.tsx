@@ -28,6 +28,7 @@ import {
   Headphones,
   ChevronsRight,
   Loader2,
+  Tag,
 } from "lucide-react";
 import { LoqmeLogo } from "@/components/ui/LoqmeLogo";
 import { NotificationsModal } from "@/components/profile/NotificationsModal";
@@ -46,6 +47,7 @@ const merchantItems: PortalNavItem[] = [
   { href: "/merchant", label: "داشبورد و نمای کلی", icon: LayoutDashboard },
   { href: "/merchant/listings", label: "بسته‌های مازاد", icon: Package },
   { href: "/merchant/orders", label: "سفارش‌ها و تحویل", icon: ScanLine },
+  { href: "/merchant/discounts", label: "تخفیف‌ها و کوپن", icon: Tag },
   { href: "/merchant/finance", label: "جریان مالی و تسویه", icon: Wallet },
   { href: "/merchant/insights", label: "گزارش و بینش فروش", icon: ChartNoAxesCombined },
   { href: "/merchant/support", label: "پشتیبانی لقمه", icon: Headphones },
@@ -56,6 +58,7 @@ const merchantItems: PortalNavItem[] = [
 const adminItems: PortalNavItem[] = [
   { href: "/admin", label: "نمای کلی", icon: LayoutDashboard },
   { href: "/admin/analytics", label: "تحلیل بازار", icon: ChartNoAxesCombined },
+  { href: "/admin/discounts", label: "کمپین‌ها و تخفیف‌ها", icon: Tag },
   { href: "/admin/merchants", label: "فروشگاه‌ها", icon: Store },
   { href: "/admin/customers", label: "مشتریان", icon: Users },
   { href: "/admin/listings", label: "بسته‌ها و دسته‌بندی", icon: Package },

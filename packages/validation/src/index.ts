@@ -8,6 +8,7 @@ export * from './business';
 export * from './bank';
 export * from './support';
 export * from './notification';
+export * from './discount';
 
 // ==========================================
 // 1. Persian String & Digit Utilities
@@ -212,6 +213,7 @@ export type CreateReservationInput = z.infer<typeof CreateReservationSchema>;
 export const CheckoutOrderSchema = z.object({
   reservationId: z.string().min(1, 'شناسه رزرو الزامی است'),
   gateway: z.enum(['MOCK', 'ZARINPAL', 'SAMAN', 'SADAD']).default('MOCK'),
+  couponCode: z.string().trim().max(32).optional(),
   notesFa: z.string().max(250, 'یادداشت نمی‌تواند بیش از ۲۵۰ کاراکتر باشد').optional(),
   termsAccepted: z.boolean().refine((v) => v === true, {
     message: 'پذیرش تعهد تحویل حضوری و قوانین اقلام فاسدشدنی الزامی است',

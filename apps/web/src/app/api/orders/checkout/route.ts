@@ -49,7 +49,7 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    const { reservationId, gateway, notesFa } = validated.data;
+    const { reservationId, gateway, notesFa, couponCode } = validated.data;
     const effectiveGateway = process.env.NODE_ENV === 'production'
       ? PaymentGatewayType.ZARINPAL : gateway as PaymentGatewayType;
 
@@ -66,6 +66,7 @@ async function handlePOST(request: NextRequest) {
       notesFa,
       callbackUrl,
       mobile: payload.mobile,
+      couponCode,
     });
 
     if (!result.success) {

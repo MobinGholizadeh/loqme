@@ -145,7 +145,21 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Quick Action Navigation Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+            <Link href="/admin/discounts" className="group">
+              <div className="p-5 rounded-lg bg-white border border-loqme-neutral-200 hover:border-loqme-primary-500 transition-all">
+                <div className="text-2xl mb-2 text-[#1D616A]">
+                  <RedesignIcons.Tag size={20} aria-hidden="true" />
+                </div>
+                <h3 className="font-bold text-sm text-loqme-neutral-900 group-hover:text-loqme-primary-400">
+                  کمپین‌ها و تخفیف‌ها
+                </h3>
+                <p className="text-xs text-loqme-neutral-500 mt-1">
+                  مدیریت کدهای تخفیف، تخفیف‌های خودکار، تولید انبوه کوپن، سقف مصرف و گزارش ردگیری
+                </p>
+              </div>
+            </Link>
+
             <Link href="/admin/merchants" className="group">
               <div className="p-5 rounded-lg bg-white border border-loqme-neutral-200 hover:border-loqme-primary-500 transition-all">
                 <div className="text-2xl mb-2">

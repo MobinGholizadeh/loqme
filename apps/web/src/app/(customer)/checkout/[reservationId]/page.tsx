@@ -26,6 +26,7 @@ interface ReservationData {
   isExpired: boolean;
   listing: {
     id: string;
+    merchantId?: string;
     titleFa: string;
     storeNameFa: string;
     addressFa?: string;
@@ -54,6 +55,14 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [couponInput, setCouponInput] = useState<string>("");
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState<boolean>(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmountToman: number;
+    titleFa?: string;
+  } | null>(null);
 
   // 1. Fetch reservation data
   useEffect(() => {
@@ -108,6 +117,53 @@ export default function CheckoutPage() {
     return `${toPersianDigits(mStr)}:${toPersianDigits(sStr)}`;
   };
 
+  const handleApplyCoupon = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!couponInput.trim() || !data) return;
+
+    setIsValidatingCoupon(true);
+    setCouponError(null);
+
+    try {
+      const res = await fetch("/api/orders/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: couponInput.trim(),
+          merchantId: data.listing.merchantId || "",
+          listingId: data.listing.id,
+          subtotalToman: data.listing.totalPriceToman,
+          reservationId: data.id,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.success && json.valid) {
+        setAppliedCoupon({
+          code: json.discount?.code || couponInput.trim().toUpperCase(),
+          discountAmountToman: json.discountAmountToman,
+          titleFa: json.discount?.titleFa,
+        });
+        setCouponError(null);
+        showFeedback(json.message || "کد تخفیف اعمال شد");
+      } else {
+        setCouponError(json.message || "کد تخفیف معتبر نیست");
+      }
+    } catch (err) {
+      console.error(err);
+      setCouponError("خطا در بررسی کد تخفیف");
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  };
+
   // 3. Handle checkout submission
   const handlePay = async () => {
     if (!termsAccepted) {
@@ -134,6 +190,7 @@ export default function CheckoutPage() {
           gateway: selectedGateway,
           termsAccepted: true,
           notesFa: notesFa.trim() || undefined,
+          couponCode: appliedCoupon?.code,
         }),
       });
 
@@ -192,6 +249,8 @@ export default function CheckoutPage() {
 
   const isUrgent = remainingSeconds < 120 && remainingSeconds > 0;
   const isExpired = data.isExpired || remainingSeconds <= 0;
+  const discountAmount = appliedCoupon ? appliedCoupon.discountAmountToman : 0;
+  const finalPayableToman = data ? Math.max(0, data.listing.totalPriceToman - discountAmount) : 0;
 
   return (
     <div className="checkout-layout">
@@ -290,13 +349,97 @@ export default function CheckoutPage() {
             <span>{formatToman(data.listing.savingsToman)} -</span>
           </div>
 
+          {appliedCoupon && (
+            <div className="flex items-center justify-between text-emerald-700 font-bold bg-emerald-50/80 p-2 rounded-md">
+              <span className="flex items-center gap-1">
+                <span>تخفیف کوپن ({appliedCoupon.code}):</span>
+                {appliedCoupon.titleFa && (
+                  <span className="text-[11px] text-emerald-600 font-normal">
+                    ({appliedCoupon.titleFa})
+                  </span>
+                )}
+              </span>
+              <span>{formatToman(discountAmount)} -</span>
+            </div>
+          )}
+
           <div className="flex items-center justify-between pt-2 border-t border-dashed border-loqme-neutral-200 text-sm font-black text-loqme-neutral-900">
             <span>مبلغ قابل پرداخت:</span>
             <span className="text-base text-loqme-primary-800">
-              {formatToman(data.listing.totalPriceToman)}
+              {formatToman(finalPayableToman)}
             </span>
           </div>
         </div>
+      </Card>
+
+      {/* Coupon Code Section */}
+      <Card variant="outlined" className="p-4 space-y-3 bg-white">
+        <div className="flex items-center justify-between">
+          <label htmlFor="coupon-input" className="block text-xs font-bold text-loqme-neutral-800 flex items-center gap-1.5">
+            <RedesignIcons.Tag size={16} className="text-loqme-primary-600" />
+            <span>کد تخفیف دارید؟</span>
+          </label>
+          {appliedCoupon && (
+            <span className="text-[11px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <RedesignIcons.Check size={12} />
+              <span>کد اعمال شد</span>
+            </span>
+          )}
+        </div>
+
+        {appliedCoupon ? (
+          <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs">
+            <div className="space-y-0.5">
+              <div className="font-bold text-emerald-900 flex items-center gap-2">
+                <span className="font-mono tracking-wider">{appliedCoupon.code}</span>
+                {appliedCoupon.titleFa && <span className="text-[11px] text-emerald-700 font-normal">({appliedCoupon.titleFa})</span>}
+              </div>
+              <div className="text-[11px] text-emerald-700 font-medium">
+                کاهش فاکتور به میزان {formatToman(appliedCoupon.discountAmountToman)}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleRemoveCoupon}
+              className="text-rose-600 hover:text-rose-800 text-xs font-bold flex items-center gap-1 p-1 hover:bg-rose-50 rounded"
+            >
+              <RedesignIcons.X size={14} />
+              <span>حذف</span>
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleApplyCoupon} className="space-y-2">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                id="coupon-input"
+                value={couponInput}
+                onChange={(e) => {
+                  setCouponInput(e.target.value);
+                  setCouponError(null);
+                }}
+                placeholder="مثال: LQ-WELCOME"
+                className="flex-1 text-xs p-2.5 rounded-lg border border-loqme-neutral-200 outline-none focus:border-loqme-primary-500 uppercase tracking-wider font-mono"
+              />
+              <Button
+                type="submit"
+                size="sm"
+                variant="outline"
+                disabled={!couponInput.trim() || isValidatingCoupon}
+                isLoading={isValidatingCoupon}
+                className="px-4 text-xs font-bold"
+              >
+                اعمال کد
+              </Button>
+            </div>
+            {couponError && (
+              <p className="text-xs text-rose-600 flex items-center gap-1">
+                <RedesignIcons.AlertCircle size={14} />
+                <span>{couponError}</span>
+              </p>
+            )}
+          </form>
+        )}
       </Card>
 
       {/* Interactive Holographic Payment Card */}
@@ -437,7 +580,7 @@ export default function CheckoutPage() {
               مبلغ قابل پرداخت:
             </div>
             <div className="font-black text-lg text-loqme-primary-800">
-              {formatToman(data.listing.totalPriceToman)}
+              {formatToman(finalPayableToman)}
             </div>
           </div>
 
