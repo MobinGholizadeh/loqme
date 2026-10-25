@@ -55,6 +55,21 @@ async function main() {
   });
   console.log('✅ Primary Merchant Owner seeded:', primaryMerchantOwner.mobile);
 
+  const urmiaMerchantOwner = await prisma.user.upsert({
+    where: { mobile: '09142222222' },
+    update: { role: Role.MERCHANT_OWNER, isActive: true },
+    create: {
+      mobile: '09142222222',
+      role: Role.MERCHANT_OWNER,
+      customer: {
+        create: {
+          fullName: 'علی رضایی (ارومیه)',
+        },
+      },
+    },
+  });
+  console.log('✅ Urmia Merchant Owner seeded:', urmiaMerchantOwner.mobile);
+
   const adminUser = await prisma.user.upsert({
     where: { mobile: '09123333333' },
     update: {},
@@ -499,6 +514,24 @@ async function main() {
       merchantId: merchant.id,
       locationId: locationId!,
     };
+
+    if (i === 0) {
+      await prisma.merchantStaff.upsert({
+        where: {
+          merchantId_userId: {
+            merchantId: merchant.id,
+            userId: urmiaMerchantOwner.id,
+          },
+        },
+        update: { role: StaffRole.OWNER, canScanPickup: true },
+        create: {
+          merchantId: merchant.id,
+          userId: urmiaMerchantOwner.id,
+          role: StaffRole.OWNER,
+          canScanPickup: true,
+        },
+      });
+    }
   }
   console.log('✅ 12 Local Merchants & Locations seeded in Urmia & Tehran');
 
