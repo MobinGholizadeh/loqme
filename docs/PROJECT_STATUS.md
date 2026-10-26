@@ -8,6 +8,12 @@
 
 ## 1. Project Health & Current State
 
+### Android emulator UI-dump verification repair — CP-10.21 follow-up (2026-10-26)
+
+The supplied CI traceback fails while reading a missing `/sdcard/loqme-window.xml` before installation acceptance. Replaced the immediate dump/read with fresh temporary-path capture, removal of stale dumps, five bounded retries, XML/node validation, explicit ADB timeouts and saved failure output. Persistent failures still fail verification; signing, installation/upgrade, launch and publication gates remain required. Added five mocked failure/recovery tests to the production validation job.
+
+Local validation: five UI-capture tests, four portable Android release-policy tests, three release-safety tests, four RLS environment tests and Python compilation pass; four Linux-only publication tests skip on Windows. Real emulator/CI acceptance and publication remain pending GitHub authentication. Anonymous live checks report ready/database connected and Android 1.1.130 from `6f16eb9`. The supplied workflow screenshot shows web deploy succeeded before Android failed; current deployed web SHA is not yet independently verified. No database changes or validation bypass.
+
 ### Pickup-stage card clearance follow-up (2026-10-26)
 
 Increased stage bottom padding to 64px on desktop, 56px on compact desktop and 52px on mobile so rotated lower card corners are no longer clipped. Compact card height adapts between 260–300px to retain CTA visibility on short desktop viewports. Both pickup and desktop-scaling browser scenarios pass, including geometric lower-edge checks across eight desktop sizes; 1280×620 screenshot reviewed and diff whitespace check passes. No deployment.
