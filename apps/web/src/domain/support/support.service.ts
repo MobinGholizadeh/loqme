@@ -525,6 +525,7 @@ export class SupportService {
     });
 
     try {
+      const supportTag = `loqme-support-${params.conversationId}`;
       if (senderType === SupportMessageSenderType.ADMIN) {
         if (conversation.channelType === SupportChannelType.CUSTOMER_ADMIN && conversation.userId) {
           notificationService.createNotification({
@@ -535,6 +536,7 @@ export class SupportService {
             title: 'پاسخ جدید از پشتیبانی لقمه',
             body: params.body.trim().slice(0, 100),
             link: '/profile?tab=support',
+            tag: supportTag,
           }).catch(() => {});
         } else if (conversation.merchantId) {
           notificationService.notifyMerchant(conversation.merchantId, {
@@ -543,6 +545,7 @@ export class SupportService {
             title: 'پاسخ جدید پشتیبانی به فروشگاه',
             body: params.body.trim().slice(0, 100),
             link: '/merchant/support',
+            tag: supportTag,
           }).catch(() => {});
         }
       } else {
@@ -556,6 +559,7 @@ export class SupportService {
           title: 'پیام جدید پشتیبانی از ' + senderLabel,
           body: params.body.trim().slice(0, 100),
           link: '/admin/support?conversationId=' + params.conversationId,
+          tag: supportTag,
         }).catch(() => {});
       }
     } catch {

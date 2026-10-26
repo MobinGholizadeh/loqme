@@ -22,6 +22,7 @@ export interface CreateNotificationInput {
   title: string;
   body: string;
   link?: string | null;
+  tag?: string;
   dataJson?: string | null;
   channels?: NotificationChannel[];
   smsRecipientMobile?: string;
@@ -130,6 +131,7 @@ export class NotificationService {
         body: notification.body,
         link: notification.link || undefined,
         category: notification.category,
+        tag: input.tag || (notification.category ? `loqme-${notification.category}` : undefined),
       }).catch((err) => {
         console.error(`[NotificationService] WebPush dispatch error for user ${input.userId}:`, err);
       });
@@ -183,7 +185,7 @@ export class NotificationService {
       icon: payload.icon || '/icon.svg',
       badge: payload.badge || '/favicon.svg',
       link: payload.link || '/',
-      tag: payload.tag || (payload.id ? `loqme-${payload.id}` : undefined),
+      tag: payload.tag || (payload.category ? `loqme-${payload.category}` : (payload.id ? `loqme-${payload.id}` : undefined)),
       category: payload.category || 'system',
       data: payload.data || {},
     });

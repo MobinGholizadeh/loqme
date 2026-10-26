@@ -135,29 +135,52 @@ self.addEventListener('push', (event) => {
   }
 
   const title = payload.title || 'لقمه | Loqme';
-  const options = {
-    body: payload.body || '',
-    icon: payload.icon || '/icon.svg',
-    badge: payload.badge || '/favicon.svg',
-    dir: 'rtl',
-    lang: 'fa-IR',
-    tag: payload.tag || (payload.id ? ('loqme-' + payload.id) : 'loqme-notification'),
-    renotify: true,
-    data: {
-      url: payload.link || payload.url || '/',
-      id: payload.id,
-      category: payload.category || 'system',
-    },
-    vibrate: [100, 50, 100],
-  };
+  const tag = payload.tag || (payload.category ? ('loqme-' + payload.category) : 'loqme-notification');
 
   event.waitUntil(
-    self.registration.showNotification(title, options).then(() => {
-      return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-        windowClients.forEach((client) => {
-          client.postMessage({ type: 'LOQME_PUSH_RECEIVED', payload });
-        });
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (windowClients) => {
+      // 1. Notify open tabs for in-app badge/counter updates
+      windowClients.forEach((client) => {
+        client.postMessage({ type: 'LOQME_PUSH_RECEIVED', payload });
       });
+
+      // 2. Anti-spam / focus check: If user is actively using the tab, skip OS banners
+      const hasFocusedClient = windowClients.some((client) => client.focused);
+      if (hasFocusedClient) {
+        return;
+      }
+
+      // 3. Smart vibration & renotify heuristic to prevent Chrome spam throttling
+      let isUpdate = false;
+      if (self.registration && typeof self.registration.getNotifications === 'function') {
+        try {
+          const activeNotifications = await self.registration.getNotifications({ tag });
+          isUpdate = Boolean(activeNotifications && activeNotifications.length > 0);
+        } catch {
+          isUpdate = false;
+        }
+      }
+
+      const options = {
+        body: payload.body || '',
+        icon: payload.icon || '/icon.svg',
+        badge: payload.badge || '/favicon.svg',
+        dir: 'rtl',
+        lang: 'fa-IR',
+        tag,
+        renotify: isUpdate,
+        silent: isUpdate,
+        data: {
+          url: payload.link || payload.url || '/',
+          id: payload.id,
+          category: payload.category || 'system',
+        },
+        vibrate: isUpdate ? [50] : [100, 50, 100],
+      };
+
+      if (self.registration && typeof self.registration.showNotification === 'function') {
+        return self.registration.showNotification(title, options);
+      }
     })
   );
 });
