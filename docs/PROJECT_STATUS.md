@@ -8,6 +8,16 @@
 
 ## 1. Project Health & Current State
 
+### Pickup-stage card clearance follow-up (2026-10-26)
+
+Increased stage bottom padding to 64px on desktop, 56px on compact desktop and 52px on mobile so rotated lower card corners are no longer clipped. Compact card height adapts between 260–300px to retain CTA visibility on short desktop viewports. Both pickup and desktop-scaling browser scenarios pass, including geometric lower-edge checks across eight desktop sizes; 1280×620 screenshot reviewed and diff whitespace check passes. No deployment.
+
+### Desktop zoom and display-scaling scroll repair — CP-10.29 / CP-10.30 follow-up (2026-10-26)
+
+The 740px height-only media query incorrectly disabled both homepage scroll effects on wide desktops at common browser zoom/OS scaling. Wide viewports now use compact cards, spacing and nature-section typography from 601–820 CSS pixels tall, retaining sticky scrolling. Narrow viewports keep the existing 740px short-screen fallback; reduced motion and all viewports at most 600px tall retain fully readable static content for accessibility. No device/UA sniffing or zoom suppression.
+
+Validation: pickup-stack, nature-reveal and desktop live-resize browser scenarios pass, including scaled desktop sizes, phone/landscape, reduced motion, animation progression/reversal, full CTA visibility and overflow checks. Six existing animation unit tests, zero-warning lint, workspace typecheck (after regenerating the stale local Prisma client), production build and diff whitespace checks pass. Compact 1280×620 screenshot reviewed. Notification GET/SSE fixtures now match the current header requests. The broader homepage suite's existing ticker-pause test remains stale: it expects a pause button absent from the current implementation; the mobile Account scenario passes. No database migration or deployment. Next: update the independent ticker test/behavior contract before claiming the entire homepage suite passes.
+
 ### Real-Time Support Chat System (Customer, Merchant & Admin) — CP-10.32 (2026-10-24)
 
 Implemented a complete, production-ready, real-time support chat system connecting admins with regular customers and merchant partners:
