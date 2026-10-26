@@ -277,12 +277,6 @@ export function SettingsModal({
             </div>
           </div>
         </div>
-
-        {/* App Info & Support */}
-        <div className="pt-2 text-center text-[11px] text-slate-400 space-y-1">
-          <p>سامانه لقمه · نگارش ۱.۰.۰ (loqme.shop)</p>
-          <p className="text-[10px]">توسعه‌یافته بر پایه استانداردهای هوشمند پایداری غذا</p>
-        </div>
       </form>
     </Modal>
   );

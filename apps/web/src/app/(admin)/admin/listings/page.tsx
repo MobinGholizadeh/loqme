@@ -621,7 +621,7 @@ export default function AdminListingsPage() {
                 <span className="text-slate-500">بازه تحویل حضوری مشتری:</span>
                 <span className="font-bold text-slate-900">
                   {selectedListing.pickupStart && selectedListing.pickupEnd
-                    ? `${toPersianDigits(selectedListing.pickupStart)} الی ${toPersianDigits(selectedListing.pickupEnd)}`
+                    ? `${toPersianDigits(new Date(selectedListing.pickupStart).toLocaleString("fa-IR"))} الی ${toPersianDigits(new Date(selectedListing.pickupEnd).toLocaleString("fa-IR"))}`
                     : "تنظیم نشده"}
                 </span>
               </div>
