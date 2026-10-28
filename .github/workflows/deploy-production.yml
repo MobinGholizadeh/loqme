@@ -163,7 +163,7 @@ jobs:
             ADMIN_HASH=$(printf '%s' "$ADMIN_HASH_B64" | base64 -d)
             SESSION_SECRET=$(printf '%s' "$SESSION_SECRET_B64" | base64 -d)
             IMAGE="${{ env.IMAGE_NAME }}@${{ needs.build.outputs.digest }}"
-            printf 'ADMIN_PASSWORD_HASH=%s\nADMIN_SESSION_SECRET=%s\nVOIDFRAME_IMAGE=%s\n' "$ADMIN_HASH" "$SESSION_SECRET" "$IMAGE" > .env.tmp
+            printf "ADMIN_PASSWORD_HASH='%s'\nADMIN_SESSION_SECRET='%s'\nVOIDFRAME_IMAGE=%s\n" "$ADMIN_HASH" "$SESSION_SECRET" "$IMAGE" > .env.tmp
             chmod 600 .env.tmp
             mv .env.tmp .env
             docker compose -f docker-compose.server.yml config >/dev/null
@@ -180,6 +180,7 @@ jobs:
               sleep 3
             done
             if [ "$READY" != 1 ]; then rollback; exit 1; fi
+            docker compose -f docker-compose.server.yml exec -T app node -e 'if(!/^scrypt\$[a-f0-9]{32}\$[a-f0-9]{64}$/.test(process.env.ADMIN_PASSWORD_HASH||"")){console.error("Invalid runtime owner password hash");process.exit(1)}'
 
             printf '%s' "$NGINX_HTTP_B64" | base64 -d > /tmp/voidframe-http.conf
             printf '%s' "$NGINX_TLS_B64" | base64 -d > /tmp/voidframe-tls.conf
@@ -193,30 +194,17 @@ jobs:
             $SUDO systemctl reload nginx
             curl --fail --silent -H 'Host: voidframe.space' http://127.0.0.1/api/health >/dev/null
 
-            dns_ip() {
-              curl --fail --silent "https://dns.google/resolve?name=$1&type=A&cd=true" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next((a["data"] for a in d.get("Answer",[]) if a.get("type")==1),""))'
-            }
-            DOMAIN_IP=$(dns_ip voidframe.space)
-            WWW_IP=$(dns_ip www.voidframe.space)
-            case "$SERVER_HOST" in
-              *[!0-9.]* ) SERVER_IP=$(dns_ip "$SERVER_HOST") ;;
-              * ) SERVER_IP="$SERVER_HOST" ;;
-            esac
-            if [ -n "$DOMAIN_IP" ] && [ "$DOMAIN_IP" = "$SERVER_IP" ] && [ "$WWW_IP" = "$SERVER_IP" ]; then
-              if ! command -v certbot >/dev/null 2>&1; then
-                $SUDO apt-get update
-                $SUDO apt-get install -y certbot python3-certbot-nginx
-              fi
-              if [ ! -f /etc/letsencrypt/live/voidframe.space/fullchain.pem ]; then
-                $SUDO certbot --nginx --non-interactive --agree-tos --register-unsafely-without-email -d voidframe.space -d www.voidframe.space
-              fi
-              $SUDO install -m 644 /tmp/voidframe-tls.conf /etc/nginx/sites-available/voidframe.conf
-              $SUDO nginx -t
-              $SUDO systemctl reload nginx
-              curl --fail --silent --resolve voidframe.space:443:127.0.0.1 https://voidframe.space/api/health >/dev/null
-            else
-              echo "DNS is not pointed to this server; TLS remains deferred."
+            if ! command -v certbot >/dev/null 2>&1; then
+              $SUDO apt-get update
+              $SUDO apt-get install -y certbot python3-certbot-nginx
             fi
+            if [ ! -f /etc/letsencrypt/live/voidframe.space/fullchain.pem ]; then
+              $SUDO certbot --nginx --non-interactive --agree-tos --register-unsafely-without-email -d voidframe.space -d www.voidframe.space
+            fi
+            $SUDO install -m 644 /tmp/voidframe-tls.conf /etc/nginx/sites-available/voidframe.conf
+            $SUDO nginx -t
+            $SUDO systemctl reload nginx
+            curl --fail --silent --resolve voidframe.space:443:127.0.0.1 https://voidframe.space/api/health >/dev/null
 
             printf '%s\n' '{"sourceCommit":"${{ needs.build.outputs.source_sha }}","deploymentRunNumber":${{ github.run_number }}}' > deployed-revision.json.tmp
             chmod 644 deployed-revision.json.tmp
