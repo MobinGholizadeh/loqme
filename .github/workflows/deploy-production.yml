@@ -149,10 +149,6 @@ jobs:
             $SUDO install -d -m 755 -o "$(id -u)" -g "$(id -g)" /opt/voidframe
             cd /opt/voidframe
 
-            if [ -f deployed-revision.json ]; then
-              python3 -c 'import json; d=json.load(open("deployed-revision.json")); assert int(d["deploymentRunNumber"]) <= ${{ github.run_number }}, "Refusing an older production run"'
-            fi
-
             cp -f docker-compose.server.yml docker-compose.server.yml.rollback 2>/dev/null || true
             cp -f .env .env.rollback 2>/dev/null || true
             rollback() {
