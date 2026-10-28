@@ -1,7 +1,6 @@
 .git
 .deploy
 .next
-.openai
 .sites-runtime
 .vinext
 .wrangler

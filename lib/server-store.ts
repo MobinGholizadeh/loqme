@@ -9,7 +9,7 @@ const dataDir=process.env.DATA_DIR||join(process.cwd(),'.data','voidframe');
 const storeFile=join(dataDir,'store.json');
 let queue=Promise.resolve();
 
-export const storagePath=(kind:'preview'|'download',key:string)=>join(dataDir,kind,key);
+export const storagePath=(kind:'preview'|'download',key:string)=>join(/*turbopackIgnore: true*/dataDir,kind,key);
 export async function initStore(){
   await mkdir(join(dataDir,'preview'),{recursive:true});
   await mkdir(join(dataDir,'download'),{recursive:true});
