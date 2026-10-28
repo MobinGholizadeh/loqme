@@ -116,6 +116,21 @@ export class SmsIrNotificationService implements INotificationService {
   }
 
   /**
+   * Dispatches delay notice and revised pickup window notification
+   */
+  async sendOrderDelayNotification(
+    mobile: string,
+    orderNumber: string,
+    newPickupWindow: string,
+    delayReason?: string
+  ): Promise<boolean> {
+    const normalizedMobile = normalizeIranianMobile(mobile);
+    const reasonText = delayReason ? `علت: ${delayReason}\n` : '';
+    const messageText = `مشتری گرامی، بازه تحویل سفارش ${orderNumber} شما در لقمه تغییر یافت؛\n${reasonText}بازه تحویل جدید: ${newPickupWindow}\nبا تشکر از صبوری شما - لقمه`;
+    return this.sendBulk(normalizedMobile, messageText);
+  }
+
+  /**
    * Internal helper to send message via /v1/send/verify
    */
   private async sendWithTemplate(

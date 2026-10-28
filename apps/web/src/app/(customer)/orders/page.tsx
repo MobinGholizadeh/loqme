@@ -51,13 +51,20 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
-  const getStatusBadge = (status: OrderStatus) => {
-    switch (status) {
+  const getStatusBadge = (order: CustomerOrderSummaryDto) => {
+    switch (order.status) {
       case "PAID":
       case "READY_FOR_PICKUP":
+        if (order.isConfirmedByMerchant) {
+          return (
+            <Badge variant="success" size="sm">
+              ✓ تایید شده و آماده تحویل
+            </Badge>
+          );
+        }
         return (
-          <Badge variant="success" size="sm">
-            ✓ آماده تحویل حضوری
+          <Badge variant="warning" size="sm">
+            ⏳ در انتظار تایید رستوران
           </Badge>
         );
       case "COMPLETED":
@@ -182,8 +189,27 @@ export default function OrdersPage() {
                   </p>
                 </div>
 
-                <div>{getStatusBadge(order.status)}</div>
+                <div>{getStatusBadge(order)}</div>
               </div>
+
+              {/* Delay or Awaiting Notice */}
+              {order.pickupWindowModifiedCount && order.pickupWindowModifiedCount > 0 ? (
+                <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+                  <span className="text-amber-600 font-bold shrink-0">⚠️ تاخیر در تحویل:</span>
+                  <div>
+                    <span>بازه تحویل توسط فروشگاه تمدید شد.</span>
+                    {order.delayReasonFa && (
+                      <span className="block text-[11px] text-amber-800 font-medium mt-0.5">
+                        علت اعلامی فروشگاه: {order.delayReasonFa}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : !order.isConfirmedByMerchant && (order.status === "READY_FOR_PICKUP" || order.status === "PAID") ? (
+                <div className="p-2 rounded-lg bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-800">
+                  سفارش شما در صف بررسی و آماده‌سازی فروشگاه قرار دارد و پس از تایید نهایی، بازه تحویل دقیق به شما پیامک خواهد شد.
+                </div>
+              ) : null}
 
               {/* Pickup info */}
               <div className="p-3 bg-loqme-neutral-50 rounded-lg border border-loqme-neutral-100 text-xs space-y-1">

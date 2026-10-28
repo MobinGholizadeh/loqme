@@ -18,4 +18,9 @@ export interface INotificationService {
    * Dispatches reminder notification before pickup window closes
    */
   sendPickupReminder(mobile: string, orderNumber: string, remainingMinutes: number): Promise<boolean>;
+
+  /**
+   * Dispatches delay notice and revised pickup window notification
+   */
+  sendOrderDelayNotification(mobile: string, orderNumber: string, newPickupWindow: string, delayReason?: string): Promise<boolean>;
 }

@@ -26,11 +26,12 @@ export interface CreateNotificationInput {
   dataJson?: string | null;
   channels?: NotificationChannel[];
   smsRecipientMobile?: string;
-  smsType?: 'ORDER_CONFIRMATION' | 'PICKUP_REMINDER';
+  smsType?: 'ORDER_CONFIRMATION' | 'PICKUP_REMINDER' | 'ORDER_DELAYED';
   smsData?: {
     orderNumber?: string;
     pickupWindow?: string;
     remainingMinutes?: number;
+    delayReason?: string;
   };
 }
 
@@ -250,8 +251,8 @@ export class NotificationService {
   private async dispatchSms(
     notificationId: string,
     mobile: string,
-    smsType?: 'ORDER_CONFIRMATION' | 'PICKUP_REMINDER',
-    smsData?: { orderNumber?: string; pickupWindow?: string; remainingMinutes?: number }
+    smsType?: 'ORDER_CONFIRMATION' | 'PICKUP_REMINDER' | 'ORDER_DELAYED',
+    smsData?: { orderNumber?: string; pickupWindow?: string; remainingMinutes?: number; delayReason?: string }
   ): Promise<void> {
     const sms = getNotificationService();
     let sent = false;
@@ -261,6 +262,8 @@ export class NotificationService {
         sent = await sms.sendOrderConfirmation(mobile, smsData.orderNumber, smsData.pickupWindow);
       } else if (smsType === 'PICKUP_REMINDER' && smsData?.orderNumber && smsData?.remainingMinutes) {
         sent = await sms.sendPickupReminder(mobile, smsData.orderNumber, smsData.remainingMinutes);
+      } else if (smsType === 'ORDER_DELAYED' && smsData?.orderNumber && smsData?.pickupWindow) {
+        sent = await sms.sendOrderDelayNotification(mobile, smsData.orderNumber, smsData.pickupWindow, smsData.delayReason);
       }
 
       await prisma.notificationDelivery.create({

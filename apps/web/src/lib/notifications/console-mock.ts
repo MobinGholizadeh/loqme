@@ -47,6 +47,11 @@ export class ConsoleMockNotificationService implements INotificationService {
     return true;
   }
 
+  async sendOrderDelayNotification(mobile: string, orderNumber: string, newPickupWindow: string, delayReason?: string): Promise<boolean> {
+    console.log(`📱 [SMS] Delay notice for order ${orderNumber} (${mobile}). New window: ${newPickupWindow}. Reason: ${delayReason || 'تغییر بازه تحویل'}`);
+    return true;
+  }
+
   static getRecentOtp(mobile: string): SentOtpRecord | undefined {
     return otpsMap.get(mobile);
   }
