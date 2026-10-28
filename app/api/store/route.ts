@@ -1,6 +1,6 @@
 import {readFile,stat,writeFile} from 'node:fs/promises';
 import {clearAdminSession,isAdmin,setAdminSession,verifyAdminPassword} from '../../../lib/server-auth';
-import {readStore,storagePath,updateStore,type StoredOrder,type StoredProduct} from '../../../lib/server-store';
+import {initStore,readStore,storagePath,updateStore,type StoredOrder,type StoredProduct} from '../../../lib/server-store';
 export const dynamic='force-dynamic';export const runtime='nodejs';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 const safeKey=(key:string)=>/^[a-f0-9-]{36}$/.test(key);
@@ -34,7 +34,7 @@ export async function POST(req:Request){
  const length=Number(req.headers.get('content-length'));if(length>55*1024*1024)return json({error:'Maximum file size is 50 MB.'},413);const data=await req.formData(),file=data.get('file'),kind=data.get('kind');
  if(!(file instanceof File)||!file.size||file.size>50*1024*1024)return json({error:'Choose a file smaller than 50 MB.'},400);if(kind!=='preview'&&kind!=='download')return json({error:'Invalid upload type.'},400);
  if(kind==='preview'&&!['image/png','image/jpeg','image/webp','image/gif','video/mp4','video/webm'].includes(file.type))return json({error:'Use JPG, PNG, WebP, GIF, MP4 or WebM previews.'},400);
- const key=crypto.randomUUID();await writeFile(storagePath(kind,key),Buffer.from(await file.arrayBuffer()),{mode:0o600});return json({key,name:file.name,type:file.type});
+ await initStore();const key=crypto.randomUUID();await writeFile(storagePath(kind,key),Buffer.from(await file.arrayBuffer()),{mode:0o600});return json({key,name:file.name,type:file.type});
  }
  const b=await req.json() as any;
  if(action==='save'){
