@@ -4,7 +4,6 @@ Void Frame shares the production host with Loqme but has an independent release 
 
 - Source: the `voidframe-source` branch in this repository
 - Automatic workflow: `.github/workflows/deploy-production.yml` on the `voidframe-source` branch
-- Recovery workflow: `.github/workflows/deploy-voidframe.yml` on the default branch, manually dispatched
 - Image: `ghcr.io/mobingholizadeh/voidframe`, pinned by digest
 - Server directory: `/opt/voidframe`
 - Container and volume: `voidframe-app` and `voidframe_data`
