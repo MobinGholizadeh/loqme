@@ -1,0 +1,32 @@
+services:
+  app:
+    image: ${VOIDFRAME_IMAGE:?Set VOIDFRAME_IMAGE to an immutable image digest}
+    container_name: voidframe-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATA_DIR: /data
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "127.0.0.1:3100:3000"
+    volumes:
+      - voidframe_data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  voidframe_data:
+    name: voidframe_data

@@ -1,33 +1,49 @@
 # Void Frame
 
-Private storefront built with Vinext/React, Cloudflare D1 for products and orders, and R2 for uploaded files. Source lives in this directory. No payment wallet is configured.
+Void Frame is a self-hosted storefront for downloadable visual work. The production image runs as a non-root Next.js container behind Nginx. Product metadata, orders, previews, and downloads live in the `voidframe_data` Docker volume.
 
-## Using your studio
+## Creator studio
 
-1. Open the deployed site and select **Creator studio**. Sign in and activate the studio while the site is owner-private. This permanently binds administration to your site-specific ChatGPT user ID.
-2. **Products → Add product**: upload an image/video preview, attach the downloadable work, enter the description and usage terms, and choose a USDC price or Free. Each file can be up to 50 MB. Preview formats: JPEG, PNG, WebP, GIF, MP4, WebM. Downloads can be any file type and are served as attachments.
-3. **Settings**: save your public Arbitrum receiving address when ready. An empty wallet disables paid checkout. Never provide a seed phrase or private key.
-4. **Payments**: review submitted transaction hashes using Arbiscan. Verify success, the native USDC token, recipient, and amount against the order. Approval unlocks delivery. This is a manual payment-review workflow; it does not automatically verify on-chain transfers or initiate wallet transactions.
-5. Sample listings are illustrative and cannot be purchased. The free Field Notes sample includes an actual text download. Real uploads appear first. Archive removes a listing from the gallery without deleting files or existing purchase access.
+1. Open **Creator studio** and enter the owner password created during deployment.
+2. In **Products**, upload an image or video preview, attach the downloadable work, add its details, and set a USDC price or mark it free. Each file can be up to 50 MB. Preview formats are JPEG, PNG, WebP, GIF, MP4, and WebM.
+3. In **Settings**, add the public Arbitrum receiving address. Paid checkout stays disabled while this field is empty. Never enter a seed phrase or private key.
+4. In **Payments**, compare each submitted transaction with the expected wallet, native USDC token, and amount on Arbiscan. Approval unlocks the customer download. Payment review is manual; the app does not initiate wallet transactions or automatically verify the chain.
 
-The deployed site remains private until its audience is explicitly changed. Activate the studio before making the site public; first-owner setup relies on the initial private access boundary. Production writes subsequently require the stored owner identity and a matching Origin header. Public operation should also add rate limiting to order creation and receipt submission.
+Order URLs contain private access tokens. A paid file is available only to the owner or to an approved order token. Free files can be downloaded directly. Archiving removes a product from the gallery while preserving its files and existing orders.
 
-Private order links act as access tokens. Customers should keep them private. Order status is also remembered in the purchasing browser. No email notifications or automatic refunds are implemented. Uploaded download files are served only for free products, the owner, or approved order tokens. Product previews are visible to storefront visitors.
+## Local production validation
 
-## Development and validation
+Create a scrypt password hash and a random session secret, then set:
 
-`npm run dev -- --hostname 127.0.0.1`
+```text
+ADMIN_PASSWORD_HASH=scrypt$<salt>$<hex digest>
+ADMIN_SESSION_SECRET=<at least 32 random characters>
+DATA_DIR=<writable data directory>
+```
 
-`npx tsc --noEmit`
+Run:
 
-`node scripts/test-store.mjs` tests local authentication, uploads, free downloads, payment gates, order-token privacy, transaction reuse, review and archive. It creates and archives local fixtures and clears the local wallet; never point it at production.
+```powershell
+npm run build:selfhost
+npx tsc --noEmit
+npm run test:selfhost
+```
 
-Database schema: `db/schema.ts`. Generated migration: `drizzle/0000_fluffy_black_crow.sql`. Do not replay applied migrations. Local state in `.wrangler` is separate from production.
+`test:selfhost` expects the local production server at `http://127.0.0.1:3101` and reads the ignored `.deploy/admin-password` fixture. It creates and archives test products and resets the test wallet. Never point it at production.
+
+## Server layout
+
+- Container: `voidframe-app`
+- Loopback port: `127.0.0.1:3100`
+- Persistent volume: `voidframe_data`
+- Application directory: `/opt/voidframe`
+- Nginx names: `voidframe.space` and `www.voidframe.space`
+- Health endpoint: `/api/health`
+
+`Dockerfile.selfhost`, `docker-compose.server.yml`, and `deploy/nginx-voidframe.conf` define the deployment. The app uses a read-only root filesystem, drops Linux capabilities, and stores mutable data only in its named volume.
 
 ## Design and asset provenance
 
-MotionSites recording: filterable gallery and product previews. Mosa recording: black/charcoal surfaces, mist-gray imagery, minimal white typography, monospaced labels, fine borders and square controls. The supplied layered V logo was rebuilt as an SVG in silver/gray for the header and favicon (`public/logo.svg`, `public/favicon.svg`). The original screenshot was not modified.
+The MotionSites recording informed the filterable gallery and product preview structure. The Mosa recording informed the black and charcoal surfaces, mist-gray imagery, minimal white typography, monospaced labels, fine borders, and square controls. The supplied layered V logo was rebuilt as a silver and gray SVG for the header and favicon (`public/logo.svg`, `public/favicon.svg`). The source screenshot was not modified.
 
-Hero image: `public/hero.png`, created with the built-in image generation tool. Prompt: “Use case: stylized-concept. Asset type: ultra-wide website hero background. Create a cinematic photorealistic dark mountain landscape, black volcanic rocks surrounding still water, layers of jagged mountains disappearing into silver gray mist, a thin luminous silver rectangular portal standing on a rocky island right of center and its reflection. Restrained near-black, charcoal and desaturated gray-green palette, bright overcast mist at upper right. Wide 3:1 composition, left third deep shadow with empty space for white webpage text. Sophisticated atmospheric film grain, natural detail, no text, no logo, no watermark.”
-
-Native USDC on Arbitrum One: `0xaf88d065e77c8cC2239327C5EDb3A432268e5831`. Reference: https://www.circle.com/blog/usdc-on-arbitrum-now-available and https://developer.arbitrum.io/arbitrum-bridge/usdc-arbitrum-one .
+`public/hero.png` was generated for the storefront as a dark mountain and luminous portal scene. Native USDC on Arbitrum One uses contract `0xaf88d065e77c8cC2239327C5EDb3A432268e5831`.
