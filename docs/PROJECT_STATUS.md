@@ -8,9 +8,9 @@
 
 ## 1. Project Health & Current State
 
-### Isolated Void Frame host deployment (2026-10-28)
+### Isolated Void Frame host deployment and automatic CI/CD (2026-10-29)
 
-Added a manually dispatched deployment workflow for the independent Void Frame storefront. It builds the dedicated `voidframe-source` branch, publishes a digest-pinned GHCR image, and installs it at `/opt/voidframe` on loopback port 3100 with a separate container, data volume, Nginx virtual host, credentials, and concurrency group. The workflow does not access Loqme application data or restart Loqme services. Production run 40763178487 deployed source `222e50f` successfully; external host-header checks returned 200 for the storefront, health route, and favicon, while Loqme readiness remained 200. TLS is pending because `voidframe.space` and `www.voidframe.space` have no public A records. Operational boundaries and recovery ownership are documented in `docs/VOIDFRAME_HOSTING.md`.
+The independent Void Frame storefront now deploys automatically on every push to `voidframe-source`. Its pipeline type-checks and builds the exact commit, runs a clean-volume production integration flow, publishes a digest-pinned GHCR image, deploys with health-based rollback, verifies the runtime owner-password hash, and installs the canonical Nginx/TLS configuration. It remains isolated at `/opt/voidframe` on port 3100 with its own container, volume, secrets, and concurrency group; it does not access Loqme data or restart Loqme services. Production run 40788034737 deployed source `32a4be3` successfully. Both public names return trusted HTTPS 200, HTTP redirects canonically, the favicon returns 200, and Loqme readiness remains 200. Operational boundaries and recovery ownership are documented in `docs/VOIDFRAME_HOSTING.md`.
 
 ### Order Merchant Confirmation RLS Fix & Full Platform Notification Expansion (2026-10-28)
 
