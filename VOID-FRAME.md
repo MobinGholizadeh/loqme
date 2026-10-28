@@ -42,6 +42,10 @@ npm run test:selfhost
 
 `Dockerfile.selfhost`, `docker-compose.server.yml`, and `deploy/nginx-voidframe.conf` define the deployment. The app uses a read-only root filesystem, drops Linux capabilities, and stores mutable data only in its named volume.
 
+## Production CI/CD
+
+The `Void Frame Production CI/CD` GitHub Actions workflow runs on every push to the `voidframe-source` branch. It type-checks and builds the exact commit, starts the standalone production server in CI, exercises the complete upload and payment-review test flow, publishes a digest-pinned container image, deploys through the existing server SSH connection, and verifies the live health endpoint. Failed application health checks restore the previous image. The workflow also installs the canonical Nginx configuration and provisions or reuses the Let's Encrypt certificate when both public DNS names point to the server.
+
 ## Design and asset provenance
 
 The MotionSites recording informed the filterable gallery and product preview structure. The Mosa recording informed the black and charcoal surfaces, mist-gray imagery, minimal white typography, monospaced labels, fine borders, and square controls. The supplied layered V logo was rebuilt as a silver and gray SVG for the header and favicon (`public/logo.svg`, `public/favicon.svg`). The source screenshot was not modified.
