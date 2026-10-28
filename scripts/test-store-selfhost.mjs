@@ -34,7 +34,7 @@ async function upload(kind,name,type,contents){
   form.set('kind',kind);
   form.set('file',new File([contents],name,{type}));
   const uploaded=await request('upload',{method:'POST',body:form});
-  assert.equal(uploaded.response.status,200);
+  assert.equal(uploaded.response.status,200,JSON.stringify(uploaded.data));
   return uploaded.data;
 }
 
