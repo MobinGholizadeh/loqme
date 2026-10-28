@@ -445,6 +445,13 @@ export interface OrderEntity {
   commissionPercent: number;
   commissionAmountToman: number;
   merchantPayoutAmountToman: number;
+  merchantConfirmedAt?: Date | string | null;
+  confirmedByUserId?: string | null;
+  pickupStart?: Date | string | null;
+  pickupEnd?: Date | string | null;
+  pickupWindowModifiedCount?: number;
+  delayReasonFa?: string | null;
+  pickupWindowHistory?: Array<{ pickupStart: string; pickupEnd: string; modifiedAt: string; reasonFa?: string }> | null;
   notesFa?: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -497,8 +504,8 @@ export interface ReservationResponseDto {
     addressFa?: string;
     discountedPriceToman: number;
     originalPriceToman: number;
-    pickupWindowFa: string;
-    pickupEndIso: string;
+  pickupWindowFa: string;
+  pickupEndIso: string;
   };
 }
 
@@ -543,6 +550,11 @@ export interface CustomerOrderSummaryDto {
   quantity: number;
   totalAmountToman: number;
   status: OrderStatus;
+  merchantConfirmedAt?: string | null;
+  isConfirmedByMerchant?: boolean;
+  pickupWindowModifiedCount?: number;
+  delayReasonFa?: string | null;
+  pickupStartIso?: string | null;
   pickupWindowFa: string;
   pickupEndIso: string;
   createdAt: string;
@@ -630,6 +642,11 @@ export interface MerchantPickupQueueItemDto {
   listingTitleFa: string;
   quantity: number;
   totalAmountToman: number;
+  merchantConfirmedAt?: string | null;
+  isConfirmedByMerchant: boolean;
+  delayReasonFa?: string | null;
+  pickupWindowModifiedCount: number;
+  pickupWindowHistory?: Array<{ pickupStart: string; pickupEnd: string; modifiedAt: string; reasonFa?: string }> | null;
   pickupWindowFa: string;
   pickupStartIso: string;
   pickupEndIso: string;
@@ -1240,3 +1257,17 @@ export interface MerchantWalletSummaryDto {
 export * from './merchant-data';
 
 export * from './support';
+
+export interface ConfirmMerchantOrderInput {
+  pickupStart?: string;
+  pickupEnd?: string;
+  estimatedPreparationMinutes?: number;
+  noteFa?: string;
+}
+
+export interface UpdateOrderPickupWindowInput {
+  pickupStart?: string;
+  pickupEnd?: string;
+  delayMinutes?: number;
+  reasonFa?: string;
+}

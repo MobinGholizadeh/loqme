@@ -578,3 +578,20 @@ export type AnalyticsQueryInput = z.infer<typeof AnalyticsQuerySchema>;
 export * from './merchant-data';
 
 export * from './support';
+
+
+export const ConfirmMerchantOrderSchema = z.object({
+  pickupStart: z.union([z.string(), z.date()]).optional(),
+  pickupEnd: z.union([z.string(), z.date()]).optional(),
+  estimatedPreparationMinutes: z.coerce.number().int().min(0).max(1440).optional(),
+  noteFa: z.string().max(250).optional(),
+});
+export type ConfirmMerchantOrderInput = z.infer<typeof ConfirmMerchantOrderSchema>;
+
+export const UpdateOrderPickupWindowSchema = z.object({
+  pickupStart: z.union([z.string(), z.date()]).optional(),
+  pickupEnd: z.union([z.string(), z.date()]).optional(),
+  delayMinutes: z.coerce.number().int().min(5).max(1440).optional(),
+  reasonFa: z.string().max(300).optional(),
+});
+export type UpdateOrderPickupWindowInput = z.infer<typeof UpdateOrderPickupWindowSchema>;

@@ -165,8 +165,8 @@ export class PickupService {
     const listing = firstItem?.listing;
     const primaryLoc = order.merchant.locations.find(l => l.id === order.merchantLocationId) ?? order.merchant.locations[0];
 
-    const pickupStart = firstItem?.pickupStartSnapshot ?? listing?.pickupStart;
-    const pickupEnd = firstItem?.pickupEndSnapshot ?? listing?.pickupEnd;
+    const pickupStart = order.pickupStart ?? (firstItem?.pickupStartSnapshot ?? listing?.pickupStart);
+    const pickupEnd = order.pickupEnd ?? (firstItem?.pickupEndSnapshot ?? listing?.pickupEnd);
     const now = new Date();
     const isPastPickupEnd = pickupEnd ? pickupEnd.getTime() < now.getTime() : false;
 
@@ -621,8 +621,8 @@ export class PickupService {
     return orders.map((order) => {
       const firstItem = order.items[0];
       const listing = firstItem?.listing;
-      const pickupStart = firstItem?.pickupStartSnapshot ?? listing?.pickupStart;
-      const pickupEnd = firstItem?.pickupEndSnapshot ?? listing?.pickupEnd;
+      const pickupStart = order.pickupStart ?? (firstItem?.pickupStartSnapshot ?? listing?.pickupStart);
+      const pickupEnd = order.pickupEnd ?? (firstItem?.pickupEndSnapshot ?? listing?.pickupEnd);
       const isPastPickupEnd = pickupEnd ? pickupEnd.getTime() < now.getTime() : false;
 
       let pickupWindowFa = 'امروز در ساعات کاری';
@@ -649,6 +649,11 @@ export class PickupService {
         listingTitleFa: listing?.titleFa || 'بسته لقمه',
         quantity: firstItem?.quantity || 1,
         totalAmountToman: Number(order.totalAmountToman),
+        merchantConfirmedAt: order.merchantConfirmedAt ? order.merchantConfirmedAt.toISOString() : null,
+        isConfirmedByMerchant: Boolean(order.merchantConfirmedAt),
+        delayReasonFa: order.delayReasonFa,
+        pickupWindowModifiedCount: order.pickupWindowModifiedCount,
+        pickupWindowHistory: (order.pickupWindowHistory as any) || null,
         pickupWindowFa,
         pickupStartIso: pickupStart ? pickupStart.toISOString() : '',
         pickupEndIso: pickupEnd ? pickupEnd.toISOString() : '',
@@ -675,17 +680,29 @@ export class PickupService {
       where: {
         ...(merchantId ? { merchantId } : {}),
         status: { in: [OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP] },
-        items: {
-          some: {
+        AND: [
+          {
             OR: [
-              { pickupEndSnapshot: { lt: now } },
-              { pickupEndSnapshot: null, listing: { pickupEnd: { lt: now } } },
+              { pickupEnd: { lt: now } },
+              {
+                pickupEnd: null,
+                items: {
+                  some: {
+                    OR: [
+                      { pickupEndSnapshot: { lt: now } },
+                      { pickupEndSnapshot: null, listing: { pickupEnd: { lt: now } } },
+                    ],
+                  },
+                },
+              },
             ],
           },
-        },
-        OR: [
-          { pickupVerification: null },
-          { pickupVerification: { isVerified: false } },
+          {
+            OR: [
+              { pickupVerification: null },
+              { pickupVerification: { isVerified: false } },
+            ],
+          },
         ],
       },
       select: { id: true },

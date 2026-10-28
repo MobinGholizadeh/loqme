@@ -558,6 +558,13 @@ model Order {
   commissionPercent         Decimal                @default(10.0) @db.Decimal(5, 2)
   commissionAmountToman     BigInt                 @default(0)
   merchantPayoutAmountToman BigInt                 @default(0)
+  merchantConfirmedAt       DateTime?
+  confirmedByUserId         String?
+  pickupStart               DateTime?
+  pickupEnd                 DateTime?
+  pickupWindowModifiedCount Int                    @default(0)
+  delayReasonFa             String?
+  pickupWindowHistory       Json?
   notesFa                   String?
   createdAt                 DateTime               @default(now())
   updatedAt                 DateTime               @updatedAt
@@ -579,6 +586,7 @@ model Order {
   @@index([status])
   @@index([merchantId, status])
   @@index([merchantId, paidAt])
+  @@index([merchantId, merchantConfirmedAt])
   @@index([createdAt])
 }
 
