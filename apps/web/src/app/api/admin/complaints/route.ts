@@ -41,7 +41,11 @@ async function handleGET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      ...result,
+      ...JSON.parse(
+        JSON.stringify(result, (_, value) =>
+          typeof value === "bigint" ? Number(value) : value
+        )
+      ),
     });
   } catch (error: any) {
     console.error('Error in admin listComplaints API:', error);

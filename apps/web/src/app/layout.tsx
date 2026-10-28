@@ -98,8 +98,9 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${vazirmatn.variable} ${dmSans.variable}`}
       style={generateCssVariables("green-deck") as React.CSSProperties}
+      suppressHydrationWarning
     >
-      <body className="font-sans antialiased min-h-screen">
+      <body className="font-sans antialiased min-h-screen" suppressHydrationWarning>
         <SessionProvider>
           <SmoothScrollProvider>
             {children}

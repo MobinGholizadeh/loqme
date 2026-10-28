@@ -291,6 +291,7 @@ export class NotificationService {
    * Broadcasts notification to all system administrators
    */
   async notifyAdmins(params: Omit<CreateNotificationInput, 'userId' | 'role'>): Promise<void> {
+    if (!prisma.user?.findMany) return;
     const admins = await prisma.user.findMany({
       where: { role: Role.ADMIN, isActive: true },
       select: { id: true },
@@ -314,6 +315,7 @@ export class NotificationService {
     merchantId: string,
     params: Omit<CreateNotificationInput, 'userId' | 'role'>
   ): Promise<void> {
+    if (!prisma.merchant?.findUnique) return;
     const merchant = await prisma.merchant.findUnique({
       where: { id: merchantId },
       select: {

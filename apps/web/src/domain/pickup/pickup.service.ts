@@ -728,6 +728,40 @@ export class PickupService {
       select: { id: true },
     });
 
+    try {
+      const sweptOrders = await prisma.order.findMany({
+        where: { id: { in: swept.map(s => s.id) } },
+        include: {
+          customer: { include: { user: true } },
+          merchant: { select: { id: true, businessNameFa: true } },
+        },
+      });
+
+      for (const order of sweptOrders) {
+        if (order.customer?.user) {
+          notificationService.createNotification({
+            userId: order.customer.user.id,
+            role: order.customer.user.role,
+            type: 'ORDER_NO_SHOW',
+            category: 'order',
+            title: 'پایان مهلت تحویل سفارش',
+            body: 'مهلت تحویل سفارش #' + order.orderNumber + ' از «' + order.merchant.businessNameFa + '» به پایان رسید و به عنوان عدم مراجعه ثبت شد.',
+            link: '/orders',
+          }).catch(() => {});
+        }
+
+        notificationService.notifyMerchant(order.merchant.id, {
+          type: 'ORDER_NO_SHOW',
+          category: 'order',
+          title: 'اتمام مهلت تحویل سفارش #' + order.orderNumber,
+          body: 'مهلت تحویل سفارش #' + order.orderNumber + ' به پایان رسید (عدم مراجعه مشتری).',
+          link: '/merchant/orders',
+        }).catch(() => {});
+      }
+    } catch {
+      // Non-blocking
+    }
+
     return {
       success: true,
       sweptCount: swept.length,
@@ -771,6 +805,24 @@ export class PickupService {
         console.log(
           `📱 [PICKUP REMINDER - LOQME / لقمه] Sent reminder to ${order.customer.user.mobile} for Order ${order.orderNumber}`
         );
+        if (order.customer?.user) {
+          notificationService.createNotification({
+            userId: order.customer.user.id,
+            role: order.customer.user.role,
+            type: 'PICKUP_REMINDER',
+            category: 'order',
+            title: 'یادآوری تحویل سفارش',
+            body: 'کمتر از ۴۵ دقیقه تا پایان مهلت تحویل سفارش #' + order.orderNumber + ' باقی مانده است',
+            link: '/orders',
+            channels: ['IN_APP', 'WEB_PUSH', 'SMS'],
+            smsRecipientMobile: order.customer.user.mobile,
+            smsType: 'PICKUP_REMINDER',
+            smsData: {
+              orderNumber: order.orderNumber,
+              remainingMinutes: 45,
+            },
+          }).catch(() => {});
+        }
         await prisma.pickupVerification.update({
           where: { id: order.pickupVerification.id },
           data: { reminderSentAt: now },

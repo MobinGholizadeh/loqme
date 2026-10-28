@@ -1,3 +1,4 @@
+import { notificationService } from '@/domain/notification/notification.service';
 import { withDatabaseService } from '@/lib/db/context';
 import { initiatePaymentOnce } from './payment-attempt.service';
 import { prisma } from '@/lib/prisma';
@@ -371,6 +372,41 @@ export class PaymentService {
 
       return refundRecord;
     });
+
+    try {
+      const order = await prisma.order.findUnique({
+        where: { id: payment.orderId },
+        include: {
+          customer: { include: { user: true } },
+          merchant: { select: { id: true, businessNameFa: true } },
+        },
+      });
+
+      if (order?.customer?.user) {
+        notificationService.createNotification({
+          userId: order.customer.user.id,
+          role: order.customer.user.role,
+          type: 'ORDER_REFUNDED',
+          category: 'order',
+          title: 'استرداد وجه سفارش',
+          body: 'مبلغ ' + Number(refundAmount).toLocaleString('fa-IR') + ' تومان بابت سفارش #' + order.orderNumber + ' به حساب شما مسترد شد.',
+          link: '/orders',
+          channels: ['IN_APP', 'WEB_PUSH'],
+        }).catch(() => {});
+      }
+
+      if (order?.merchant) {
+        notificationService.notifyMerchant(order.merchant.id, {
+          type: 'ORDER_REFUNDED',
+          category: 'order',
+          title: 'لغو و استرداد وجه سفارش #' + order.orderNumber,
+          body: 'سفارش #' + order.orderNumber + ' لغو و مبلغ آن به مشتری بازگردانده شد (علت: ' + reasonFa + ').',
+          link: '/merchant/orders',
+        }).catch(() => {});
+      }
+    } catch {
+      // Non-blocking
+    }
 
     return {
       success: true,

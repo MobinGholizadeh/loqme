@@ -100,6 +100,14 @@ export async function submitApplication(userId: string, input: MerchantApplicati
     const app = existing
       ? await tx.merchantApplication.update({ where: { id: existing.id }, data: { ...values, status: 'PENDING', reviewReason: null, reviewedAt: null, reviewedById: null, revision: { increment: 1 } }, include: { city: true } })
       : await tx.merchantApplication.create({ data: { ...values, applicantId: userId }, include: { city: true } });
+    notificationService.notifyAdmins({
+      type: 'MERCHANT_APPLICATION_SUBMITTED',
+      category: 'system',
+      title: 'درخواست ثبت فروشگاه جدید',
+      body: 'درخواست ثبت فروشگاه «' + app.businessNameFa + '» توسط متقاضی ثبت شد.',
+      link: '/admin/merchants',
+      tag: 'app-' + app.id,
+    }).catch(() => {});
     return dto(app);
   });
 }

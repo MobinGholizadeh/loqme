@@ -8,6 +8,17 @@
 
 ## 1. Project Health & Current State
 
+### Order Merchant Confirmation RLS Fix & Full Platform Notification Expansion (2026-10-28)
+
+1. **Order Confirmation RLS Trigger Fix**:
+   - Fixed `loqme_rls.guard_write()` in PostgreSQL where array subtraction omitted `'notesFa'` on `newj`, causing false evaluation of row equivalence and throwing `42501: RLS: order payment state is server controlled` during merchant confirmation (`POST /api/merchant/orders/[id]/confirm`).
+   - Applied migration `20261028130000_fix_order_rls_guard_write` cleanly across database environments.
+2. **Comprehensive Notification Coverage Across Admin, Merchant & Customer**:
+   - **Admin**: Auto-dispatched alerts on new merchant application submissions and new bank account Shaba registrations.
+   - **Merchant**: Proactive notifications on customer complaints, customer reviews, payout status updates (approved, rejected, completed), listing safety pause overrides, and order refunds/cancellations.
+   - **Customer**: In-App + Push + SMS pickup reminder notifications when 45 minutes remain, no-show expiration notices, refund settled confirmations, complaint resolution updates, and merchant review replies.
+   - Added unit and contract tests in `tests/notifications-comprehensive.test.ts` (6 tests passing) and `tests/admin-notifications-events.test.ts` (2 tests passing). All 32 order and notification acceptance tests pass.
+
 ### Android emulator UI-dump verification repair — CP-10.21 follow-up (2026-10-26)
 
 The supplied CI traceback fails while reading a missing `/sdcard/loqme-window.xml` before installation acceptance. Replaced the immediate dump/read with fresh temporary-path capture, removal of stale dumps, five bounded retries, XML/node validation, explicit ADB timeouts and saved failure output. Persistent failures still fail verification; signing, installation/upgrade, launch and publication gates remain required. Added five mocked failure/recovery tests to the production validation job.

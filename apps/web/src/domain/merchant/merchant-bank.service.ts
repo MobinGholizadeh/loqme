@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { notificationService } from '@/domain/notification/notification.service';
 import { StaffRole, BankAccountStatus, PayoutRequestStatus, FinancialTransactionType } from '@prisma/client';
 import {
   CreateBankAccountSchema,
@@ -105,6 +106,19 @@ export class MerchantBankService {
         isActive: true,
       },
     });
+
+    try {
+      notificationService.notifyAdmins({
+        type: 'BANK_ACCOUNT_SUBMITTED',
+        category: 'system',
+        title: 'ثبت شماره شبا جدید برای فروشگاه',
+        body: 'فروشگاه «' + merchant.businessNameFa + '» شماره شبا جدیدی (' + normalized + ') جهت بررسی ثبت کرد.',
+        link: '/admin/finance?tab=bank-accounts',
+        tag: 'shaba-' + created.id,
+      }).catch(() => {});
+    } catch {
+      // Non-blocking
+    }
 
     return {
       id: created.id,
@@ -415,7 +429,7 @@ export class MerchantBankService {
     const merchant = await this.authorizeOwner(merchantUserId, merchantId);
     const data = CreatePayoutRequestSchema.parse(rawInput);
 
-    return prisma.$transaction(async (tx) => {
+    const payoutResult = await prisma.$transaction(async (tx) => {
       // 1. Verify target bank account
       const bankAccount = await tx.merchantBankAccount.findFirst({
         where: {
@@ -534,6 +548,23 @@ export class MerchantBankService {
         updatedAt: payout.updatedAt.toISOString(),
       };
     });
+
+    try {
+      notificationService.notifyAdmins({
+        type: 'PAYOUT_REQUESTED',
+        category: 'system',
+        title: 'درخواست تسویه حساب جدید',
+        body: `فروشگاه «${merchant.businessNameFa}» درخواست تسویه وجه به مبلغ ${formatToman(data.amountToman)} ثبت کرد.`,
+        link: '/admin/finance',
+        tag: `payout-${payoutResult.id}`,
+      }).catch((err) => {
+        console.error('[MerchantBankService] Error sending admin notification for payout:', err);
+      });
+    } catch {
+      // Non-blocking notification dispatch
+    }
+
+    return payoutResult;
   }
 
   /**
