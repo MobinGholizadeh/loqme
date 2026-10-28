@@ -114,7 +114,7 @@ jobs:
             cd /opt/voidframe
 
             printf '%s' "$COMPOSE_B64" | base64 -d > docker-compose.server.yml.tmp
-            docker compose -f docker-compose.server.yml.tmp config >/dev/null
+            VOIDFRAME_IMAGE=ghcr.io/example/voidframe:validation docker compose -f docker-compose.server.yml.tmp config >/dev/null
             mv docker-compose.server.yml.tmp docker-compose.server.yml
 
             ADMIN_HASH=$(printf '%s' "$ADMIN_HASH_B64" | base64 -d)
