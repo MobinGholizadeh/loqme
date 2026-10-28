@@ -1,0 +1,7 @@
+VOID FRAME / FIELD NOTES
+Free sample design notes — demonstration content.
+
+Palette: ink #080a0a, surface #111414, border #282d2d, mist #a4aeae, paper #f0f2ef.
+Typography: generous sans-serif headlines, small monospaced labels.
+Layout: cinematic hero, precise gallery grid, quiet navigation.
+This is a sample text file, not a production template.
