@@ -1,4 +1,5 @@
 import {readFile,stat,writeFile} from 'node:fs/promises';
+/* eslint-disable @typescript-eslint/no-explicit-any -- Action bodies are validated per operation below. */
 import {clearAdminSession,isAdmin,setAdminSession,verifyAdminPassword} from '../../../lib/server-auth';
 import {initStore,readStore,storagePath,updateStore,type StoredOrder,type StoredProduct} from '../../../lib/server-store';
 export const dynamic='force-dynamic';export const runtime='nodejs';
@@ -12,7 +13,7 @@ function originOkay(req:Request){
 export async function GET(req:Request){
  try{const url=new URL(req.url),action=url.searchParams.get('action'),store=await readStore();
  if(action==='studio')return json({admin:await isAdmin(),setup:false,signedIn:await isAdmin()});
- if(action==='orders'){if(!await isAdmin())return json({error:'Owner access required.'},403);return json(store.orders.filter(o=>o.tx).sort((a,b)=>b.created-a.created).map(({token,...o})=>o))}
+ if(action==='orders'){if(!await isAdmin())return json({error:'Owner access required.'},403);return json(store.orders.filter(o=>o.tx).sort((a,b)=>b.created-a.created).map(o=>{const visible:Partial<StoredOrder>={...o};delete visible.token;return visible}))}
  if(action==='order'){const o=store.orders.find(o=>o.id===url.searchParams.get('id')&&o.token===url.searchParams.get('token'));return o?json(o):json({error:'Order not found.'},404)}
  if(action==='media'||action==='download'){
  const p=store.products.find(p=>p.id===url.searchParams.get('id'));if(!p)return json({error:'Product not found.'},404);
@@ -22,7 +23,7 @@ export async function GET(req:Request){
  const bytes=await readFile(storagePath(kind,key));const headers=new Headers({'X-Content-Type-Options':'nosniff','Cache-Control':action==='download'?'private, no-store':'public, max-age=3600'});
  if(action==='media')headers.set('Content-Type',p.preview_content_type||(p.media_type==='video'?'video/mp4':'image/webp'));else{headers.set('Content-Type','application/octet-stream');headers.set('Content-Disposition',`attachment; filename*=UTF-8''${encodeURIComponent(p.filename)}`)}return new Response(bytes,{headers});
  }
- const products=store.products.filter(p=>!p.archived).sort((a,b)=>b.created-a.created).map(({file,preview,...p})=>({...p,preview:`/api/store?action=media&id=${p.id}`}));return json({products,wallet:store.settings.wallet});
+ const products=store.products.filter(p=>!p.archived).sort((a,b)=>b.created-a.created).map(p=>{const visible:Partial<StoredProduct>={...p};delete visible.file;visible.preview=`/api/store?action=media&id=${p.id}`;return visible});return json({products,wallet:store.settings.wallet});
  }catch{return json({error:'Unable to load the store. Please try again.'},500)}
 }
 export async function POST(req:Request){
