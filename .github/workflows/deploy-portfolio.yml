@@ -131,7 +131,14 @@ jobs:
 
             run_root nginx -t
             run_root systemctl reload nginx
-            curl --fail --silent --show-error -H "Host: $domain" http://127.0.0.1/healthz | grep -qx "portfolio-ok"
+            verify_body="/tmp/mobin-portfolio-verify-$sha.txt"
+            verify_status="$(curl --silent --show-error --output "$verify_body" --write-out '%{http_code}' -H "Host: $domain" http://127.0.0.1/healthz)"
+            echo "Portfolio virtual-host health status: $verify_status"
+            printf 'Portfolio virtual-host health body: '
+            head -c 200 "$verify_body"
+            printf '\n'
+            test "$verify_status" = "200"
+            grep -qx "portfolio-ok" "$verify_body"
             test "$(curl --silent --output /dev/null --write-out '%{http_code}' -H "Host: $domain" http://127.0.0.1/)" = "200"
 
             if ! command -v certbot >/dev/null 2>&1; then
@@ -181,7 +188,7 @@ jobs:
             run_root systemctl daemon-reload
             run_root systemctl enable --now mobin-portfolio-tls.timer
 
-            run_root rm -rf "$stage" "$archive" /tmp/mobingholizadeh.ir.conf \
+            run_root rm -rf "$stage" "$archive" "$verify_body" /tmp/mobingholizadeh.ir.conf \
               /tmp/mobin-portfolio-enable-tls /tmp/mobin-portfolio-tls.service /tmp/mobin-portfolio-tls.timer
 
             echo "Portfolio release $sha is installed for $domain"
