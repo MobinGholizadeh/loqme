@@ -42,9 +42,10 @@ header nav a{display:inline-flex!important;align-items:center;white-space:nowrap
 @media(max-width:1000px){header{grid-template-columns:auto 1fr;gap:28px}.header-contact{display:none}header nav{justify-content:flex-end}.biography{gap:6%;padding:80px 7%}.bio-heading h2{font-size:58px}.bio-copy>p{font-size:13px}}
 @media(max-width:600px){header{padding:20px 6%;gap:20px;min-height:72px}header .brand>span{display:none}header .brand-mark{width:40px;height:28px}header nav{gap:clamp(12px,4vw,22px);font-size:11px}.biography{grid-template-columns:1fr;gap:40px;padding:65px 7%}.bio-heading h2{font-size:64px}.bio-role{margin-bottom:22px}.bio-copy .bio-intro{font-size:32px}}
 @media(max-width:360px){header{gap:12px}header nav{gap:12px;font-size:10px}}
-/* Matched cap height and weight in the solid MG monogram */
-.brand .brand-mark{width:64px;height:36px;display:block;flex:none}
+/* The supplied MG mark stays transparent and keeps its original proportions */
+.brand .brand-mark{width:74px;height:auto;aspect-ratio:1800/1094;object-fit:contain;display:block;flex:none}
 header .brand{gap:0}
 footer>.brand{gap:0}
+footer .brand-mark{filter:invert(1)}
 .location>a{font-size:10px;line-height:1.4;text-decoration:underline;text-underline-offset:4px}
-@media(max-width:600px){header .brand .brand-mark{width:52px;height:29px}}
+@media(max-width:600px){header .brand .brand-mark{width:60px;height:auto}}
