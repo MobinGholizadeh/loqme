@@ -1,0 +1,179 @@
+name: Deploy Mobin portfolio to Loqme VPS
+
+on:
+  push:
+    branches: [codex/portfolio-deploy]
+    paths:
+      - "portfolio-site/**"
+      - ".github/workflows/deploy-portfolio.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobin-portfolio-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Publish static portfolio
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate and package static site
+        run: |
+          set -eu
+          test -f portfolio-site/dist/index.html
+          test -f portfolio-site/dist/styles.css
+          test -f portfolio-site/dist/script.js
+          test -f portfolio-site/dist/assets/hero.mp4
+          test -f portfolio-site/dist/assets/frontier.mp4
+          tar -C portfolio-site -czf portfolio-site.tar.gz dist
+
+      - name: Upload release bundle
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
+          source: portfolio-site.tar.gz
+          target: /tmp
+          overwrite: true
+
+      - name: Install site and configure Nginx
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
+          command_timeout: 15m
+          script: |
+            set -eu
+
+            if [ "$(id -u)" -eq 0 ]; then
+              run_root() { "$@"; }
+            else
+              sudo -n true
+              run_root() { sudo -n "$@"; }
+            fi
+
+            domain="mobingholizadeh.ir"
+            expected_ip="94.184.43.163"
+            sha="${{ github.sha }}"
+            archive="/tmp/portfolio-site.tar.gz"
+            stage="/tmp/mobin-portfolio-$sha"
+            base="/var/www/$domain"
+            release="$base/releases/$sha"
+
+            test -s "$archive"
+            rm -rf "$stage"
+            mkdir -p "$stage"
+            tar -xzf "$archive" -C "$stage"
+            test -f "$stage/dist/index.html"
+
+            run_root mkdir -p "$release"
+            run_root cp -a "$stage/dist/." "$release/"
+            run_root chown -R root:root "$release"
+            run_root find "$release" -type d -exec chmod 755 {} \;
+            run_root find "$release" -type f -exec chmod 644 {} \;
+            run_root ln -sfn "$release" "$base/current.next"
+            run_root mv -Tf "$base/current.next" "$base/current"
+
+            cat > /tmp/mobingholizadeh.ir.conf <<'NGINX'
+            server {
+                listen 80;
+                listen [::]:80;
+                server_name mobingholizadeh.ir www.mobingholizadeh.ir;
+
+                root /var/www/mobingholizadeh.ir/current;
+                index index.html;
+                charset utf-8;
+
+                add_header X-Content-Type-Options "nosniff" always;
+                add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+                add_header X-Frame-Options "SAMEORIGIN" always;
+
+                location = /index.html {
+                    add_header Cache-Control "no-cache";
+                }
+
+                location ~* \.(?:css|js|svg|ttf|jpg|jpeg|png|webp|mp4)$ {
+                    try_files $uri =404;
+                    expires 30d;
+                    add_header Cache-Control "public, max-age=2592000";
+                }
+
+                location / {
+                    try_files $uri $uri/ /index.html;
+                }
+            }
+            NGINX
+
+            if [ -d /etc/nginx/sites-available ] && [ -d /etc/nginx/sites-enabled ]; then
+              run_root install -m 644 /tmp/mobingholizadeh.ir.conf /etc/nginx/sites-available/mobingholizadeh.ir
+              run_root ln -sfn /etc/nginx/sites-available/mobingholizadeh.ir /etc/nginx/sites-enabled/mobingholizadeh.ir
+            else
+              run_root install -m 644 /tmp/mobingholizadeh.ir.conf /etc/nginx/conf.d/mobingholizadeh.ir.conf
+            fi
+
+            run_root nginx -t
+            run_root systemctl reload nginx
+            curl --fail --silent --show-error -H "Host: $domain" http://127.0.0.1/ | grep -q "Mobin Gholizadeh"
+
+            if ! command -v certbot >/dev/null 2>&1; then
+              run_root env DEBIAN_FRONTEND=noninteractive apt-get update
+              run_root env DEBIAN_FRONTEND=noninteractive apt-get install -y certbot python3-certbot-nginx
+            fi
+
+            cat > /tmp/mobin-portfolio-enable-tls <<'TLS_SCRIPT'
+            #!/bin/sh
+            set -eu
+            expected_ip="94.184.43.163"
+            for name in mobingholizadeh.ir www.mobingholizadeh.ir; do
+              getent ahostsv4 "$name" | awk '{print $1}' | sort -u | grep -qx "$expected_ip" || exit 0
+            done
+            certbot --nginx --non-interactive --agree-tos --register-unsafely-without-email --redirect \
+              -d mobingholizadeh.ir -d www.mobingholizadeh.ir
+            systemctl disable --now mobin-portfolio-tls.timer
+            TLS_SCRIPT
+            run_root install -m 755 /tmp/mobin-portfolio-enable-tls /usr/local/sbin/mobin-portfolio-enable-tls
+
+            cat > /tmp/mobin-portfolio-tls.service <<'TLS_SERVICE'
+            [Unit]
+            Description=Enable TLS for mobingholizadeh.ir after DNS propagation
+            After=network-online.target nginx.service
+            Wants=network-online.target
+
+            [Service]
+            Type=oneshot
+            ExecStart=/usr/local/sbin/mobin-portfolio-enable-tls
+            TLS_SERVICE
+
+            cat > /tmp/mobin-portfolio-tls.timer <<'TLS_TIMER'
+            [Unit]
+            Description=Check DNS and enable TLS for mobingholizadeh.ir
+
+            [Timer]
+            OnBootSec=2min
+            OnUnitActiveSec=15min
+            Persistent=true
+
+            [Install]
+            WantedBy=timers.target
+            TLS_TIMER
+
+            run_root install -m 644 /tmp/mobin-portfolio-tls.service /etc/systemd/system/mobin-portfolio-tls.service
+            run_root install -m 644 /tmp/mobin-portfolio-tls.timer /etc/systemd/system/mobin-portfolio-tls.timer
+            run_root systemctl daemon-reload
+            run_root systemctl enable --now mobin-portfolio-tls.timer
+
+            rm -rf "$stage" "$archive" /tmp/mobingholizadeh.ir.conf \
+              /tmp/mobin-portfolio-enable-tls /tmp/mobin-portfolio-tls.service /tmp/mobin-portfolio-tls.timer
+
+            echo "Portfolio release $sha is installed for $domain"
+            echo "TLS will be issued automatically after both DNS records resolve to $expected_ip"
+
