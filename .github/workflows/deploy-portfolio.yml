@@ -23,6 +23,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate and package static site
+        id: package
         run: |
           set -eu
           test -f portfolio-site/dist/index.html
@@ -30,7 +31,9 @@ jobs:
           test -f portfolio-site/dist/script.js
           test -f portfolio-site/dist/assets/hero.mp4
           test -f portfolio-site/dist/assets/frontier.mp4
-          tar -C portfolio-site -czf portfolio-site.tar.gz dist
+          archive="portfolio-site-${GITHUB_SHA}.tar.gz"
+          tar -C portfolio-site -czf "$archive" dist
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
 
       - name: Upload release bundle
         uses: appleboy/scp-action@v1
@@ -39,7 +42,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || '22' }}
-          source: portfolio-site.tar.gz
+          source: ${{ steps.package.outputs.archive }}
           target: /tmp
           overwrite: true
 
@@ -64,7 +67,7 @@ jobs:
             domain="mobingholizadeh.ir"
             expected_ip="94.184.43.163"
             sha="${{ github.sha }}"
-            archive="/tmp/portfolio-site.tar.gz"
+            archive="/tmp/portfolio-site-$sha.tar.gz"
             stage="/tmp/mobin-portfolio-$sha"
             base="/var/www/$domain"
             release="$base/releases/$sha"
@@ -178,7 +181,7 @@ jobs:
             run_root systemctl daemon-reload
             run_root systemctl enable --now mobin-portfolio-tls.timer
 
-            rm -rf "$stage" "$archive" /tmp/mobingholizadeh.ir.conf \
+            run_root rm -rf "$stage" "$archive" /tmp/mobingholizadeh.ir.conf \
               /tmp/mobin-portfolio-enable-tls /tmp/mobin-portfolio-tls.service /tmp/mobin-portfolio-tls.timer
 
             echo "Portfolio release $sha is installed for $domain"
