@@ -97,6 +97,12 @@ jobs:
                 add_header Referrer-Policy "strict-origin-when-cross-origin" always;
                 add_header X-Frame-Options "SAMEORIGIN" always;
 
+                location = /healthz {
+                    access_log off;
+                    default_type text/plain;
+                    return 200 "portfolio-ok\n";
+                }
+
                 location = /index.html {
                     add_header Cache-Control "no-cache";
                 }
@@ -122,7 +128,8 @@ jobs:
 
             run_root nginx -t
             run_root systemctl reload nginx
-            curl --fail --silent --show-error -H "Host: $domain" http://127.0.0.1/ | grep -q "Mobin Gholizadeh"
+            curl --fail --silent --show-error -H "Host: $domain" http://127.0.0.1/healthz | grep -qx "portfolio-ok"
+            test "$(curl --silent --output /dev/null --write-out '%{http_code}' -H "Host: $domain" http://127.0.0.1/)" = "200"
 
             if ! command -v certbot >/dev/null 2>&1; then
               run_root env DEBIAN_FRONTEND=noninteractive apt-get update
@@ -176,4 +183,3 @@ jobs:
 
             echo "Portfolio release $sha is installed for $domain"
             echo "TLS will be issued automatically after both DNS records resolve to $expected_ip"
-
