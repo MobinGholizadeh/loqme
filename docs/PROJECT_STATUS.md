@@ -1,8 +1,8 @@
 # Living Project Status Tracker — Loqme (لقمه)
 
-## Shared VPS portfolio deployment — isolated branch (2026-10-29)
+## Shared VPS portfolio deployment — isolated branch (updated 2026-10-31)
 
-The owner requested deployment of the separate Mobin Gholizadeh static portfolio to the Loqme VPS under `mobingholizadeh.ir`  The isolated `codex/portfolio-deploy` branch contains the production static snapshot and a branch-scoped workflow that uses the existing server credentials, installs an independent Nginx virtual host, and enables an automatic DNS-gated Certbot timer  It does not modify the Loqme application, database, Redis, containers, or `loqme.shop` virtual host  DNS must point the apex and `www` records to `94.184.43.163` before HTTPS can be issued
+The separate Mobin Gholizadeh static portfolio deploys to the Loqme VPS under `mobingholizadeh.ir`  The apex and `www` A records now resolve to `94.184.43.163`  Every pushed commit on the isolated `codex/portfolio-deploy` branch runs validation and an atomic production deployment with the existing server credentials, installs an independent Nginx virtual host, attempts Certbot activation immediately, and retains a systemd timer for automatic retry  It does not modify the Loqme application, database, Redis, containers, or `loqme.shop` virtual host
 
 > **CRITICAL PROTOCOL**: This is a living operational document.  
 > Future agents must inspect this file before undertaking any milestone work, and update it immediately upon completing checkpoints.  
