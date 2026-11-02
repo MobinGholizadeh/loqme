@@ -1,5 +1,6 @@
 'use client';
 
+import styles from './support-workspace.module.css';
 import React from 'react';
 import type { SupportMessageDto } from '@loqme/types';
 import { formatPersianTime, formatFileSize } from './support-format';
@@ -49,7 +50,7 @@ export function SupportMessageBubble({
 
       {/* Bubble Box */}
       <div
-        className={`relative rounded-2xl px-4 py-2.5 shadow-sm text-sm transition-all duration-150 ${
+        className={`${styles.bubble} ${isOwn ? styles.ownBubble : styles.receivedBubble} relative rounded-2xl px-4 py-2.5 shadow-sm text-sm transition-all duration-150 ${
           isOwn
             ? 'bg-[#1D616A] text-white rounded-tr-none'
             : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
@@ -87,13 +88,13 @@ export function SupportMessageBubble({
                   rel="noopener noreferrer"
                   className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all ${
                     isOwn
-                      ? 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                      ? 'bg-white/60 hover:bg-white border-teal-200 text-slate-800'
                       : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
                   }`}
                 >
                   <div
                     className={`p-2 rounded-md ${
-                      isOwn ? 'bg-white/20 text-white' : 'bg-[#1D616A]/10 text-[#1D616A]'
+                      isOwn ? 'bg-white text-slate-800' : 'bg-[#1D616A]/10 text-[#1D616A]'
                     }`}
                   >
                     <FileText className="w-5 h-5" />
@@ -121,21 +122,21 @@ export function SupportMessageBubble({
         {/* Timestamp and Delivery ticks */}
         <div
           className={`flex items-center gap-1.5 mt-1 select-none text-[10px] ${
-            isOwn ? 'text-teal-100 justify-start' : 'text-slate-400 justify-end'
+            isOwn ? 'text-slate-600 justify-start' : 'text-slate-500 justify-end'
           }`}
         >
           <span>{formatPersianTime(message.createdAt)}</span>
           {isOwn && (
             <span className="flex items-center">
               {isOptimistic ? (
-                <Clock className="w-3 h-3 animate-spin text-teal-200" />
+                <Clock className="w-3 h-3 animate-spin text-current" />
               ) : message.isRead ? (
                 <span title="خوانده شد">
-                  <CheckCheck className="w-3.5 h-3.5 text-teal-200" />
+                  <CheckCheck className="w-3.5 h-3.5 text-current" />
                 </span>
               ) : (
                 <span title="ارسال شد">
-                  <Check className="w-3.5 h-3.5 text-teal-300" />
+                  <Check className="w-3.5 h-3.5 text-current" />
                 </span>
               )}
             </span>

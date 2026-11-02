@@ -1,5 +1,6 @@
 'use client';
 
+import styles from './support-workspace.module.css';
 import React, { useState, useRef, ChangeEvent, KeyboardEvent } from 'react';
 import { Send, Paperclip, X, Image as ImageIcon, FileText, Loader2 } from 'lucide-react';
 import type { SupportAttachmentDto } from '@loqme/types';
@@ -95,7 +96,7 @@ export function SupportMessageInput({
   };
 
   return (
-    <div className="bg-white border-t border-slate-200/90 p-3 sm:p-4">
+    <div className={styles.composer}>
       {/* Upload Error Banner */}
       {uploadError && (
         <div className="mb-2 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center justify-between">
@@ -137,7 +138,7 @@ export function SupportMessageInput({
       )}
 
       {/* Input Row */}
-      <div className="flex items-end gap-2">
+      <div className={styles.composerRow}>
         {/* Hidden File Input */}
         <input
           type="file"
@@ -172,7 +173,8 @@ export function SupportMessageInput({
             onKeyDown={handleKeyDown}
             placeholder={disabled ? 'این گفتگو بسته شده است' : placeholder}
             disabled={disabled}
-            rows={1}
+            aria-label="متن پیام"
+            rows={2}
             className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:border-[#1D616A] focus:outline-none focus:ring-2 focus:ring-[#1D616A]/10 transition-all max-h-32 min-h-[42px] leading-relaxed"
           />
         </div>
@@ -182,7 +184,7 @@ export function SupportMessageInput({
           type="button"
           onClick={handleSend}
           disabled={disabled || uploading || (!text.trim() && attachments.length === 0)}
-          className="p-2.5 rounded-xl bg-[#1D616A] hover:bg-[#173F44] text-white shadow-sm transition-all disabled:opacity-40 disabled:pointer-events-none hover:shadow-md"
+          className={styles.sendButton}
           title="ارسال پیام"
         >
           <Send className="w-5 h-5 transform -rotate-90 rtl:rotate-90" />

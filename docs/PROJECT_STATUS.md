@@ -8,6 +8,12 @@
 
 ## 1. Project Health & Current State
 
+### Support chat reference redesign — CP-10.32 follow-up (2026-10-25)
+
+Owner-requested redesign of `/support` and `/merchant/support` adapts the supplied three-panel chat reference to Loqme's white/teal tokens, Persian RTL and Vazirmatn. Shared navigation/profile, inset pale-green conversation and real shared-attachment panel replace the narrow stacked headers. The merchant support main now fills the available shell width; no negative margins or clipped heading. Tablet collapses files into a toggled panel; mobile keeps a single chat pane and visible composer. File filters/counts derive only from conversation attachments. Existing endpoints, SSE, polling, uploads and read receipts remain; optimistic messages use the outgoing style and session ID aliases are supported. History scrolling is confined to its pane.
+
+Validation: 20 existing support service/route tests pass; workspace typecheck and zero-warning lint pass. Two Playwright scenarios cover both routes at 1440, 1024 and 390px, message sending, file filtering/toggling, empty states, viewport overflow/composer visibility and scoped WCAG A/AA axe checks. Responsive screenshots reviewed in `test-results/support-workspace-*/`. Optimized production build passes. No backend/schema changes or deployment. Existing production/provider gates remain open.
+
 ### Real-Time Support Chat System (Customer, Merchant & Admin) — CP-10.32 (2026-10-24)
 
 Implemented a complete, production-ready, real-time support chat system connecting admins with regular customers and merchant partners:

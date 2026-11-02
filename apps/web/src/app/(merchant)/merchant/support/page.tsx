@@ -1,9 +1,10 @@
 'use client';
 
+import styles from '@/components/support/support-workspace.module.css';
 import React, { useState, useEffect } from 'react';
 import { useSession } from '@/components/auth/SessionProvider';
 import { SupportChatWindow } from '@/components/support/SupportChatWindow';
-import { Headphones, ShieldCheck, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 export default function MerchantSupportPage() {
   const { user } = useSession();
@@ -50,31 +51,8 @@ export default function MerchantSupportPage() {
   }, []);
 
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col -m-4 sm:-m-6 bg-slate-50">
-      {/* Top Banner */}
-      <div className="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-teal-50 text-[#1D616A] flex items-center justify-center">
-            <Headphones className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-sm font-bold text-slate-800">
-              ارتباط مستقیم با پشتیبانی لقمه
-            </h1>
-            <p className="text-[11px] text-slate-500">
-              پاسخگویی به سوالات، درخواست‌های تسویه، تغییر مشخصات و مسائل عملیاتی فروشگاه
-            </p>
-          </div>
-        </div>
-
-        <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-          <ShieldCheck className="w-4 h-4 text-[#1D616A]" />
-          <span>گفتگوی رسمی و محرمانه</span>
-        </div>
-      </div>
-
-      {/* Main Workspace */}
-      <div className="flex-1 flex overflow-hidden">
+    <div className={styles.page} data-support-page="merchant">
+      <div className={styles.pageBody}>
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-400">
             <Clock className="w-7 h-7 animate-spin text-[#1D616A] mb-2" />
@@ -89,7 +67,7 @@ export default function MerchantSupportPage() {
         ) : (
           <SupportChatWindow
             conversationId={conversationId}
-            currentUserId={user?.id || ''}
+            currentUserId={user?.id || user?.userId || ''}
             userRole="MERCHANT_OWNER"
           />
         )}

@@ -1,5 +1,7 @@
 'use client';
 
+import styles from './support-workspace.module.css';
+import { SupportWorkspaceSidebars } from './SupportWorkspaceSidebars';
 import React, { useState, useEffect, useRef } from 'react';
 import { useSupportChat } from './useSupportChat';
 import { SupportMessageBubble } from './SupportMessageBubble';
@@ -16,6 +18,8 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
+  Headphones,
+  FolderOpen,
 } from 'lucide-react';
 import type { SupportConversationStatus } from '@loqme/types';
 
@@ -43,6 +47,7 @@ export function SupportChatWindow({
   } = useSupportChat({ conversationId });
 
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [showFiles, setShowFiles] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -50,7 +55,8 @@ export function SupportChatWindow({
 
   // Scroll to bottom when messages update
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesEndRef.current?.parentElement;
+    if (container) container.scrollTop = container.scrollHeight;
   }, [messages]);
 
   // Mark read when user focuses window
@@ -110,10 +116,12 @@ export function SupportChatWindow({
     : conversation?.user?.customer?.fullName || conversation?.user?.mobile || 'کاربر لقمه';
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#FAFBFB] relative overflow-hidden">
+    <div className={styles.workspace} data-support-workspace data-admin={isAdmin}>
+      {!isAdmin && <SupportWorkspaceSidebars panel="navigation" conversation={conversation} messages={messages} merchant={isMerchantChannel} />}
+      <section className={styles.chat} aria-label="گفتگوی پشتیبانی">
       {/* Chat Header */}
-      <div className="bg-white border-b border-slate-200/90 px-4 py-3 flex items-center justify-between shadow-sm z-10">
-        <div className="flex items-center gap-3">
+      <div className={styles.chatHeader}>
+        <div className={styles.headerIdentity}>
           {onBackToList && (
             <button
               onClick={onBackToList}
@@ -124,30 +132,20 @@ export function SupportChatWindow({
             </button>
           )}
 
-          <div
-            className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-              isMerchantChannel
-                ? 'bg-amber-100 text-amber-800'
-                : 'bg-teal-100 text-[#1D616A]'
-            }`}
-          >
-            {isMerchantChannel ? (
-              <Store className="w-5 h-5" />
-            ) : (
-              <User className="w-5 h-5" />
-            )}
+          <div className={styles.avatar}>
+            {isAdmin ? (isMerchantChannel ? <Store size={22} /> : <User size={22} />) : <Headphones size={22} />}
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-semibold text-sm text-slate-800">{partnerName}</h2>
+              <h2 className={styles.chatTitle}>{isAdmin ? partnerName : "تیم پشتیبانی لقمه"}</h2>
               {conversation?.user?.mobile && isAdmin && (
                 <span className="text-[11px] text-slate-400" dir="ltr">
                   {conversation.user.mobile}
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500">
+            <div className={styles.connection}>
               <span className="truncate max-w-[200px] sm:max-w-xs">
                 {conversation?.subject || 'پشتیبانی'}
               </span>
@@ -167,7 +165,8 @@ export function SupportChatWindow({
         </div>
 
         {/* Right header actions */}
-        <div className="flex items-center gap-2">
+        <div className={styles.headerActions}>
+          {!isAdmin && <button type="button" className={styles.filesToggle} aria-label="فایل‌های گفتگو" aria-expanded={showFiles} aria-controls="support-shared-files" onClick={() => setShowFiles(!showFiles)}><FolderOpen size={19} /></button>}
           {isAdmin ? (
             <select
               value={conversation?.status || 'OPEN'}
@@ -196,7 +195,7 @@ export function SupportChatWindow({
               }`}
             >
               {conversation?.status === 'OPEN'
-                ? 'پاسخگویی فعال'
+                ? 'گفتگوی باز'
                 : conversation?.status === 'RESOLVED'
                 ? 'حل‌شده'
                 : 'بسته شده'}
@@ -206,7 +205,7 @@ export function SupportChatWindow({
       </div>
 
       {/* Message History Body */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-1">
+      <div className={styles.history} data-lenis-prevent role="log" aria-label="پیام‌های گفتگو">
         {error && (
           <div className="p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -215,7 +214,7 @@ export function SupportChatWindow({
         )}
 
         {/* Welcome Header in chat */}
-        <div className="text-center py-6 px-4">
+        <div className={messages.length ? styles.welcomeCompact : styles.welcome}>
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-50 text-[#1D616A] mb-2">
             <ShieldCheck className="w-6 h-6" />
           </div>
@@ -232,7 +231,7 @@ export function SupportChatWindow({
 
         {/* Message List */}
         {messages.map((msg) => {
-          const isOwn = msg.senderUserId === currentUserId;
+          const isOwn = msg.senderUserId === currentUserId || msg.senderUserId === 'current_user';
           return (
             <SupportMessageBubble
               key={msg.id}
@@ -265,6 +264,8 @@ export function SupportChatWindow({
         }
       />
 
+      </section>
+      {!isAdmin && <SupportWorkspaceSidebars panel="files" conversation={conversation} messages={messages} merchant={isMerchantChannel} expanded={showFiles} onClose={() => setShowFiles(false)} />}
       {/* Image Lightbox Modal */}
       {lightboxImage && (
         <div
