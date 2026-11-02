@@ -31,33 +31,76 @@ jobs:
           cache: npm
 
       - run: npm ci --ignore-scripts
-      - run: npx tsc --noEmit
-      - run: npm run build:selfhost
+      - run: npm run lint
+      - run: npm run build
 
-      - name: Exercise production upload and checkout flow
-        shell: bash
+      - name: Exercise the Apache/PHP production runtime with isolated data
+        run: npm run test:php
+
+      - name: Package for inexpensive PHP shared hosting
         run: |
-          set -euo pipefail
-          mkdir -p .deploy/data
-          PASSWORD='ci-owner-password-voidframe-2026'
-          printf '%s' "$PASSWORD" > .deploy/admin-password
-          HASH=$(node --input-type=module -e "import{randomBytes,scryptSync}from'node:crypto';const p=process.argv[1],s=randomBytes(16).toString('hex');console.log('scrypt$'+s+'$'+scryptSync(p,s,32).toString('hex'))" "$PASSWORD")
-          ADMIN_PASSWORD_HASH="$HASH" \
-          ADMIN_SESSION_SECRET='ci-session-secret-voidframe-at-least-32-characters' \
-          DATA_DIR="$PWD/.deploy/data" PORT=3101 HOSTNAME=127.0.0.1 \
-          node .next/standalone/server.js > .deploy/server.log 2>&1 &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-          for attempt in $(seq 1 30); do
-            if curl --fail --silent http://127.0.0.1:3101/api/health >/dev/null; then break; fi
-            if [ "$attempt" = 30 ]; then cat .deploy/server.log; exit 1; fi
-            sleep 1
-          done
-          npm run test:selfhost
+          mkdir -p hosting-package/public_html
+          cp -a dist/. hosting-package/public_html/
+          cp php/voidframe-config.example.php hosting-package/
+          cp deploy/SHARED-HOSTING.md hosting-package/README.md
+
+      - name: Upload ready-to-use shared hosting package
+        uses: actions/upload-artifact@v4
+        with:
+          name: void-frame-php-hosting
+          path: hosting-package/
+          include-hidden-files: true
+          retention-days: 14
+
+  shared-hosting:
+    name: Deploy to PHP shared hosting
+    needs: validate
+    if: vars.VOIDFRAME_DEPLOY_TARGET == 'shared-hosting'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Require the shared hosting configuration
+        env:
+          FTP_SERVER: ${{ secrets.VOIDFRAME_FTPS_SERVER }}
+          FTP_USERNAME: ${{ secrets.VOIDFRAME_FTPS_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.VOIDFRAME_FTPS_PASSWORD }}
+          FTP_DIRECTORY: ${{ vars.VOIDFRAME_FTPS_DIRECTORY }}
+          SITE_URL: ${{ vars.VOIDFRAME_SITE_URL }}
+        run: |
+          test -n "$FTP_SERVER" && test -n "$FTP_USERNAME" && test -n "$FTP_PASSWORD"
+          test -n "$FTP_DIRECTORY"
+          case "$FTP_DIRECTORY" in */) ;; *) echo 'The site directory must end in /'; exit 1;; esac
+          case "$SITE_URL" in https://*) ;; *) echo 'Set the HTTPS site URL'; exit 1;; esac
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: void-frame-php-hosting
+          path: hosting-package
+
+      - name: Upload the tested public files over FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.VOIDFRAME_FTPS_SERVER }}
+          username: ${{ secrets.VOIDFRAME_FTPS_USERNAME }}
+          password: ${{ secrets.VOIDFRAME_FTPS_PASSWORD }}
+          protocol: ftps
+          security: strict
+          local-dir: hosting-package/public_html/
+          server-dir: ${{ vars.VOIDFRAME_FTPS_DIRECTORY }}
+
+      - name: Verify the shared-hosted application
+        env:
+          SITE_URL: ${{ vars.VOIDFRAME_SITE_URL }}
+        run: |
+          curl --fail --silent --show-error --retry 3 "${SITE_URL%/}/" >/dev/null
+          curl --fail --silent --show-error --retry 3 "${SITE_URL%/}/api/health.php" | python3 -c 'import json,sys; h=json.load(sys.stdin); assert h["status"]=="ok" and h["runtime"]=="php"'
 
   build:
     name: Build and publish immutable image
     needs: validate
+    # Set to shared-hosting after moving domains; then only the uploadable artifact is built.
+    if: vars.VOIDFRAME_DEPLOY_TARGET != 'shared-hosting'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -114,7 +157,7 @@ jobs:
     steps:
       - name: Encode deployment secrets
         env:
-          ADMIN_HASH: ${{ secrets.VOIDFRAME_ADMIN_PASSWORD_HASH }}
+          ADMIN_HASH: ${{ secrets.VOIDFRAME_PHP_ADMIN_PASSWORD_HASH }}
           SESSION_SECRET: ${{ secrets.VOIDFRAME_ADMIN_SESSION_SECRET }}
         run: |
           test -n "$ADMIN_HASH"
@@ -180,7 +223,10 @@ jobs:
               sleep 3
             done
             if [ "$READY" != 1 ]; then rollback; exit 1; fi
-            docker compose -f docker-compose.server.yml exec -T app node -e 'if(!/^scrypt\$[a-f0-9]{32}\$[a-f0-9]{64}$/.test(process.env.ADMIN_PASSWORD_HASH||"")){console.error("Invalid runtime owner password hash");process.exit(1)}'
+            if ! docker compose -f docker-compose.server.yml exec -T app php -r 'exit((password_get_info(getenv("ADMIN_PASSWORD_HASH"))["algoName"] ?? "unknown") === "unknown" ? 1 : 0);'; then
+              rollback
+              exit 1
+            fi
 
             printf '%s' "$NGINX_HTTP_B64" | base64 -d > /tmp/voidframe-http.conf
             printf '%s' "$NGINX_TLS_B64" | base64 -d > /tmp/voidframe-tls.conf

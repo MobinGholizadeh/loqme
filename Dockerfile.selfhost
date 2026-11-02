@@ -1,23 +1,22 @@
-FROM node:24-alpine AS deps
+# Build tooling only; the deployed image contains Apache/PHP, not Node.js.
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
-
-FROM node:24-alpine AS builder
-WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build:selfhost
+RUN npm run build
 
-FROM node:24-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 DATA_DIR=/data
-RUN addgroup -S -g 1001 nodejs && adduser -S -u 1001 nextjs -G nodejs && mkdir -p /data && chown nextjs:nodejs /data
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-USER nextjs
+FROM php:8.3-apache AS runner
+ENV DATA_DIR=/data APACHE_RUN_DIR=/tmp/apache2 APACHE_LOCK_DIR=/tmp/apache2 APACHE_PID_FILE=/tmp/apache2/apache2.pid
+# Keep uid 1001 for compatibility with existing Void Frame uploaded files.
+RUN groupmod -g 1001 www-data && usermod -u 1001 -g 1001 www-data \
+    && a2enmod rewrite headers \
+    && sed -i 's/Listen 80/Listen 3000/' /etc/apache2/ports.conf \
+    && mkdir -p /data && chown www-data:www-data /data
+COPY deploy/apache-voidframe.conf /etc/apache2/sites-available/000-default.conf
+COPY php/uploads.user.ini /usr/local/etc/php/conf.d/voidframe.ini
+COPY --from=builder --chown=www-data:www-data /app/dist/ /var/www/html/
+USER www-data
 EXPOSE 3000
-HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=3 CMD wget -qO- http://127.0.0.1:3000/api/health || exit 1
-CMD ["node","server.js"]
+HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=3 CMD php -r 'exit(@file_get_contents("http://127.0.0.1:3000/api/health.php") === false ? 1 : 0);'
+CMD ["sh", "-c", "mkdir -p /tmp/apache2 && exec apache2-foreground"]

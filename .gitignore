@@ -42,6 +42,8 @@ yarn-error.log*
 /work/
 /.deploy/
 /.data/
+/voidframe-config.php
+/voidframe-data/
 
 # OS metadata
 .DS_Store

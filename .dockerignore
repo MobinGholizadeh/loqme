@@ -9,3 +9,6 @@ node_modules
 outputs
 *.log
 tsconfig.tsbuildinfo
+.env*
+.data
+voidframe-config.php
