@@ -4,8 +4,9 @@ import path from 'path';
 
 // Target disposable test database so integration tests and RLS suites pass cleanly without mutating developer data
 if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('_test_')) {
-  process.env.DATABASE_MIGRATION_URL = 'postgresql://postgres:postgres@localhost:5432/loqme_onboarding_test_local?schema=public';
-  process.env.DATABASE_URL = `postgresql://loqme_runtime:${process.env.DATABASE_RUNTIME_PASSWORD || 'ci-runtime-test-only-password-123456'}@localhost:5432/loqme_onboarding_test_local?schema=public`;
+  const dbPort = process.env.POSTGRES_PORT || '5432';
+  process.env.DATABASE_MIGRATION_URL = `postgresql://postgres:postgres@localhost:${dbPort}/loqme_onboarding_test_local?schema=public`;
+  process.env.DATABASE_URL = `postgresql://loqme_runtime:${process.env.DATABASE_RUNTIME_PASSWORD || 'ci-runtime-test-only-password-123456'}@localhost:${dbPort}/loqme_onboarding_test_local?schema=public`;
 }
 
 export default defineConfig({

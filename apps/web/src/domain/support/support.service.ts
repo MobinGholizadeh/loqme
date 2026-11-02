@@ -525,6 +525,7 @@ export class SupportService {
     });
 
     try {
+      const supportTag = `loqme-support-${params.conversationId}`;
       if (senderType === SupportMessageSenderType.ADMIN) {
         if (conversation.channelType === SupportChannelType.CUSTOMER_ADMIN && conversation.userId) {
           notificationService.createNotification({
@@ -535,6 +536,7 @@ export class SupportService {
             title: 'پاسخ جدید از پشتیبانی لقمه',
             body: params.body.trim().slice(0, 100),
             link: '/profile?tab=support',
+            tag: supportTag,
           }).catch(() => {});
         } else if (conversation.merchantId) {
           notificationService.notifyMerchant(conversation.merchantId, {
@@ -543,6 +545,7 @@ export class SupportService {
             title: 'پاسخ جدید پشتیبانی به فروشگاه',
             body: params.body.trim().slice(0, 100),
             link: '/merchant/support',
+            tag: supportTag,
           }).catch(() => {});
         }
       } else {
@@ -556,6 +559,7 @@ export class SupportService {
           title: 'پیام جدید پشتیبانی از ' + senderLabel,
           body: params.body.trim().slice(0, 100),
           link: '/admin/support?conversationId=' + params.conversationId,
+          tag: supportTag,
         }).catch(() => {});
       }
     } catch {
@@ -672,6 +676,33 @@ export class SupportService {
         },
       },
     });
+
+    try {
+      if (isClosed || status === SupportConversationStatus.RESOLVED) {
+        const statusLabel = isClosed ? 'بسته شد' : 'پاسخ داده و تکمیل گردید';
+        if (updated.channelType === SupportChannelType.CUSTOMER_ADMIN && updated.userId) {
+          notificationService.createNotification({
+            userId: updated.userId,
+            role: Role.CUSTOMER,
+            type: 'SUPPORT_RESOLVED',
+            category: 'support',
+            title: 'تغییر وضعیت تیکت پشتیبانی',
+            body: 'تیکت پشتیبانی «' + updated.subject + '» ' + statusLabel + '.',
+            link: '/profile?tab=support',
+          }).catch(() => {});
+        } else if (updated.merchantId) {
+          notificationService.notifyMerchant(updated.merchantId, {
+            type: 'SUPPORT_RESOLVED',
+            category: 'support',
+            title: 'تغییر وضعیت تیکت پشتیبانی فروشگاه',
+            body: 'تیکت «' + updated.subject + '» ' + statusLabel + '.',
+            link: '/merchant/support',
+          }).catch(() => {});
+        }
+      }
+    } catch {
+      // Non-blocking
+    }
 
     const dto = this.mapConversationToDto(updated);
 

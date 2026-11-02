@@ -58,6 +58,7 @@ jobs:
       - run: python3 scripts/test-release-safety.py
       - run: python3 scripts/test-rls-env.py
       - run: python3 scripts/test-android-release.py
+      - run: python3 scripts/test-android-device-ui.py
 
   build-and-push:
     name: Build & Push Docker Image

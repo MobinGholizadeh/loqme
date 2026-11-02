@@ -1,9 +1,18 @@
 "use client";
 import { RippleButton } from "@/components/magicui/ripple-button";
-
 import { ErrorState } from "@/components/ui/ErrorState";
-import * as RedesignIcons from "lucide-react";
-
+import {
+  Camera,
+  RefreshCw,
+  TriangleAlert,
+  CircleX,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Clock3,
+  X,
+  AlertTriangle,
+} from "lucide-react";
 import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -29,8 +38,8 @@ export default function MerchantOrdersPage() {
   const [queue, setQueue] = useState<MerchantPickupQueueItemDto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filterTab, setFilterTab] = useState<
-    "ALL" | "READY" | "COMPLETED" | "NO_SHOW"
-  >("READY");
+    "AWAITING_CONFIRMATION" | "READY" | "COMPLETED" | "NO_SHOW" | "ALL"
+  >("AWAITING_CONFIRMATION");
 
   // Scanner modal state
   const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
@@ -43,12 +52,29 @@ export default function MerchantOrdersPage() {
   // Alerts & Celebration state
   const [lastVerified, setLastVerified] =
     useState<VerifyPickupResponseDto | null>(null);
+  const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflictAlert, setConflictAlert] = useState<{
     orderNumber: string;
     verifiedAt: string;
     customerNameFa: string;
   } | null>(null);
+
+  // Confirmation modal state
+  const [confirmOrder, setConfirmOrder] =
+    useState<MerchantPickupQueueItemDto | null>(null);
+  const [prepMinutes, setPrepMinutes] = useState<number>(30);
+  const [useListingDefaultWindow, setUseListingDefaultWindow] =
+    useState<boolean>(true);
+  const [confirmNote, setConfirmNote] = useState<string>("");
+  const [isConfirming, setIsConfirming] = useState<boolean>(false);
+
+  // Delay modal state
+  const [delayOrder, setDelayOrder] =
+    useState<MerchantPickupQueueItemDto | null>(null);
+  const [delayMinutes, setDelayMinutes] = useState<number>(15);
+  const [delayReason, setDelayReason] = useState<string>("");
+  const [isDelaying, setIsDelaying] = useState<boolean>(false);
 
   // Fetch live queue
   const fetchQueue = useCallback(async (silent = false) => {
@@ -60,10 +86,16 @@ export default function MerchantOrdersPage() {
       if (!res.ok || !json.success)
         throw new Error(json.message || "دریافت اطلاعات ممکن نشد");
       if (json.success) {
-        setQueue(json.data || []);
+        const data: MerchantPickupQueueItemDto[] = json.data || [];
+        setQueue(data);
+
         if (typeof window !== "undefined") {
-          const ready = (json.data || []).filter((o: any) => o.status === "READY_FOR_PICKUP" || o.status === "PAID").length;
-          window.dispatchEvent(new CustomEvent("loqme:orders-count", { detail: ready }));
+          const ready = data.filter(
+            (o) => o.status === "READY_FOR_PICKUP" || o.status === "PAID"
+          ).length;
+          window.dispatchEvent(
+            new CustomEvent("loqme:orders-count", { detail: ready })
+          );
         }
       }
     } catch (err) {
@@ -75,7 +107,6 @@ export default function MerchantOrdersPage() {
 
   useEffect(() => {
     fetchQueue();
-    // Poll every 10 seconds for real-time order updates
     const interval = setInterval(() => {
       fetchQueue(true);
     }, 10000);
@@ -91,6 +122,7 @@ export default function MerchantOrdersPage() {
     setIsVerifying(true);
     setErrorMessage(null);
     setConflictAlert(null);
+    setActionSuccessMsg(null);
 
     try {
       const res = await fetch("/api/pickup/verify", {
@@ -102,7 +134,6 @@ export default function MerchantOrdersPage() {
       const json = await res.json();
 
       if (res.status === 200 && json.success) {
-        // Success celebration!
         playSuccessChime();
         setLastVerified(json);
         setPickupCode("");
@@ -112,7 +143,6 @@ export default function MerchantOrdersPage() {
           window.dispatchEvent(new CustomEvent("loqme:order-updated"));
         }
       } else if (res.status === 409) {
-        // DOUBLE-PICKUP CONFLICT DETECTED!
         playErrorBuzzer();
         setConflictAlert({
           orderNumber:
@@ -121,9 +151,8 @@ export default function MerchantOrdersPage() {
           customerNameFa: json.customerNameFa || "مشتری لقمه",
         });
       } else {
-        // Validation or other error
         playErrorBuzzer();
-        setErrorMessage(json.message || "خطا در تایید سفارش");
+        setErrorMessage(json.message || "خطا در تایید تحویل سفارش");
       }
     } catch {
       playErrorBuzzer();
@@ -150,17 +179,115 @@ export default function MerchantOrdersPage() {
     submitVerification({ qrToken: token });
   };
 
+  // Submit Restaurant Order Confirmation
+  const submitOrderConfirmation = async () => {
+    if (!confirmOrder) return;
+    setIsConfirming(true);
+    setErrorMessage(null);
+    setActionSuccessMsg(null);
+
+    try {
+      const body: any = {
+        noteFa: confirmNote.trim() || undefined,
+      };
+
+      if (!useListingDefaultWindow) {
+        body.estimatedPreparationMinutes = prepMinutes;
+      }
+
+      const res = await fetch(
+        `/api/merchant/orders/${confirmOrder.orderId}/confirm`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "خطا در تایید سفارش");
+      }
+
+      playSuccessChime();
+      setActionSuccessMsg(
+        `سفارش #${confirmOrder.orderNumber} با موفقیت تایید شد و بازه تحویل به مشتری اطلاع‌رسانی گردید.`
+      );
+      setConfirmOrder(null);
+      setConfirmNote("");
+      fetchQueue(true);
+    } catch (err: any) {
+      playErrorBuzzer();
+      setErrorMessage(err.message || "خطا در برقراری ارتباط با سرور");
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  // Submit Delay Notice & Window Update
+  const submitDelayUpdate = async () => {
+    if (!delayOrder) return;
+    setIsDelaying(true);
+    setErrorMessage(null);
+    setActionSuccessMsg(null);
+
+    try {
+      const res = await fetch(
+        `/api/merchant/orders/${delayOrder.orderId}/delay`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            delayMinutes,
+            reasonFa: delayReason.trim() || undefined,
+          }),
+        }
+      );
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "خطا در ثبت تاخیر");
+      }
+
+      playSuccessChime();
+      setActionSuccessMsg(
+        `تاخیر سفارش #${delayOrder.orderNumber} با موفقیت ثبت شد و پیامک/نوتیفیکیشن بازه جدید به مشتری ارسال گردید.`
+      );
+      setDelayOrder(null);
+      setDelayReason("");
+      fetchQueue(true);
+    } catch (err: any) {
+      playErrorBuzzer();
+      setErrorMessage(err.message || "خطا در ثبت تاخیر");
+    } finally {
+      setIsDelaying(false);
+    }
+  };
+
   // KPI Metrics
-  const readyCount = queue.filter(
-    (o) => o.status === "READY_FOR_PICKUP" || o.status === "PAID",
+  const awaitingCount = queue.filter(
+    (o) =>
+      (o.status === "READY_FOR_PICKUP" || o.status === "PAID") &&
+      !o.isConfirmedByMerchant
   ).length;
+
+  const readyCount = queue.filter(
+    (o) =>
+      (o.status === "READY_FOR_PICKUP" || o.status === "PAID") &&
+      o.isConfirmedByMerchant
+  ).length;
+
   const completedCount = queue.filter((o) => o.status === "COMPLETED").length;
   const noShowCount = queue.filter((o) => o.status === "NO_SHOW").length;
 
   // Filtered queue items
   const filteredQueue = queue.filter((item) => {
+    const isLive = item.status === "READY_FOR_PICKUP" || item.status === "PAID";
+    if (filterTab === "AWAITING_CONFIRMATION") {
+      return isLive && !item.isConfirmedByMerchant;
+    }
     if (filterTab === "READY") {
-      return item.status === "READY_FOR_PICKUP" || item.status === "PAID";
+      return isLive && item.isConfirmedByMerchant;
     }
     if (filterTab === "COMPLETED") {
       return item.status === "COMPLETED";
@@ -171,34 +298,43 @@ export default function MerchantOrdersPage() {
     return true;
   });
 
-  const getStatusBadge = (status: OrderStatus) => {
-    switch (status) {
-      case "READY_FOR_PICKUP":
-      case "PAID":
+  const getStatusBadge = (item: MerchantPickupQueueItemDto) => {
+    const isLive = item.status === "READY_FOR_PICKUP" || item.status === "PAID";
+    if (isLive) {
+      if (!item.isConfirmedByMerchant) {
         return (
-          <Badge variant="success" size="sm">
-            ✓ آماده تحویل حضوری
+          <Badge variant="warning" size="sm" className="gap-1">
+            <Clock3 size={13} />
+            در انتظار تایید شما
           </Badge>
         );
-      case "COMPLETED":
-        return (
-          <Badge variant="brand" size="sm">
-            ✓ تحویل داده شد
-          </Badge>
-        );
-      case "NO_SHOW":
-        return (
-          <Badge variant="danger" size="sm">
-            عدم مراجعه مشتری
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="neutral" size="sm">
-            {status}
-          </Badge>
-        );
+      }
+      return (
+        <Badge variant="success" size="sm" className="gap-1">
+          <CheckCircle2 size={13} />
+          تایید شده و آماده تحویل
+        </Badge>
+      );
     }
+    if (item.status === "COMPLETED") {
+      return (
+        <Badge variant="brand" size="sm">
+          ✓ تحویل داده شد
+        </Badge>
+      );
+    }
+    if (item.status === "NO_SHOW") {
+      return (
+        <Badge variant="danger" size="sm">
+          عدم مراجعه مشتری
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="neutral" size="sm">
+        {item.status}
+      </Badge>
+    );
   };
 
   if (loadError)
@@ -217,15 +353,14 @@ export default function MerchantOrdersPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-black text-loqme-neutral-900">
-              صف تحویل حضوری و اسکن QR
+              مدیریت سفارش‌ها و تحویل حضوری
             </h1>
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
               ● زنده
             </span>
           </div>
           <p className="text-xs text-loqme-neutral-500 mt-1">
-            اسکن سریع بارکد مشتری با دوربین یا ثبت کد ۴ رقمی اختصاصی جهت تکمیل
-            سفارش
+            تایید سفارش‌های جدید خریداران، ثبت و ویرایش بازه تحویل و اسکن بارکد QR
           </p>
         </div>
 
@@ -236,9 +371,7 @@ export default function MerchantOrdersPage() {
             className="gap-2 shadow-sm"
             onClick={() => setIsScannerOpen(true)}
           >
-            <span>
-              <RedesignIcons.Camera size={20} aria-hidden="true" />
-            </span>
+            <Camera size={20} aria-hidden="true" />
             <span>اسکن بارکد QR با دوربین</span>
           </Button>
           <Button
@@ -248,56 +381,73 @@ export default function MerchantOrdersPage() {
             onClick={() => fetchQueue()}
             title="بروزرسانی صف"
           >
-            <span>
-              <RedesignIcons.RefreshCw size={20} aria-hidden="true" />
-            </span>
+            <RefreshCw size={20} aria-hidden="true" />
           </Button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div
-          onClick={() => setFilterTab("READY")}
-          className={`cursor-pointer p-4 rounded-lg border transition-all ${
-            filterTab === "READY"
-              ? "bg-loqme-primary-50 border-loqme-primary-300 ring-2 ring-loqme-primary-400/20"
-              : "bg-white border-loqme-neutral-200 hover:border-loqme-neutral-300"
+          onClick={() => setFilterTab("AWAITING_CONFIRMATION")}
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+            filterTab === "AWAITING_CONFIRMATION"
+              ? "bg-amber-50 border-amber-400 ring-2 ring-amber-300"
+              : "bg-white border-amber-200 hover:border-amber-300"
           }`}
         >
-          <span className="text-xs text-loqme-neutral-500 font-medium block">
-            آماده تحویل
+          <span className="text-xs text-amber-800 font-bold flex items-center justify-between">
+            <span>در انتظار تایید</span>
+            {awaitingCount > 0 && (
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
+            )}
           </span>
-          <div className="text-2xl font-black text-loqme-primary-800 mt-1">
+          <div className="text-2xl font-black text-amber-700 mt-1">
+            {toPersianDigits(awaitingCount)}
+          </div>
+        </div>
+
+        <div
+          onClick={() => setFilterTab("READY")}
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+            filterTab === "READY"
+              ? "bg-emerald-50 border-emerald-400 ring-2 ring-emerald-300"
+              : "bg-white border-loqme-neutral-200 hover:border-emerald-300"
+          }`}
+        >
+          <span className="text-xs text-emerald-800 font-bold block">
+            آماده تحویل حضوری
+          </span>
+          <div className="text-2xl font-black text-emerald-700 mt-1">
             {toPersianDigits(readyCount)}
           </div>
         </div>
 
         <div
           onClick={() => setFilterTab("COMPLETED")}
-          className={`cursor-pointer p-4 rounded-lg border transition-all ${
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
             filterTab === "COMPLETED"
-              ? "bg-emerald-50 border-emerald-300 ring-2 ring-emerald-400/20"
-              : "bg-white border-loqme-neutral-200 hover:border-loqme-neutral-300"
+              ? "bg-teal-50 border-teal-400 ring-2 ring-teal-300"
+              : "bg-white border-loqme-neutral-200 hover:border-teal-300"
           }`}
         >
-          <span className="text-xs text-loqme-neutral-500 font-medium block">
-            تحویل شده امروز
+          <span className="text-xs text-loqme-neutral-600 font-medium block">
+            تحویل داده شده
           </span>
-          <div className="text-2xl font-black text-emerald-700 mt-1">
+          <div className="text-2xl font-black text-loqme-primary-800 mt-1">
             {toPersianDigits(completedCount)}
           </div>
         </div>
 
         <div
           onClick={() => setFilterTab("NO_SHOW")}
-          className={`cursor-pointer p-4 rounded-lg border transition-all ${
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
             filterTab === "NO_SHOW"
-              ? "bg-rose-50 border-rose-300 ring-2 ring-rose-400/20"
-              : "bg-white border-loqme-neutral-200 hover:border-loqme-neutral-300"
+              ? "bg-rose-50 border-rose-400 ring-2 ring-rose-300"
+              : "bg-white border-loqme-neutral-200 hover:border-rose-300"
           }`}
         >
-          <span className="text-xs text-loqme-neutral-500 font-medium block">
+          <span className="text-xs text-rose-800 font-medium block">
             عدم مراجعه
           </span>
           <div className="text-2xl font-black text-rose-600 mt-1">
@@ -306,13 +456,27 @@ export default function MerchantOrdersPage() {
         </div>
       </div>
 
+      {/* Action Success Alert Banner */}
+      {actionSuccessMsg && (
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 flex items-center justify-between animate-fade-in shadow-xs">
+          <div className="flex items-center gap-2.5 text-xs font-bold">
+            <CheckCircle2 size={18} className="text-emerald-700 shrink-0" />
+            <span>{actionSuccessMsg}</span>
+          </div>
+          <button
+            onClick={() => setActionSuccessMsg(null)}
+            className="text-emerald-700 hover:text-emerald-950 p-1"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Double-Pickup Rejection Alert Banner */}
       {conflictAlert && (
         <div className="p-4 rounded-lg bg-rose-50 border-2 border-rose-300 text-rose-900 space-y-2 animate-scale-up shadow-card">
           <div className="flex items-center gap-2 font-black text-sm text-rose-700">
-            <span className="text-xl">
-              <RedesignIcons.TriangleAlert size={20} aria-hidden="true" />
-            </span>
+            <TriangleAlert size={20} aria-hidden="true" />
             <h3>هشدار امنیتی: این سفارش قبلاً تحویل داده شده است!</h3>
           </div>
           <p className="text-xs text-rose-800 leading-relaxed">
@@ -381,9 +545,7 @@ export default function MerchantOrdersPage() {
       {errorMessage && (
         <div className="p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center justify-between animate-fade-in">
           <div className="flex items-center gap-2">
-            <span>
-              <RedesignIcons.CircleX size={20} aria-hidden="true" />
-            </span>
+            <CircleX size={20} aria-hidden="true" />
             <span>{errorMessage}</span>
           </div>
           <RippleButton
@@ -457,20 +619,38 @@ export default function MerchantOrdersPage() {
       </Card>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-loqme-neutral-200 pb-2 text-xs">
+      <div className="flex items-center gap-2 border-b border-loqme-neutral-200 pb-2 text-xs overflow-x-auto">
+        <RippleButton
+          onClick={() => setFilterTab("AWAITING_CONFIRMATION")}
+          className={`px-3 py-1.5 rounded-lg font-bold transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+            filterTab === "AWAITING_CONFIRMATION"
+              ? "bg-amber-600 text-white shadow-xs"
+              : "text-amber-800 hover:bg-amber-50"
+          }`}
+        >
+          <span>در انتظار تایید سفارش</span>
+          <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[11px]">
+            {toPersianDigits(awaitingCount)}
+          </span>
+        </RippleButton>
+
         <RippleButton
           onClick={() => setFilterTab("READY")}
-          className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+          className={`px-3 py-1.5 rounded-lg font-bold transition-colors whitespace-nowrap flex items-center gap-1.5 ${
             filterTab === "READY"
               ? "bg-loqme-primary-600 text-white shadow-xs"
               : "text-loqme-neutral-600 hover:bg-loqme-neutral-100"
           }`}
         >
-          در انتظار تحویل ({toPersianDigits(readyCount)})
+          <span>آماده تحویل حضوری</span>
+          <span className="px-1.5 py-0.2 bg-black/10 rounded-full text-[11px]">
+            {toPersianDigits(readyCount)}
+          </span>
         </RippleButton>
+
         <RippleButton
           onClick={() => setFilterTab("COMPLETED")}
-          className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+          className={`px-3 py-1.5 rounded-lg font-bold transition-colors whitespace-nowrap ${
             filterTab === "COMPLETED"
               ? "bg-loqme-primary-600 text-white shadow-xs"
               : "text-loqme-neutral-600 hover:bg-loqme-neutral-100"
@@ -478,9 +658,10 @@ export default function MerchantOrdersPage() {
         >
           تحویل داده شده ({toPersianDigits(completedCount)})
         </RippleButton>
+
         <RippleButton
           onClick={() => setFilterTab("NO_SHOW")}
-          className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+          className={`px-3 py-1.5 rounded-lg font-bold transition-colors whitespace-nowrap ${
             filterTab === "NO_SHOW"
               ? "bg-loqme-primary-600 text-white shadow-xs"
               : "text-loqme-neutral-600 hover:bg-loqme-neutral-100"
@@ -488,9 +669,10 @@ export default function MerchantOrdersPage() {
         >
           عدم مراجعه ({toPersianDigits(noShowCount)})
         </RippleButton>
+
         <RippleButton
           onClick={() => setFilterTab("ALL")}
-          className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+          className={`px-3 py-1.5 rounded-lg font-bold transition-colors whitespace-nowrap ${
             filterTab === "ALL"
               ? "bg-loqme-primary-600 text-white shadow-xs"
               : "text-loqme-neutral-600 hover:bg-loqme-neutral-100"
@@ -516,14 +698,21 @@ export default function MerchantOrdersPage() {
           />
         ) : (
           filteredQueue.map((item) => {
-            const isReady =
+            const isLive =
               item.status === "READY_FOR_PICKUP" || item.status === "PAID";
+            const isAwaiting = isLive && !item.isConfirmedByMerchant;
+            const isReadyForPickup = isLive && item.isConfirmedByMerchant;
+
             return (
               <Card
                 key={item.orderId}
                 variant="elevated"
                 className={`p-4 bg-white transition-all ${
-                  isReady ? "border-r-4 border-r-loqme-primary-600" : ""
+                  isAwaiting
+                    ? "border-r-4 border-r-amber-500 bg-amber-50/20"
+                    : isReadyForPickup
+                      ? "border-r-4 border-r-emerald-600"
+                      : ""
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -542,7 +731,7 @@ export default function MerchantOrdersPage() {
                       <span className="text-xs font-bold text-loqme-primary-800 bg-loqme-primary-50 px-2 py-0.5 rounded-md border border-loqme-primary-200">
                         {item.orderNumber}
                       </span>
-                      <div>{getStatusBadge(item.status)}</div>
+                      <div>{getStatusBadge(item)}</div>
                     </div>
 
                     <p className="text-xs text-loqme-neutral-700">
@@ -553,11 +742,32 @@ export default function MerchantOrdersPage() {
                       </span>
                     </p>
 
-                    <div className="flex items-center gap-3 text-[11px] text-loqme-neutral-500">
-                      <span>
-                        ⏰ بازه تحویل: <strong>{item.pickupWindowFa}</strong>
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-loqme-neutral-500">
+                      <span className="flex items-center gap-1">
+                        <Clock size={13} className="text-loqme-neutral-400" />
+                        <span>بازه تحویل:</span>{" "}
+                        <strong className="text-loqme-neutral-800">
+                          {item.pickupWindowFa}
+                        </strong>
                       </span>
-                      {item.isPastPickupEnd && isReady && (
+
+                      {item.pickupWindowModifiedCount > 0 && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
+                          <AlertTriangle size={11} />
+                          <span>
+                            تاخیر خورده (
+                            {toPersianDigits(item.pickupWindowModifiedCount)}{" "}
+                            بار)
+                          </span>
+                          {item.delayReasonFa && (
+                            <span className="text-[10px] text-amber-900 font-normal">
+                              — {item.delayReasonFa}
+                            </span>
+                          )}
+                        </span>
+                      )}
+
+                      {item.isPastPickupEnd && isLive && (
                         <span className="text-rose-600 font-bold">
                           بازه تحویل گذشته است
                         </span>
@@ -566,7 +776,7 @@ export default function MerchantOrdersPage() {
                         <span className="text-emerald-700 font-medium">
                           تحویل در ساعت:{" "}
                           {new Date(item.verifiedAt).toLocaleTimeString(
-                            "fa-IR",
+                            "fa-IR"
                           )}
                         </span>
                       )}
@@ -574,9 +784,43 @@ export default function MerchantOrdersPage() {
                   </div>
 
                   {/* Actions / OTP code badge */}
-                  <div className="flex items-center gap-2 self-end sm:self-center">
-                    {isReady && (
+                  <div className="flex flex-wrap items-center gap-2 self-end sm:self-center">
+                    {/* Awaiting Confirmation Actions */}
+                    {isAwaiting && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => {
+                          setConfirmOrder(item);
+                          setUseListingDefaultWindow(true);
+                          setPrepMinutes(30);
+                          setConfirmNote("");
+                        }}
+                        className="bg-amber-600 hover:bg-amber-700 border-amber-600 text-white font-bold gap-1.5 shadow-xs"
+                      >
+                        <CheckCircle2 size={16} />
+                        <span>تایید سفارش و ثبت بازه تحویل</span>
+                      </Button>
+                    )}
+
+                    {/* Confirmed Orders Actions */}
+                    {isReadyForPickup && (
                       <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setDelayOrder(item);
+                            setDelayMinutes(15);
+                            setDelayReason("");
+                          }}
+                          className="text-amber-700 border-amber-300 hover:bg-amber-50 gap-1 text-xs"
+                          title="اعلام تاخیر در تحویل به مشتری"
+                        >
+                          <Clock3 size={15} />
+                          <span>اعلام تاخیر / ویرایش بازه</span>
+                        </Button>
+
                         <RippleButton
                           onClick={() => {
                             setPickupCode(item.otpCode);
@@ -612,6 +856,291 @@ export default function MerchantOrdersPage() {
         )}
       </div>
 
+      {/* Confirmation Modal */}
+      {confirmOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-loqme-neutral-200 space-y-5 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-loqme-neutral-100">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-amber-100 text-amber-700">
+                  <CheckCircle2 size={22} />
+                </span>
+                <div>
+                  <h3 className="font-black text-base text-loqme-neutral-900">
+                    تایید سفارش و زمان تحویل
+                  </h3>
+                  <p className="text-xs text-loqme-neutral-500">
+                    سفارش #{confirmOrder.orderNumber} — {confirmOrder.customerNameFa}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setConfirmOrder(null)}
+                className="text-loqme-neutral-400 hover:text-loqme-neutral-700 p-1.5"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-loqme-neutral-50 border border-loqme-neutral-100 text-xs space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-loqme-neutral-500">بسته سفارش داده شده:</span>
+                <span className="font-bold text-loqme-neutral-800">
+                  {toPersianDigits(confirmOrder.quantity)} × {confirmOrder.listingTitleFa}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-loqme-neutral-500">مبلغ پرداخت شده:</span>
+                <span className="font-bold text-loqme-primary-700">
+                  {formatToman(confirmOrder.totalAmountToman)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-loqme-neutral-500">بازه پیش‌فرض آگهی:</span>
+                <span className="font-bold text-loqme-neutral-700">
+                  {confirmOrder.pickupWindowFa}
+                </span>
+              </div>
+            </div>
+
+            {/* Preparation time selection */}
+            <div className="space-y-3">
+              <label className="block text-xs font-bold text-loqme-neutral-800">
+                تعیین زمان آماده‌سازی و بازه تحویل حضوری:
+              </label>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setUseListingDefaultWindow(true)}
+                  className={`p-3 rounded-xl border text-right transition-all font-bold ${
+                    useListingDefaultWindow
+                      ? "border-loqme-primary-600 bg-loqme-primary-50 text-loqme-primary-900 ring-2 ring-loqme-primary-300"
+                      : "border-loqme-neutral-200 text-loqme-neutral-700 hover:bg-loqme-neutral-50"
+                  }`}
+                >
+                  <div>استفاده از بازه آگهی</div>
+                  <div className="text-[11px] font-normal text-loqme-neutral-500 mt-1">
+                    {confirmOrder.pickupWindowFa}
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setUseListingDefaultWindow(false)}
+                  className={`p-3 rounded-xl border text-right transition-all font-bold ${
+                    !useListingDefaultWindow
+                      ? "border-loqme-primary-600 bg-loqme-primary-50 text-loqme-primary-900 ring-2 ring-loqme-primary-300"
+                      : "border-loqme-neutral-200 text-loqme-neutral-700 hover:bg-loqme-neutral-50"
+                  }`}
+                >
+                  <div>آماده‌سازی از همین الان</div>
+                  <div className="text-[11px] font-normal text-loqme-neutral-500 mt-1">
+                    محاسبه بر اساس دقیقه
+                  </div>
+                </button>
+              </div>
+
+              {!useListingDefaultWindow && (
+                <div className="p-3 bg-loqme-neutral-50 rounded-xl space-y-2 border border-loqme-neutral-200">
+                  <span className="text-[11px] font-bold text-loqme-neutral-700 block">
+                    مدت زمان آماده‌سازی تا تحویل:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {[15, 20, 30, 45, 60].map((mins) => (
+                      <button
+                        key={mins}
+                        type="button"
+                        onClick={() => setPrepMinutes(mins)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          prepMinutes === mins
+                            ? "bg-loqme-primary-600 text-white shadow-xs"
+                            : "bg-white border border-loqme-neutral-200 text-loqme-neutral-700 hover:bg-loqme-neutral-100"
+                        }`}
+                      >
+                        {toPersianDigits(mins)} دقیقه دیگر
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-loqme-neutral-600 mb-1">
+                  یادداشت فروشگاه برای مشتری (اختیاری):
+                </label>
+                <Input
+                  placeholder="مثال: بسته شما در حال بسته‌بندی است، لطفاً به صندوق مراجعه نمایید."
+                  value={confirmNote}
+                  onChange={(e) => setConfirmNote(e.target.value)}
+                  className="text-xs"
+                />
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-teal-50 border border-teal-200 text-[11px] text-teal-800 flex items-center gap-1.5">
+                <CheckCircle2 size={16} className="text-teal-600 shrink-0" />
+                <span>
+                  با کلیک روی تایید، نوتیفیکیشن درون‌برنامه‌ای، وب‌پوش و پیامک بازه تحویل به شماره مشتری ارسال خواهد شد.
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-loqme-neutral-100">
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={() => setConfirmOrder(null)}
+                disabled={isConfirming}
+              >
+                انصراف
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={submitOrderConfirmation}
+                disabled={isConfirming}
+                className="gap-2 bg-amber-600 hover:bg-amber-700 font-bold"
+              >
+                {isConfirming ? (
+                  <Spinner size="sm" variant="white" />
+                ) : (
+                  <>
+                    <CheckCircle2 size={18} />
+                    <span>تایید سفارش و ارسال نوتیفیکیشن</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delay Modal */}
+      {delayOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-loqme-neutral-200 space-y-5 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-loqme-neutral-100">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-amber-100 text-amber-700">
+                  <Clock3 size={22} />
+                </span>
+                <div>
+                  <h3 className="font-black text-base text-loqme-neutral-900">
+                    اعلام تاخیر و تمدید بازه تحویل
+                  </h3>
+                  <p className="text-xs text-loqme-neutral-500">
+                    سفارش #{delayOrder.orderNumber} — {delayOrder.customerNameFa}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDelayOrder(null)}
+                className="text-loqme-neutral-400 hover:text-loqme-neutral-700 p-1.5"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-xl bg-loqme-neutral-50 border border-loqme-neutral-100 text-xs">
+              <span className="text-loqme-neutral-500">بازه تحویل فعلی: </span>
+              <strong className="text-loqme-neutral-800">
+                {delayOrder.pickupWindowFa}
+              </strong>
+            </div>
+
+            {/* Delay presets */}
+            <div className="space-y-3">
+              <label className="block text-xs font-bold text-loqme-neutral-800">
+                میزان افزایش زمان تحویل (تمدید بازه):
+              </label>
+
+              <div className="flex flex-wrap gap-2">
+                {[15, 20, 30, 45, 60].map((mins) => (
+                  <button
+                    key={mins}
+                    type="button"
+                    onClick={() => setDelayMinutes(mins)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                      delayMinutes === mins
+                        ? "bg-amber-600 text-white shadow-xs ring-2 ring-amber-300"
+                        : "bg-white border border-loqme-neutral-200 text-loqme-neutral-700 hover:bg-loqme-neutral-100"
+                    }`}
+                  >
+                    +{toPersianDigits(mins)} دقیقه
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-loqme-neutral-800 mb-1.5">
+                  علت تاخیر (جهت نمایش و ارسال پیامک به خریدار):
+                </label>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {[
+                    "ترافیک بالای سفارشات در ساعات اوج",
+                    "آماده‌سازی پخت و بسته‌بندی تازه",
+                    "تاخیر در تامین مواد اولیه",
+                  ].map((reason) => (
+                    <button
+                      key={reason}
+                      type="button"
+                      onClick={() => setDelayReason(reason)}
+                      className={`text-[11px] px-2.5 py-1 rounded-lg border transition-colors ${
+                        delayReason === reason
+                          ? "bg-amber-100 border-amber-300 text-amber-900 font-bold"
+                          : "bg-loqme-neutral-50 border-loqme-neutral-200 text-loqme-neutral-600 hover:bg-loqme-neutral-100"
+                      }`}
+                    >
+                      {reason}
+                    </button>
+                  ))}
+                </div>
+                <Input
+                  placeholder="علت تاخیر را بنویسید یا از گزینه‌های بالا انتخاب کنید"
+                  value={delayReason}
+                  onChange={(e) => setDelayReason(e.target.value)}
+                  className="text-xs"
+                />
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-center gap-1.5">
+                <AlertCircle size={16} className="text-amber-700 shrink-0" />
+                <span>
+                  به‌محض ثبت تاخیر، بازه تحویل به‌روز شده و پیامک و نوتیفیکیشن با ذکر علت برای خریدار ارسال خواهد شد.
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-loqme-neutral-100">
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={() => setDelayOrder(null)}
+                disabled={isDelaying}
+              >
+                انصراف
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={submitDelayUpdate}
+                disabled={isDelaying}
+                className="gap-2 bg-amber-600 hover:bg-amber-700 font-bold"
+              >
+                {isDelaying ? (
+                  <Spinner size="sm" variant="white" />
+                ) : (
+                  <>
+                    <Clock3 size={18} />
+                    <span>ثبت تاخیر و اطلاع‌رسانی به خریدار</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* HTML5 Camera Scanner Modal */}
       <QRCameraScanner
         isOpen={isScannerOpen}
@@ -619,9 +1148,8 @@ export default function MerchantOrdersPage() {
         onScan={handleQrScan}
         onFallbackToManual={() => {
           setIsScannerOpen(false);
-          // Focus input
           const el = document.querySelector(
-            'input[placeholder="مثال: ۸۴۹۱"]',
+            'input[placeholder="مثال: ۸۴۹۱"]'
           ) as HTMLInputElement;
           if (el) el.focus();
         }}

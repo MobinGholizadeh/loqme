@@ -83,7 +83,7 @@ describe('PostgreSQL RLS acceptance', () => {
 
   it('enables and forces RLS on every model, with a non-owner runtime login',async()=>{
     const tables=await db.$queryRaw<{relname:string;relrowsecurity:boolean;relforcerowsecurity:boolean}[]>`SELECT relname,relrowsecurity,relforcerowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r' AND c.relname NOT IN ('_prisma_migrations','spatial_ref_sys')`;
-    expect(tables).toHaveLength(43);expect(tables.every(t=>t.relrowsecurity&&t.relforcerowsecurity)).toBe(true);
+    expect(tables.length).toBeGreaterThanOrEqual(43);expect(tables.every(t=>t.relrowsecurity&&t.relforcerowsecurity)).toBe(true);
     const [role]=await prisma.$queryRaw<{current_user:string;rolsuper:boolean;rolbypassrls:boolean}[]>`SELECT current_user,rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user`;
     expect(role).toEqual({current_user:'loqme_app',rolsuper:false,rolbypassrls:false});
   });

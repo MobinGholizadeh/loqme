@@ -9,15 +9,15 @@ import time
 import xml.etree.ElementTree as ET
 import urllib.request
 from pathlib import Path
+from android_device_ui import capture_screen_tree
 
 
-def adb(*args):
-    return subprocess.check_output(['adb', *args], text=True, stderr=subprocess.STDOUT)
+def adb(*args, timeout=120):
+    return subprocess.check_output(['adb', *args], text=True, stderr=subprocess.STDOUT, timeout=timeout)
 
 
 def screen_tree():
-    adb('shell', 'uiautomator', 'dump', '/sdcard/loqme-window.xml')
-    return adb('shell', 'cat', '/sdcard/loqme-window.xml')
+    return capture_screen_tree(adb, evidence)
 
 
 def tap(node):

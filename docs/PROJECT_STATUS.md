@@ -8,6 +8,37 @@
 
 ## 1. Project Health & Current State
 
+### Isolated Void Frame host deployment and automatic CI/CD (2026-10-29)
+
+The independent Void Frame storefront now deploys automatically on every push to `voidframe-source`. Its pipeline type-checks and builds the exact commit, runs a clean-volume production integration flow, publishes a digest-pinned GHCR image, deploys with health-based rollback, verifies the runtime owner-password hash, and installs the canonical Nginx/TLS configuration. It remains isolated at `/opt/voidframe` on port 3100 with its own container, volume, secrets, and concurrency group; it does not access Loqme data or restart Loqme services. Production run 40788034737 deployed source `32a4be3` successfully. Both public names return trusted HTTPS 200, HTTP redirects canonically, the favicon returns 200, and Loqme readiness remains 200. Operational boundaries and recovery ownership are documented in `docs/VOIDFRAME_HOSTING.md`.
+
+### Order Merchant Confirmation RLS Fix & Full Platform Notification Expansion (2026-10-28)
+
+1. **Order Confirmation RLS Trigger Fix**:
+   - Fixed `loqme_rls.guard_write()` in PostgreSQL where array subtraction omitted `'notesFa'` on `newj`, causing false evaluation of row equivalence and throwing `42501: RLS: order payment state is server controlled` during merchant confirmation (`POST /api/merchant/orders/[id]/confirm`).
+   - Applied migration `20261028130000_fix_order_rls_guard_write` cleanly across database environments.
+2. **Comprehensive Notification Coverage Across Admin, Merchant & Customer**:
+   - **Admin**: Auto-dispatched alerts on new merchant application submissions and new bank account Shaba registrations.
+   - **Merchant**: Proactive notifications on customer complaints, customer reviews, payout status updates (approved, rejected, completed), listing safety pause overrides, and order refunds/cancellations.
+   - **Customer**: In-App + Push + SMS pickup reminder notifications when 45 minutes remain, no-show expiration notices, refund settled confirmations, complaint resolution updates, and merchant review replies.
+   - Added unit and contract tests in `tests/notifications-comprehensive.test.ts` (6 tests passing) and `tests/admin-notifications-events.test.ts` (2 tests passing). All 32 order and notification acceptance tests pass.
+
+### Android emulator UI-dump verification repair — CP-10.21 follow-up (2026-10-26)
+
+The supplied CI traceback fails while reading a missing `/sdcard/loqme-window.xml` before installation acceptance. Replaced the immediate dump/read with fresh temporary-path capture, removal of stale dumps, five bounded retries, XML/node validation, explicit ADB timeouts and saved failure output. Persistent failures still fail verification; signing, installation/upgrade, launch and publication gates remain required. Added five mocked failure/recovery tests to the production validation job.
+
+Local validation: five UI-capture tests, four portable Android release-policy tests, three release-safety tests, four RLS environment tests and Python compilation pass; four Linux-only publication tests skip on Windows. Release follow-up: fix `eaede88` pushed to master; superseded run #84 was canceled to release the queue after its web deployment had succeeded. [Production run #85 / 40313215895](https://github.com/MobinGholizadeh/loqme/actions/runs/40313215895) passed all four jobs: 1,105 tests across 93 files, all Linux publication checks, image build, web deployment and hosted-emulator Android acceptance/publication. Signed Android **1.1.131** identifies source `eaede8849bbfb4264d6d986ca9046eaa714e0073`; independently downloaded public APK is 2,665,392 bytes and matches SHA-256 `42367ceb82cf9d2a4524dde2afc18d3d6fef7753b455761aa13d7d1be86b524a`. Live readiness/database checks pass. Anonymous live checks report ready/database connected and Android 1.1.130 from `6f16eb9`. The supplied workflow screenshot shows web deploy succeeded before Android failed; the repaired web source is now verified by the successful exact-source deployment/publication workflow. No database changes or validation bypass.
+
+### Pickup-stage card clearance follow-up (2026-10-26)
+
+Increased stage bottom padding to 64px on desktop, 56px on compact desktop and 52px on mobile so rotated lower card corners are no longer clipped. Compact card height adapts between 260–300px to retain CTA visibility on short desktop viewports. Both pickup and desktop-scaling browser scenarios pass, including geometric lower-edge checks across eight desktop sizes; 1280×620 screenshot reviewed and diff whitespace check passes. No deployment.
+
+### Desktop zoom and display-scaling scroll repair — CP-10.29 / CP-10.30 follow-up (2026-10-26)
+
+The 740px height-only media query incorrectly disabled both homepage scroll effects on wide desktops at common browser zoom/OS scaling. Wide viewports now use compact cards, spacing and nature-section typography from 601–820 CSS pixels tall, retaining sticky scrolling. Narrow viewports keep the existing 740px short-screen fallback; reduced motion and all viewports at most 600px tall retain fully readable static content for accessibility. No device/UA sniffing or zoom suppression.
+
+Validation: pickup-stack, nature-reveal and desktop live-resize browser scenarios pass, including scaled desktop sizes, phone/landscape, reduced motion, animation progression/reversal, full CTA visibility and overflow checks. Six existing animation unit tests, zero-warning lint, workspace typecheck (after regenerating the stale local Prisma client), production build and diff whitespace checks pass. Compact 1280×620 screenshot reviewed. Notification GET/SSE fixtures now match the current header requests. The broader homepage suite's existing ticker-pause test remains stale: it expects a pause button absent from the current implementation; the mobile Account scenario passes. No database migration or deployment. Next: update the independent ticker test/behavior contract before claiming the entire homepage suite passes.
+
 ### Support chat reference redesign — CP-10.32 follow-up (2026-10-25)
 
 Owner-requested redesign of `/support` and `/merchant/support` adapts the supplied three-panel chat reference to Loqme's white/teal tokens, Persian RTL and Vazirmatn. Shared navigation/profile, inset pale-green conversation and real shared-attachment panel replace the narrow stacked headers. The merchant support main now fills the available shell width; no negative margins or clipped heading. Tablet collapses files into a toggled panel; mobile keeps a single chat pane and visible composer. File filters/counts derive only from conversation attachments. Existing endpoints, SSE, polling, uploads and read receipts remain; optimistic messages use the outgoing style and session ID aliases are supported. History scrolling is confined to its pane.

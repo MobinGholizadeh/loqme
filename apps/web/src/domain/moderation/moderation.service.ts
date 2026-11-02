@@ -1,4 +1,5 @@
 import { withDatabaseService } from '@/lib/db/context';
+import { notificationService } from '@/domain/notification/notification.service';
 import { CreateReviewSchema } from '@loqme/validation';
 import { MerchantRatingSummaryDto } from '@loqme/types';
 import { prisma } from '@/lib/prisma';
@@ -29,6 +30,7 @@ export class ModerationService {
       include: {
         review: true,
         merchant: true,
+        customer: { select: { fullName: true } },
       },
     });
 
@@ -89,6 +91,19 @@ export class ModerationService {
         overallRating: input.overallRating,
       },
     });
+
+    try {
+      const orderNumber = order.orderNumber || order.id;
+      notificationService.notifyMerchant(order.merchantId, {
+        type: 'NEW_REVIEW',
+        category: 'order',
+        title: 'دیدگاه و امتیاز جدید',
+        body: 'دیدگاه جدیدی با امتیاز ' + input.overallRating + ' از ۵ برای سفارش #' + orderNumber + ' ثبت شد.',
+        link: '/merchant/reviews',
+      }).catch(() => {});
+    } catch {
+      // Non-blocking
+    }
 
     return review;
   }
@@ -159,6 +174,26 @@ export class ModerationService {
       },
     });
 
+    try {
+      const rev = await prisma.review.findUnique({
+        where: { id: reviewId },
+        include: { order: { include: { customer: { include: { user: true } } } }, merchant: true },
+      });
+      if (rev?.order?.customer?.user) {
+        notificationService.createNotification({
+          userId: rev.order.customer.user.id,
+          role: rev.order.customer.user.role,
+          type: 'REVIEW_REPLIED',
+          category: 'order',
+          title: 'پاسخ فروشگاه به دیدگاه شما',
+          body: 'فروشگاه «' + rev.merchant.businessNameFa + '» به نظر شما پاسخ داد: ' + replyFa.slice(0, 80),
+          link: '/merchants/' + rev.merchantId,
+        }).catch(() => {});
+      }
+    } catch {
+      // Non-blocking
+    }
+
     return updated;
   }
 
@@ -203,6 +238,7 @@ export class ModerationService {
       where: { id: orderId },
       include: {
         merchant: true,
+        customer: { select: { fullName: true } },
       },
     });
 
@@ -293,6 +329,33 @@ export class ModerationService {
       },
     });
 
+    try {
+      const orderNumber = order.orderNumber || order.id;
+      const merchantName = order.merchant?.businessNameFa || 'فروشگاه';
+      const customerName = (order as any).customer?.fullName || 'مشتری';
+      notificationService.notifyAdmins({
+        type: 'COMPLAINT_FILED',
+        category: 'system',
+        title: `ثبت شکایت جدید برای سفارش #${orderNumber}`,
+        body: `شکایت جدیدی از طرف ${customerName} برای فروشگاه «${merchantName}» ثبت گردید.`,
+        link: '/admin/moderation',
+        tag: `complaint-${complaint.id}`,
+      }).catch((err) => {
+        console.error('[ModerationService] Error sending admin notification for complaint:', err);
+      });
+
+      notificationService.notifyMerchant(order.merchantId, {
+        type: 'COMPLAINT_RECEIVED',
+        category: 'order',
+        title: 'ثبت گزارش/شکایت برای سفارش #' + orderNumber,
+        body: 'شکایتی در رابطه با سفارش #' + orderNumber + ' ثبت شده و توسط تیم پشتیبانی در حال بررسی است.',
+        link: '/merchant/orders',
+        tag: 'complaint-' + complaint.id,
+      }).catch(() => {});
+    } catch {
+      // Non-blocking notification dispatch
+    }
+
     return complaint;
   }
 
@@ -366,7 +429,25 @@ export class ModerationService {
     ]);
 
     return {
-      items,
+      items: items.map((c: any) => ({
+        ...c,
+        order: c.order
+          ? {
+              ...c.order,
+              totalAmountToman: c.order.totalAmountToman != null ? Number(c.order.totalAmountToman) : c.order.totalAmountToman,
+              payments: c.order.payments?.map((p: any) => ({
+                ...p,
+                amountToman: p.amountToman != null ? Number(p.amountToman) : p.amountToman,
+              })),
+            }
+          : c.order,
+        refund: c.refund
+          ? {
+              ...c.refund,
+              amountToman: c.refund.amountToman != null ? Number(c.refund.amountToman) : c.refund.amountToman,
+            }
+          : c.refund,
+      })),
       total,
       limit,
       offset,
@@ -469,10 +550,67 @@ export class ModerationService {
       },
     });
 
-    return prisma.complaint.findUnique({
+    try {
+      if (complaint.order?.customerId) {
+        const customerUser = await prisma.customer.findUnique({
+          where: { id: complaint.order.customerId },
+          include: { user: true },
+        });
+        if (customerUser?.user) {
+          let resolveTitle = 'نتیجه بررسی شکایت';
+          let resolveBody = 'شکایت شما بابت سفارش #' + complaint.order.orderNumber + ' بررسی شد: ' + (resolution.notesFa || 'اقدام مقتضی انجام گردید');
+          if (resolution.action === 'REFUND') {
+            resolveTitle = 'تأیید شکایت و استرداد وجه';
+            resolveBody = 'شکایت شما بابت سفارش #' + complaint.order.orderNumber + ' تایید و مبلغ به حساب شما مسترد شد.';
+          } else if (resolution.action === 'REJECT') {
+            resolveTitle = 'عدم تأیید شکایت';
+            resolveBody = 'شکایت شما بابت سفارش #' + complaint.order.orderNumber + ' مورد تایید قرار نگرفت: ' + (resolution.notesFa || 'عدم تطابق با شرایط');
+          } else if (resolution.action === 'WARNING') {
+            resolveTitle = 'بررسی شکایت و تذکر به فروشگاه';
+            resolveBody = 'شکایت شما بابت سفارش #' + complaint.order.orderNumber + ' بررسی و تذکر لازم به فروشگاه ابلاغ گردید.';
+          }
+
+          notificationService.createNotification({
+            userId: customerUser.user.id,
+            role: customerUser.user.role,
+            type: 'COMPLAINT_RESOLVED',
+            category: 'support',
+            title: resolveTitle,
+            body: resolveBody,
+            link: '/orders',
+          }).catch(() => {});
+        }
+      }
+
+      notificationService.notifyMerchant(complaint.merchantId, {
+        type: 'COMPLAINT_RESOLVED',
+        category: 'system',
+        title: 'نتیجه بررسی شکایت سفارش #' + (complaint.order?.orderNumber || ''),
+        body: resolution.action === 'REFUND'
+          ? 'شکایت سفارش #' + complaint.order?.orderNumber + ' تایید و وجه آن به مشتری مسترد شد.'
+          : resolution.action === 'WARNING'
+          ? 'پیرو شکایت سفارش #' + complaint.order?.orderNumber + '، اخطار سیستمی ثبت شد: ' + (resolution.notesFa || '')
+          : 'شکایت سفارش #' + complaint.order?.orderNumber + ' توسط پشتیبانی بررسی و مختومه شد.',
+        link: '/merchant/orders',
+      }).catch(() => {});
+    } catch {
+      // Non-blocking
+    }
+
+    const resolved = await prisma.complaint.findUnique({
       where: { id: complaintId },
       include: { refund: true, resolvedByUser: true },
     });
+    if (!resolved) return null;
+    return {
+      ...resolved,
+      refund: resolved.refund
+        ? {
+            ...resolved.refund,
+            amountToman: resolved.refund.amountToman != null ? Number(resolved.refund.amountToman) : resolved.refund.amountToman,
+          }
+        : resolved.refund,
+    };
   }
 
   /**
@@ -526,6 +664,20 @@ export class ModerationService {
         reasonFa,
       },
     });
+
+    try {
+      if (safetyStatus !== SafetyStatus.APPROVED) {
+        notificationService.notifyMerchant(listing.merchantId, {
+          type: 'LISTING_SAFETY_PAUSED',
+          category: 'system',
+          title: 'توقف عرضه بسته به دلیل بررسی سلامت و ایمنی',
+          body: 'عرضه بسته «' + listing.titleFa + '» به دلیل الزامات سلامت و ایمنی متوقف شد' + (reasonFa ? ' (' + reasonFa + ')' : '') + '.',
+          link: '/merchant/inventory',
+        }).catch(() => {});
+      }
+    } catch {
+      // Non-blocking
+    }
 
     return updatedSafety;
   }

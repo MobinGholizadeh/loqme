@@ -27,6 +27,12 @@ interface OrderReceiptData {
   totalAmountToman: number;
   commissionAmountToman: number;
   merchantPayoutAmountToman: number;
+  merchantConfirmedAt?: string | null;
+  isConfirmedByMerchant?: boolean;
+  pickupStart?: string | null;
+  pickupEnd?: string | null;
+  pickupWindowModifiedCount?: number;
+  delayReasonFa?: string | null;
   createdAt: string;
   merchant: {
     id: string;
@@ -98,8 +104,7 @@ export default function OrderReceiptPage() {
       ? "وجه بازگردانده شد"
       : order.status === "NO_SHOW"
         ? "عدم مراجعه در بازه تحویل"
-        : canPickup
-          ? "پرداخت تایید شد"
+        : canPickup ? (order.isConfirmedByMerchant ? "تایید شده و آماده تحویل" : "در انتظار تایید رستوران")
           : order.status === "CANCELLED"
             ? "سفارش لغو شد"
             : "در انتظار تایید پرداخت";
@@ -140,6 +145,20 @@ export default function OrderReceiptPage() {
           <p dir="ltr">{toPersianDigits(order.orderNumber)}</p>
         </div>
         <div className="ticket-body">
+          {order.pickupWindowModifiedCount && order.pickupWindowModifiedCount > 0 ? (
+            <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 mb-3 text-right">
+              <strong className="block text-amber-700">⚠️ بازه تحویل با اعلام تاخیر تمدید گردید:</strong>
+              {order.delayReasonFa && (
+                <span className="block mt-0.5 text-amber-800">
+                  علت تاخیر فروشگاه: {order.delayReasonFa}
+                </span>
+              )}
+            </div>
+          ) : !order.isConfirmedByMerchant && canPickup ? (
+            <div className="p-2.5 rounded-lg bg-amber-50/80 border border-amber-200 text-xs text-amber-800 mb-3 text-right">
+              سفارش شما با موفقیت پرداخت شد. فروشگاه در حال آماده‌سازی و نهایی‌کردن زمان تحویل است.
+            </div>
+          ) : null}
           {canPickup ? (
             <>
               <QrCode
@@ -181,7 +200,7 @@ export default function OrderReceiptPage() {
                 })}
               </p>
               <p>
-                {time(item.pickupStart)} تا {time(item.pickupEnd)}
+                {time(order.pickupStart || item.pickupStart)} تا {time(order.pickupEnd || item.pickupEnd)}
               </p>
             </div>
           </div>

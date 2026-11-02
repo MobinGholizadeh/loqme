@@ -2,6 +2,12 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { createRlsClient } from './db/rls-client';
 
+if (typeof BigInt !== 'undefined' && !(BigInt.prototype as any).toJSON) {
+  (BigInt.prototype as any).toJSON = function () {
+    return Number(this);
+  };
+}
+
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
@@ -15,7 +21,7 @@ function createPrismaClient() {
     adapter,
     log:
       process.env.NODE_ENV === 'development'
-        ? ['query', 'error', 'warn']
+        ? (process.env.PRISMA_LOG_QUERIES === 'true' ? ['query', 'error', 'warn'] : ['error', 'warn'])
         : ['error'],
   }));
 }

@@ -294,6 +294,18 @@ export class AdminBankService {
           },
         });
 
+        try {
+          notificationService.notifyMerchant(payout.merchantId, {
+            type: 'PAYOUT_APPROVED',
+            category: 'system',
+            title: 'تأیید درخواست تسویه حساب',
+            body: 'درخواست تسویه حساب به مبلغ ' + Number(payout.amountToman).toLocaleString('fa-IR') + ' تومان تایید شد و در صف واریز پایا قرار گرفت.',
+            link: '/merchant/finance',
+          }).catch(() => {});
+        } catch {
+          // Non-blocking
+        }
+
         return updated;
       } else if (data.action === 'REJECT') {
         const updated = await tx.merchantPayoutRequest.update({
@@ -320,6 +332,18 @@ export class AdminBankService {
             },
           },
         });
+
+        try {
+          notificationService.notifyMerchant(payout.merchantId, {
+            type: 'PAYOUT_REJECTED',
+            category: 'system',
+            title: 'عدم تأیید درخواست تسویه حساب',
+            body: 'درخواست تسویه حساب به مبلغ ' + Number(payout.amountToman).toLocaleString('fa-IR') + ' تومان تایید نشد: ' + updated.rejectionReason,
+            link: '/merchant/finance',
+          }).catch(() => {});
+        } catch {
+          // Non-blocking
+        }
 
         return updated;
       } else if (data.action === 'COMPLETE') {
@@ -365,6 +389,18 @@ export class AdminBankService {
             },
           },
         });
+
+        try {
+          notificationService.notifyMerchant(payout.merchantId, {
+            type: 'PAYOUT_COMPLETED',
+            category: 'system',
+            title: 'واریز وجه تسویه حساب',
+            body: 'مبلغ ' + Number(payout.amountToman).toLocaleString('fa-IR') + ' تومان با شماره پیگیری ' + data.trackingReference.trim() + ' به حساب بانکی شما واریز گردید.',
+            link: '/merchant/finance',
+          }).catch(() => {});
+        } catch {
+          // Non-blocking
+        }
 
         return updated;
       }

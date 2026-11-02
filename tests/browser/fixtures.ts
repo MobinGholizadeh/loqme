@@ -401,6 +401,10 @@ export async function installFixtures(page: Page, role = "CUSTOMER") {
         headers: { 'set-cookie': `loqme_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000` },
         json: { success: true, user: session },
       });
+    if (path === "/api/notifications/stream")
+      return route.fulfill({ status: 204 });
+    if (path === "/api/notifications")
+      return route.fulfill({ json: { success: true, data: [], unreadCount: 0 } });
     if (path === "/api/reviews")
       return route.fulfill({ json: { success: true, items: [] } });
     if (path === "/api/admin/complaints" || path === "/api/admin/audit")

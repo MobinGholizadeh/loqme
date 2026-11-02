@@ -142,3 +142,49 @@ test("nature section reveals locally and preserves readable content on mobile", 
   await page.locator(".food-impact .action-link").scrollIntoViewIfNeeded();
   await expect(page.locator(".food-impact .action-link")).toBeInViewport();
 });
+
+test("desktop scroll effects survive zoom-sized viewports and live resizing", async ({ page }, info) => {
+  await installFixtures(page);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  // CSS viewports represent browser chrome + 125/150% zoom or OS scaling.
+  for (const [width, height] of [[1920, 960], [1536, 730], [1280, 620], [1280, 601], [1365, 650], [1024, 740], [768, 740], [1440, 900]]) {
+    await page.setViewportSize({ width, height });
+    const sticky = page.locator(".pickup-sticky");
+    await expect(sticky).toHaveCSS("position", "sticky");
+    await expect(page.locator(".stack-card").first()).toHaveCSS("position", "absolute");
+    const bounds = await page.locator(".cards-scroll").evaluate(el => ({ top: el.getBoundingClientRect().top + scrollY, distance: el.clientHeight - innerHeight }));
+    await page.evaluate(y => window.scrollTo(0, y), bounds.top + bounds.distance * 0.05);
+    await expect(page.locator(".pickup-heading")).toBeInViewport({ ratio: 1 });
+    await expect(page.locator(".pickup-story-actions a")).toBeInViewport({ ratio: 1 });
+    const cards = page.locator(".stack-card");
+    await expect(cards.first()).toHaveCSS("opacity", "1");
+    expect(await page.locator(".pickup-stage").evaluate(stage => {
+      const edge = stage.getBoundingClientRect().bottom;
+      return [...stage.querySelectorAll(".stack-card")].every(card => card.getBoundingClientRect().bottom <= edge);
+    })).toBe(true);
+    expect(await cards.first().evaluate(el => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
+    await page.evaluate(y => window.scrollTo(0, y), bounds.top + bounds.distance * 0.46);
+    await expect(cards.first()).toHaveCSS("opacity", "0");
+    await expect(cards.nth(1)).toHaveCSS("opacity", "1");
+    await page.screenshot({ path: info.outputPath(`scaled-desktop-${width}-${height}.png`) });
+    const nature = page.locator(".smooth-hero");
+    await expect(page.locator(".smooth-hero-sticky")).toHaveCSS("position", "sticky");
+    const end = await nature.evaluate(el => el.getBoundingClientRect().bottom + scrollY - innerHeight);
+    await page.evaluate(y => window.scrollTo(0, y), end);
+    await expect(page.locator(".food-impact h2")).toBeInViewport({ ratio: 1 });
+    await expect(page.locator(".food-impact .action-link")).toBeInViewport({ ratio: 1 });
+    await expect(page.locator(".smooth-hero-reveal")).toHaveCSS("clip-path", "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  }
+  // Narrow/short phones and extreme zoom remain scrollable, independent of motion preference.
+  for (const [width, height] of [[390, 700], [667, 375], [1280, 600]]) {
+    await page.setViewportSize({ width, height });
+    await expect(page.locator(".pickup-sticky")).toHaveCSS("position", "relative");
+    await expect(page.locator(".smooth-hero-sticky")).toHaveCSS("position", "relative");
+    for (const card of await page.locator(".stack-card").all()) {
+      await expect(card).toHaveCSS("transform", "none");
+      await expect(card).toHaveCSS("opacity", "1");
+    }
+  }
+});

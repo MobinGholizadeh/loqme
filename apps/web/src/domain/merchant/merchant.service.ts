@@ -1,3 +1,4 @@
+import { notificationService } from '@/domain/notification/notification.service';
 import { withDatabaseService } from '@/lib/db/context';
 import { prisma } from '@/lib/prisma';
 import { listingImageStorage } from '@/domain/listing/image-storage';
@@ -843,6 +844,20 @@ export class MerchantService {
           },
         },
       });
+
+      try {
+        notificationService.createNotification({
+          userId: user.id,
+          role: 'MERCHANT_STAFF',
+          type: 'STAFF_INVITATION',
+          category: 'system',
+          title: 'دعوت به همکاری در فروشگاه',
+          body: 'شما به عنوان همکار در فروشگاه «' + merchant.businessNameFa + '» اضافه شدید.',
+          link: '/merchant',
+        }).catch(() => {});
+      } catch {
+        // Non-blocking
+      }
 
       return {
         id: staffRecord.id,

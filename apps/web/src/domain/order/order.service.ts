@@ -1,5 +1,5 @@
 import { notificationService } from '@/domain/notification/notification.service';
-import { withDatabaseService } from '@/lib/db/context';
+import { withDatabaseService, withDatabaseActor } from '@/lib/db/context';
 import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { inventoryService } from '@/domain/inventory/inventory.service';
@@ -161,7 +161,24 @@ export class OrderService {
           const sold = await inventoryService.atomicConfirmSold(item.listingId, item.quantity, tx);
           if (!sold.success) throw new Error('Reserved inventory unavailable');
         }
-        const updatedOrder = await tx.order.update({ where: { id: order.id }, data: { status: OrderStatus.READY_FOR_PICKUP, updatedAt: now, paidAt: now, acceptedPaymentId: currentPayment.id } });
+        const firstListing = order.items[0]?.listingId
+          ? await tx.listing.findUnique({
+              where: { id: order.items[0].listingId },
+              select: { pickupStart: true, pickupEnd: true },
+            })
+          : null;
+        const updatedOrder = await tx.order.update({
+          where: { id: order.id },
+          data: {
+            status: OrderStatus.READY_FOR_PICKUP,
+            updatedAt: now,
+            paidAt: now,
+            acceptedPaymentId: currentPayment.id,
+            pickupStart: firstListing?.pickupStart ?? null,
+            pickupEnd: firstListing?.pickupEnd ?? null,
+            merchantConfirmedAt: null,
+          },
+        });
         const transfers = [
           { type: FinancialTransactionType.CUSTOMER_PAYMENT, debitAccount: 'CUSTOMER_PAYMENT', creditAccount: 'PLATFORM_CLEARING', amountToman: order.totalAmountToman },
           { type: FinancialTransactionType.MERCHANT_PAYOUT, debitAccount: 'PLATFORM_CLEARING', creditAccount: 'MERCHANT_PAYABLE', amountToman: order.merchantPayoutAmountToman },
@@ -251,6 +268,263 @@ export class OrderService {
   
     });
   }
+
+  /**
+   * Confirms an order by the merchant, establishing or confirming the pickup window
+   * and notifying the customer via in-app, web push, and SMS.
+   */
+  async confirmOrderByMerchant(params: {
+    merchantUserId: string;
+    orderId: string;
+    pickupStart?: Date | string;
+    pickupEnd?: Date | string;
+    estimatedPreparationMinutes?: number;
+    noteFa?: string;
+  }): Promise<{ success: boolean; message?: string; order?: any }> {
+      const { merchantUserId, orderId, noteFa } = params;
+
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          merchant: {
+            include: { staff: true },
+          },
+          customer: {
+            include: { user: true },
+          },
+          items: {
+            include: { listing: true },
+          },
+        },
+      });
+
+      if (!order) {
+        return { success: false, message: 'سفارش مورد نظر یافت نشد' };
+      }
+
+      const actor = await prisma.user.findUnique({
+        where: { id: merchantUserId },
+        select: { role: true, isActive: true },
+      });
+
+      const isStoreOwner = order.merchant.ownerUserId === merchantUserId;
+      const staffMember = order.merchant.staff.find((s) => s.userId === merchantUserId);
+      const isPlatformAdmin = actor?.role === 'ADMIN';
+
+      if (!actor?.isActive || (!isStoreOwner && !staffMember && !isPlatformAdmin)) {
+        return { success: false, message: 'عدم دسترسی: شما مجاز به تایید سفارش‌های این فروشگاه نیستید' };
+      }
+
+      const now = new Date();
+      let newStart: Date;
+      let newEnd: Date;
+
+      if (params.pickupStart && params.pickupEnd) {
+        newStart = new Date(params.pickupStart);
+        newEnd = new Date(params.pickupEnd);
+      } else if (params.estimatedPreparationMinutes) {
+        newStart = now;
+        newEnd = new Date(now.getTime() + params.estimatedPreparationMinutes * 60 * 1000);
+      } else if (order.pickupStart && order.pickupEnd) {
+        newStart = order.pickupStart;
+        newEnd = order.pickupEnd;
+      } else {
+        const firstListing = order.items[0]?.listing;
+        if (firstListing?.pickupStart && firstListing?.pickupEnd) {
+          newStart = firstListing.pickupStart;
+          newEnd = firstListing.pickupEnd;
+        } else {
+          newStart = now;
+          newEnd = new Date(now.getTime() + 45 * 60 * 1000);
+        }
+      }
+
+      if (isNaN(newStart.getTime()) || isNaN(newEnd.getTime()) || newEnd <= newStart) {
+        return { success: false, message: 'بازه زمانی تحویل معتبر نمی‌باشد (پایان باید پس از شروع باشد)' };
+      }
+
+      const updatedOrder = await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          merchantConfirmedAt: now,
+          confirmedByUserId: merchantUserId,
+          pickupStart: newStart,
+          pickupEnd: newEnd,
+          notesFa: noteFa ? (order.notesFa ? `${order.notesFa} | ${noteFa}` : noteFa) : order.notesFa,
+          updatedAt: now,
+        },
+      });
+
+      const sH = newStart.getHours().toString().padStart(2, '0');
+      const sM = newStart.getMinutes().toString().padStart(2, '0');
+      const eH = newEnd.getHours().toString().padStart(2, '0');
+      const eM = newEnd.getMinutes().toString().padStart(2, '0');
+      const pickupWindowStr = `${sH}:${sM} تا ${eH}:${eM}`;
+
+      if (order.customer?.user) {
+        try {
+          await notificationService.createNotification({
+            userId: order.customer.user.id,
+            role: order.customer.user.role,
+            type: 'ORDER_MERCHANT_CONFIRMED',
+          category: 'order',
+          title: 'سفارش شما تایید شد',
+          body: `سفارش #${order.orderNumber} در «${order.merchant.businessNameFa}» تایید شد. بازه تحویل: ${pickupWindowStr}`,
+          link: `/orders/${order.id}/receipt`,
+          channels: ['IN_APP', 'WEB_PUSH', 'SMS'],
+          smsRecipientMobile: order.customer.user.mobile,
+          smsType: 'ORDER_CONFIRMATION',
+          smsData: {
+            orderNumber: order.orderNumber,
+            pickupWindow: pickupWindowStr,
+            },
+          });
+        } catch (err) {
+          console.error('[OrderService] Customer confirmation notification error:', err);
+        }
+      }
+
+      return {
+        success: true,
+        message: 'سفارش با موفقیت تایید شد و بازه تحویل به اطلاع مشتری رسید',
+        order: updatedOrder,
+      };
+  }
+
+  /**
+   * Updates/extends order pickup window (delay management)
+   * Records audit history and dispatches notifications to customer
+   */
+  async updateOrderPickupWindow(params: {
+    merchantUserId: string;
+    orderId: string;
+    pickupStart?: Date | string;
+    pickupEnd?: Date | string;
+    delayMinutes?: number;
+    reasonFa?: string;
+  }): Promise<{ success: boolean; message?: string; order?: any }> {
+      const { merchantUserId, orderId, delayMinutes, reasonFa } = params;
+
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          merchant: {
+            include: { staff: true },
+          },
+          customer: {
+            include: { user: true },
+          },
+          items: {
+            include: { listing: true },
+          },
+        },
+      });
+
+      if (!order) {
+        return { success: false, message: 'سفارش مورد نظر یافت نشد' };
+      }
+
+      const actor = await prisma.user.findUnique({
+        where: { id: merchantUserId },
+        select: { role: true, isActive: true },
+      });
+
+      const isStoreOwner = order.merchant.ownerUserId === merchantUserId;
+      const staffMember = order.merchant.staff.find((s) => s.userId === merchantUserId);
+      const isPlatformAdmin = actor?.role === 'ADMIN';
+
+      if (!actor?.isActive || (!isStoreOwner && !staffMember && !isPlatformAdmin)) {
+        return { success: false, message: 'عدم دسترسی: شما مجاز به ویرایش بازه تحویل این فروشگاه نیستید' };
+      }
+
+      const now = new Date();
+      const currentStart = order.pickupStart ?? (order.items[0]?.listing?.pickupStart || now);
+      const currentEnd = order.pickupEnd ?? (order.items[0]?.listing?.pickupEnd || new Date(now.getTime() + 30 * 60 * 1000));
+
+      let newStart: Date;
+      let newEnd: Date;
+
+      if (delayMinutes && delayMinutes > 0) {
+        newStart = new Date(currentStart.getTime() + delayMinutes * 60 * 1000);
+        newEnd = new Date(currentEnd.getTime() + delayMinutes * 60 * 1000);
+      } else if (params.pickupStart && params.pickupEnd) {
+        newStart = new Date(params.pickupStart);
+        newEnd = new Date(params.pickupEnd);
+      } else {
+        return { success: false, message: 'میزان تاخیر یا بازه تحویل جدید مشخص نشده است' };
+      }
+
+      if (isNaN(newStart.getTime()) || isNaN(newEnd.getTime()) || newEnd <= newStart) {
+        return { success: false, message: 'بازه تحویل نامعتبر است' };
+      }
+
+      const existingHistory = Array.isArray(order.pickupWindowHistory)
+        ? (order.pickupWindowHistory as any[])
+        : [];
+
+      const historyEntry = {
+        previousStart: currentStart.toISOString(),
+        previousEnd: currentEnd.toISOString(),
+        newStart: newStart.toISOString(),
+        newEnd: newEnd.toISOString(),
+        delayMinutes: delayMinutes || null,
+        reasonFa: reasonFa || null,
+        modifiedByUserId: merchantUserId,
+        modifiedAt: now.toISOString(),
+      };
+
+      const updatedHistory = [...existingHistory, historyEntry];
+
+      const updatedOrder = await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          pickupStart: newStart,
+          pickupEnd: newEnd,
+          delayReasonFa: reasonFa || order.delayReasonFa,
+          pickupWindowModifiedCount: { increment: 1 },
+          pickupWindowHistory: updatedHistory,
+          updatedAt: now,
+        },
+      });
+
+      const sH = newStart.getHours().toString().padStart(2, '0');
+      const sM = newStart.getMinutes().toString().padStart(2, '0');
+      const eH = newEnd.getHours().toString().padStart(2, '0');
+      const eM = newEnd.getMinutes().toString().padStart(2, '0');
+      const newWindowStr = `${sH}:${sM} تا ${eH}:${eM}`;
+
+      if (order.customer?.user) {
+        const reasonText = reasonFa ? ` (علت: ${reasonFa})` : '';
+        try {
+          await notificationService.createNotification({
+            userId: order.customer.user.id,
+            role: order.customer.user.role,
+            type: 'ORDER_DELAYED',
+          category: 'order',
+          title: 'بروزرسانی بازه تحویل (اعلام تاخیر)',
+          body: `بازه تحویل سفارش #${order.orderNumber} در «${order.merchant.businessNameFa}» به ساعت ${newWindowStr} تغییر یافت.${reasonText}`,
+          link: `/orders/${order.id}/receipt`,
+          channels: ['IN_APP', 'WEB_PUSH', 'SMS'],
+          smsRecipientMobile: order.customer.user.mobile,
+          smsType: 'ORDER_DELAYED',
+          smsData: {
+            orderNumber: order.orderNumber,
+            pickupWindow: newWindowStr,
+            delayReason: reasonFa,
+            },
+          });
+        } catch (err) {
+          console.error('[OrderService] Customer delay notification error:', err);
+        }
+      }
+
+      return {
+        success: true,
+        message: 'بازه تحویل با موفقیت بروزرسانی شد و تاخیر به اطلاع خریدار رسید',
+        order: updatedOrder,
+      };
+  }
+
   /**
    * Retrieves all orders for a customer with merchant and listing relations
    */
@@ -280,8 +554,8 @@ export class OrderService {
       const firstItem = order.items[0];
       const primaryLoc = order.merchant.locations.find(l => l.id === order.merchantLocationId) ?? order.merchant.locations[0];
 
-      const pickupStart = (firstItem?.pickupStartSnapshot ?? firstItem?.listing?.pickupStart);
-      const pickupEnd = (firstItem?.pickupEndSnapshot ?? firstItem?.listing?.pickupEnd);
+      const pickupStart = order.pickupStart ?? (firstItem?.pickupStartSnapshot ?? firstItem?.listing?.pickupStart);
+      const pickupEnd = order.pickupEnd ?? (firstItem?.pickupEndSnapshot ?? firstItem?.listing?.pickupEnd);
 
       let pickupWindowFa = '';
       if (pickupStart && pickupEnd) {
@@ -302,6 +576,11 @@ export class OrderService {
         quantity: firstItem?.quantity || 1,
         totalAmountToman: Number(order.totalAmountToman),
         status: order.status,
+        merchantConfirmedAt: order.merchantConfirmedAt ? order.merchantConfirmedAt.toISOString() : null,
+        isConfirmedByMerchant: Boolean(order.merchantConfirmedAt),
+        pickupStartIso: pickupStart ? pickupStart.toISOString() : null,
+        pickupWindowModifiedCount: order.pickupWindowModifiedCount,
+        delayReasonFa: order.delayReasonFa,
         pickupWindowFa,
         pickupEndIso: pickupEnd ? pickupEnd.toISOString() : '',
         createdAt: order.createdAt.toISOString(),

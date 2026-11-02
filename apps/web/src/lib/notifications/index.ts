@@ -9,6 +9,7 @@ const unavailable: INotificationService = {
   sendOtp: async () => false,
   sendOrderConfirmation: async () => false,
   sendPickupReminder: async () => false,
+  sendOrderDelayNotification: async () => false,
 };
 
 export function getNotificationService(): INotificationService {

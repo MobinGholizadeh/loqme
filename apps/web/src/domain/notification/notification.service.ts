@@ -22,14 +22,16 @@ export interface CreateNotificationInput {
   title: string;
   body: string;
   link?: string | null;
+  tag?: string;
   dataJson?: string | null;
   channels?: NotificationChannel[];
   smsRecipientMobile?: string;
-  smsType?: 'ORDER_CONFIRMATION' | 'PICKUP_REMINDER';
+  smsType?: 'ORDER_CONFIRMATION' | 'PICKUP_REMINDER' | 'ORDER_DELAYED';
   smsData?: {
     orderNumber?: string;
     pickupWindow?: string;
     remainingMinutes?: number;
+    delayReason?: string;
   };
 }
 
@@ -130,6 +132,7 @@ export class NotificationService {
         body: notification.body,
         link: notification.link || undefined,
         category: notification.category,
+        tag: input.tag || (notification.category ? `loqme-${notification.category}` : undefined),
       }).catch((err) => {
         console.error(`[NotificationService] WebPush dispatch error for user ${input.userId}:`, err);
       });
@@ -183,7 +186,7 @@ export class NotificationService {
       icon: payload.icon || '/icon.svg',
       badge: payload.badge || '/favicon.svg',
       link: payload.link || '/',
-      tag: payload.tag || (payload.id ? `loqme-${payload.id}` : undefined),
+      tag: payload.tag || (payload.category ? `loqme-${payload.category}` : (payload.id ? `loqme-${payload.id}` : undefined)),
       category: payload.category || 'system',
       data: payload.data || {},
     });
@@ -248,8 +251,8 @@ export class NotificationService {
   private async dispatchSms(
     notificationId: string,
     mobile: string,
-    smsType?: 'ORDER_CONFIRMATION' | 'PICKUP_REMINDER',
-    smsData?: { orderNumber?: string; pickupWindow?: string; remainingMinutes?: number }
+    smsType?: 'ORDER_CONFIRMATION' | 'PICKUP_REMINDER' | 'ORDER_DELAYED',
+    smsData?: { orderNumber?: string; pickupWindow?: string; remainingMinutes?: number; delayReason?: string }
   ): Promise<void> {
     const sms = getNotificationService();
     let sent = false;
@@ -259,6 +262,8 @@ export class NotificationService {
         sent = await sms.sendOrderConfirmation(mobile, smsData.orderNumber, smsData.pickupWindow);
       } else if (smsType === 'PICKUP_REMINDER' && smsData?.orderNumber && smsData?.remainingMinutes) {
         sent = await sms.sendPickupReminder(mobile, smsData.orderNumber, smsData.remainingMinutes);
+      } else if (smsType === 'ORDER_DELAYED' && smsData?.orderNumber && smsData?.pickupWindow) {
+        sent = await sms.sendOrderDelayNotification(mobile, smsData.orderNumber, smsData.pickupWindow, smsData.delayReason);
       }
 
       await prisma.notificationDelivery.create({
@@ -286,6 +291,7 @@ export class NotificationService {
    * Broadcasts notification to all system administrators
    */
   async notifyAdmins(params: Omit<CreateNotificationInput, 'userId' | 'role'>): Promise<void> {
+    if (!prisma.user?.findMany) return;
     const admins = await prisma.user.findMany({
       where: { role: Role.ADMIN, isActive: true },
       select: { id: true },
@@ -309,6 +315,7 @@ export class NotificationService {
     merchantId: string,
     params: Omit<CreateNotificationInput, 'userId' | 'role'>
   ): Promise<void> {
+    if (!prisma.merchant?.findUnique) return;
     const merchant = await prisma.merchant.findUnique({
       where: { id: merchantId },
       select: {

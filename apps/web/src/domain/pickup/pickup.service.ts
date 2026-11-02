@@ -165,8 +165,8 @@ export class PickupService {
     const listing = firstItem?.listing;
     const primaryLoc = order.merchant.locations.find(l => l.id === order.merchantLocationId) ?? order.merchant.locations[0];
 
-    const pickupStart = firstItem?.pickupStartSnapshot ?? listing?.pickupStart;
-    const pickupEnd = firstItem?.pickupEndSnapshot ?? listing?.pickupEnd;
+    const pickupStart = order.pickupStart ?? (firstItem?.pickupStartSnapshot ?? listing?.pickupStart);
+    const pickupEnd = order.pickupEnd ?? (firstItem?.pickupEndSnapshot ?? listing?.pickupEnd);
     const now = new Date();
     const isPastPickupEnd = pickupEnd ? pickupEnd.getTime() < now.getTime() : false;
 
@@ -621,8 +621,8 @@ export class PickupService {
     return orders.map((order) => {
       const firstItem = order.items[0];
       const listing = firstItem?.listing;
-      const pickupStart = firstItem?.pickupStartSnapshot ?? listing?.pickupStart;
-      const pickupEnd = firstItem?.pickupEndSnapshot ?? listing?.pickupEnd;
+      const pickupStart = order.pickupStart ?? (firstItem?.pickupStartSnapshot ?? listing?.pickupStart);
+      const pickupEnd = order.pickupEnd ?? (firstItem?.pickupEndSnapshot ?? listing?.pickupEnd);
       const isPastPickupEnd = pickupEnd ? pickupEnd.getTime() < now.getTime() : false;
 
       let pickupWindowFa = 'امروز در ساعات کاری';
@@ -649,6 +649,11 @@ export class PickupService {
         listingTitleFa: listing?.titleFa || 'بسته لقمه',
         quantity: firstItem?.quantity || 1,
         totalAmountToman: Number(order.totalAmountToman),
+        merchantConfirmedAt: order.merchantConfirmedAt ? order.merchantConfirmedAt.toISOString() : null,
+        isConfirmedByMerchant: Boolean(order.merchantConfirmedAt),
+        delayReasonFa: order.delayReasonFa,
+        pickupWindowModifiedCount: order.pickupWindowModifiedCount,
+        pickupWindowHistory: (order.pickupWindowHistory as any) || null,
         pickupWindowFa,
         pickupStartIso: pickupStart ? pickupStart.toISOString() : '',
         pickupEndIso: pickupEnd ? pickupEnd.toISOString() : '',
@@ -675,17 +680,29 @@ export class PickupService {
       where: {
         ...(merchantId ? { merchantId } : {}),
         status: { in: [OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP] },
-        items: {
-          some: {
+        AND: [
+          {
             OR: [
-              { pickupEndSnapshot: { lt: now } },
-              { pickupEndSnapshot: null, listing: { pickupEnd: { lt: now } } },
+              { pickupEnd: { lt: now } },
+              {
+                pickupEnd: null,
+                items: {
+                  some: {
+                    OR: [
+                      { pickupEndSnapshot: { lt: now } },
+                      { pickupEndSnapshot: null, listing: { pickupEnd: { lt: now } } },
+                    ],
+                  },
+                },
+              },
             ],
           },
-        },
-        OR: [
-          { pickupVerification: null },
-          { pickupVerification: { isVerified: false } },
+          {
+            OR: [
+              { pickupVerification: null },
+              { pickupVerification: { isVerified: false } },
+            ],
+          },
         ],
       },
       select: { id: true },
@@ -710,6 +727,40 @@ export class PickupService {
       },
       select: { id: true },
     });
+
+    try {
+      const sweptOrders = await prisma.order.findMany({
+        where: { id: { in: swept.map(s => s.id) } },
+        include: {
+          customer: { include: { user: true } },
+          merchant: { select: { id: true, businessNameFa: true } },
+        },
+      });
+
+      for (const order of sweptOrders) {
+        if (order.customer?.user) {
+          notificationService.createNotification({
+            userId: order.customer.user.id,
+            role: order.customer.user.role,
+            type: 'ORDER_NO_SHOW',
+            category: 'order',
+            title: 'پایان مهلت تحویل سفارش',
+            body: 'مهلت تحویل سفارش #' + order.orderNumber + ' از «' + order.merchant.businessNameFa + '» به پایان رسید و به عنوان عدم مراجعه ثبت شد.',
+            link: '/orders',
+          }).catch(() => {});
+        }
+
+        notificationService.notifyMerchant(order.merchant.id, {
+          type: 'ORDER_NO_SHOW',
+          category: 'order',
+          title: 'اتمام مهلت تحویل سفارش #' + order.orderNumber,
+          body: 'مهلت تحویل سفارش #' + order.orderNumber + ' به پایان رسید (عدم مراجعه مشتری).',
+          link: '/merchant/orders',
+        }).catch(() => {});
+      }
+    } catch {
+      // Non-blocking
+    }
 
     return {
       success: true,
@@ -754,6 +805,24 @@ export class PickupService {
         console.log(
           `📱 [PICKUP REMINDER - LOQME / لقمه] Sent reminder to ${order.customer.user.mobile} for Order ${order.orderNumber}`
         );
+        if (order.customer?.user) {
+          notificationService.createNotification({
+            userId: order.customer.user.id,
+            role: order.customer.user.role,
+            type: 'PICKUP_REMINDER',
+            category: 'order',
+            title: 'یادآوری تحویل سفارش',
+            body: 'کمتر از ۴۵ دقیقه تا پایان مهلت تحویل سفارش #' + order.orderNumber + ' باقی مانده است',
+            link: '/orders',
+            channels: ['IN_APP', 'WEB_PUSH', 'SMS'],
+            smsRecipientMobile: order.customer.user.mobile,
+            smsType: 'PICKUP_REMINDER',
+            smsData: {
+              orderNumber: order.orderNumber,
+              remainingMinutes: 45,
+            },
+          }).catch(() => {});
+        }
         await prisma.pickupVerification.update({
           where: { id: order.pickupVerification.id },
           data: { reminderSentAt: now },
