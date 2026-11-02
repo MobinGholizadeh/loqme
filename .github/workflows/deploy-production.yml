@@ -39,9 +39,10 @@ jobs:
 
       - name: Package for inexpensive PHP shared hosting
         run: |
-          mkdir -p hosting-package/public_html
+          mkdir -p hosting-package/public_html hosting-package/scripts
           cp -a dist/. hosting-package/public_html/
           cp php/voidframe-config.example.php hosting-package/
+          cp scripts/setup-php.php hosting-package/scripts/
           cp deploy/SHARED-HOSTING.md hosting-package/README.md
 
       - name: Upload ready-to-use shared hosting package
